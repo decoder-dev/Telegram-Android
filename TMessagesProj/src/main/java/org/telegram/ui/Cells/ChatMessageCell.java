@@ -18918,6 +18918,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
 
+            if (adminString == null && AyuConfig.showFromChannel && isMegagroup && currentChat != null && currentMessageObject.isFromChannel()) {
+                adminString = new SpannableStringBuilder(getString(R.string.DiscussChannel));
+            }
+
             int boosts = currentMessageObject.messageOwner.from_boosts_applied;
             if (boosts > 0) {
                 if (adminString == null) {
