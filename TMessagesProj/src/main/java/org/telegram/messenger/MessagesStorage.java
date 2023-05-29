@@ -29,6 +29,8 @@ import android.util.SparseIntArray;
 import androidx.annotation.UiThread;
 import androidx.collection.LongSparseArray;
 
+import com.radolyn.ayugram.messages.AyuMessagesController;
+
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
@@ -16312,6 +16314,9 @@ public class MessagesStorage extends BaseController {
                                     }
                                     if (oldMessage.out && !message.out) {
                                         message.out = oldMessage.out;
+                                    }
+                                    if (message.from_id != null && (!oldMessage.message.equals(message.message) || !sameMedia)) {
+                                        AyuMessagesController.getInstance().onMessageEdited(oldMessage, message, getUserConfig().clientUserId, getAccountInstance().getCurrentAccount(), getConnectionsManager().getCurrentTime());
                                     }
                                     if (!sameMedia) {
                                         addFilesToDelete(oldMessage, filesToDelete, idsToDelete, namesToDelete, false);

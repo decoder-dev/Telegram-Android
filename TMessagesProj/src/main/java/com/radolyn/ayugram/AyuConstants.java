@@ -9,4 +9,6 @@ public class AyuConstants {
 
     public static String BUILD_STORE_PACKAGE = "com.android.vending";
     public static String BUILD_ORIGINAL_PACKAGE = "org.telegram.messenger";
+
+    public static final int OPTION_HISTORY = 1338_01;
 }
