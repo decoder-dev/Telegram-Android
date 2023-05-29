@@ -25269,6 +25269,15 @@ public class ChatActivity extends BaseFragment implements
         if (res == null || res.messages == null) {
             return;
         }
+        if (!com.radolyn.ayugram.AyuConfig.enableAds) {
+            ArrayList<MessageObject> nonAds = new ArrayList<>();
+            for (MessageObject message : res.messages) if (!message.isSponsored()) nonAds.add(message);
+            sponsoredMessagesAdded = true;
+            botSponsoredMessage = null;
+            if (UserObject.isBot(currentUser)) updateTopPanel(true);
+            if (!nonAds.isEmpty()) processNewMessages(nonAds, false);
+            return;
+        }
         for (int i = 0; i < res.messages.size(); i++) {
             MessageObject messageObject = res.messages.get(i);
             messageObject.resetLayout();
@@ -26601,6 +26610,7 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private int getSponsoredMessagesCount() {
+        if (!com.radolyn.ayugram.AyuConfig.enableAds) return 0;
         int sponsoredMessagesCount = 0;
         while (sponsoredMessagesCount < messages.size()) {
             if (!messages.get(sponsoredMessagesCount).isSponsored()) {
