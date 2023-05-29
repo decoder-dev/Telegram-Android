@@ -6,4 +6,7 @@ public class AyuConstants {
     public static String APP_NAME = "BananaGram";
     public static final long[] OFFICIAL_CHANNELS = {};
     public static final long[] DEVS = {};
+
+    public static String BUILD_STORE_PACKAGE = "com.android.vending";
+    public static String BUILD_ORIGINAL_PACKAGE = "org.telegram.messenger";
 }

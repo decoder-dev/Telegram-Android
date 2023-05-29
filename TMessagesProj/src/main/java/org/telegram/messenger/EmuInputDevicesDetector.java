@@ -20,18 +20,7 @@ public final class EmuInputDevicesDetector {
     }
 
     public static boolean detect() {
-        final List<String> deviceNames = getInputDevicesNames();
-
-        if (deviceNames != null) {
-            for (String deviceName : deviceNames) {
-                for (String restrictedDeviceName : RESTRICTED_DEVICES) {
-                    if (deviceName.toLowerCase().contains(restrictedDeviceName)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
+        // AyuGram: remove emulator detection
         return false;
     }
 
