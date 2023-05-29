@@ -6086,7 +6086,7 @@ public class MessageObject {
                 } else if (getMedia(messageOwner) instanceof TLRPC.TL_messageMediaInvoice) {
                     messageText = getMedia(messageOwner).description;
                 } else if (getMedia(messageOwner) instanceof TLRPC.TL_messageMediaUnsupported) {
-                    messageText = getString(R.string.UnsupportedMedia2);
+                    messageText = getString(R.string.UnsupportedMedia2).replace("Telegram", com.radolyn.ayugram.AyuConstants.APP_NAME);
                 } else if (getMedia(messageOwner) instanceof TLRPC.TL_messageMediaDocument) {
                     if (isSticker() || isAnimatedStickerDocument(getDocument(), true)) {
                         String sch = getStickerChar();
@@ -6550,7 +6550,7 @@ public class MessageObject {
         } else if (media instanceof TLRPC.TL_messageMediaInvoice) {
             return media.description;
         } else if (media instanceof TLRPC.TL_messageMediaUnsupported) {
-            return getString(R.string.UnsupportedMedia2);
+            return getString(R.string.UnsupportedMedia2).replace("Telegram", com.radolyn.ayugram.AyuConstants.APP_NAME);
         } else if (media instanceof TLRPC.TL_messageMediaDocument) {
             if (isStickerDocument(media.document) || isAnimatedStickerDocument(media.document, true)) {
                 String sch = getStickerChar();
