@@ -21,6 +21,8 @@ import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+
+import com.radolyn.ayugram.AyuConstants;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildVars;
@@ -303,7 +305,7 @@ public class BlockingUpdateView extends FrameLayout implements NotificationCente
         if (check && ApplicationLoader.isStandaloneBuild()) {
             TLRPC.TL_help_getAppUpdate req = new TLRPC.TL_help_getAppUpdate();
             try {
-                req.source = ApplicationLoader.applicationContext.getPackageManager().getInstallerPackageName(ApplicationLoader.applicationContext.getPackageName());
+                req.source = AyuConstants.BUILD_STORE_PACKAGE;
             } catch (Exception ignore) {
 
             }
