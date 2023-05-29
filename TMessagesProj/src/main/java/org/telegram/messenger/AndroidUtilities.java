@@ -5237,6 +5237,16 @@ public class AndroidUtilities {
         return friction / (2f * (float) Math.sqrt(mass * tension));
     }
 
+    private static WeakReference<BaseFragment> flagSecureFragment;
+
+    public static boolean hasFlagSecureFragment() {
+        return flagSecureFragment != null;
+    }
+
+    public static void setFlagSecure(BaseFragment parentFragment, boolean set) {
+        // AyuGram: removed
+    }
+
     public static void openSharing(BaseFragment fragment, String url) {
         if (fragment == null || fragment.getParentActivity() == null) {
             return;
