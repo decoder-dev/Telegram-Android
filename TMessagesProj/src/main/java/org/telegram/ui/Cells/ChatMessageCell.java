@@ -99,6 +99,9 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.math.MathUtils;
 
+import com.radolyn.ayugram.AyuConfig;
+import com.radolyn.ayugram.messages.AyuMessagesController;
+
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
@@ -1836,6 +1839,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     public final TransitionParams transitionParams = new TransitionParams();
     private boolean edited;
+    private boolean ayuDeleted;
     private boolean imageDrawn;
     private boolean photoImageOutOfBounds;
 
@@ -6868,13 +6872,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
             groupChanged = newPosition != currentPosition;
         }
+        var clientUserId = UserConfig.getInstance(currentAccount).getClientUserId();
+        var isDeleted = (messageObject.messageOwner != null && AyuMessagesController.getInstance().isDeleted(clientUserId, messageObject.messageOwner.dialog_id, messageObject.messageOwner.id));
         if (!messageChanged && effectId != messageObject.getEffectId()) {
             messageChanged = true;
         }
         if (messageObject.updateSideMenuEnabled(isSideMenuEnabled)) {
             messageChanged = true;
         }
-        if (messageChanged || dataChanged || groupChanged || pollChanged || widthChanged && messageObject.isPoll() || isPhotoDataChanged(messageObject) || pinnedBottom != bottomNear || pinnedTop != topNear) {
+        if (messageChanged || dataChanged || groupChanged || pollChanged || widthChanged && messageObject.isPoll() || isPhotoDataChanged(messageObject) || pinnedBottom != bottomNear || pinnedTop != topNear || isDeleted) {
             postRunnableHolder.clear();
 
             if (stickerSetIcons != null) {
@@ -18471,16 +18477,20 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             author = MessagesController.getInstance(currentAccount).getUser(fromId);
         }
         boolean hasReplies = messageObject.hasReplies();
+        var clientUserId = UserConfig.getInstance(currentAccount).getClientUserId();
         if (messageObject.scheduled || messageObject.messageOwner.edit_hide) {
             edited = false;
+            ayuDeleted = AyuMessagesController.getInstance().isDeleted(clientUserId, messageObject.messageOwner.dialog_id, messageObject.messageOwner.id) && !(currentChat instanceof TLRPC.TL_chat && author != null && author.bot); // ensure we're not in PM with bot, as it can screw experience
         } else if (currentPosition == null || currentMessagesGroup == null || currentMessagesGroup.messages.isEmpty()) {
             edited = (messageObject.messageOwner.flags & TLRPC.MESSAGE_FLAG_EDITED) != 0 || messageObject.isEditing();
+            ayuDeleted = AyuMessagesController.getInstance().isDeleted(clientUserId, messageObject.messageOwner.dialog_id, messageObject.messageOwner.id);
         } else {
             edited = false;
             hasReplies = currentMessagesGroup.messages.get(0).hasReplies();
             if (!currentMessagesGroup.messages.get(0).messageOwner.edit_hide) {
                 for (int a = 0, size = currentMessagesGroup.messages.size(); a < size; a++) {
                     MessageObject object = currentMessagesGroup.messages.get(a);
+                    ayuDeleted = AyuMessagesController.getInstance().isDeleted(clientUserId, messageObject.messageOwner.dialog_id, messageObject.messageOwner.id);
                     if ((object.messageOwner.flags & TLRPC.MESSAGE_FLAG_EDITED) != 0 || object.isEditing()) {
                         edited = true;
                         break;
@@ -18494,7 +18504,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             timeString = "";
         } else if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE) {
             timeString = "";
-        } else if (currentMessageObject.realDate != 0) {
+} else if (ayuDeleted) {
+            timeString = (edited ? getString(R.string.EditedMessage) + " (" + AyuConfig.getDeletedMark() + ")" : AyuConfig.getDeletedMark()) + " " + LocaleController.getInstance().getFormatterDay().format((long) messageObject.messageOwner.date * 1000);
+                } else if (currentMessageObject.realDate != 0) {
             timeString = LocaleController.formatSmallDateChat(currentMessageObject.realDate) + ", " + LocaleController.getInstance().getFormatterDay().format((long) (currentMessageObject.realDate) * 1000);
         } else if (currentMessageObject.isRepostPreview) {
             timeString = LocaleController.formatSmallDateChat(messageObject.messageOwner.date) + ", " + LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
@@ -28443,7 +28455,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             lastDrawingSideMenuEnabled = isSideMenuEnabled;
             lastDrawingTextBlocks = currentMessageObject != null ? currentMessageObject.textLayoutBlocks : null;
             lastDrawingTextWidth = currentMessageObject != null ? currentMessageObject.textWidth : 0;
-            lastDrawingEdited = edited;
+            lastDrawingEdited = edited || ayuDeleted;
             lastDrawingRichLayout = currentMessageObject != null ? currentMessageObject.richLayout : null;
 
             lastDrawingCaptionX = captionX;
@@ -28659,8 +28671,16 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     changed = true;
                 }
             }
-            if (edited && !lastDrawingEdited && timeLayout != null) {
-                String editedStr = getString("EditedMessage", R.string.EditedMessage);
+            if ((edited || ayuDeleted) && !lastDrawingEdited && timeLayout != null) {
+                String editedStr;
+                if (edited && !ayuDeleted){
+                    editedStr = LocaleController.getString("EditedMessage", R.string.EditedMessage);
+                } else if (!edited) {
+                    editedStr = AyuConfig.getDeletedMark();
+                } else {
+                    // it's both edited and deleted
+                    editedStr = LocaleController.getString("EditedMessage", R.string.EditedMessage) + " (" + AyuConfig.getDeletedMark() + ")";
+                }
                 CharSequence text = timeLayout.getText();
                 int i = text.toString().indexOf(editedStr);
                 if (i >= 0) {
@@ -28684,7 +28704,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     changed = true;
                 }
                 accessibilityText = null;
-            } else if (!edited && lastDrawingEdited && timeLayout != null) {
+            } else if (!(edited || ayuDeleted) && lastDrawingEdited && timeLayout != null) {
                 animateTimeLayout = lastTimeLayout;
                 animateEditedWidthDiff = timeWidth - lastTimeWidth;
                 animateEditedEnter = true;

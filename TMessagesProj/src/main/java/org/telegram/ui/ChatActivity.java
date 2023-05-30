@@ -1306,6 +1306,8 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_SEND_MONEY = 117;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
+            AyuConstants.MESSAGES_DELETED_NOTIFICATION,
+
             NotificationCenter.messagesRead,
             NotificationCenter.threadMessagesRead,
             NotificationCenter.monoForumMessagesRead,
@@ -3091,6 +3093,8 @@ public class ChatActivity extends BaseFragment implements
             observersGroup.add(NotificationCenter.hashtagSearchUpdated);
         }
 
+        getNotificationCenter().addObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
+
         super.onFragmentCreate();
 
         if (chatMode == MODE_PINNED) {
@@ -3474,6 +3478,8 @@ public class ChatActivity extends BaseFragment implements
         }
         getNotificationCenter().removePostponeNotificationsCallback(postponeNotificationsWhileLoadingCallback);
         getMessagesController().setLastCreatedDialogId(dialog_id, chatMode == MODE_SCHEDULED, false);
+
+        getNotificationCenter().removeObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
 
         if (observersGroup != null) {
             observersGroup.removeAllObservers();
@@ -25045,6 +25051,25 @@ public class ChatActivity extends BaseFragment implements
         if (scrollByCell != null) {
             chatLayoutManager.scrollToPositionWithOffset(chatListView.getChildAdapterPosition(scrollByCell), scrollByCell.getTop() - (int) chatListViewPaddingTop, false);
         }
+
+        // --- AyuGram hook
+        if (id == AyuConstants.MESSAGES_DELETED_NOTIFICATION) {
+            long dialogId = (Long) args[0];
+            if (dialogId != dialog_id && (ChatObject.isChannel(currentChat) || dialogId != 0)) {
+                return;
+            }
+            ArrayList<Integer> messageIds = (ArrayList<Integer>) args[1];
+            for (int a = 0, N = messageIds.size(); a < N; a++) {
+                int mid = messageIds.get(a);
+                MessageObject currentMessage = messagesDict[0].get(mid);
+                if (currentMessage != null) {
+                    if (chatAdapter != null) {
+                        chatAdapter.updateRowWithMessageObject(currentMessage, false);
+                    }
+                }
+            }
+        }
+        // --- AyuGram hook
     }
 
     private int getScrollingOffsetForView(View v) {
