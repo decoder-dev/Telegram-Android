@@ -14605,7 +14605,7 @@ public class MessagesController extends BaseController implements NotificationCe
         ArrayList<Long> randomIds = new ArrayList<>();
         randomIds.add(randomId);
         getSecretChatHelper().sendMessagesReadMessage(chat, randomIds, null);
-        if (ttl > 0) {
+        if (ttl > 0 && !AyuConfig.keepDeletedMessages) {
             int time = getConnectionsManager().getCurrentTime();
             getMessagesStorage().createTaskForSecretChat(chat.id, time, time, 0, randomIds);
         }

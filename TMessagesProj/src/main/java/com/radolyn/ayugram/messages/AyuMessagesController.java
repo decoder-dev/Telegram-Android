@@ -1,5 +1,6 @@
 package com.radolyn.ayugram.messages;
 
+import android.database.sqlite.SQLiteConstraintException;
 import android.os.Environment;
 
 import androidx.room.Room;
@@ -131,7 +132,11 @@ public class AyuMessagesController {
         msg.messageId = msgId;
         msg.date = currentTime;
 
-        database.deletedMessageDao().insert(msg);
+        try {
+            database.deletedMessageDao().insert(msg);
+        } catch (SQLiteConstraintException e) {
+            // ignored, I hate java
+        }
     }
 
     public boolean isDeleted(long userId, long dialogId, int msgId) {
