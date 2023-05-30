@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.radolyn.ayugram.database.entities.EditedMessage;
+import com.radolyn.ayugram.messages.AyuFileLocation;
 import com.radolyn.ayugram.messages.AyuMessagesController;
 
 import org.telegram.messenger.LocaleController;
@@ -21,14 +22,6 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
-import org.telegram.ui.Cells.ChatActionCell;
-import org.telegram.ui.Cells.HeaderCell;
-import org.telegram.ui.Cells.NotificationsCheckCell;
-import org.telegram.ui.Cells.ShadowSectionCell;
-import org.telegram.ui.Cells.TextCheckCell;
-import org.telegram.ui.Cells.TextDetailSettingsCell;
-import org.telegram.ui.Cells.TextInfoPrivacyCell;
-import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 
@@ -100,52 +93,7 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
 
     @Override
     public ArrayList<ThemeDescription> getThemeDescriptions() {
-        ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
-
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{HeaderCell.class, TextCheckCell.class, TextDetailSettingsCell.class, TextSettingsCell.class, NotificationsCheckCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
-        themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
-
-        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_LISTGLOWCOLOR, null, null, null, null, Theme.key_actionBarDefault));
-        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, null, Theme.key_actionBarDefaultIcon));
-        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, null, null, Theme.key_actionBarDefaultTitle));
-        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarDefaultSelector));
-
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_SELECTOR, null, null, null, null, Theme.key_listSelector));
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{View.class}, Theme.dividerPaint, null, null, Theme.key_divider));
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{HeaderCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlueHeader));
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{NotificationsCheckCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{NotificationsCheckCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{NotificationsCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrack));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{NotificationsCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrackChecked));
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrack));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrackChecked));
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{AyuMessageCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{AyuMessageCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{ChatActionCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{ChatActionCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteValueText));
-
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{ShadowSectionCell.class}, null, null, null, Theme.key_windowBackgroundGrayShadow));
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextDetailSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextDetailSettingsCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
-
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{TextInfoPrivacyCell.class}, null, null, null, Theme.key_windowBackgroundGrayShadow));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextInfoPrivacyCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText4));
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_LINKCOLOR, new Class[]{TextInfoPrivacyCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteLinkText));
-
-        return themeDescriptions;
+        return new ArrayList<>();
     }
 
     @Override
@@ -189,56 +137,9 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
 
                 var editedMessage = messages.get(position);
 
-                // shamefully copied from Extera's sticker size preview
-                var msg = new TLRPC.TL_message();
-                msg.message = editedMessage.text;
-                msg.date = (int) editedMessage.date;
-                msg.dialog_id = -1;
-                msg.flags = 259;
-                msg.id = Utilities.random.nextInt();
-                msg.out = false;
-                msg.peer_id = new TLRPC.TL_peerUser();
-                msg.peer_id.user_id = 1;
+                var msg = createMessageObject(editedMessage);
 
-                if (editedMessage.path != null) {
-                    msg.attachPath = editedMessage.path;
-
-                    if (!editedMessage.isDocument) {
-                        msg.media = new TLRPC.TL_messageMediaPhoto();
-                        msg.media.flags |= 3;
-                        msg.media.photo = new TLRPC.TL_photo();
-                        msg.media.photo.file_reference = new byte[0];
-                        msg.media.photo.has_stickers = false;
-                        msg.media.photo.id = Utilities.random.nextInt();
-                        msg.media.photo.access_hash = 0;
-                        msg.media.photo.date = (int) editedMessage.date;
-                        TLRPC.TL_photoSize photoSize = new TLRPC.TL_photoSize();
-                        photoSize.size = 0;
-                        photoSize.w = 500;
-                        photoSize.h = 302;
-                        photoSize.type = "s";
-                        photoSize.location = new TLRPC.TL_fileLocationUnavailable();
-                        msg.media.photo.sizes.add(photoSize);
-                        msg.attachPath = editedMessage.path;
-                    } else {
-                        msg.media = new TLRPC.TL_messageMediaDocument();
-                        msg.media.flags |= 1;
-
-                        var file = new File(editedMessage.path);
-                        msg.media.document = new TLRPC.TL_document();
-                        msg.media.document.file_reference = new byte[0];
-                        msg.media.document.access_hash = 0;
-                        msg.media.document.date = (int) editedMessage.date;
-                        msg.media.document.localPath = editedMessage.path;
-                        msg.media.document.file_name = file.getName();
-                        msg.media.document.size = file.length();
-                    }
-                }
-
-                var messageObject = new MessageObject(getCurrentAccount(), msg, true, false);
-                messageObject.useCustomPhoto = editedMessage.path != null && !editedMessage.isDocument;
-
-                ayuMessageDetailCell.setMessageObject(messageObject, null, false, false);
+                ayuMessageDetailCell.setMessageObject(msg, null, false, false);
                 ayuMessageDetailCell.setEditedMessage(editedMessage);
                 ayuMessageDetailCell.setId(position);
             }
@@ -247,6 +148,62 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
         @Override
         public int getItemViewType(int position) {
             return position >= 0 && position < messages.size() ? 1 : 0;
+        }
+
+        private MessageObject createMessageObject(EditedMessage editedMessage) {
+            // shamefully copied from Extera's sticker size preview
+            var msg = new TLRPC.TL_message();
+            msg.message = editedMessage.text;
+            msg.date = (int) editedMessage.date;
+            msg.dialog_id = -1;
+            msg.flags = 512;
+            msg.id = Utilities.random.nextInt();
+            msg.out = false;
+            msg.peer_id = new TLRPC.TL_peerUser();
+            msg.peer_id.user_id = 1;
+
+            if (editedMessage.path != null) {
+                msg.attachPath = editedMessage.path;
+                var file = new File(editedMessage.path);
+
+                if (!editedMessage.isDocument) {
+                    msg.media = new TLRPC.TL_messageMediaPhoto();
+                    msg.media.flags |= 3;
+                    msg.media.photo = new TLRPC.TL_photo();
+                    msg.media.photo.file_reference = new byte[]{
+                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+                    };
+                    msg.media.photo.has_stickers = false;
+                    msg.media.photo.id = Utilities.random.nextInt();
+                    msg.media.photo.access_hash = Utilities.random.nextInt();
+                    msg.media.photo.date = (int) editedMessage.date;
+                    msg.media.photo.dc_id = 2;
+                    msg.media.photo.user_id = 1338;
+
+                    TLRPC.TL_photoSize photoSize = new TLRPC.TL_photoSize();
+                    photoSize.size = (int) file.length();
+                    photoSize.w = 500;
+                    photoSize.h = 302;
+                    photoSize.type = "s";
+                    photoSize.location = new AyuFileLocation(editedMessage.path);
+                    msg.media.photo.sizes.add(photoSize);
+                    msg.attachPath = editedMessage.path;
+                } else {
+                    msg.media = new TLRPC.TL_messageMediaDocument();
+                    msg.media.flags |= 1;
+
+                    msg.media.document = new TLRPC.TL_document();
+                    msg.media.document.file_reference = new byte[0];
+                    msg.media.document.access_hash = 0;
+                    msg.media.document.date = (int) editedMessage.date;
+                    msg.media.document.localPath = editedMessage.path;
+                    msg.media.document.file_name = file.getName();
+                    msg.media.document.size = file.length();
+                }
+            }
+
+            var messageObject = new MessageObject(getCurrentAccount(), msg, true, true);
+            return messageObject;
         }
     }
 }

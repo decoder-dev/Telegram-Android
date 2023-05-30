@@ -228,8 +228,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         public int getItemViewType(int position) {
             if (position == customizationDividerRow) {
                 return 1;
-            }
-            else if (position == deletedMarkTextRow || position == cleanDatabaseBtnRow) {
+            } else if (position == deletedMarkTextRow || position == cleanDatabaseBtnRow) {
                 return 2;
             } else if (
                     position == ghostEssentialsHeaderRow ||
