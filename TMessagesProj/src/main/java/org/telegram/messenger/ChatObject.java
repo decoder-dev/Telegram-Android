@@ -18,6 +18,7 @@ import android.util.SparseArray;
 import androidx.annotation.IntDef;
 import androidx.collection.LongSparseArray;
 
+import com.radolyn.ayugram.AyuConfig;
 
 
 import org.telegram.messenger.utils.tlutils.TlUtils;
@@ -1962,6 +1963,7 @@ public class ChatObject {
     }
 
     public static boolean isNotInChat(TLRPC.Chat chat) {
+        if (AyuConfig.keepDeletedMessages) return chat == null || chat.left;
         return chat == null || chat instanceof TLRPC.TL_chatEmpty || isForbidden(chat) || chat.left || chat.kicked || chat.deactivated;
     }
 

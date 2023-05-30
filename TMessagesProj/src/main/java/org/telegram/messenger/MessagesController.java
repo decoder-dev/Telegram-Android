@@ -16912,6 +16912,10 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     private void checkChannelError(String text, long channelId) {
+        if (AyuConfig.keepDeletedMessages) {
+            return;
+        }
+
         switch (text) {
             case "CHANNEL_PRIVATE":
                 getNotificationCenter().postNotificationName(NotificationCenter.chatInfoCantLoad, channelId, 0);
@@ -19839,7 +19843,10 @@ public class MessagesController extends BaseController implements NotificationCe
 
                 if (dialogId == 0) {
                     // Telegram sometimes won't give us dialog id directly...
-                    dialogId = getMessagesStorage().getDialogIdsToUpdate(dialogId, messageIds).get(0);
+                    var possibleIds = getMessagesStorage().getDialogIdsToUpdate(dialogId, messageIds);
+                    if (possibleIds != null && possibleIds.size() > 0) {
+                        dialogId = possibleIds.get(0);
+                    }
                 }
 
                 for (var msgId : messageIds) {
