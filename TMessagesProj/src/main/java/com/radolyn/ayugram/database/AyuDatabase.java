@@ -11,7 +11,7 @@ import com.radolyn.ayugram.database.entities.EditedMessage;
 @Database(entities = {
         EditedMessage.class,
         DeletedMessage.class
-}, version = 1)
+}, version = 3)
 public abstract class AyuDatabase extends RoomDatabase {
     public abstract EditedMessageDao editedMessageDao();
 
