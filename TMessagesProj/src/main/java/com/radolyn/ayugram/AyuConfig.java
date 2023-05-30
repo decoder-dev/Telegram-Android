@@ -8,9 +8,10 @@ import org.telegram.messenger.ApplicationLoader;
 
 public class AyuConfig {
     private static final Object sync = new Object();
+
     public static SharedPreferences preferences;
     public static SharedPreferences.Editor editor;
-    // AyuGram
+
     public static boolean sendReadPackets;
     public static boolean sendOnlinePackets;
     public static boolean sendOfflinePacketAfterOnline;
@@ -22,6 +23,7 @@ public class AyuConfig {
     public static boolean showFromChannel;
     public static boolean keepAliveService;
     public static boolean enableAds;
+
     private static boolean configLoaded;
 
     static {

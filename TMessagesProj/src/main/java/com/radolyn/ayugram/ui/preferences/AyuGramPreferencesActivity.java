@@ -52,6 +52,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
 
     private int customizationHeaderRow;
     private int deletedMarkTextRow;
+    private int customizationDividerRow;
 
     private int debugHeaderRow;
     private int cleanDatabaseBtnRow;
@@ -79,6 +80,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
 
         customizationHeaderRow = newRow();
         deletedMarkTextRow = newRow();
+        customizationDividerRow = newRow();
 
         debugHeaderRow = newRow();
         cleanDatabaseBtnRow = newRow();
@@ -166,6 +168,9 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position, boolean payload) {
             switch (holder.getItemViewType()) {
+                case 1:
+                    holder.itemView.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
+                    break;
                 case 2:
                     TextCell textCell = (TextCell) holder.itemView;
                     if (position == deletedMarkTextRow) {
@@ -221,7 +226,10 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == deletedMarkTextRow || position == cleanDatabaseBtnRow) {
+            if (position == customizationDividerRow) {
+                return 1;
+            }
+            else if (position == deletedMarkTextRow || position == cleanDatabaseBtnRow) {
                 return 2;
             } else if (
                     position == ghostEssentialsHeaderRow ||
