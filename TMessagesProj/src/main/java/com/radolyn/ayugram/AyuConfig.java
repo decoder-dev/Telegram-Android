@@ -19,10 +19,8 @@ public class AyuConfig {
     public static boolean keepDeletedMessages;
     public static boolean keepMessagesHistory;
     public static boolean markReadAfterSend;
-    public static boolean realForwardTime;
     public static boolean showFromChannel;
     public static boolean keepAliveService;
-    public static boolean walMode;
     public static boolean enableAds;
     private static boolean configLoaded;
 
@@ -55,10 +53,8 @@ public class AyuConfig {
             keepMessagesHistory = preferences.getBoolean("keepMessagesHistory", false);
 
             // ~ Utils
-            realForwardTime = preferences.getBoolean("realForwardTime", false);
             showFromChannel = preferences.getBoolean("showFromChannel", false);
             keepAliveService = preferences.getBoolean("keepAliveService", true);
-            walMode = preferences.getBoolean("walMode", true); // https://t.me/ayugramchat/1/966
             enableAds = preferences.getBoolean("enableAds", true);
 
             configLoaded = true;
