@@ -10,15 +10,51 @@ package org.telegram.messenger;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.IBinder;
 
-public class NotificationsService extends Service {
+import androidx.core.app.NotificationChannelCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
+import com.radolyn.ayugram.AyuConfig;
+
+
+
+public class NotificationsService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
         ApplicationLoader.postInitApplication();
+
+        if (AyuConfig.keepAliveService && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String CHANNEL_ID = "bananagram_push";
+            NotificationChannelCompat channel = new NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
+                    .setName(LocaleController.getString(R.string.BananaKeepAliveTitle))
+                    .setLightsEnabled(false)
+                    .setVibrationEnabled(false)
+                    .setSound(null, null)
+                    .build();
+
+
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+            notificationManager.createNotificationChannel(channel);
+            android.app.Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                            .setSmallIcon(R.drawable.notification)
+                            .setShowWhen(false)
+                            .setOngoing(true)
+                            .setContentTitle(com.radolyn.ayugram.AyuConstants.APP_NAME)
+                            .setContentText(LocaleController.getString(R.string.BananaKeepAliveStatus))
+                            .setCategory(NotificationCompat.CATEGORY_STATUS)
+                            .build();
+            if (Build.VERSION.SDK_INT >= 34) {
+                startForeground(9999, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+            } else {
+                startForeground(9999, notification);
+            }
+        }
     }
 
     @Override

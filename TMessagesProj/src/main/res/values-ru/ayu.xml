@@ -21,4 +21,6 @@
     <string name="EditsHistoryTitle">История редактирования</string>
     <string name="EditsHistoryMenuText">История</string>
     <string name="LikelyOfflineStatus">оффлайн ?</string>
+    <string name="BananaKeepAliveTitle">Соединение для сообщений</string>
+    <string name="BananaKeepAliveStatus">Поддерживает соединение для новых сообщений</string>
 </resources>
