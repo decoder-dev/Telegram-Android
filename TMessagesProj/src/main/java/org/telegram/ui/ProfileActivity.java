@@ -129,6 +129,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import com.radolyn.ayugram.AyuConfig;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
@@ -11425,6 +11426,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 } else {
                     if (userInfo != null && userInfo.stars_rating != null && userInfo.stars_rating.stars < 0) {
                         newString2 = getString(R.string.StarRatingLevelNegative).toLowerCase(Locale.ROOT);
+                    } else if (!AyuConfig.sendReadPackets || AyuConfig.sendOfflinePacketAfterOnline) {
+                        newString2 = LocaleController.getString(R.string.LikelyOfflineStatus);
                     } else {
                         newString2 = LocaleController.getString(R.string.Online);
                     }

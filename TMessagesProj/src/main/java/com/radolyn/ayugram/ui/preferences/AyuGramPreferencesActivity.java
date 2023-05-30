@@ -43,10 +43,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
     private int keepMessagesHistoryRow;
 
     private int qolHeaderRow;
-    private int realForwardTime;
     private int showFromChannel;
     private int keepAliveService;
-    private int walModeRow;
 
     private int customizationHeaderRow;
     private int deletedMarkText;
@@ -68,10 +66,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         keepMessagesHistoryRow = newRow();
 
         qolHeaderRow = newRow();
-        realForwardTime = newRow();
         showFromChannel = newRow();
         keepAliveService = newRow();
-        walModeRow = newRow();
 
         customizationHeaderRow = newRow();
         deletedMarkText = newRow();
@@ -103,19 +99,13 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         } else if (position == keepMessagesHistoryRow) {
             AyuConfig.editor.putBoolean("keepMessagesHistory", AyuConfig.keepMessagesHistory ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.keepMessagesHistory);
-        } else if (position == realForwardTime) {
-            AyuConfig.editor.putBoolean("realForwardTime", AyuConfig.realForwardTime ^= true).apply();
-            ((TextCheckCell) view).setChecked(AyuConfig.realForwardTime);
         } else if (position == showFromChannel) {
             AyuConfig.editor.putBoolean("showFromChannel", AyuConfig.showFromChannel ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.showFromChannel);
         } else if (position == keepAliveService) {
             AyuConfig.editor.putBoolean("keepAliveService", AyuConfig.keepAliveService ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.keepAliveService);
-        } else if (position == walModeRow) {
-            AyuConfig.editor.putBoolean("walMode", AyuConfig.walMode ^= true).apply();
-            ((TextCheckCell) view).setChecked(AyuConfig.walMode);
-        } else if (position == deletedMarkText) {
+        }  else if (position == deletedMarkText) {
             var builder = new AlertDialog.Builder(getParentActivity());
             builder.setTitle(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText));
             var layout = new LinearLayout(getParentActivity());
@@ -196,14 +186,10 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                         textCheckCell.setTextAndCheck(LocaleController.getString("KeepDeletedMessages", R.string.KeepDeletedMessages) + " β", AyuConfig.keepDeletedMessages, true);
                     } else if (position == keepMessagesHistoryRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("KeepMessagesHistory", R.string.KeepMessagesHistory) + " β", AyuConfig.keepMessagesHistory, true);
-                    } else if (position == realForwardTime) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("RealForwardTime", R.string.RealForwardTime), AyuConfig.realForwardTime, true);
                     } else if (position == showFromChannel) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("ShowFromChannel", R.string.ShowFromChannel), AyuConfig.showFromChannel, true);
                     } else if (position == keepAliveService) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("KeepAliveService", R.string.KeepAliveService) + " β", AyuConfig.keepAliveService, true);
-                    } else if (position == walModeRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("WALMode", R.string.WALMode), AyuConfig.walMode, true);
                     }
                     break;
             }
