@@ -46,14 +46,15 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
     private int keepMessagesHistoryRow;
 
     private int qolHeaderRow;
-    private int showFromChannel;
-    private int keepAliveService;
+    private int showFromChannelRow;
+    private int keepAliveServiceRow;
+    private int enableAdsRow;
 
     private int customizationHeaderRow;
-    private int deletedMarkText;
+    private int deletedMarkTextRow;
 
     private int debugHeaderRow;
-    private int cleanDatabase;
+    private int cleanDatabaseBtnRow;
 
     @Override
     protected void updateRowsId() {
@@ -72,14 +73,15 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         keepMessagesHistoryRow = newRow();
 
         qolHeaderRow = newRow();
-        showFromChannel = newRow();
-        keepAliveService = newRow();
+        showFromChannelRow = newRow();
+        keepAliveServiceRow = newRow();
+        enableAdsRow = newRow();
 
         customizationHeaderRow = newRow();
-        deletedMarkText = newRow();
+        deletedMarkTextRow = newRow();
 
         debugHeaderRow = newRow();
-        cleanDatabase = newRow();
+        cleanDatabaseBtnRow = newRow();
     }
 
     @Override
@@ -108,13 +110,16 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         } else if (position == keepMessagesHistoryRow) {
             AyuConfig.editor.putBoolean("keepMessagesHistory", AyuConfig.keepMessagesHistory ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.keepMessagesHistory);
-        } else if (position == showFromChannel) {
+        } else if (position == showFromChannelRow) {
             AyuConfig.editor.putBoolean("showFromChannel", AyuConfig.showFromChannel ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.showFromChannel);
-        } else if (position == keepAliveService) {
+        } else if (position == keepAliveServiceRow) {
             AyuConfig.editor.putBoolean("keepAliveService", AyuConfig.keepAliveService ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.keepAliveService);
-        } else if (position == deletedMarkText) {
+        } else if (position == enableAdsRow) {
+            AyuConfig.editor.putBoolean("enableAds", AyuConfig.enableAds ^= true).apply();
+            ((TextCheckCell) view).setChecked(AyuConfig.enableAds);
+        } else if (position == deletedMarkTextRow) {
             var builder = new AlertDialog.Builder(getParentActivity());
             builder.setTitle(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText));
             var layout = new LinearLayout(getParentActivity());
@@ -131,9 +136,9 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
             builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> dialog.cancel());
 
             builder.show();
-        } else if (position == cleanDatabase) {
+        } else if (position == cleanDatabaseBtnRow) {
             AyuMessagesController.getInstance().clean();
-            BulletinFactory.of(this).createSimpleBulletin(R.raw.info, "AyuGram database cleaned").show();
+            BulletinFactory.of(this).createSimpleBulletin(R.raw.info, LocaleController.getString("CleanDatabaseNotification", R.string.CleanDatabaseNotification)).show();
         }
     }
 
@@ -163,10 +168,10 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
             switch (holder.getItemViewType()) {
                 case 2:
                     TextCell textCell = (TextCell) holder.itemView;
-                    if (position == deletedMarkText) {
+                    if (position == deletedMarkTextRow) {
                         textCell.setTextAndValue(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
-                    } else if (position == cleanDatabase) {
-                        textCell.setTextAndIcon("Clean database", R.drawable.msg_clearcache, false);
+                    } else if (position == cleanDatabaseBtnRow) {
+                        textCell.setTextAndIcon(LocaleController.getString("CleanDatabase", R.string.CleanDatabase), R.drawable.msg_clearcache, false);
                         textCell.setColors(Theme.key_text_RedBold, Theme.key_text_RedBold);
                     }
                     break;
@@ -203,10 +208,12 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                         textCheckCell.setTextAndCheck(LocaleController.getString("KeepDeletedMessages", R.string.KeepDeletedMessages) + " β", AyuConfig.keepDeletedMessages, true);
                     } else if (position == keepMessagesHistoryRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("KeepMessagesHistory", R.string.KeepMessagesHistory) + " β", AyuConfig.keepMessagesHistory, true);
-                    } else if (position == showFromChannel) {
+                    } else if (position == showFromChannelRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("ShowFromChannel", R.string.ShowFromChannel), AyuConfig.showFromChannel, true);
-                    } else if (position == keepAliveService) {
+                    } else if (position == keepAliveServiceRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("KeepAliveService", R.string.KeepAliveService) + " β", AyuConfig.keepAliveService, true);
+                    } else if (position == enableAdsRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString("EnableAds", R.string.EnableAds), AyuConfig.enableAds, true);
                     }
                     break;
             }
@@ -214,7 +221,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == deletedMarkText || position == cleanDatabase) {
+            if (position == deletedMarkTextRow || position == cleanDatabaseBtnRow) {
                 return 2;
             } else if (
                     position == ghostEssentialsHeaderRow ||
