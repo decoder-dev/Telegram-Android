@@ -18,7 +18,10 @@
     <string name="RealForwardTime">Show real forward time</string>
     <string name="ShowFromChannel">Show «channel» label</string>
     <string name="KeepAliveService">Keep Alive Service</string>
-    <string name="WALMode">Enable WAL mode</string>
+    <string name="EnableAds">Enable ads</string>
+
+    <string name="CleanDatabase">Clean database</string>
+    <string name="CleanDatabaseNotification">AyuGram database cleaned</string>
 
     <string name="CustomizationHeader">Customization</string>
     <string name="DeletedMarkText">Deleted mark</string>

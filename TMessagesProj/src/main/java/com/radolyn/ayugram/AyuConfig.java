@@ -52,10 +52,10 @@ public class AyuConfig {
             keepDeletedMessages = preferences.getBoolean("keepDeletedMessages", false);
             keepMessagesHistory = preferences.getBoolean("keepMessagesHistory", false);
 
-            // ~ Utils
-            showFromChannel = preferences.getBoolean("showFromChannel", false);
+            // ~ QoL
+            showFromChannel = preferences.getBoolean("showFromChannel", true);
             keepAliveService = preferences.getBoolean("keepAliveService", true);
-            enableAds = preferences.getBoolean("enableAds", true);
+            enableAds = preferences.getBoolean("enableAds", false);
 
             configLoaded = true;
         }
