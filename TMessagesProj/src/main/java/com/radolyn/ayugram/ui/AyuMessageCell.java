@@ -2,6 +2,7 @@ package com.radolyn.ayugram.ui;
 
 import android.app.Activity;
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.radolyn.ayugram.database.entities.EditedMessage;
 
@@ -63,9 +64,8 @@ public class AyuMessageCell extends ChatMessageCell {
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
 
-        // dirty hack to load our image instead of default one
-        if (getMessageObject().useCustomPhoto) {
-            getPhotoImage().setImage(getMessageObject().messageOwner.attachPath, null, locationLoadingThumb, null, 0);
+        if (!TextUtils.isEmpty(editedMessage.path) && !editedMessage.isDocument) {
+            getPhotoImage().setImage(editedMessage.path, null, locationLoadingThumb, null, 0);
         }
 
         if (editedMessage.path != null && !editedMessage.path.equals("")) {

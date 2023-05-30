@@ -12,6 +12,8 @@ import android.text.TextUtils;
 import android.util.SparseArray;
 
 import org.telegram.tgnet.ConnectionsManager;
+import com.radolyn.ayugram.messages.AyuFileLocation;
+
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
@@ -1427,6 +1429,24 @@ public class FileLoader extends BaseController {
                 dir = getDirectory(MEDIA_DIR_CACHE);
             }
         }
+
+        // --- AyuGram hook
+        if (attach instanceof TLRPC.PhotoSize) {
+            var obj = (TLRPC.PhotoSize) attach;
+            if (obj.location instanceof AyuFileLocation) {
+                return new File(((AyuFileLocation) obj.location).path);
+            }
+        } else if (attach instanceof TLRPC.TL_videoSize) {
+            var obj = (TLRPC.TL_videoSize) attach;
+            if (obj.location instanceof AyuFileLocation) {
+                return new File(((AyuFileLocation) obj.location).path);
+            }
+        } else if (attach instanceof AyuFileLocation) {
+            var obj = (AyuFileLocation) attach;
+            return new File(obj.path);
+        }
+        // --- AyuGram hook
+
         if (dir == null) {
             return new File("");
         }
