@@ -142,4 +142,11 @@ public class AyuMessagesController {
     public boolean isDeleted(long userId, long dialogId, int msgId) {
         return database.deletedMessageDao().isDeleted(userId, dialogId, msgId);
     }
+
+    public void clean() {
+        database.editedMessageDao().cleanTable();
+        database.deletedMessageDao().cleanTable();
+
+        ApplicationLoader.applicationContext.deleteDatabase("ayu-data");
+    }
 }

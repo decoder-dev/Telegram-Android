@@ -28,4 +28,7 @@ public interface EditedMessageDao {
 
     @Insert
     void insert(EditedMessage revision);
+
+    @Query("DELETE FROM editedmessage")
+    void cleanTable();
 }
