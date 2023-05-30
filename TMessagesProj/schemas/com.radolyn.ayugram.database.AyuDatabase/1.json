@@ -2,12 +2,18 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "d7ba37b978b936e75cd8306a35e94bdc",
+    "identityHash": "89b9f56bc73875a3215a3989aa1d7baa",
     "entities": [
       {
         "tableName": "EditedMessage",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER NOT NULL, `dialogId` INTEGER NOT NULL, `messageId` INTEGER NOT NULL, `text` TEXT, `type` INTEGER NOT NULL, `path` TEXT, `date` INTEGER NOT NULL, PRIMARY KEY(`userId`, `dialogId`, `messageId`, `date`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`fakeId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `dialogId` INTEGER NOT NULL, `messageId` INTEGER NOT NULL, `text` TEXT, `type` INTEGER NOT NULL, `path` TEXT, `date` INTEGER NOT NULL)",
         "fields": [
+          {
+            "fieldPath": "fakeId",
+            "columnName": "fakeId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
           {
             "fieldPath": "userId",
             "columnName": "userId",
@@ -53,20 +59,23 @@
         ],
         "primaryKey": {
           "columnNames": [
-            "userId",
-            "dialogId",
-            "messageId",
-            "date"
+            "fakeId"
           ],
-          "autoGenerate": false
+          "autoGenerate": true
         },
         "indices": [],
         "foreignKeys": []
       },
       {
         "tableName": "DeletedMessage",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` INTEGER NOT NULL, `dialogId` INTEGER NOT NULL, `messageId` INTEGER NOT NULL, `date` INTEGER NOT NULL, PRIMARY KEY(`userId`, `dialogId`, `messageId`, `date`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`fakeId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `dialogId` INTEGER NOT NULL, `messageId` INTEGER NOT NULL, `date` INTEGER NOT NULL)",
         "fields": [
+          {
+            "fieldPath": "fakeId",
+            "columnName": "fakeId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
           {
             "fieldPath": "userId",
             "columnName": "userId",
@@ -94,12 +103,9 @@
         ],
         "primaryKey": {
           "columnNames": [
-            "userId",
-            "dialogId",
-            "messageId",
-            "date"
+            "fakeId"
           ],
-          "autoGenerate": false
+          "autoGenerate": true
         },
         "indices": [],
         "foreignKeys": []
@@ -108,7 +114,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd7ba37b978b936e75cd8306a35e94bdc')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '89b9f56bc73875a3215a3989aa1d7baa')"
     ]
   }
 }
