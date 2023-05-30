@@ -20,14 +20,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import com.radolyn.ayugram.AyuConfig;
+import com.radolyn.ayugram.messages.AyuMessagesController;
 
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.EditTextSettingsCell;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
+import org.telegram.ui.Components.BulletinFactory;
 
 public class AyuGramPreferencesActivity extends BasePreferencesActivity {
     private int ghostEssentialsHeaderRow;
@@ -48,6 +51,9 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
 
     private int customizationHeaderRow;
     private int deletedMarkText;
+
+    private int debugHeaderRow;
+    private int cleanDatabase;
 
     @Override
     protected void updateRowsId() {
@@ -71,6 +77,9 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
 
         customizationHeaderRow = newRow();
         deletedMarkText = newRow();
+
+        debugHeaderRow = newRow();
+        cleanDatabase = newRow();
     }
 
     @Override
@@ -105,7 +114,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         } else if (position == keepAliveService) {
             AyuConfig.editor.putBoolean("keepAliveService", AyuConfig.keepAliveService ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.keepAliveService);
-        }  else if (position == deletedMarkText) {
+        } else if (position == deletedMarkText) {
             var builder = new AlertDialog.Builder(getParentActivity());
             builder.setTitle(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText));
             var layout = new LinearLayout(getParentActivity());
@@ -122,6 +131,9 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
             builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> dialog.cancel());
 
             builder.show();
+        } else if (position == cleanDatabase) {
+            AyuMessagesController.getInstance().clean();
+            BulletinFactory.of(this).createSimpleBulletin(R.raw.info, "AyuGram database cleaned").show();
         }
     }
 
@@ -153,6 +165,9 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                     TextCell textCell = (TextCell) holder.itemView;
                     if (position == deletedMarkText) {
                         textCell.setTextAndValue(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
+                    } else if (position == cleanDatabase) {
+                        textCell.setTextAndIcon("Clean database", R.drawable.msg_clearcache, false);
+                        textCell.setColors(Theme.key_text_RedBold, Theme.key_text_RedBold);
                     }
                     break;
                 case 3:
@@ -165,6 +180,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                         headerCell.setText(LocaleController.getString("QoLTogglesHeader", R.string.QoLTogglesHeader));
                     } else if (position == customizationHeaderRow) {
                         headerCell.setText(LocaleController.getString("CustomizationHeader", R.string.CustomizationHeader));
+                    } else if (position == debugHeaderRow) {
+                        headerCell.setText(LocaleController.getString("SettingsDebug", R.string.SettingsDebug));
                     }
                     break;
                 case 5:
@@ -197,13 +214,14 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == deletedMarkText) {
+            if (position == deletedMarkText || position == cleanDatabase) {
                 return 2;
             } else if (
                     position == ghostEssentialsHeaderRow ||
                             position == spyHeaderRow ||
                             position == qolHeaderRow ||
-                            position == customizationHeaderRow
+                            position == customizationHeaderRow ||
+                            position == debugHeaderRow
             ) {
                 return 3;
             }

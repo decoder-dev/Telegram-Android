@@ -1427,6 +1427,7 @@ public class MessagesStorage extends BaseController {
                 database.executeFast("DELETE FROM ephemeral_messages").stepThis().dispose();
                 database.executeFast("DELETE FROM poll_votes_mentions").stepThis().dispose();
                 database.executeFast("DELETE FROM poll_votes_mentions_topics").stepThis().dispose();
+                AyuMessagesController.getInstance().clean();
                 database.executeFast("DELETE FROM reaction_mentions").stepThis().dispose();
                 database.executeFast("DELETE FROM reaction_mentions_topics").stepThis().dispose();
                 database.executeFast("DELETE FROM downloading_documents").stepThis().dispose();

@@ -13,4 +13,7 @@ public interface DeletedMessageDao {
 
     @Insert
     void insert(DeletedMessage msg);
+
+    @Query("DELETE FROM deletedmessage")
+    void cleanTable();
 }
