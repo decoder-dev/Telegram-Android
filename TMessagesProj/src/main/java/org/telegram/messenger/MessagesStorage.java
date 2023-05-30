@@ -19076,4 +19076,26 @@ public class MessagesStorage extends BaseController {
                     '}';
         }
     }
+    public ArrayList<Long> getDialogIdsToUpdate(long dialogId, ArrayList<Integer> messages) {
+        try {
+            SQLiteCursor cursor;
+            String ids = TextUtils.join(",", messages);
+            var dialogsToUpdate = new HashSet<Long>();
+            if (dialogId != 0) {
+                cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, mid FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, dialogId));
+            } else {
+                cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, mid FROM messages_v2 WHERE mid IN(%s) AND is_channel = 0", ids));
+            }
+            while (cursor.next()) {
+                long did = cursor.longValue(0);
+                dialogsToUpdate.add(did);
+            }
+            cursor.dispose();
+            return new ArrayList<>(dialogsToUpdate);
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return null;
+    }
+
 }

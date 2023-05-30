@@ -8,11 +8,11 @@ import android.util.Log;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.database.AyuDatabase;
+import com.radolyn.ayugram.database.entities.DeletedMessage;
 import com.radolyn.ayugram.database.entities.EditedMessage;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
@@ -122,5 +122,19 @@ public class AyuMessagesController {
 
     public List<EditedMessage> getRevisions(long userId, long dialogId, int msgId) {
         return database.editedMessageDao().getAllRevisions(userId, dialogId, msgId);
+    }
+
+    public void onMessageDeleted(long userId, long dialogId, int msgId, int currentTime) {
+        var msg = new DeletedMessage();
+        msg.userId = userId;
+        msg.dialogId = dialogId;
+        msg.messageId = msgId;
+        msg.date = currentTime;
+
+        database.deletedMessageDao().insert(msg);
+    }
+
+    public boolean isDeleted(long userId, long dialogId, int msgId) {
+        return database.deletedMessageDao().isDeleted(userId, dialogId, msgId);
     }
 }
