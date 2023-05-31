@@ -399,16 +399,19 @@ public class ConnectionsManager extends BaseController {
 
         // --- AyuGram request hook
         {
+            // don't send upload & typing status
             if (!AyuConfig.sendUploadProgress && object instanceof TLRPC.TL_messages_setTyping) {
                 // no need to run `onComplete`
                 return;
             }
 
+            // don't send online status
             if (!AyuConfig.sendOnlinePackets && object instanceof TLRPC.TL_account_updateStatus) {
                 var obj = ((TLRPC.TL_account_updateStatus) object);
                 obj.offline = true;
             }
 
+            // don't send read status
             if (
                     !AyuConfig.sendReadPackets &&
                             (
@@ -422,7 +425,9 @@ public class ConnectionsManager extends BaseController {
                                             object instanceof TLRPC.TL_channels_readMessageContents
                             )
             ) {
-                if (!AyuState.isAllowReadPacket()) {
+                if (AyuState.isAllowReadPacket()) {
+                    AyuState.resetAllowReadPacket();
+                } else {
                     var fakeRes = new TLRPC.TL_messages_affectedMessages();
                     // idk if this should be -1 or what, check `TL_messages_readMessageContents` usages
                     fakeRes.pts = -1;
@@ -437,38 +442,48 @@ public class ConnectionsManager extends BaseController {
                     }
 
                     return;
-                } else {
-                    AyuState.resetAllowReadPacket();
                 }
             }
 
-            if (
-                    AyuConfig.markReadAfterSend &&
-                            object instanceof TLRPC.TL_messages_sendMessage
-            ) {
-                var obj = ((TLRPC.TL_messages_sendMessage) object);
-                long dialogId;
-                if (obj.peer.chat_id != 0) {
-                    dialogId = -obj.peer.chat_id;
-                } else if (obj.peer.channel_id != 0) {
-                    dialogId = -obj.peer.channel_id;
-                } else {
-                    dialogId = obj.peer.user_id;
+            // mark messages as read after sending a message
+            if (AyuConfig.markReadAfterSend) {
+                TLRPC.InputPeer peer = null;
+                if (object instanceof TLRPC.TL_messages_sendMessage) {
+                    var obj = ((TLRPC.TL_messages_sendMessage) object);
+                    peer = obj.peer;
+                } else if (object instanceof TLRPC.TL_messages_sendMedia) {
+                    var obj = ((TLRPC.TL_messages_sendMedia) object);
+                    peer = obj.peer;
+                } else if (object instanceof TLRPC.TL_messages_sendMultiMedia) {
+                    var obj = ((TLRPC.TL_messages_sendMultiMedia) object);
+                    peer = obj.peer;
                 }
 
-                var origOnComplete = onCompleteOrig;
-                onCompleteOrig = (response, error) -> {
-                    origOnComplete.run(response, error);
+                if (peer != null) {
+                    long dialogId;
+                    if (peer.chat_id != 0) {
+                        dialogId = -peer.chat_id;
+                    } else if (peer.channel_id != 0) {
+                        dialogId = -peer.channel_id;
+                    } else {
+                        dialogId = peer.user_id;
+                    }
 
-                    getMessagesStorage().getDialogMaxMessageId(dialogId, maxId -> {
-                        AyuState.setAllowReadPacket();
+                    var origOnComplete = onCompleteOrig;
+                    TLRPC.InputPeer finalPeer = peer;
+                    onCompleteOrig = (response, error) -> {
+                        origOnComplete.run(response, error);
 
-                        TLRPC.TL_messages_readHistory request = new TLRPC.TL_messages_readHistory();
-                        request.peer = obj.peer;
-                        request.max_id = maxId;
-                        sendRequest(request, (a1, a2) -> {});
-                    });
-                };
+                        getMessagesStorage().getDialogMaxMessageId(dialogId, maxId -> {
+                            TLRPC.TL_messages_readHistory request = new TLRPC.TL_messages_readHistory();
+                            request.peer = finalPeer;
+                            request.max_id = maxId;
+
+                            AyuState.setAllowReadPacket();
+                            sendRequest(request, (a1, a2) -> {});
+                        });
+                    };
+                }
             }
         }
         final var onComplete = onCompleteOrig;

@@ -92,6 +92,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         if (position == sendReadPacketsRow) {
             AyuConfig.editor.putBoolean("sendReadPackets", AyuConfig.sendReadPackets ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.sendReadPackets);
+
+            AyuState.resetAllowReadPacket();
         } else if (position == sendOnlinePacketsRow) {
             AyuConfig.editor.putBoolean("sendOnlinePackets", AyuConfig.sendOnlinePackets ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.sendOnlinePackets);
@@ -104,9 +106,13 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         } else if (position == markReadAfterSendRow) {
             AyuConfig.editor.putBoolean("markReadAfterSend", AyuConfig.markReadAfterSend ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.markReadAfterSend);
+
+            AyuState.resetAllowReadPacket();
         } else if (position == useScheduledMessagesRow) {
             AyuConfig.editor.putBoolean("useScheduledMessages", AyuConfig.useScheduledMessages ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.useScheduledMessages);
+
+            AyuState.resetAutomaticallyScheduled();
         } else if (position == keepDeletedMessagesRow) {
             AyuConfig.editor.putBoolean("keepDeletedMessages", AyuConfig.keepDeletedMessages ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.keepDeletedMessages);
