@@ -71,6 +71,8 @@ public class AyuMessagesController {
         } else if (oldMessage.media instanceof TLRPC.TL_messageMediaDocument && newMessage.media instanceof TLRPC.TL_messageMediaDocument && oldMessage.media.document != null && newMessage.media.document != null) {
             sameMedia = oldMessage.media.document.id == newMessage.media.document.id;
             isDocument = true;
+        } else if (oldMessage.media instanceof TLRPC.TL_messageMediaWebPage && newMessage.media instanceof TLRPC.TL_messageMediaWebPage) {
+            sameMedia = true;
         }
 
         var revision = new EditedMessage();
