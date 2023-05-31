@@ -51,6 +51,10 @@ import androidx.annotation.UiThread;
 import androidx.collection.LongSparseArray;
 import androidx.core.view.inputmethod.InputContentInfoCompat;
 
+import com.exteragram.messenger.ExteraConfig;
+import com.radolyn.ayugram.AyuConfig;
+import com.radolyn.ayugram.messages.AyuState;
+
 import org.json.JSONObject;
 import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.messenger.audioinfo.AudioInfo;
@@ -2069,18 +2073,21 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         performSendMessageRequest(req, newMsgObj, null, null, null, null, false);
     }
 
-    public void sendSticker(TLRPC.Document document, String query, long peer, MessageObject replyToMsg, MessageObject replyToTopMsg, TL_stories.StoryItem storyItem, ChatActivity.ReplyQuote quote, MessageObject.SendAnimationData sendAnimationData, boolean notify, int scheduleDate, int scheduleRepeatPeriod, boolean updateStickersOrder, Object parentObject, SendMessageChatArguments sendMessageChatArguments, long stars, long monoForumPeerId, MessageSuggestionParams suggestionParams) {
-        sendSticker(document, query, peer, null, null, replyToMsg, replyToTopMsg, storyItem, quote, sendAnimationData, notify, scheduleDate, scheduleRepeatPeriod, updateStickersOrder, parentObject, sendMessageChatArguments, stars, monoForumPeerId, suggestionParams);
-    }
-
-    public void sendSticker(TLRPC.Document document, String query, long peer, CharSequence caption, VideoEditedInfo videoEditedInfo, MessageObject replyToMsg, MessageObject replyToTopMsg, TL_stories.StoryItem storyItem, ChatActivity.ReplyQuote quote, MessageObject.SendAnimationData sendAnimationData, boolean notify, int scheduleDate, int scheduleRepeatPeriod, boolean updateStickersOrder, Object parentObject, SendMessageChatArguments sendMessageChatArguments, long stars, long monoForumPeerId, MessageSuggestionParams suggestionParams) {
-        sendSticker(document, query, peer, caption, videoEditedInfo, replyToMsg, replyToTopMsg, storyItem, quote, sendAnimationData, notify, scheduleDate, scheduleRepeatPeriod, updateStickersOrder, parentObject, sendMessageChatArguments, stars, monoForumPeerId, suggestionParams, false);
-    }
-
-    public void sendSticker(TLRPC.Document document, String query, long peer, CharSequence caption, VideoEditedInfo videoEditedInfo, MessageObject replyToMsg, MessageObject replyToTopMsg, TL_stories.StoryItem storyItem, ChatActivity.ReplyQuote quote, MessageObject.SendAnimationData sendAnimationData, boolean notify, int scheduleDate, int scheduleRepeatPeriod, boolean updateStickersOrder, Object parentObject, SendMessageChatArguments sendMessageChatArguments, long stars, long monoForumPeerId, MessageSuggestionParams suggestionParams, boolean invertMedia) {
+    public void sendSticker(TLRPC.Document document, String query, long peer, MessageObject replyToMsg, MessageObject replyToTopMsg, Object parentObject, MessageObject.SendAnimationData sendAnimationData, boolean notify, int scheduleDateOrig, boolean updateStickersOrder) {
         if (document == null) {
             return;
         }
+
+        // --- AyuGram hook
+        if (AyuConfig.useScheduledMessages && scheduleDateOrig == 0) {
+            scheduleDateOrig = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 10;
+            scheduleDateOrig += 1;
+
+            AyuState.setAutomaticallyScheduled();
+        }
+        final var scheduleDate = scheduleDateOrig;
+        // --- AyuGram hook
+
         if (DialogObject.isEncryptedDialog(peer)) {
             int encryptedId = DialogObject.getEncryptedChatId(peer);
             TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(encryptedId);
@@ -11683,20 +11690,18 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                     if (editingMessageObject != null || pollToAddOptionMessageObject != null) {
                                         accountInstance.getSendMessagesHelper().editMessage(editingMessageObject, pollToAddOptionMessageObject, photoFinal, null, null, null, null, params, false, info.hasMediaSpoilers, parentFinal);
                                     } else {
-                                        SendMessageParams sendMessageParams = SendMessageParams.of(photoFinal, null, dialogId, replyToMsg, replyToTopMsg, info.caption, info.entities, null, params, notify, scheduleDate, scheduleRepeatPeriod, info.ttl, parentFinal, updateStikcersOrder, info.hasMediaSpoilers);
-                                        sendMessageParams.replyToStoryItem = storyItem;
-                                        sendMessageParams.replyQuote = quote;
-                                        sendMessageParams.sendMessageChatArguments = sendMessageChatArguments;
-                                        sendMessageParams.effect_id = effectId;
-                                        sendMessageParams.invert_media = invertMedia;
-                                        sendMessageParams.stars = info.stars;
-                                        sendMessageParams.pollIndex = info.pollIndex;
-                                        sendMessageParams.payStars = payStars;
-                                        sendMessageParams.monoForumPeer = monoForumPeerId;
-                                        sendMessageParams.suggestionParams = suggestionParams;
-                                        sendMessageParams.sendingHighQuality = highQuality;
-                                        sendMessageParams.pollSendParams = pollSendParams;
-                                        accountInstance.getSendMessagesHelper().sendMessage(sendMessageParams);
+                                        // --- AyuGram hook
+                                        var scheduleDateTemp = scheduleDate;
+                                        if (AyuConfig.useScheduledMessages && scheduleDateTemp == 0) {
+                                            scheduleDateTemp = accountInstance.getConnectionsManager().getCurrentTime() + 10;
+                                            scheduleDateTemp += 10;
+
+                                            AyuState.setAutomaticallyScheduled();
+                                        }
+                                        final var scheduleDateFinal = scheduleDateTemp;
+                                        // --- AyuGram hook
+
+                                        accountInstance.getSendMessagesHelper().sendMessage(photoFinal, null, dialogId, replyToMsg, replyToTopMsg, info.caption, info.entities, null, params, notify, scheduleDateFinal, info.ttl, parentFinal, updateStikcersOrder, info.hasMediaSpoilers);
                                     }
                                 });
                             } else {
