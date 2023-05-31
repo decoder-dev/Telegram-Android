@@ -28,6 +28,9 @@
 
     <string name="EditsHistoryTitle">Edits history</string>
     <string name="EditsHistoryMenuText">History</string>
+
+    <string name="ReadUntilMenuText">Read until</string>
+
     <string name="LikelyOfflineStatus">offline ?</string>
     <string name="BananaKeepAliveTitle">Message connection</string>
     <string name="BananaKeepAliveStatus">Keeping the connection open for new messages</string>
