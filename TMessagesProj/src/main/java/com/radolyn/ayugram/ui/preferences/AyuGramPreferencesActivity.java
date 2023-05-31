@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.messages.AyuMessagesController;
+import com.radolyn.ayugram.messages.AyuState;
 
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -140,6 +141,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
             builder.show();
         } else if (position == cleanDatabaseBtnRow) {
             AyuMessagesController.getInstance().clean();
+            AyuState.reset();
+
             BulletinFactory.of(this).createSimpleBulletin(R.raw.info, LocaleController.getString("CleanDatabaseNotification", R.string.CleanDatabaseNotification)).show();
         }
     }

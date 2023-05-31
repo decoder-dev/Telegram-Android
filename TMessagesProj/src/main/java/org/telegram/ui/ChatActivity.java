@@ -138,6 +138,7 @@ import com.google.zxing.common.detector.MathUtils;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.messages.AyuMessagesController;
+import com.radolyn.ayugram.messages.AyuState;
 import com.radolyn.ayugram.ui.AyuMessageHistory;
 
 import org.telegram.PhoneFormat.PhoneFormat;
@@ -13117,6 +13118,10 @@ public class ChatActivity extends BaseFragment implements
         openScheduledMessages(0, false);
     }
     private void openScheduledMessages(int fromMessageId, boolean showConvertToast) {
+        if (AyuState.isAutomaticallyScheduled()) {
+            AyuState.resetAutomaticallyScheduled();
+            return;
+        }
         if (parentLayout == null || parentLayout.getLastFragment() != this) {
             return;
         }
