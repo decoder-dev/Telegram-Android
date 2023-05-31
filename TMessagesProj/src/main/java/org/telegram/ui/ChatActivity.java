@@ -139,6 +139,7 @@ import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.messages.AyuMessagesController;
 import com.radolyn.ayugram.messages.AyuState;
+import com.radolyn.ayugram.messages.AyuUtils;
 import com.radolyn.ayugram.ui.AyuMessageHistory;
 
 import org.telegram.PhoneFormat.PhoneFormat;
@@ -31391,11 +31392,22 @@ public class ChatActivity extends BaseFragment implements
             }
 
             /// --- AyuGram menu
+            if (!AyuConfig.sendReadPackets
+                    && message != null
+                    && message.messageOwner.from_id != null
+                    && message.messageOwner.from_id.user_id != getAccountInstance().getUserConfig().getClientUserId()
+            ) {
+                items.add(LocaleController.getString("ReadUntilMenuText", R.string.ReadUntilMenuText));
+                options.add(AyuConstants.OPTION_READ_UNTIL);
+                icons.add(R.drawable.msg_view_file);
+            }
+
             if (message != null
                     && ((message.messageOwner.flags & TLRPC.MESSAGE_FLAG_EDITED) != 0 || message.isEditing())
                     && message.messageOwner.from_id != null
                     && message.messageOwner.from_id.user_id != getAccountInstance().getUserConfig().getClientUserId()
-                    && AyuMessagesController.getInstance().hasAnyRevisions(getAccountInstance().getUserConfig().getClientUserId(), dialog_id, message.messageOwner.id)) {
+                    && AyuMessagesController.getInstance().hasAnyRevisions(getAccountInstance().getUserConfig().getClientUserId(), dialog_id, message.messageOwner.id)
+            ) {
                 items.add(LocaleController.getString("EditsHistoryMenuText", R.string.EditsHistoryMenuText));
                 options.add(AyuConstants.OPTION_HISTORY);
                 icons.add(R.drawable.msg_log);
@@ -33746,6 +33758,9 @@ public class ChatActivity extends BaseFragment implements
             case AyuConstants.OPTION_TTL:
                 AyuState.setAllowReadPacket();
                 sendSecretMessageRead(selectedObject, true);
+                break;
+            case AyuConstants.OPTION_READ_UNTIL:
+                AyuUtils.markRead(getMessagesController(), getConnectionsManager(), selectedObject);
                 break;
             case OPTION_RETRY: {
                 final MessageObject object = selectedObject;
