@@ -44,6 +44,7 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
     public View createView(Context context) {
         var firstMsg = messages.get(0);
         var peer = getAccountInstance().getMessagesController().getUserOrChat(firstMsg.dialogId);
+        // todo: check sender of the message
 
         String name;
         if (peer == null) {

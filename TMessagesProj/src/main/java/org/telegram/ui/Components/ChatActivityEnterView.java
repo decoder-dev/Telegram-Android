@@ -116,6 +116,8 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 import org.telegram.ui.recyclerview.ChatListItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.radolyn.ayugram.AyuConfig;
+import com.radolyn.ayugram.messages.AyuState;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.AnimationNotificationsLocker;
@@ -7267,7 +7269,21 @@ public class ChatActivityEnterView extends FrameLayout implements
             }, resourcesProvider);
             return true;
         } else {
-            return sendMessageInternal(true, 0, 0, 0, true);
+            // --- AyuGram hook
+            var scheduleDate = 0;
+            if (AyuConfig.useScheduledMessages) {
+                scheduleDate = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 10; // min t = 10 sec
+
+                // ..but here's the problem:
+                // "If the schedule_date is less than 10 seconds in the future, the message will be sent immediately, generating a normal updateNewMessage/updateNewChannelMessage."
+                // we have to ensure that we have a small window for an error
+                scheduleDate += 1; // 1 sec
+
+                AyuState.setAutomaticallyScheduled();
+            }
+
+            return sendMessageInternal(true, scheduleDate, 0, 0, true);
+            // --- AyuGram hook
         }
     }
 

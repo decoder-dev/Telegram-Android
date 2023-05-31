@@ -25,6 +25,7 @@ import com.google.android.play.core.integrity.IntegrityTokenResponse;
 
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
+import com.radolyn.ayugram.messages.AyuState;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -62,7 +63,6 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -392,9 +392,6 @@ public class ConnectionsManager extends BaseController {
         return requestToken;
     }
 
-    // little hack to allow read messages
-    private static boolean sendNextRead;
-
     private void sendRequestInternal(TLObject object, RequestDelegate onCompleteOrig, RequestDelegateTimestamp onCompleteTimestamp, QuickAckDelegate onQuickAck, WriteToSocketDelegate onWriteToSocket, int flags, int datacenterId, int connectionType, boolean immediate, int requestToken) {
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("send request " + object + " with token = " + requestToken);
@@ -425,7 +422,7 @@ public class ConnectionsManager extends BaseController {
                                             object instanceof TLRPC.TL_channels_readMessageContents
                             )
             ) {
-                if (!sendNextRead) {
+                if (!AyuState.isAllowReadPacket()) {
                     var fakeRes = new TLRPC.TL_messages_affectedMessages();
                     // idk if this should be -1 or what, check `TL_messages_readMessageContents` usages
                     fakeRes.pts = -1;
@@ -441,7 +438,7 @@ public class ConnectionsManager extends BaseController {
 
                     return;
                 } else {
-                    sendNextRead = false;
+                    AyuState.resetAllowReadPacket();
                 }
             }
 
@@ -464,7 +461,7 @@ public class ConnectionsManager extends BaseController {
                     origOnComplete.run(response, error);
 
                     getMessagesStorage().getDialogMaxMessageId(dialogId, maxId -> {
-                        sendNextRead = true;
+                        AyuState.setAllowReadPacket();
 
                         TLRPC.TL_messages_readHistory request = new TLRPC.TL_messages_readHistory();
                         request.peer = obj.peer;
