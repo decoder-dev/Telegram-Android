@@ -1,70 +1,63 @@
-## BananaGram for Android
+# AyuGram for Android
 
-An unofficial Telegram client being ported from our [BananaGram iOS fork](https://github.com/decoder-dev/Telegram-iOS).
-The port scope also includes [AyuGram](https://github.com/AyuGram) features.
-Full feature parity is still in progress; there is no BananaGram Android release yet.
+![AyuGram Logo](.github/AyuGram.png)
 
-The first implementation block adds account-specific Extras, opt-in tracking-link
-cleanup, Ghost Mode controls and playback speeds up to 4×. The next block adds
-a Ghost preset, silent sending and an optional return offline after activity.
-An opt-in local archive adds previous/deleted versions, downloaded attachments,
-search and clear. Native message filters add shared/per-chat rules, exceptions,
-an isolated Java regex evaluator, a sample preview, drafts from selected message
-text, reviewed AyuGram v2 JSON
-import/export and imports from supported HTTPS and `tg://ayu/filters/import/` links. English/Russian screens, local capture and native filter paths
-are tested on an emulator without signing in; live messages, real call hardware and
-server-side Ghost acceptance still need verification. See the
-[complete iOS feature reference](docs/phone-features-source.md),
-[iOS port inventory](docs/phone-port-inventory.json),
-[AyuGram inventory](docs/ayugram-port-inventory.json), [source credits](docs/port-sources.md)
-and [Android build checks](docs/android-build.md) for the current scope and limits.
+## Features
 
-**Русский:** переносим все функции телефонного BananaGram. Перенос ещё не завершён;
-сборки для проверки не являются готовым релизом.
+**AyuGram4A** is built on top of exteraGram, which means we have all the features exteraGram has and
+some of Telegraher's:
 
-### Telegram upstream
+- Built with official keys
+- No emulator detection
+- Screenshots in secret chats
+- Messages history (+ deleted ones)
+- No ads
+- Probably something else, check commits!
 
-[Telegram](https://telegram.org) is a messaging app with a focus on speed and security. It’s superfast, simple and free.
-This fork is based on the official source code for [Telegram App for Android](https://play.google.com/store/apps/details?id=org.telegram.messenger).
+...and **ghost mode**.
 
-## Creating your Telegram Application
+Please note that AyuGram does **NOT** include some closed-source exteraGram features.
 
-We welcome all developers to use our API and source code to create applications on our platform.
-There are several things we require from **all developers** for the moment.
+## Downloads?
 
-1. [**Obtain your own api_id**](https://core.telegram.org/api/obtaining_api_id) for your application.
-2. Please **do not** use the name Telegram for your app — or make sure your users understand that it is unofficial.
-3. Kindly **do not** use our standard logo (white paper plane in a blue circle) as your app's logo.
-4. Please study our [**security guidelines**](https://core.telegram.org/mtproto/security_guidelines) and take good care of your users' data and privacy.
-5. Please remember to publish **your** code too in order to comply with the licences.
+Follow our [Telegram channel](https://t.me/ayugram1338).
 
-### API, Protocol documentation
+## Why there's no `X` feature from Telegraher?
 
-Telegram API manuals: https://core.telegram.org/api
+Because I'm too lazy, and some Telegraher's features are useless for the most of people.
 
-MTproto protocol manuals: https://core.telegram.org/mtproto
+## How to contribute
 
-### Compilation Guide
+I'd be grateful for any contribution, since I don't really like Java. :)
 
-**Note**: The inherited `release.keystore` and `google-services.json` are upstream placeholders. Configure your own signing, package identity and Firebase project before publishing. BananaGram API credentials come from the environment or the private loader, as described in [Android build checks](docs/android-build.md).
+Work on any feature you want.
 
-You will require Android Studio 2025.1.4, Android NDK 27.2.12479018 and Android SDK 36.
+## How to build
 
-1. Clone the Telegram source code with its submodules:
-   ```bash
-   git clone --recursive --shallow-submodules https://github.com/decoder-dev/Telegram-Android.git BananaGram
-   ```
-   In case you forgot the `--recursive` flag, change to the `BananaGram` directory and run:
-   ```bash
-   git submodule init && git submodule update --init --recursive --depth=1
-   ```
-2. Copy your release.keystore into TMessagesProj/config
-3. Fill out RELEASE_KEY_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_STORE_PASSWORD in gradle.properties to access your  release.keystore
-4.  Go to https://console.firebase.google.com/, create two android apps with application IDs org.telegram.messenger and org.telegram.messenger.beta, turn on firebase messaging and download google-services.json, which should be copied to the same folder as TMessagesProj.
-5. Open the project in the Studio (note that it should be opened, NOT imported).
-6. For BananaGram, supply `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` through the build environment or the private local loader described in [Android build checks](docs/android-build.md). Do not put API credentials in `BuildVars.java`.
-7. You are ready to compile Telegram.
+1. Clone source code using `git clone https://github.com/AyuGram/AyuGram4A.git`
+2. Open the project in Android Studio. It should be opened, **not imported**
+3. You are ready to compile `AyuGram`
 
-### Localization
+- **AyuGram** can be built with **Android Studio** or from the command line with **Gradle**:
 
-We moved all translations to https://translations.telegram.org/en/android/. Please use it.
+```
+./gradlew assembleAfatRelease
+```
+
+## AyuGram Localization
+
+[![Crowdin](https://badges.crowdin.net/ayugram/localized.svg)](https://crowdin.com/project/ayugram)
+[![Crowdin](https://badges.crowdin.net/exteralocales/localized.svg)](https://crowdin.com/project/exteralocales)
+
+We have our own [Crowdin](https://crowdin.com/project/ayugram).
+
+But since AyuGram is based on **exteraGram**, also join their project
+at [Crowdin](https://crowdin.com/project/exteralocales)!
+
+## Credits
+
+- [exteraGram](https://github.com/exteraSquad/exteraGram)
+- [Telegraher](https://github.com/nikitasius/Telegraher)
+- [Cherrygram](https://github.com/arsLan4k1390/Cherrygram)
+- [Nagram](https://github.com/NextAlone/Nagram)
+- [Telegram FOSS](https://github.com/Telegram-FOSS-Team/Telegram-FOSS)
