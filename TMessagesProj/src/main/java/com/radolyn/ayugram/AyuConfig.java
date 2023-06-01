@@ -23,6 +23,7 @@ public class AyuConfig {
     public static boolean showFromChannel;
     public static boolean keepAliveService;
     public static boolean enableAds;
+    public static boolean showGhostToggleInDrawer;
 
     private static boolean configLoaded;
 
@@ -59,8 +60,28 @@ public class AyuConfig {
             keepAliveService = preferences.getBoolean("keepAliveService", true);
             enableAds = preferences.getBoolean("enableAds", false);
 
+            // ~ Customization
+            showGhostToggleInDrawer = preferences.getBoolean("showGhostToggleInDrawer", true);
+
             configLoaded = true;
         }
+    }
+
+    public static boolean isGhostModeActive() {
+        return !sendReadPackets && !sendOnlinePackets;
+    }
+
+    public static void setGhostMode(boolean enabled) {
+        sendReadPackets = !enabled;
+        sendOnlinePackets = !enabled;
+        sendUploadProgress = !enabled;
+
+        sendOfflinePacketAfterOnline = enabled;
+    }
+
+    public static void toggleGhostMode() {
+        // giga move
+        setGhostMode(!isGhostModeActive());
     }
 
     public static String getDeletedMark() {

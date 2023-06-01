@@ -1,14 +1,3 @@
-/*
-
- This is the source code of exteraGram for Android.
-
- We do not and cannot prevent the use of our code,
- but be respectful and credit the original author.
-
- Copyright @immat0x1, 2023
-
-*/
-
 package com.radolyn.ayugram.ui.preferences;
 
 import android.content.Context;
@@ -24,7 +13,9 @@ import com.radolyn.ayugram.messages.AyuMessagesController;
 import com.radolyn.ayugram.messages.AyuState;
 
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.EditTextSettingsCell;
@@ -41,18 +32,22 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
     private int sendOfflinePacketAfterOnlineRow;
     private int markReadAfterSendRow;
     private int useScheduledMessagesRow;
+    private int ghostDividerRow;
 
     private int spyHeaderRow;
     private int keepDeletedMessagesRow;
     private int keepMessagesHistoryRow;
+    private int spyDividerRow;
 
     private int qolHeaderRow;
     private int showFromChannelRow;
     private int keepAliveServiceRow;
     private int enableAdsRow;
+    private int qolDividerRow;
 
     private int customizationHeaderRow;
     private int deletedMarkTextRow;
+    private int showGhostToggleInDrawerRow;
     private int customizationDividerRow;
 
     private int debugHeaderRow;
@@ -69,18 +64,22 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         sendOfflinePacketAfterOnlineRow = newRow();
         markReadAfterSendRow = newRow();
         useScheduledMessagesRow = newRow();
+        ghostDividerRow = newRow();
 
         spyHeaderRow = newRow();
         keepDeletedMessagesRow = newRow();
         keepMessagesHistoryRow = newRow();
+        spyDividerRow = newRow();
 
         qolHeaderRow = newRow();
         showFromChannelRow = newRow();
         keepAliveServiceRow = newRow();
         enableAdsRow = newRow();
+        qolDividerRow = newRow();
 
         customizationHeaderRow = newRow();
         deletedMarkTextRow = newRow();
+        showGhostToggleInDrawerRow = newRow();
         customizationDividerRow = newRow();
 
         debugHeaderRow = newRow();
@@ -128,6 +127,9 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         } else if (position == enableAdsRow) {
             AyuConfig.editor.putBoolean("enableAds", AyuConfig.enableAds ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.enableAds);
+        } else if (position == showGhostToggleInDrawerRow) {
+            AyuConfig.editor.putBoolean("showGhostToggleInDrawer", AyuConfig.showGhostToggleInDrawer ^= true).apply();
+            ((TextCheckCell) view).setChecked(AyuConfig.showGhostToggleInDrawer);
         } else if (position == deletedMarkTextRow) {
             var builder = new AlertDialog.Builder(getParentActivity());
             builder.setTitle(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText));
@@ -228,6 +230,9 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                         textCheckCell.setTextAndCheck(LocaleController.getString("KeepAliveService", R.string.KeepAliveService) + " β", AyuConfig.keepAliveService, true);
                     } else if (position == enableAdsRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("EnableAds", R.string.EnableAds), AyuConfig.enableAds, true);
+                    } else if (position == showGhostToggleInDrawerRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString("ShowGhostToggleInDrawer", R.string.ShowGhostToggleInDrawer), AyuConfig.showGhostToggleInDrawer, true);
+                        NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
                     }
                     break;
             }
@@ -235,7 +240,12 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == customizationDividerRow) {
+            if (
+                    position == ghostDividerRow ||
+                            position == spyDividerRow ||
+                            position == qolDividerRow ||
+                            position == customizationDividerRow
+            ) {
                 return 1;
             } else if (position == deletedMarkTextRow || position == cleanDatabaseBtnRow) {
                 return 2;
