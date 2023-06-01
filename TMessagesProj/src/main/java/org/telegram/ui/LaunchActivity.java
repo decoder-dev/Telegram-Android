@@ -91,6 +91,7 @@ import com.google.common.primitives.Longs;
 import com.google.firebase.appindexing.Action;
 import com.google.firebase.appindexing.FirebaseUserActions;
 import com.google.firebase.appindexing.builders.AssistActionBuilder;
+import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 
 import org.telegram.PhoneFormat.PhoneFormat;
@@ -544,6 +545,328 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         });
         setupActionBarLayout();
+        sideMenuContainer = new FrameLayout(this);
+        sideMenu = new RecyclerListView(this) {
+            @Override
+            public boolean drawChild(Canvas canvas, View child, long drawingTime) {
+                int restore = -1;
+                if (itemAnimator != null && itemAnimator.isRunning() && itemAnimator.isAnimatingChild(child)) {
+                    restore = canvas.save();
+                    canvas.clipRect(0, itemAnimator.getAnimationClipTop(), getMeasuredWidth(), getMeasuredHeight());
+                }
+                boolean result = super.drawChild(canvas, child, drawingTime);
+                if (restore >= 0) {
+                    canvas.restoreToCount(restore);
+                    invalidate();
+                    invalidateViews();
+                }
+                return result;
+            }
+        };
+        itemAnimator = new SideMenultItemAnimator(sideMenu);
+        sideMenu.setItemAnimator(itemAnimator);
+        sideMenu.setBackgroundColor(Theme.getColor(Theme.key_chats_menuBackground));
+        sideMenuContainer.setBackgroundColor(Theme.getColor(Theme.key_chats_menuBackground));
+        sideMenu.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        sideMenu.setAllowItemsInteractionDuringAnimation(false);
+        sideMenu.setAdapter(drawerLayoutAdapter = new DrawerLayoutAdapter(this, itemAnimator, drawerLayoutContainer));
+        drawerLayoutAdapter.setOnPremiumDrawableClick(e -> showSelectStatusDialog());
+        sideMenuContainer.addView(sideMenu, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        drawerLayoutContainer.setDrawerLayout(sideMenuContainer, sideMenu);
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) sideMenuContainer.getLayoutParams();
+        Point screenSize = AndroidUtilities.getRealScreenSize();
+        layoutParams.width = AndroidUtilities.isTablet() ? AndroidUtilities.dp(320) : Math.min(AndroidUtilities.dp(320), Math.min(screenSize.x, screenSize.y) - AndroidUtilities.dp(56));
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
+        sideMenuContainer.setLayoutParams(layoutParams);
+        sideMenu.setOnItemClickListener((view, position, x, y) -> {
+            if (position == 0) {
+                DrawerProfileCell profileCell = (DrawerProfileCell) view;
+                if (profileCell.isInAvatar(x, y)) {
+                    openSettings(profileCell.hasAvatar());
+                } else {
+                    drawerLayoutAdapter.setAccountsShown(!drawerLayoutAdapter.isAccountsShown(), true);
+                }
+            } else if (view instanceof DrawerUserCell) {
+                switchToAccount(((DrawerUserCell) view).getAccountNumber(), true);
+                drawerLayoutContainer.closeDrawer(false);
+            } else if (view instanceof DrawerAddCell) {
+                int freeAccounts = 0;
+                Integer availableAccount = null;
+                for (int a = UserConfig.MAX_ACCOUNT_COUNT - 1; a >= 0; a--) {
+                    if (!UserConfig.getInstance(a).isClientActivated()) {
+                        freeAccounts++;
+                        if (availableAccount == null) {
+                            availableAccount = a;
+                        }
+                    }
+                }
+                if (!UserConfig.hasPremiumOnAccounts()) {
+                    freeAccounts -= (UserConfig.MAX_ACCOUNT_COUNT - UserConfig.MAX_ACCOUNT_DEFAULT_COUNT);
+                }
+                if (freeAccounts > 0) {
+                    presentFragment(new LoginActivity(availableAccount));
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (!UserConfig.hasPremiumOnAccounts()) {
+                    if (actionBarLayout.getFragmentStack().size() > 0) {
+                        BaseFragment fragment = actionBarLayout.getFragmentStack().get(0);
+                        LimitReachedBottomSheet limitReachedBottomSheet = new LimitReachedBottomSheet(fragment, this, TYPE_ACCOUNTS, currentAccount);
+                        fragment.showDialog(limitReachedBottomSheet);
+                        limitReachedBottomSheet.onShowPremiumScreenRunnable = () -> drawerLayoutContainer.closeDrawer(false);
+                    }
+                }
+            } else {
+                int id = drawerLayoutAdapter.getId(position);
+                if (id == 2) {
+                    Bundle args = new Bundle();
+                    presentFragment(new GroupCreateActivity(args));
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 3) {
+                    Bundle args = new Bundle();
+                    args.putBoolean("onlyUsers", true);
+                    args.putBoolean("destroyAfterSelect", true);
+                    args.putBoolean("createSecretChat", true);
+                    args.putBoolean("allowBots", false);
+                    args.putBoolean("allowSelf", false);
+                    presentFragment(new ContactsActivity(args));
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 4) {
+                    SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+                    if (!BuildVars.DEBUG_VERSION && preferences.getBoolean("channel_intro", false)) {
+                        Bundle args = new Bundle();
+                        args.putInt("step", 0);
+                        presentFragment(new ChannelCreateActivity(args));
+                    } else {
+                        presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANNEL_CREATE));
+                        preferences.edit().putBoolean("channel_intro", true).apply();
+                    }
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 6) {
+                    presentFragment(new ContactsActivity(null));
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 7) {
+                    presentFragment(new InviteContactsActivity());
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 8) {
+                    openSettings(false);
+                } else if (id == 9) {
+                    Browser.openUrl(LaunchActivity.this, LocaleController.getString("TelegramFaqUrl", R.string.TelegramFaqUrl));
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 10) {
+                    presentFragment(new CallLogActivity());
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 11) {
+                    Bundle args = new Bundle();
+                    args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
+                    presentFragment(new ChatActivity(args));
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 12) {
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_NEARBY_LOCATION_ACCESS));
+                            drawerLayoutContainer.closeDrawer(false);
+                            return;
+                        }
+                    }
+                    boolean enabled = true;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        LocationManager lm = (LocationManager) ApplicationLoader.applicationContext.getSystemService(Context.LOCATION_SERVICE);
+                        enabled = lm.isLocationEnabled();
+                    } else {
+                        try {
+                            int mode = Settings.Secure.getInt(ApplicationLoader.applicationContext.getContentResolver(), Settings.Secure.LOCATION_MODE, Settings.Secure.LOCATION_MODE_OFF);
+                            enabled = (mode != Settings.Secure.LOCATION_MODE_OFF);
+                        } catch (Throwable e) {
+                            FileLog.e(e);
+                        }
+                    }
+                    if (enabled) {
+                        presentFragment(new PeopleNearbyActivity());
+                    } else {
+                        presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_NEARBY_LOCATION_ENABLED));
+                    }
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 13) {
+                    Browser.openUrl(LaunchActivity.this, LocaleController.getString("TelegramFeaturesUrl", R.string.TelegramFeaturesUrl));
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 14) {
+                    Bundle args = new Bundle();
+                    args.putInt("folderId", 1);
+                    presentFragment(new DialogsActivity(args));
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 15) {
+                    showSelectStatusDialog();
+                } else if (id == 16) {
+                    if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
+                        return;
+                    }
+                    openCameraScanActivity();
+                    if (AndroidUtilities.isTablet()) {
+                        actionBarLayout.showLastFragment();
+                        rightActionBarLayout.showLastFragment();
+                        drawerLayoutContainer.setAllowOpenDrawer(false, false);
+                    } else {
+                        drawerLayoutContainer.setAllowOpenDrawer(true, false);
+                    }
+                    drawerLayoutContainer.closeDrawer(false);
+                }
+
+                // --- AyuGram hook
+                if (id == AyuConstants.DRAWER_TOGGLE_GHOST) {
+                    var msg = AyuConfig.isGhostModeActive()
+                            ? LocaleController.getString("GhostModeDisabled", R.string.GhostModeDisabled)
+                            : LocaleController.getString("GhostModeEnabled", R.string.GhostModeEnabled);
+
+                    AyuConfig.toggleGhostMode();
+
+                    BulletinFactory.of(getLastFragment()).createSuccessBulletin(msg).show();
+                    drawerLayoutContainer.closeDrawer(false);
+
+                    // update button text
+                    NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+                }
+                // --- AyuGram hook
+            }
+        });
+        final ItemTouchHelper sideMenuTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
+
+            private RecyclerView.ViewHolder selectedViewHolder;
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                if (viewHolder.getItemViewType() != target.getItemViewType()) {
+                    return false;
+                }
+                drawerLayoutAdapter.swapElements(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+                return true;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            }
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return false;
+            }
+
+            @Override
+            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+                clearSelectedViewHolder();
+                if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
+                    selectedViewHolder = viewHolder;
+                    final View view = viewHolder.itemView;
+                    sideMenu.cancelClickRunnables(false);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_dialogBackground));
+                    ObjectAnimator.ofFloat(view, "elevation", AndroidUtilities.dp(1)).setDuration(150).start();
+                }
+            }
+
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                clearSelectedViewHolder();
+            }
+
+            private void clearSelectedViewHolder() {
+                if (selectedViewHolder != null) {
+                    final View view = selectedViewHolder.itemView;
+                    selectedViewHolder = null;
+                    view.setTranslationX(0f);
+                    view.setTranslationY(0f);
+                    final ObjectAnimator animator = ObjectAnimator.ofFloat(view, "elevation", 0f);
+                    animator.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            view.setBackground(null);
+                        }
+                    });
+                    animator.setDuration(150).start();
+                }
+            }
+
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                final View view = viewHolder.itemView;
+                if (drawerLayoutAdapter.isAccountsShown()) {
+                    RecyclerView.ViewHolder topViewHolder = recyclerView.findViewHolderForAdapterPosition(drawerLayoutAdapter.getFirstAccountPosition() - 1);
+                    RecyclerView.ViewHolder bottomViewHolder = recyclerView.findViewHolderForAdapterPosition(drawerLayoutAdapter.getLastAccountPosition() + 1);
+                    if (topViewHolder != null && topViewHolder.itemView.getBottom() == view.getTop() && dY < 0f) {
+                        dY = 0f;
+                    } else if (bottomViewHolder != null && bottomViewHolder.itemView.getTop() == view.getBottom() && dY > 0f) {
+                        dY = 0f;
+                    }
+                }
+                view.setTranslationX(dX);
+                view.setTranslationY(dY);
+            }
+        });
+        sideMenuTouchHelper.attachToRecyclerView(sideMenu);
+        sideMenu.setOnItemLongClickListener((view, position) -> {
+            int id = drawerLayoutAdapter.getId(position);
+            if (view instanceof DrawerUserCell) {
+                final int accountNumber = ((DrawerUserCell) view).getAccountNumber();
+                if (accountNumber == currentAccount || AndroidUtilities.isTablet()) {
+                    sideMenuTouchHelper.startDrag(sideMenu.getChildViewHolder(view));
+                } else {
+                    final BaseFragment fragment = new DialogsActivity(null) {
+                        @Override
+                        public void onTransitionAnimationEnd(boolean isOpen, boolean backward) {
+                            super.onTransitionAnimationEnd(isOpen, backward);
+                            if (!isOpen && backward) { // closed
+                                drawerLayoutContainer.setDrawCurrentPreviewFragmentAbove(false);
+                                actionBarLayout.getView().invalidate();
+                            }
+                        }
+
+                        @Override
+                        public void onPreviewOpenAnimationEnd() {
+                            super.onPreviewOpenAnimationEnd();
+                            drawerLayoutContainer.setAllowOpenDrawer(false, false);
+                            drawerLayoutContainer.setDrawCurrentPreviewFragmentAbove(false);
+                            switchToAccount(accountNumber, true);
+                            actionBarLayout.getView().invalidate();
+                        }
+                    };
+                    fragment.setCurrentAccount(accountNumber);
+                    actionBarLayout.presentFragmentAsPreview(fragment);
+                    drawerLayoutContainer.setDrawCurrentPreviewFragmentAbove(true);
+                    return true;
+                }
+            } else if (view instanceof DrawerActionCell && id == 14) {
+                Bundle args = new Bundle();
+                args.putInt("folderId", 1);
+                final BaseFragment fragment = new DialogsActivity(args) {
+                    @Override
+                    public void onTransitionAnimationEnd(boolean isOpen, boolean backward) {
+                        super.onTransitionAnimationEnd(isOpen, backward);
+                        if (!isOpen && backward) {
+                            drawerLayoutContainer.setDrawCurrentPreviewFragmentAbove(false);
+                            actionBarLayout.getView().invalidate();
+                        }
+                    }
+
+                    @Override
+                    public void onFragmentDestroy() {
+                        super.onFragmentDestroy();
+                        drawerLayoutContainer.setAllowOpenDrawer(true, false);
+                        actionBarLayout.getView().invalidate();
+                    }
+
+                    @Override
+                    public void onPreviewOpenAnimationEnd() {
+                        super.onPreviewOpenAnimationEnd();
+                        drawerLayoutContainer.setAllowOpenDrawer(false, false);
+                        drawerLayoutContainer.setDrawCurrentPreviewFragmentAbove(false);
+                        drawerLayoutContainer.closeDrawer(false);
+                        actionBarLayout.getView().invalidate();
+                    }
+                };
+                actionBarLayout.presentFragmentAsPreview(fragment);
+                drawerLayoutContainer.setDrawCurrentPreviewFragmentAbove(true);
+                return true;
+            }
+            return false;
+        });
         drawerLayoutContainer.setParentActionBarLayout(actionBarLayout);
         actionBarLayout.setDrawerLayoutContainer(drawerLayoutContainer);
         actionBarLayout.setFragmentStack(mainFragmentsStack);

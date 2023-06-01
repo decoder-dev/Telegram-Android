@@ -20,11 +20,18 @@
     <string name="KeepAliveService">Keep Alive Service</string>
     <string name="EnableAds">Enable ads</string>
 
+    <string name="CustomizationHeader">Customization</string>
+    <string name="DeletedMarkText">Deleted mark</string>
+    <string name="ShowGhostToggleInDrawer">Show ghost mode toggle</string>
+
     <string name="CleanDatabase">Clean database</string>
     <string name="CleanDatabaseNotification">AyuGram database cleaned</string>
 
-    <string name="CustomizationHeader">Customization</string>
-    <string name="DeletedMarkText">Deleted mark</string>
+    <string name="EnableGhostMode">Enable Ghost</string>
+    <string name="DisableGhostMode">Disable Ghost</string>
+
+    <string name="GhostModeEnabled">Ghost mode turned on</string>
+    <string name="GhostModeDisabled">Ghost mode turned off</string>
 
     <string name="EditsHistoryTitle">Edits history</string>
     <string name="EditsHistoryMenuText">History</string>

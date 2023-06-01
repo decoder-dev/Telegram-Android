@@ -446,7 +446,7 @@ public class ConnectionsManager extends BaseController {
             }
 
             // mark messages as read after sending a message
-            if (AyuConfig.markReadAfterSend) {
+            if (AyuConfig.markReadAfterSend && !AyuConfig.sendReadPackets) {
                 TLRPC.InputPeer peer = null;
                 if (object instanceof TLRPC.TL_messages_sendMessage) {
                     var obj = ((TLRPC.TL_messages_sendMessage) object);
