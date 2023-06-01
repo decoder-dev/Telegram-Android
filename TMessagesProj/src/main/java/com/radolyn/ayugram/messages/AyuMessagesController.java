@@ -2,6 +2,7 @@ package com.radolyn.ayugram.messages;
 
 import android.database.sqlite.SQLiteConstraintException;
 import android.os.Environment;
+import android.text.TextUtils;
 
 import androidx.room.Room;
 
@@ -73,6 +74,10 @@ public class AyuMessagesController {
             isDocument = true;
         } else if (oldMessage.media instanceof TLRPC.TL_messageMediaWebPage && newMessage.media instanceof TLRPC.TL_messageMediaWebPage) {
             sameMedia = true;
+        }
+
+        if (sameMedia && TextUtils.equals(oldMessage.message, newMessage.message)) {
+            return;
         }
 
         var revision = new EditedMessage();
