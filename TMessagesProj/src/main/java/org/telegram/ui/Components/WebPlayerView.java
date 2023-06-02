@@ -41,11 +41,10 @@ import android.webkit.WebView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import androidx.annotation.Keep;
-
-import androidx.media3.common.C;
-import androidx.media3.exoplayer.ExoPlayer;
-import org.telegram.ui.AspectRatioFrameLayout;
+import com.exteragram.messenger.ExteraConfig;
+import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -1957,7 +1956,7 @@ public class WebPlayerView extends ViewGroup implements VideoPlayer.VideoPlayerD
         if (inlineButton == null) {
             return;
         }
-        inlineButton.setImageResource(isInline ? R.drawable.ic_goinline : R.drawable.ic_outinline);
+        inlineButton.setImageResource(ExteraConfig.useSolarIcons ? R.drawable.header_goinline_solar : isInline ? R.drawable.ic_goinline : R.drawable.ic_outinline);
         inlineButton.setVisibility(videoPlayer.isPlayerPrepared() ? VISIBLE : GONE);
         if (isInline) {
             inlineButton.setLayoutParams(LayoutHelper.createFrame(40, 40, Gravity.RIGHT | Gravity.TOP));

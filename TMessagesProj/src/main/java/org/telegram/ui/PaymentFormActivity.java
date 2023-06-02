@@ -483,8 +483,11 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
         paymentFormCallback = callback;
     }
 
-    private void setCurrentPassword(TL_account.Password password) {
-        if (password != null && password.has_password) {
+    private void setCurrentPassword(TLRPC.account_Password password) {
+        if (password == null) {
+            return;
+        }
+        if (password.has_password) {
             if (getParentActivity() == null) {
                 return;
             }
@@ -2248,7 +2251,7 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
             detailSettingsCell[1].setBackground(Theme.getSelectorDrawable(true));
             String providerName;
             if (providerUser != null) {
-                detailSettingsCell[1].setTextAndValueAndIcon(providerName = ContactsController.formatName(providerUser.first_name, providerUser.last_name), LocaleController.getString(R.string.PaymentCheckoutProvider), R.drawable.msg_payment_provider, validateRequest != null && (validateRequest.info.shipping_address != null || shippingOption != null) || paymentForm.saved_info != null && (paymentForm.saved_info.shipping_address != null));
+                detailSettingsCell[1].setTextAndValueAndIcon(providerName = ContactsController.formatName(providerUser.first_name, providerUser.last_name), LocaleController.getString("PaymentCheckoutProvider", R.string.PaymentCheckoutProvider), R.drawable.msg_payment_provider, validateRequest != null && (validateRequest.info != null && validateRequest.info.shipping_address != null || shippingOption != null) || paymentForm.saved_info != null && (paymentForm.saved_info.shipping_address != null));
                 linearLayout2.addView(detailSettingsCell[1]);
             } else {
                 providerName = "";

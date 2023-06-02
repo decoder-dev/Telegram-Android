@@ -65,7 +65,6 @@ public class JoinGroupAlert extends BottomSheet {
         super(context, false, resourcesProvider);
         setApplyBottomPadding(false);
         setApplyTopPadding(false);
-        fixNavigationBar(getThemedColor(Theme.key_windowBackgroundWhite));
 
         final long dialogId;
         fragment = parentFragment;
@@ -79,6 +78,8 @@ public class JoinGroupAlert extends BottomSheet {
             dialogId = 0;
         }
         hash = group;
+
+        fixNavigationBar(chatInvite == null || chatInvite.request_needed ? getThemedColor(Theme.key_dialogBackground) : getThemedColor(Theme.key_windowBackgroundWhite));
 
         LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(LinearLayout.VERTICAL);

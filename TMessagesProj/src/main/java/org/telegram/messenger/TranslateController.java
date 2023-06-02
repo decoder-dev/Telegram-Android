@@ -113,7 +113,7 @@ public class TranslateController extends BaseController {
             return false;
         }
         if (chatTranslateEnabled == null) {
-            chatTranslateEnabled = messagesController.getMainSettings().getBoolean("translate_chat_button", true);
+            chatTranslateEnabled = messagesController.getMainSettings().getBoolean("translate_chat_button", false);
         }
         return chatTranslateEnabled;
     }

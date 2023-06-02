@@ -129,6 +129,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import com.exteragram.messenger.ExteraConfig;
+import com.exteragram.messenger.preferences.MainPreferencesActivity;
+import com.exteragram.messenger.utils.AppUtils;
+import com.exteragram.messenger.utils.CanvasUtils;
+import com.exteragram.messenger.utils.ChatUtils;
+import com.exteragram.messenger.utils.LocaleUtils;
 import com.radolyn.ayugram.AyuConfig;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
@@ -13372,7 +13378,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     cell.getTextView().setGravity(Gravity.CENTER_HORIZONTAL);
                     cell.getTextView().setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText3));
                     cell.getTextView().setMovementMethod(null);
-                    cell.setText(AndroidUtilities.getBuildVersionInfo());
+                    try {
+                        PackageInfo info = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
+                        cell.setText(LocaleUtils.getAppName() + " " + BuildVars.BUILD_VERSION_STRING + " (" + info.versionCode + ")" + (AppUtils.isAppModified() ? "\nbased on @exteraGram" : ""));
+                    } catch (PackageManager.NameNotFoundException e) {
+                        FileLog.e(e);
+                    }
                     cell.getTextView().setPadding(0, AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14));
                     view = cell;
                     break;

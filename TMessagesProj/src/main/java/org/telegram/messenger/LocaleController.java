@@ -63,6 +63,9 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.TimeZone;
 
+import com.exteragram.messenger.ExteraConfig;
+import com.exteragram.messenger.utils.LocaleUtils;
+
 public class LocaleController {
 
     static final int QUANTITY_OTHER = 0x0000;
@@ -1444,7 +1447,10 @@ public class LocaleController {
     }
 
     private String getStringInternal(String key, String fallback, int res) {
-        final String value = getStringV2(key, res, fallback);
+        if (key.contains("AppName")) {
+            return LocaleUtils.getAppName();
+        }
+        String value = BuildVars.USE_CLOUD_STRINGS ? localeValues.get(key) : null;
         if (value == null) {
             return "LOC_ERR:" + key;
         }

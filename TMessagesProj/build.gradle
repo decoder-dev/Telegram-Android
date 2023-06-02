@@ -103,13 +103,29 @@ dependencies {
     implementation "androidx.credentials:credentials:1.6.0-alpha04"
     implementation "androidx.credentials:credentials-play-services-auth:1.6.0-alpha04"
 
-    implementation "io.noties.markwon:core:4.6.2"
-    implementation "io.noties.markwon:ext-strikethrough:4.6.2"
-    implementation "io.noties.markwon:ext-tables:4.6.2"
-    implementation "io.noties.markwon:html:4.6.2"
-    implementation "io.noties.markwon:inline-parser:4.6.2"
-    implementation("io.noties.markwon:ext-latex:4.6.2") {
-        exclude group: 'ru.noties', module: 'jlatexmath-android'
+    // AyuGram deps
+    def room_version = "2.4.3"
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+
+    implementation files('libs/libgsaverification-client.aar')
+}
+
+def isPmBuild = "false"
+def abis = [9: 'universal', 1: 'armeabi-v7a', 5: 'arm64-v8a', 2: 'x86', 6: 'x86_64']
+
+android {
+    compileSdkVersion 33
+    buildToolsVersion '33.0.1'
+    ndkVersion "21.4.7075529"
+    namespace 'org.telegram.messenger'
+
+    defaultConfig.applicationId = APP_PACKAGE
+    defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)
+
+    Properties localProperties = new Properties()
+    if (project.rootProject.file('API_KEYS').exists()) {
+        localProperties.load(project.rootProject.file('API_KEYS').newDataInputStream())
     }
 
     api project(":TMessagesProj_Modules:media3:media-lib-exoplayer")
