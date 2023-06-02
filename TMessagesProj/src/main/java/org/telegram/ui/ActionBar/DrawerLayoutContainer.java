@@ -18,9 +18,9 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+
+import com.exteragram.messenger.ExteraConfig;
+import com.google.android.gms.vision.Frame;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildVars;
@@ -144,6 +144,81 @@ public class DrawerLayoutContainer extends FrameLayout {
         }
 
         super.dispatchDraw(canvas);
+        if (drawCurrentPreviewFragmentAbove && parentActionBarLayout != null) {
+            if (previewBlurDrawable != null) {
+                previewBlurDrawable.setAlpha((int) (parentActionBarLayout.getCurrentPreviewFragmentAlpha() * 255));
+                previewBlurDrawable.draw(canvas);
+            }
+            parentActionBarLayout.drawCurrentPreviewFragment(canvas, previewForegroundDrawable);
+        }
+    }
+
+    @Override
+    protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+        if (!allowDrawContent) {
+            return false;
+        }
+        final int height = getHeight();
+        final boolean drawingContent = child != drawerLayout;
+        int lastVisibleChild = 0;
+        int clipLeft = 0, clipRight = getWidth();
+
+        final int restoreCount = canvas.save();
+        if (drawingContent) {
+            final int childCount = getChildCount();
+            for (int i = 0; i < childCount; i++) {
+                final View v = getChildAt(i);
+                if (v.getVisibility() == VISIBLE && v != drawerLayout) {
+                    lastVisibleChild = i;
+                }
+                if (v == child || v.getVisibility() != VISIBLE || v != drawerLayout || v.getHeight() < height) {
+                    continue;
+                }
+
+                final int vright = (int) Math.ceil(v.getX()) + v.getMeasuredWidth();
+                if (vright > clipLeft) {
+                    clipLeft = vright;
+                }
+            }
+            if (clipLeft != 0) {
+                canvas.clipRect(clipLeft - AndroidUtilities.dp(1), 0, clipRight, getHeight());
+            }
+        }
+        final boolean result = super.drawChild(canvas, child, drawingTime);
+        canvas.restoreToCount(restoreCount);
+
+        if (scrimOpacity > 0 && drawingContent) {
+            if (indexOfChild(child) == lastVisibleChild) {
+                scrimPaint.setColor((int) ((((ExteraConfig.alternativeOpenAnimation ? 0x66000000 : 0x99000000) & 0xff000000) >>> 24) * scrimOpacity) << 24);
+                canvas.drawRect(clipLeft, 0, clipRight, getHeight(), scrimPaint);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        if (lastInsets != null) {
+            WindowInsets insets = (WindowInsets) lastInsets;
+
+            int bottomInset = insets.getSystemWindowInsetBottom();
+            if (bottomInset > 0) {
+                backgroundPaint.setColor(behindKeyboardColor);
+                canvas.drawRect(0, getMeasuredHeight() - bottomInset, getMeasuredWidth(), getMeasuredHeight(), backgroundPaint);
+            }
+
+            if (hasCutout) {
+                backgroundPaint.setColor(0xff000000);
+                int left = insets.getSystemWindowInsetLeft();
+                if (left != 0) {
+                    canvas.drawRect(0, 0, left, getMeasuredHeight(), backgroundPaint);
+                }
+                int right = insets.getSystemWindowInsetRight();
+                if (right != 0) {
+                    canvas.drawRect(right, 0, getMeasuredWidth(), getMeasuredHeight(), backgroundPaint);
+                }
+            }
+        }
     }
 
     @Override

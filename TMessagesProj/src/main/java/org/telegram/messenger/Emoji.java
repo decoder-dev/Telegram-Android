@@ -30,8 +30,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.telegram.tgnet.TLRPC;
-import org.telegram.ui.Components.AnimatedEmojiDrawable;
+import com.exteragram.messenger.boost.filter.ZalgoFilter;
+import com.exteragram.messenger.utils.FontUtils;
+
 import org.telegram.ui.Components.AnimatedEmojiSpan;
 import org.telegram.ui.Components.ColoredImageSpan;
 
@@ -330,6 +331,14 @@ public class Emoji {
                 b = getDrawRect();
             } else {
                 b = getBounds();
+            }
+
+            if (SharedConfig.useSystemEmoji) {
+                String emoji = fixEmoji(EmojiData.data[info.page][info.emojiIndex]);
+                textPaint.setTextSize(b.height() * 0.8f);
+                textPaint.setTypeface(FontUtils.getSystemEmojiTypeface());
+                canvas.drawText(emoji,  0, emoji.length(), b.left, b.bottom - b.height() * 0.225f, textPaint);
+                return;
             }
 
             if (!canvas.quickReject(b.left, b.top, b.right, b.bottom, Canvas.EdgeType.AA)) {

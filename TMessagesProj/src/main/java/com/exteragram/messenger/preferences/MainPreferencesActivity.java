@@ -215,7 +215,7 @@ public class MainPreferencesActivity extends BasePreferencesActivity {
     protected void onItemClick(View view, int position, float x, float y) {
         if (position == aboutExteraRow) {
             if (!BuildVars.PM_BUILD)
-                (new UpdaterBottomSheet(getParentActivity(), this, false)).show();
+                (new UpdaterBottomSheet(getParentActivity(), this, false, null)).show();
         } else if (position == sourceCodeRow) {
             Browser.openUrl(getParentActivity(), "https://github.com/AyuGram/AyuGram4A");
         } else if (position == channelRow) {
