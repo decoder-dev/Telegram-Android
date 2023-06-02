@@ -280,7 +280,7 @@ public class MainPreferencesActivity extends BasePreferencesActivity {
                     } else if (position == otherRow) {
                         textCell.setTextAndIcon(LocaleController.getString("LocalOther", R.string.LocalOther), R.drawable.msg_fave, false);
                     } else if (position == ayuRow) {
-                        textCell.setTextAndIcon(LocaleController.getString("AyuPreferences", R.string.AyuPreferences), R.drawable.msg2_reactions2, false);
+                        textCell.setTextAndIcon(LocaleController.getString("AyuPreferences", R.string.AyuPreferences), R.drawable.msg2_reactions2, true);
                     } else if (position == channelRow) {
                         textCell.setTextAndValueAndIcon(LocaleController.getString("Channel", R.string.Channel), "@ayugram1338", R.drawable.msg_channel, true);
                     } else if (position == groupRow) {

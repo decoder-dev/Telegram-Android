@@ -215,15 +215,15 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                     } else if (position == sendUploadProgressRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("SendUploadProgress", R.string.SendUploadProgress), AyuConfig.sendUploadProgress, true);
                     } else if (position == sendOfflinePacketAfterOnlineRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("SendOfflinePacketAfterOnline", R.string.SendOfflinePacketAfterOnline) + " β", AyuConfig.sendOfflinePacketAfterOnline, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString("SendOfflinePacketAfterOnline", R.string.SendOfflinePacketAfterOnline), AyuConfig.sendOfflinePacketAfterOnline, true);
                     } else if (position == markReadAfterSendRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("MarkReadAfterSend", R.string.MarkReadAfterSend) + " β", AyuConfig.markReadAfterSend, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString("MarkReadAfterSend", R.string.MarkReadAfterSend), AyuConfig.markReadAfterSend, true);
                     } else if (position == useScheduledMessagesRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("UseScheduledMessages", R.string.UseScheduledMessages) + " β", AyuConfig.useScheduledMessages, true);
                     } else if (position == keepDeletedMessagesRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("KeepDeletedMessages", R.string.KeepDeletedMessages) + " β", AyuConfig.keepDeletedMessages, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString("KeepDeletedMessages", R.string.KeepDeletedMessages), AyuConfig.keepDeletedMessages, true);
                     } else if (position == keepMessagesHistoryRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("KeepMessagesHistory", R.string.KeepMessagesHistory) + " β", AyuConfig.keepMessagesHistory, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString("KeepMessagesHistory", R.string.KeepMessagesHistory), AyuConfig.keepMessagesHistory, true);
                     } else if (position == showFromChannelRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("ShowFromChannel", R.string.ShowFromChannel), AyuConfig.showFromChannel, true);
                     } else if (position == keepAliveServiceRow) {
