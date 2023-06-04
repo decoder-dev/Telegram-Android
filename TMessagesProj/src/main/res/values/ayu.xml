@@ -39,6 +39,6 @@
     <string name="ReadUntilMenuText">Read until</string>
 
     <string name="LikelyOfflineStatus">offline ?</string>
-    <string name="BananaKeepAliveTitle">Message connection</string>
-    <string name="BananaKeepAliveStatus">Keeping the connection open for new messages</string>
+
+    <string name="GhostModeShortcut">Enter with Ghost</string>
 </resources>
