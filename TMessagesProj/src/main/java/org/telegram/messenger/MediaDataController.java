@@ -5000,7 +5000,7 @@ public class MediaDataController extends BaseController {
         }
         int maxShortcuts = ShortcutManagerCompat.getMaxShortcutCountPerActivity(ApplicationLoader.applicationContext) - 2;
         if (maxShortcuts <= 0) {
-            maxShortcuts = 5;
+            maxShortcuts = 4;
         }
         ArrayList<TLRPC.TL_topPeer> hintsFinal = new ArrayList<>();
         if (SharedConfig.passcodeHash.length() <= 0) {
@@ -5050,6 +5050,30 @@ public class MediaDataController extends BaseController {
                     }
                 }
 
+                // --- AyuGram hook
+                Intent ghostIntent = new Intent(ApplicationLoader.applicationContext, LaunchActivity.class);
+                ghostIntent.setAction("ghost_mode");
+                ArrayList<ShortcutInfoCompat> arrayList2 = new ArrayList<>();
+                ShortcutInfoCompat shortcut2 = new ShortcutInfoCompat.Builder(ApplicationLoader.applicationContext, "ghost_mode")
+                        .setShortLabel(LocaleController.getString("GhostModeShortcut", R.string.GhostModeShortcut))
+                        .setLongLabel(LocaleController.getString("GhostModeShortcut", R.string.GhostModeShortcut))
+                        .setIcon(IconCompat.createWithResource(ApplicationLoader.applicationContext, R.drawable.book_logo))
+                        .setRank(0)
+                        .setIntent(ghostIntent)
+                        .build();
+                if (recreateShortcuts) {
+                    ShortcutManagerCompat.pushDynamicShortcut(ApplicationLoader.applicationContext, shortcut2);
+                } else {
+                    arrayList2.add(shortcut2);
+                    if (shortcutsToUpdate.contains("ghost_mode")) {
+                        ShortcutManagerCompat.updateShortcuts(ApplicationLoader.applicationContext, arrayList2);
+                    } else {
+                        ShortcutManagerCompat.addDynamicShortcuts(ApplicationLoader.applicationContext, arrayList2);
+                    }
+                    arrayList2.clear();
+                }
+                // --- AyuGram hook
+
                 Intent intent = new Intent(ApplicationLoader.applicationContext, LaunchActivity.class);
                 intent.setAction("new_dialog");
                 ArrayList<ShortcutInfoCompat> arrayList = new ArrayList<>();
@@ -5057,7 +5081,7 @@ public class MediaDataController extends BaseController {
                         .setShortLabel(LocaleController.getString(R.string.NewConversationShortcut))
                         .setLongLabel(LocaleController.getString(R.string.NewConversationShortcut))
                         .setIcon(IconCompat.createWithResource(ApplicationLoader.applicationContext, R.drawable.shortcut_compose))
-                        .setRank(0)
+                        .setRank(1)
                         .setIntent(intent)
                         .build();
                 if (recreateShortcuts) {
@@ -5155,7 +5179,7 @@ public class MediaDataController extends BaseController {
                     ShortcutInfoCompat.Builder builder = new ShortcutInfoCompat.Builder(ApplicationLoader.applicationContext, id)
                             .setShortLabel(name)
                             .setLongLabel(name)
-                            .setRank(1 + a)
+                            .setRank(2 + a)
                             .setIntent(shortcutIntent);
                     if (SharedConfig.directShare) {
                         builder.setCategories(category);

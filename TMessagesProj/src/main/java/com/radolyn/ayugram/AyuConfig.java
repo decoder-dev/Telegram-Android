@@ -75,8 +75,12 @@ public class AyuConfig {
         sendReadPackets = !enabled;
         sendOnlinePackets = !enabled;
         sendUploadProgress = !enabled;
-
         sendOfflinePacketAfterOnline = enabled;
+
+        AyuConfig.editor.putBoolean("sendReadPackets", AyuConfig.sendReadPackets).apply();
+        AyuConfig.editor.putBoolean("sendOnlinePackets", AyuConfig.sendOnlinePackets).apply();
+        AyuConfig.editor.putBoolean("sendUploadProgress", AyuConfig.sendUploadProgress).apply();
+        AyuConfig.editor.putBoolean("sendOfflinePacketAfterOnline", AyuConfig.sendOfflinePacketAfterOnline).apply();
     }
 
     public static void toggleGhostMode() {
