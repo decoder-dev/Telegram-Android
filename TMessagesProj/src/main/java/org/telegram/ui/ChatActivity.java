@@ -31417,7 +31417,7 @@ public class ChatActivity extends BaseFragment implements
             }
 
             /// --- AyuGram menu
-            if (!AyuConfig.sendReadPackets
+            if (!AyuConfig.sendReadPackets && !isAyuDeleted
                     && message != null
                     && message.messageOwner.from_id != null
                     && message.messageOwner.from_id.user_id != getAccountInstance().getUserConfig().getClientUserId()
@@ -31438,7 +31438,7 @@ public class ChatActivity extends BaseFragment implements
                 icons.add(R.drawable.msg_log);
             }
 
-            if (message != null && message.messageOwner.ttl > 0) {
+            if (message != null && message.messageOwner.ttl > 0 && !isAyuDeleted) {
                 items.add(String.format("TTL %d", message.messageOwner.ttl));
                 options.add(AyuConstants.OPTION_TTL);
                 icons.add(R.drawable.flame_small);
