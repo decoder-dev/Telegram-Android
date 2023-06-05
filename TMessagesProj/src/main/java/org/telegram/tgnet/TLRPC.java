@@ -39594,13 +39594,13 @@ public class TLRPC {
 
         public void readParams(InputSerializedData stream, boolean exception, boolean allowStrippedThumb) {
             flags = stream.readInt32(exception);
-            creator = hasFlag(flags, FLAG_0);
-            kicked = hasFlag(flags, FLAG_1);
-            left = hasFlag(flags, FLAG_2);
-            deactivated = hasFlag(flags, FLAG_5);
-            call_active = hasFlag(flags, FLAG_23);
-            call_not_empty = hasFlag(flags, FLAG_24);
-            noforwards = false;
+            creator = (flags & 1) != 0;
+            kicked = (flags & 2) != 0;
+            left = (flags & 4) != 0;
+            deactivated = (flags & 32) != 0;
+            call_active = (flags & 8388608) != 0;
+            call_not_empty = (flags & 16777216) != 0;
+            noforwards = (flags & 33554432) != 0;
             id = stream.readInt64(exception);
             title = stream.readString(exception);
             photo = ChatPhoto.TLdeserialize(stream, stream.readInt32(exception), exception, allowStrippedThumb);
@@ -39867,20 +39867,20 @@ public class TLRPC {
             verified = hasFlag(flags, FLAG_7);
             megagroup = hasFlag(flags, FLAG_8);
             restricted = false;
-            signatures = hasFlag(flags, FLAG_11);
-            min = hasFlag(flags, FLAG_12);
-            scam = hasFlag(flags, FLAG_19);
-            has_link = hasFlag(flags, FLAG_20);
-            has_geo = hasFlag(flags, FLAG_21);
-            slowmode_enabled = hasFlag(flags, FLAG_22);
-            call_active = hasFlag(flags, FLAG_23);
-            call_not_empty = hasFlag(flags, FLAG_24);
-            fake = hasFlag(flags, FLAG_25);
-            gigagroup = hasFlag(flags, FLAG_26);
-            noforwards = false;
-            join_to_send = hasFlag(flags, FLAG_28);
-            join_request = hasFlag(flags, FLAG_29);
-            forum = hasFlag(flags, FLAG_30);
+            signatures = (flags & 2048) != 0;
+            min = (flags & 4096) != 0;
+            scam = (flags & 524288) != 0;
+            has_link = (flags & 1048576) != 0;
+            has_geo = (flags & 2097152) != 0;
+            slowmode_enabled = (flags & 4194304) != 0;
+            call_active = (flags & 8388608) != 0;
+            call_not_empty = (flags & 16777216) != 0;
+            fake = (flags & 33554432) != 0;
+            gigagroup = (flags & 67108864) != 0;
+            noforwards = (flags & 134217728) != 0;
+            join_to_send = (flags & 268435456) != 0;
+            join_request = (flags & 536870912) != 0;
+            forum = (flags & 1073741824) != 0;
             flags2 = stream.readInt32(exception);
             stories_hidden = hasFlag(flags2, FLAG_1);
             stories_hidden_min = hasFlag(flags2, FLAG_2);
@@ -41855,20 +41855,20 @@ public class TLRPC {
             verified = hasFlag(flags, FLAG_7);
             megagroup = hasFlag(flags, FLAG_8);
             restricted = false;
-            signatures = hasFlag(flags, FLAG_11);
-            min = hasFlag(flags, FLAG_12);
-            scam = hasFlag(flags, FLAG_19);
-            has_link = hasFlag(flags, FLAG_20);
-            has_geo = hasFlag(flags, FLAG_21);
-            slowmode_enabled = hasFlag(flags, FLAG_22);
-            call_active = hasFlag(flags, FLAG_23);
-            call_not_empty = hasFlag(flags, FLAG_24);
-            fake = hasFlag(flags, FLAG_25);
-            gigagroup = hasFlag(flags, FLAG_26);
-            noforwards = false;
-            join_to_send = hasFlag(flags, FLAG_28);
-            join_request = hasFlag(flags, FLAG_29);
-            forum = hasFlag(flags, FLAG_30);
+            signatures = (flags & 2048) != 0;
+            min = (flags & 4096) != 0;
+            scam = (flags & 524288) != 0;
+            has_link = (flags & 1048576) != 0;
+            has_geo = (flags & 2097152) != 0;
+            slowmode_enabled = (flags & 4194304) != 0;
+            call_active = (flags & 8388608) != 0;
+            call_not_empty = (flags & 16777216) != 0;
+            fake = (flags & 33554432) != 0;
+            gigagroup = (flags & 67108864) != 0;
+            noforwards = (flags & 134217728) != 0;
+            join_to_send = (flags & 268435456) != 0;
+            join_request = (flags & 536870912) != 0;
+            forum = (flags & 1073741824) != 0;
             id = stream.readInt64(exception);
             if (hasFlag(flags, FLAG_13)) {
                 access_hash = stream.readInt64(exception);
@@ -59548,22 +59548,17 @@ public class TLRPC {
 
         public void readParams(InputSerializedData stream, boolean exception) {
             flags = stream.readInt32(exception);
-            out = hasFlag(flags, FLAG_1);
-            mentioned = hasFlag(flags, FLAG_4);
-            media_unread = hasFlag(flags, FLAG_5);
-            silent = hasFlag(flags, FLAG_13);
-            post = hasFlag(flags, FLAG_14);
-            from_scheduled = hasFlag(flags, FLAG_18);
-            legacy = hasFlag(flags, FLAG_19);
-            edit_hide = hasFlag(flags, FLAG_21);
-            pinned = hasFlag(flags, FLAG_24);
-            noforwards = false;
-            invert_media = hasFlag(flags, FLAG_27);
-            flags2 = stream.readInt32(exception);
-            offline = hasFlag(flags2, FLAG_1);
-            video_processing_pending = hasFlag(flags2, FLAG_4);
-            paid_suggested_post_stars = hasFlag(flags2, FLAG_8);
-            paid_suggested_post_ton = hasFlag(flags2, FLAG_9);
+            out = (flags & 2) != 0;
+            mentioned = (flags & 16) != 0;
+            media_unread = (flags & 32) != 0;
+            silent = (flags & 8192) != 0;
+            post = (flags & 16384) != 0;
+            from_scheduled = (flags & 262144) != 0;
+            legacy = (flags & 524288) != 0;
+            edit_hide = (flags & 2097152) != 0;
+            pinned = (flags & 16777216) != 0;
+            noforwards = (flags & 67108864) != 0;
+            topic_start = (flags & 134217728) != 0;
             id = stream.readInt32(exception);
             if (hasFlag(flags, FLAG_8)) {
                 from_id = Peer.TLdeserialize(stream, stream.readInt32(exception), exception);
@@ -59756,8 +59751,29 @@ public class TLRPC {
             if (hasFlag(flags, FLAG_25)) {
                 stream.writeInt32(ttl_period);
             }
-            if (hasFlag(flags, FLAG_30)) {
-                stream.writeInt32(quick_reply_shortcut_id);
+            writeAttachPath(stream);
+        }
+    }
+
+    public static class TL_message_layer135 extends TL_message {
+        public static int constructor = 0x85d6cbe2;
+
+
+        public void readParams(AbstractSerializedData stream, boolean exception) {
+            flags = stream.readInt32(exception);
+            out = (flags & 2) != 0;
+            mentioned = (flags & 16) != 0;
+            media_unread = (flags & 32) != 0;
+            silent = (flags & 8192) != 0;
+            post = (flags & 16384) != 0;
+            from_scheduled = (flags & 262144) != 0;
+            legacy = (flags & 524288) != 0;
+            edit_hide = (flags & 2097152) != 0;
+            pinned = (flags & 16777216) != 0;
+            noforwards = (flags & 67108864) != 0;
+            id = stream.readInt32(exception);
+            if ((flags & 256) != 0) {
+                from_id = Peer.TLdeserialize(stream, stream.readInt32(exception), exception);
             }
             if (hasFlag(flags2, FLAG_2)) {
                 stream.writeInt64(effect);

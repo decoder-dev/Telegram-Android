@@ -31235,6 +31235,13 @@ public class ChatActivity extends BaseFragment implements
             groupedMessages = null;
         }
 
+        // --- AyuGram hack
+        boolean isAyuDeleted =
+                message != null &&
+                message.messageOwner != null &&
+                AyuMessagesController.getInstance().isDeleted(getAccountInstance().getUserConfig().getClientUserId(), dialog_id, message.messageOwner.id);
+        // --- AyuGram hack
+
         boolean allowChatActions = true;
         boolean allowPin;
         if (chatMode == MODE_SAVED || isQuickRepliesOrWelcomeMessagesMode()) {
@@ -31254,14 +31261,10 @@ public class ChatActivity extends BaseFragment implements
         } else {
             allowPin = false;
         }
-        if (UserObject.isReplyUser(dialog_id) || dialog_id == UserObject.VERIFY) {
-            allowPin = false;
-        }
-        allowPin = allowPin && message.getId() > 0 && (message.messageOwner.action == null || message.messageOwner.action instanceof TLRPC.TL_messageActionEmpty) && !message.isExpiredStory() && message.type != MessageObject.TYPE_STORY_MENTION;
-        boolean noforwards = isPeerNoForwards() || message.messageOwner.noforwards || getDialogId() == UserObject.VERIFY;
-        boolean noforwardsOrPaidMedia = noforwards || message.type == MessageObject.TYPE_PAID_MEDIA;
-        boolean allowUnpin = message.getDialogId() != mergeDialogId && allowPin && (pinnedMessageObjects.containsKey(message.getId()) || groupedMessages != null && !groupedMessages.messages.isEmpty() && pinnedMessageObjects.containsKey(groupedMessages.messages.get(0).getId())) && !message.isExpiredStory();
-        boolean allowEdit = message.canEditMessage(currentChat) && !chatActivityEnterView.hasAudioToSend() && message.getDialogId() != mergeDialogId && message.type != MessageObject.TYPE_STORY && message.type != MessageObject.TYPE_POLL;
+        allowPin = allowPin && message.getId() > 0 && (message.messageOwner.action == null || message.messageOwner.action instanceof TLRPC.TL_messageActionEmpty);
+        boolean noforwards = getMessagesController().isChatNoForwards(currentChat) || message.messageOwner.noforwards || isAyuDeleted;
+        boolean allowUnpin = message.getDialogId() != mergeDialogId && allowPin && (pinnedMessageObjects.containsKey(message.getId()) || groupedMessages != null && !groupedMessages.messages.isEmpty() && pinnedMessageObjects.containsKey(groupedMessages.messages.get(0).getId()));
+        boolean allowEdit = message.canEditMessage(currentChat) && !chatActivityEnterView.hasAudioToSend() && message.getDialogId() != mergeDialogId;
         if (allowEdit && groupedMessages != null) {
             int captionsCount = 0;
             for (int a = 0, N = groupedMessages.messages.size(); a < N; a++) {
@@ -31294,6 +31297,19 @@ public class ChatActivity extends BaseFragment implements
         if (currentChat != null && (!ChatObject.canSendMessages(currentChat))) {
             allowChatActions = false;
         }
+
+        // --- AyuGram hack
+
+        // restricts any actions with deleted messages
+        // there's a chance Telegram will clean "Saved messages"
+        // btw, thanks @AniMyaaa for testing on herself lol
+        if (isAyuDeleted) {
+            allowChatActions = false;
+            allowPin = false;
+            allowUnpin = false;
+            allowEdit = false;
+        }
+        // --- AyuGram hack
 
         if (single || type < 2 || type == 20) {
             if (getParentActivity() == null) {
