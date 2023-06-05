@@ -104,6 +104,11 @@ public class AyuMessagesController {
             return;
         }
 
+        // reactions fix
+        if (!sameMedia && newMessage.edit_hide) {
+            return;
+        }
+
         var revision = new EditedMessage();
 
         var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(oldMessage);
