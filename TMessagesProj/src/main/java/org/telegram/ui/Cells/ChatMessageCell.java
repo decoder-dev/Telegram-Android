@@ -18478,19 +18478,20 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
         boolean hasReplies = messageObject.hasReplies();
         var clientUserId = UserConfig.getInstance(currentAccount).getClientUserId();
-        if (messageObject.scheduled || messageObject.messageOwner.edit_hide) {
+        var ayuDeletedVal = currentMessagesGroup == null ? isAyuDeleted(clientUserId, messageObject) : isAyuDeletedGroup(clientUserId);
+        if (messageObject.scheduled || messageObject.isLiveLocation() || messageObject.messageOwner.edit_hide || messageObject.getDialogId() == 777000 || messageObject.messageOwner.via_bot_id != 0 || messageObject.messageOwner.via_bot_name != null || author != null && author.bot) {
             edited = false;
-            ayuDeleted = AyuMessagesController.getInstance().isDeleted(clientUserId, messageObject.messageOwner.dialog_id, messageObject.messageOwner.id) && !(currentChat instanceof TLRPC.TL_chat && author != null && author.bot); // ensure we're not in PM with bot, as it can screw experience
+            ayuDeleted = ayuDeletedVal && !(currentChat instanceof TLRPC.TL_chat && author != null && author.bot); // ensure we're not in PM with bot, as it can screw experience
         } else if (currentPosition == null || currentMessagesGroup == null || currentMessagesGroup.messages.isEmpty()) {
             edited = (messageObject.messageOwner.flags & TLRPC.MESSAGE_FLAG_EDITED) != 0 || messageObject.isEditing();
-            ayuDeleted = AyuMessagesController.getInstance().isDeleted(clientUserId, messageObject.messageOwner.dialog_id, messageObject.messageOwner.id);
+            ayuDeleted = ayuDeletedVal;
         } else {
             edited = false;
+            ayuDeleted = ayuDeletedVal;
             hasReplies = currentMessagesGroup.messages.get(0).hasReplies();
             if (!currentMessagesGroup.messages.get(0).messageOwner.edit_hide) {
                 for (int a = 0, size = currentMessagesGroup.messages.size(); a < size; a++) {
                     MessageObject object = currentMessagesGroup.messages.get(a);
-                    ayuDeleted = AyuMessagesController.getInstance().isDeleted(clientUserId, messageObject.messageOwner.dialog_id, messageObject.messageOwner.id);
                     if ((object.messageOwner.flags & TLRPC.MESSAGE_FLAG_EDITED) != 0 || object.isEditing()) {
                         edited = true;
                         break;
@@ -18672,7 +18673,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    protected boolean shouldDrawSelectionOverlay() {
+    private boolean isAyuDeleted(long userId, MessageObject msg) {
+        return AyuMessagesController.getInstance().isDeleted(userId, msg.messageOwner.dialog_id, msg.messageOwner.id);
+    }
+
+    private boolean isAyuDeletedGroup(long userId) {
+        return AyuMessagesController.getInstance().isDeleted(userId, currentMessagesGroup.messages);
+    }
+
+    private boolean shouldDrawSelectionOverlay() {
         return hasSelectionOverlay() &&
                 (isPressed() && isCheckPressed || !isCheckPressed && isPressed || isHighlighted || isHighlightedAnimated) &&
                 !textIsSelectionMode() &&
