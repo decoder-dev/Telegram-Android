@@ -18505,28 +18505,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             timeString = "";
         } else if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE) {
             timeString = "";
-} else if (ayuDeleted) {
-            timeString = (edited ? getString(R.string.EditedMessage) + " (" + AyuConfig.getDeletedMark() + ")" : AyuConfig.getDeletedMark()) + " " + LocaleController.getInstance().getFormatterDay().format((long) messageObject.messageOwner.date * 1000);
-                } else if (currentMessageObject.realDate != 0) {
-            timeString = LocaleController.formatSmallDateChat(currentMessageObject.realDate) + ", " + LocaleController.getInstance().getFormatterDay().format((long) (currentMessageObject.realDate) * 1000);
-        } else if (currentMessageObject.isRepostPreview) {
-            timeString = LocaleController.formatSmallDateChat(messageObject.messageOwner.date) + ", " + LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
-        } else if (edited) {
-            if (AppGlobalConfig.getInstance(currentAccount).messagePrimaryEditedDate.get()) {
-                int editDate = currentMessagesGroup != null ? currentMessagesGroup.getMaxEditDate() : messageObject.messageOwner.edit_date;
-                if (editDate == 0 && currentMessageObject.isEditing()) {
-                    editDate = ConnectionsManager.getInstance(currentAccount).getCurrentTime();
-                }
-                timeString = LocaleController.formatPmEditedDate(editDate);
-            } else {
-                timeString = (getString(R.string.EditedMessage) + " " + LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000));
-            }
-        } else if (currentMessageObject.isSaved && currentMessageObject.messageOwner.fwd_from != null && (currentMessageObject.messageOwner.fwd_from.date != 0 || currentMessageObject.messageOwner.fwd_from.saved_date != 0)) {
-            int date = currentMessageObject.messageOwner.fwd_from.saved_date;
-            if (date == 0) {
-                date = currentMessageObject.messageOwner.fwd_from.date;
-            }
-            timeString = LocaleController.formatSeenDate(date);
+        } else if (edited && !ayuDeleted) {
+            timeString = AyuConfig.getEditedMark() + " " + LocaleController.getInstance().formatterDay.format((long) (messageObject.messageOwner.date) * 1000);
+        } else if (!edited && ayuDeleted) {
+            timeString = AyuConfig.getDeletedMark() + " " + LocaleController.getInstance().formatterDay.format((long) (messageObject.messageOwner.date) * 1000);
+        } else if (edited && ayuDeleted) {
+            // it's both edited and deleted
+            timeString = AyuConfig.getEditedMark() + " (" + AyuConfig.getDeletedMark() + ")" + " " + LocaleController.getInstance().formatterDay.format((long) (messageObject.messageOwner.date) * 1000);
         } else {
             timeString = LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
         }
@@ -28687,12 +28672,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             if ((edited || ayuDeleted) && !lastDrawingEdited && timeLayout != null) {
                 String editedStr;
                 if (edited && !ayuDeleted){
-                    editedStr = LocaleController.getString("EditedMessage", R.string.EditedMessage);
+                    editedStr = AyuConfig.getEditedMark();
                 } else if (!edited) {
                     editedStr = AyuConfig.getDeletedMark();
                 } else {
                     // it's both edited and deleted
-                    editedStr = LocaleController.getString("EditedMessage", R.string.EditedMessage) + " (" + AyuConfig.getDeletedMark() + ")";
+                    editedStr = AyuConfig.getEditedMark() + " (" + AyuConfig.getDeletedMark() + ")";
                 }
                 CharSequence text = timeLayout.getText();
                 int i = text.toString().indexOf(editedStr);

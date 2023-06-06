@@ -47,6 +47,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
 
     private int customizationHeaderRow;
     private int deletedMarkTextRow;
+    private int editedMarkTextRow;
     private int showGhostToggleInDrawerRow;
     private int customizationDividerRow;
 
@@ -79,6 +80,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
 
         customizationHeaderRow = newRow();
         deletedMarkTextRow = newRow();
+        editedMarkTextRow = newRow();
         showGhostToggleInDrawerRow = newRow();
         customizationDividerRow = newRow();
 
@@ -145,6 +147,31 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                 ((TextCell) view).setTextAndValue(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
             });
             builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> dialog.cancel());
+            builder.setNeutralButton(LocaleController.getString("Reset", R.string.Reset), (dialog, which) -> {
+                AyuConfig.editor.putString("deletedMarkText", "🧹").apply();
+                ((TextCell) view).setTextAndValue(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
+            });
+
+            builder.show();
+        } else if (position == editedMarkTextRow) {
+            var builder = new AlertDialog.Builder(getParentActivity());
+            builder.setTitle(LocaleController.getString("EditedMarkText", R.string.EditedMarkText));
+            var layout = new LinearLayout(getParentActivity());
+            var input = new EditTextSettingsCell(getParentActivity());
+            input.setText(AyuConfig.getEditedMark(), true);
+
+            layout.setGravity(LinearLayout.VERTICAL);
+            layout.addView(input);
+            builder.setView(layout);
+            builder.setPositiveButton(LocaleController.getString("Save", R.string.Save), (dialog, which) -> {
+                AyuConfig.editor.putString("editedMarkText", input.getText()).apply();
+                ((TextCell) view).setTextAndValue(LocaleController.getString("EditedMarkText", R.string.EditedMarkText), AyuConfig.getEditedMark(), true);
+            });
+            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> dialog.cancel());
+            builder.setNeutralButton(LocaleController.getString("Reset", R.string.Reset), (dialog, which) -> {
+                AyuConfig.editor.putString("editedMarkText", LocaleController.getString("EditedMessage", R.string.EditedMessage)).apply();
+                ((TextCell) view).setTextAndValue(LocaleController.getString("EditedMarkText", R.string.EditedMarkText), AyuConfig.getEditedMark(), true);
+            });
 
             builder.show();
         } else if (position == cleanDatabaseBtnRow) {
@@ -186,6 +213,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                     TextCell textCell = (TextCell) holder.itemView;
                     if (position == deletedMarkTextRow) {
                         textCell.setTextAndValue(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
+                    } else if (position == editedMarkTextRow) {
+                        textCell.setTextAndValue(LocaleController.getString("EditedMarkText", R.string.EditedMarkText), AyuConfig.getEditedMark(), true);
                     } else if (position == cleanDatabaseBtnRow) {
                         textCell.setTextAndIcon(LocaleController.getString("CleanDatabase", R.string.CleanDatabase), R.drawable.msg_clearcache, false);
                         textCell.setColors(Theme.key_text_RedBold, Theme.key_text_RedBold);
@@ -247,7 +276,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                             position == customizationDividerRow
             ) {
                 return 1;
-            } else if (position == deletedMarkTextRow || position == cleanDatabaseBtnRow) {
+            } else if (position == deletedMarkTextRow || position == editedMarkTextRow || position == cleanDatabaseBtnRow) {
                 return 2;
             } else if (
                     position == ghostEssentialsHeaderRow ||
