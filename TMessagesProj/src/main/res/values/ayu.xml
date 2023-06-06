@@ -22,6 +22,7 @@
 
     <string name="CustomizationHeader">Customization</string>
     <string name="DeletedMarkText">Deleted mark</string>
+    <string name="EditedMarkText">Edited mark</string>
     <string name="ShowGhostToggleInDrawer">Show ghost mode toggle</string>
 
     <string name="CleanDatabase">Clean database</string>
