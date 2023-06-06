@@ -418,9 +418,7 @@ public class ConnectionsManager extends BaseController {
                                     object instanceof TLRPC.TL_messages_readDiscussion ||
                                             object instanceof TLRPC.TL_messages_readEncryptedHistory ||
                                             object instanceof TLRPC.TL_messages_readHistory ||
-                                            object instanceof TLRPC.TL_messages_readMentions ||
                                             object instanceof TLRPC.TL_messages_readMessageContents ||
-                                            object instanceof TLRPC.TL_messages_readReactions ||
                                             object instanceof TLRPC.TL_channels_readHistory ||
                                             object instanceof TLRPC.TL_channels_readMessageContents
                             )
