@@ -38,7 +38,6 @@ public class AyuMessagesController {
             attachmentsSubfolder
     );
     private static AyuMessagesController instance;
-    private final DispatchQueue queue;
     private final AyuDatabase database;
     private final EditedMessageDao editedMessageDao;
     private final DeletedMessageDao deletedMessageDao;
@@ -69,8 +68,6 @@ public class AyuMessagesController {
 
         editedMessageDao = database.editedMessageDao();
         deletedMessageDao = database.deletedMessageDao();
-
-        queue = new DispatchQueue("ayugram");
     }
 
     public static AyuMessagesController getInstance() {
@@ -85,9 +82,7 @@ public class AyuMessagesController {
             return;
         }
 
-        queue.postRunnable(() -> {
-            onMessageEditedInner(oldMessage, newMessage, userId, accountId, currentTime);
-        });
+        onMessageEditedInner(oldMessage, newMessage, userId, accountId, currentTime);
     }
 
     private void onMessageEditedInner(TLRPC.Message oldMessage, TLRPC.Message newMessage, long userId, int accountId, int currentTime) {
@@ -202,5 +197,8 @@ public class AyuMessagesController {
         database.close();
 
         ApplicationLoader.applicationContext.deleteDatabase("ayu-data");
+
+        // force recreate database to avoid crash
+        instance = null;
     }
 }

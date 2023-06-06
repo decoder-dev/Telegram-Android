@@ -19837,26 +19837,33 @@ public class MessagesController extends BaseController implements NotificationCe
             var userId = getAccountInstance().getUserConfig().clientUserId;
             var ayuMessagesController = AyuMessagesController.getInstance();
             for (int a = 0, size = deletedMessages.size(); a < size; a++) {
-                var dialogId = deletedMessages.keyAt(a);
+                var possibleDialogId = deletedMessages.keyAt(a);
                 var messageIds = deletedMessages.valueAt(a);
 
-                if (dialogId == 0) {
+                var dialogIds = new ArrayList<Long>();
+
+                if (possibleDialogId == 0) {
                     // Telegram sometimes won't give us dialog id directly...
-                    var possibleIds = getMessagesStorage().getDialogIdsToUpdate(dialogId, messageIds);
-                    if (possibleIds != null && possibleIds.size() > 0) {
-                        dialogId = possibleIds.get(0);
+                    var possibleIds = getMessagesStorage().getDialogIdsToUpdate(possibleDialogId, messageIds);
+                    if (possibleIds != null && !possibleIds.isEmpty()) {
+                        dialogIds = possibleIds;
                     }
                 }
 
-                for (var msgId : messageIds) {
-                    ayuMessagesController.onMessageDeleted(userId, dialogId, msgId, getConnectionsManager().getCurrentTime());
+                if (dialogIds.isEmpty()) {
+                    dialogIds.add(possibleDialogId);
                 }
 
-                long finalDialogId = dialogId;
-                AndroidUtilities.runOnUIThread(() -> {
-                    // invalidating views
-                    getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, finalDialogId, messageIds);
-                });
+                for (var dialogId : dialogIds) {
+                    for (var msgId : messageIds) {
+                        ayuMessagesController.onMessageDeleted(userId, dialogId, msgId, getConnectionsManager().getCurrentTime());
+                    }
+
+                    AndroidUtilities.runOnUIThread(() -> {
+                        // invalidating views
+                        getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messageIds);
+                    });
+                }
             }
 
             deletedMessages.clear();
