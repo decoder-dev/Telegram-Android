@@ -35,19 +35,19 @@ public class AyuMessageCell extends ChatMessageCell {
 
         setOnClickListener(v -> {
             // copy only if no media
-            if (editedMessage.path == null && editedMessage.text != null && !editedMessage.text.equals("")) {
+            if (TextUtils.isEmpty(editedMessage.path) && !TextUtils.isEmpty(editedMessage.text)) {
                 AndroidUtilities.addToClipboard(editedMessage.text);
                 BulletinFactory.of(fragment).createCopyBulletin(LocaleController.getString("MessageCopied", R.string.MessageCopied)).show();
             }
 
             // ..open media otherwise
-            if (editedMessage.path != null) {
+            if (!TextUtils.isEmpty(editedMessage.path)) {
                 AndroidUtilities.openForView(getMessageObject(), activity, null);
             }
         });
 
         setOnLongClickListener(v -> {
-            if (editedMessage.text != null && !editedMessage.text.equals("")) {
+            if (!TextUtils.isEmpty(editedMessage.text)) {
                 AndroidUtilities.addToClipboard(editedMessage.text);
                 BulletinFactory.of(fragment).createCopyBulletin(LocaleController.getString("MessageCopied", R.string.MessageCopied)).show();
             }
@@ -68,7 +68,7 @@ public class AyuMessageCell extends ChatMessageCell {
             getPhotoImage().setImage(editedMessage.path, null, locationLoadingThumb, null, 0);
         }
 
-        if (editedMessage.path != null && !editedMessage.path.equals("")) {
+        if (!TextUtils.isEmpty(editedMessage.path)) {
             getMessageObject().isDownloadingFile = false;
             getMessageObject().loadingCancelled = true;
         }

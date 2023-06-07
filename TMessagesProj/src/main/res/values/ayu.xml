@@ -25,7 +25,9 @@
     <string name="EditedMarkText">Edited mark</string>
     <string name="ShowGhostToggleInDrawer">Show ghost mode toggle</string>
 
+    <!-- Debug -->
     <string name="CleanDatabase">Clean database</string>
+    <string name="WALMode">Enable WAL mode</string>
     <string name="CleanDatabaseNotification">AyuGram database cleaned</string>
 
     <string name="EnableGhostMode">Enable Ghost</string>
