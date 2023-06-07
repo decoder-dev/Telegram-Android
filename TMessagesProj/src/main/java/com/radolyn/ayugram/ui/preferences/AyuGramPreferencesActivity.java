@@ -9,9 +9,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import com.radolyn.ayugram.AyuConfig;
+import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.messages.AyuMessagesController;
 import com.radolyn.ayugram.messages.AyuState;
 
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
@@ -216,7 +219,10 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                     } else if (position == editedMarkTextRow) {
                         textCell.setTextAndValue(LocaleController.getString("EditedMarkText", R.string.EditedMarkText), AyuConfig.getEditedMark(), true);
                     } else if (position == cleanDatabaseBtnRow) {
-                        textCell.setTextAndIcon(LocaleController.getString("CleanDatabase", R.string.CleanDatabase), R.drawable.msg_clearcache, false);
+                        var file = ApplicationLoader.applicationContext.getDatabasePath(AyuConstants.AYU_DATABASE);
+                        var size = file.exists() ? file.length() : 0;
+
+                        textCell.setTextAndValueAndIcon(LocaleController.getString("CleanDatabase", R.string.CleanDatabase), AndroidUtilities.formatFileSize(size), R.drawable.msg_clearcache, false);
                         textCell.setColors(Theme.key_text_RedBold, Theme.key_text_RedBold);
                     }
                     break;
