@@ -186,6 +186,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
             AyuMessagesController.getInstance().clean();
             AyuState.reset();
 
+            ((TextCell) view).setValue("…");
+
             BulletinFactory.of(this).createSimpleBulletin(R.raw.info, LocaleController.getString("CleanDatabaseNotification", R.string.CleanDatabaseNotification)).show();
         }
     }
