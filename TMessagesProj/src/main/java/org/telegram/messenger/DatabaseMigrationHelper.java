@@ -1,5 +1,7 @@
 package org.telegram.messenger;
 
+import com.radolyn.ayugram.AyuConfig;
+
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.SQLite.SQLitePreparedStatement;
@@ -1740,7 +1742,7 @@ public class DatabaseMigrationHelper {
             newDatabase = new SQLiteDatabase(cacheFile.getPath());
             newDatabase.executeFast("PRAGMA secure_delete = ON").stepThis().dispose();
             newDatabase.executeFast("PRAGMA temp_store = MEMORY").stepThis().dispose();
-            newDatabase.executeFast("PRAGMA journal_mode = WAL").stepThis().dispose();
+            newDatabase.executeFast("PRAGMA journal_mode = " + AyuConfig.getWALMode()).stepThis().dispose();
             newDatabase.executeFast("PRAGMA journal_size_limit = 10485760").stepThis().dispose();
 
             MessagesStorage.createTables(newDatabase);

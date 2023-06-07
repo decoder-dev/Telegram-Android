@@ -203,8 +203,7 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
                 }
             }
 
-            var messageObject = new MessageObject(getCurrentAccount(), msg, true, true);
-            return messageObject;
+            return new MessageObject(getCurrentAccount(), msg, true, true);
         }
     }
 }

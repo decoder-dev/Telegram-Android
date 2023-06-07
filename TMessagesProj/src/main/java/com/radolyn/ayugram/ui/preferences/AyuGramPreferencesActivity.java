@@ -55,6 +55,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
     private int customizationDividerRow;
 
     private int debugHeaderRow;
+    private int WALModeRow;
     private int cleanDatabaseBtnRow;
 
     @Override
@@ -88,6 +89,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         customizationDividerRow = newRow();
 
         debugHeaderRow = newRow();
+        WALModeRow = newRow();
         cleanDatabaseBtnRow = newRow();
     }
 
@@ -177,6 +179,9 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
             });
 
             builder.show();
+        } else if (position == WALModeRow) {
+            AyuConfig.editor.putBoolean("WALMode", AyuConfig.WALMode ^= true).apply();
+            ((TextCheckCell) view).setChecked(AyuConfig.WALMode);
         } else if (position == cleanDatabaseBtnRow) {
             AyuMessagesController.getInstance().clean();
             AyuState.reset();
@@ -268,6 +273,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                     } else if (position == showGhostToggleInDrawerRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("ShowGhostToggleInDrawer", R.string.ShowGhostToggleInDrawer), AyuConfig.showGhostToggleInDrawer, true);
                         NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+                    } else if (position == WALModeRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString("WALMode", R.string.WALMode), AyuConfig.WALMode, true);
                     }
                     break;
             }
