@@ -712,7 +712,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 }
 
                 // --- AyuGram hook
-                if (id == AyuConstants.DRAWER_TOGGLE_GHOST) {
+                if (id == AyuConstants.DRAWER_TOGGLE_GHOST && AyuConfig.showGhostToggleInDrawer) {
                     var msg = AyuConfig.isGhostModeActive()
                             ? LocaleController.getString("GhostModeDisabled", R.string.GhostModeDisabled)
                             : LocaleController.getString("GhostModeEnabled", R.string.GhostModeEnabled);
