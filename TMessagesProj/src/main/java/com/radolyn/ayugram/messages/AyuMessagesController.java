@@ -18,7 +18,6 @@ import com.radolyn.ayugram.database.entities.EditedMessage;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.DispatchQueue;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
@@ -45,7 +44,7 @@ public class AyuMessagesController {
     private @OptIn(markerClass = ExperimentalRoomApi.class) AyuMessagesController() {
         // recreate for testing if debug
         if (ExteraConfig.getLogging()) {
-            ApplicationLoader.applicationContext.deleteDatabase("ayu-data");
+            ApplicationLoader.applicationContext.deleteDatabase(AyuConstants.AYU_DATABASE);
             if (attachmentsPath.exists()) {
                 attachmentsPath.delete();
             }
@@ -60,7 +59,7 @@ public class AyuMessagesController {
             }
         }
 
-        database = Room.databaseBuilder(ApplicationLoader.applicationContext, AyuDatabase.class, "ayu-data")
+        database = Room.databaseBuilder(ApplicationLoader.applicationContext, AyuDatabase.class, AyuConstants.AYU_DATABASE)
                 .allowMainThreadQueries()
                 .fallbackToDestructiveMigration()
                 .setAutoCloseTimeout(10, TimeUnit.MINUTES)
@@ -196,7 +195,7 @@ public class AyuMessagesController {
 
         database.close();
 
-        ApplicationLoader.applicationContext.deleteDatabase("ayu-data");
+        ApplicationLoader.applicationContext.deleteDatabase(AyuConstants.AYU_DATABASE);
 
         // force recreate database to avoid crash
         instance = null;
