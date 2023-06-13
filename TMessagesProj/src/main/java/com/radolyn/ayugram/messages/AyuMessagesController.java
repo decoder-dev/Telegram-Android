@@ -180,6 +180,7 @@ public class AyuMessagesController {
 
             deletedMessage.peerId = MessageObject.getPeerId(msg.peer_id);
             deletedMessage.fromId = MessageObject.getPeerId(msg.from_id);
+            deletedMessage.groupedId = msg.grouped_id;
             deletedMessage.topicId = topicId;
 
             deletedMessage.out = msg.out;

@@ -43,7 +43,7 @@
     <string name="ReadUntilMenuText">Read until</string>
     <string name="ForwardsRestrictedInfoDeleted">Forwarding of deleted message is not supported.</string>
 
-    <string name="DeletedDateMenuText">Deleted Date</string>
+    <string name="DeleteDateMenuText">Delete Date</string>
 
     <string name="LikelyOfflineStatus">offline ?</string>
 
