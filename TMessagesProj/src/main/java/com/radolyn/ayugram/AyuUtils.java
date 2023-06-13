@@ -80,5 +80,4 @@ public class AyuUtils {
         int pid = android.os.Process.myPid();
         android.os.Process.killProcess(pid);
     }
-
 }
