@@ -19834,6 +19834,7 @@ public class MessagesController extends BaseController implements NotificationCe
 
         // --- AyuGram request hook
         if (AyuConfig.keepDeletedMessages && deletedMessages != null) {
+            var messagesStorage = getMessagesStorage();
             var userId = getAccountInstance().getUserConfig().clientUserId;
             var ayuMessagesController = AyuMessagesController.getInstance();
             for (int a = 0, size = deletedMessages.size(); a < size; a++) {
@@ -19856,7 +19857,8 @@ public class MessagesController extends BaseController implements NotificationCe
 
                 for (var dialogId : dialogIds) {
                     for (var msgId : messageIds) {
-                        ayuMessagesController.onMessageDeleted(userId, dialogId, msgId, getConnectionsManager().getCurrentTime());
+                        var msg = messagesStorage.getMessage(dialogId, msgId);
+                        ayuMessagesController.onMessageDeleted(userId, dialogId, msgId, currentAccount, getConnectionsManager().getCurrentTime(), msg);
                     }
 
                     AndroidUtilities.runOnUIThread(() -> {
@@ -19865,8 +19867,6 @@ public class MessagesController extends BaseController implements NotificationCe
                     });
                 }
             }
-
-            deletedMessages.clear();
         }
         // --- AyuGram request hook
 
@@ -21253,7 +21253,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     getNotificationCenter().postNotificationName(NotificationCenter.messagesReadContent, key, value);
                 }
             }
-            if (deletedMessagesFinal != null) {
+            if (deletedMessagesFinal != null && !AyuConfig.keepDeletedMessages) { // --- AyuGram: don't notify that messages was deleted; already handled by MESSAGES_DELETED_NOTIFICATION
                 for (int a = 0, size = deletedMessagesFinal.size(); a < size; a++) {
                     long dialogId = deletedMessagesFinal.keyAt(a);
                     ArrayList<Integer> arrayList = deletedMessagesFinal.valueAt(a);

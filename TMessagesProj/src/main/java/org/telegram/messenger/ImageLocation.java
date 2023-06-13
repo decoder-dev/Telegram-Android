@@ -1,5 +1,7 @@
 package org.telegram.messenger;
 
+import com.radolyn.ayugram.utils.AyuFileLocation;
+
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
@@ -132,6 +134,11 @@ public class ImageLocation {
         } else if (photoSize == null || photo == null) {
             return null;
         }
+
+        if (photoSize.location instanceof AyuFileLocation) {
+            return ImageLocation.getForPath(((AyuFileLocation) photoSize.location).path);
+        }
+
         int dc_id;
         if (photo.dc_id != 0) {
             dc_id = photo.dc_id;

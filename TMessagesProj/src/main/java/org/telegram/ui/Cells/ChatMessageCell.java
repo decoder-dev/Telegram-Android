@@ -6872,8 +6872,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
             groupChanged = newPosition != currentPosition;
         }
-        var clientUserId = UserConfig.getInstance(currentAccount).getClientUserId();
-        ayuDeleted = groupedMessages == null ? isAyuDeleted(clientUserId, messageObject) : isAyuDeletedGroup(clientUserId, groupedMessages);
+        ayuDeleted = messageObject.messageOwner.ayuDeleted;
         if (messageChanged || dataChanged || groupChanged || pollChanged || widthChanged && messageObject.isPoll() || isPhotoDataChanged(messageObject) || pinnedBottom != bottomNear || pinnedTop != topNear || ayuDeleted) {
             wasPinned = isPinned;
             pinnedBottom = bottomNear;
@@ -18467,7 +18466,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
         boolean hasReplies = messageObject.hasReplies();
         var clientUserId = UserConfig.getInstance(currentAccount).getClientUserId();
-        var ayuDeletedVal = currentMessagesGroup == null ? isAyuDeleted(clientUserId, messageObject) : isAyuDeletedGroup(clientUserId, currentMessagesGroup);
+        var ayuDeletedVal = messageObject.messageOwner.ayuDeleted;
         if (messageObject.scheduled || messageObject.isLiveLocation() || messageObject.messageOwner.edit_hide || messageObject.getDialogId() == 777000 || messageObject.messageOwner.via_bot_id != 0 || messageObject.messageOwner.via_bot_name != null || author != null && author.bot) {
             edited = false;
             ayuDeleted = ayuDeletedVal && !(currentChat instanceof TLRPC.TL_chat && author != null && author.bot); // ensure we're not in PM with bot, as it can screw experience
@@ -18645,14 +18644,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         } else {
             signWidth = 0;
         }
-    }
-
-    private boolean isAyuDeleted(long userId, MessageObject msg) {
-        return AyuMessagesController.getInstance().isDeleted(userId, msg.messageOwner.dialog_id, msg.messageOwner.id);
-    }
-
-    private boolean isAyuDeletedGroup(long userId, MessageObject.GroupedMessages groupedMessages) {
-        return AyuMessagesController.getInstance().isDeleted(userId, groupedMessages.messages);
     }
 
     private boolean shouldDrawSelectionOverlay() {

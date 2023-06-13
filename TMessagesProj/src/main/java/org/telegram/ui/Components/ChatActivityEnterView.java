@@ -117,7 +117,8 @@ import org.telegram.ui.recyclerview.ChatListItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.radolyn.ayugram.AyuConfig;
-import com.radolyn.ayugram.messages.AyuState;
+import com.radolyn.ayugram.utils.AyuState;
+
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.AnimationNotificationsLocker;

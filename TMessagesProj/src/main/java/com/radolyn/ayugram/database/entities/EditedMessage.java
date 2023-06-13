@@ -1,6 +1,14 @@
+/*
+ * This is the source code of AyuGram for Android.
+ *
+ * We do not and cannot prevent the use of our code,
+ * but be respectful and credit the original author.
+ *
+ * Copyright @Radolyn, 2023
+ */
+
 package com.radolyn.ayugram.database.entities;
 
-import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -11,14 +19,10 @@ public class EditedMessage {
 
     public long userId;
     public long dialogId;
-    public long messageId;
+    public int messageId;
+    public int editedDate;
 
-    @ColumnInfo(name = "text")
-    public String text;
-    @ColumnInfo(name = "type")
+    public String text; // html formatted
+    public String mediaPath; // full path
     public boolean isDocument;
-    @ColumnInfo(name = "path")
-    public String path;
-    @ColumnInfo(name = "date")
-    public long date;
 }
