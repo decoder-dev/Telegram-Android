@@ -29,8 +29,8 @@ public interface DeletedMessageDao {
     boolean isDeleted(long userId, long dialogId, List<Integer> messageIds);
 
     @Transaction
-    @Query("SELECT * FROM deletedmessage WHERE userId = :userId AND dialogId = :dialogId AND :startDate <= date <= :endDate ORDER BY date LIMIT :limit")
-    List<DeletedMessageFull> getMessages(long userId, long dialogId, int startDate, int endDate, int limit);
+    @Query("SELECT * FROM deletedmessage WHERE userId = :userId AND dialogId = :dialogId AND topicId = :topicId AND :startDate <= date <= :endDate ORDER BY date LIMIT :limit")
+    List<DeletedMessageFull> getMessages(long userId, long dialogId, long topicId, int startDate, int endDate, int limit);
 
     @Transaction
     @Query("SELECT * FROM deletedmessage WHERE userId = :userId AND dialogId = :dialogId AND groupedId = :groupedId")

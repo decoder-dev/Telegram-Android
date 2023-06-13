@@ -22,7 +22,7 @@ import com.radolyn.ayugram.database.entities.EditedMessage;
         EditedMessage.class,
         DeletedMessage.class,
         DeletedMessageReaction.class
-}, version = 12)
+}, version = 14)
 public abstract class AyuDatabase extends RoomDatabase {
     public abstract EditedMessageDao editedMessageDao();
 

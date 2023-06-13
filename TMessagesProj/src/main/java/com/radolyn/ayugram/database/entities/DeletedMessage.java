@@ -22,6 +22,7 @@ public class DeletedMessage {
     public long groupedId;
     public long peerId;
     public long fromId;
+    public long topicId;
     public int messageId;
     public int date;
     public int deletedDate;
@@ -32,4 +33,5 @@ public class DeletedMessage {
     public int flags;
     public int editDate;
     public boolean editHide;
+    public boolean out;
 }
