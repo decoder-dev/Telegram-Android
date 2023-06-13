@@ -320,7 +320,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
             items.add(null);
         }
         if (AyuConfig.showKillButtonInDrawer) {
-            items.add(new Item(AyuConstants.DRAWER_KILL_APP, LocaleController.getString("KillApp", R.string.KillApp), R.drawable.msg_clear));
+            items.add(new Item(AyuConstants.DRAWER_KILL_APP, LocaleController.getString("KillApp", R.string.KillApp), R.drawable.msg_disable));
             items.add(null);
         }
         // --- AyuGram hook
