@@ -48,6 +48,13 @@ public class AyuFakeMessageUtils {
         var file = new File(mediaPath);
 
         if (documentType == 1) {
+            var name = file.getName();
+            var start = name.indexOf("#") + 1;
+            var end = name.indexOf("@");
+            var size = name.substring(start, end).split("x");
+            var w = Integer.parseInt(size[0]);
+            var h = Integer.parseInt(size[1]);
+
             message.media = new TLRPC.TL_messageMediaPhoto();
             message.media.flags = 1;
             message.media.photo = new TLRPC.TL_photo();
@@ -56,8 +63,8 @@ public class AyuFakeMessageUtils {
 
             TLRPC.TL_photoSize photoSize = new TLRPC.TL_photoSize();
             photoSize.size = (int) file.length();
-            photoSize.w = 500;
-            photoSize.h = 302;
+            photoSize.w = w;
+            photoSize.h = h;
             photoSize.type = "y";
             photoSize.location = new AyuFileLocation(mediaPath);
             message.media.photo.sizes.add(photoSize);
