@@ -25,7 +25,7 @@ import com.google.android.play.core.integrity.IntegrityTokenResponse;
 
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
-import com.radolyn.ayugram.messages.AyuState;
+import com.radolyn.ayugram.utils.AyuState;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

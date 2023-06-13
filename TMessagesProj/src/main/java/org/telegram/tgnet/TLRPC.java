@@ -58737,6 +58737,7 @@ public class TLRPC {
         public boolean silent;
         public boolean post;
         public boolean from_scheduled;
+        public boolean ayuDeleted;
         public boolean legacy;
         public boolean reactions_are_possible;
         public boolean edit_hide;

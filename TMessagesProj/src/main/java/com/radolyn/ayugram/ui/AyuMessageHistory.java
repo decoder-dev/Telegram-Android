@@ -1,3 +1,12 @@
+/*
+ * This is the source code of AyuGram for Android.
+ *
+ * We do not and cannot prevent the use of our code,
+ * but be respectful and credit the original author.
+ *
+ * Copyright @Radolyn, 2023
+ */
+
 package com.radolyn.ayugram.ui;
 
 import android.content.Context;
@@ -9,8 +18,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.radolyn.ayugram.database.entities.EditedMessage;
-import com.radolyn.ayugram.messages.AyuFileLocation;
 import com.radolyn.ayugram.messages.AyuMessagesController;
+import com.radolyn.ayugram.proprietary.AyuMessageUtils;
+import com.radolyn.ayugram.utils.AyuFakeMessageUtils;
 
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
@@ -25,7 +35,6 @@ import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -124,7 +133,7 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view;
             if (viewType == 1) {
-                view = new AyuMessageCell(context, getParentActivity(), AyuMessageHistory.this);
+                view = new AyuMessageCell(context, getParentActivity(), AyuMessageHistory.this, getMessagesController());
             } else {
                 view = null;
             }
@@ -152,10 +161,16 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
         }
 
         private MessageObject createMessageObject(EditedMessage editedMessage) {
+            var parseResult = AyuMessageUtils.unhtmlify(editedMessage.text, getMessagesController());
+
+            var text = parseResult.first;
+            var entities = parseResult.second;
+
             // shamefully copied from Extera's sticker size preview
             var msg = new TLRPC.TL_message();
-            msg.message = editedMessage.text;
-            msg.date = (int) editedMessage.date;
+            msg.message = text;
+            msg.entities = entities;
+            msg.date = editedMessage.editedDate;
             msg.dialog_id = -1;
             msg.flags = 512;
             msg.id = Utilities.random.nextInt();
@@ -163,45 +178,7 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
             msg.peer_id = new TLRPC.TL_peerUser();
             msg.peer_id.user_id = 1;
 
-            if (editedMessage.path != null) {
-                msg.attachPath = editedMessage.path;
-                var file = new File(editedMessage.path);
-
-                if (!editedMessage.isDocument) {
-                    msg.media = new TLRPC.TL_messageMediaPhoto();
-                    msg.media.flags |= 3;
-                    msg.media.photo = new TLRPC.TL_photo();
-                    msg.media.photo.file_reference = new byte[]{
-                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-                    };
-                    msg.media.photo.has_stickers = false;
-                    msg.media.photo.id = Utilities.random.nextInt();
-                    msg.media.photo.access_hash = Utilities.random.nextInt();
-                    msg.media.photo.date = (int) editedMessage.date;
-                    msg.media.photo.dc_id = 2;
-                    msg.media.photo.user_id = 1338;
-
-                    TLRPC.TL_photoSize photoSize = new TLRPC.TL_photoSize();
-                    photoSize.size = (int) file.length();
-                    photoSize.w = 500;
-                    photoSize.h = 302;
-                    photoSize.type = "s";
-                    photoSize.location = new AyuFileLocation(editedMessage.path);
-                    msg.media.photo.sizes.add(photoSize);
-                    msg.attachPath = editedMessage.path;
-                } else {
-                    msg.media = new TLRPC.TL_messageMediaDocument();
-                    msg.media.flags |= 1;
-
-                    msg.media.document = new TLRPC.TL_document();
-                    msg.media.document.file_reference = new byte[0];
-                    msg.media.document.access_hash = 0;
-                    msg.media.document.date = (int) editedMessage.date;
-                    msg.media.document.localPath = editedMessage.path;
-                    msg.media.document.file_name = file.getName();
-                    msg.media.document.size = file.length();
-                }
-            }
+            AyuFakeMessageUtils.fillMedia(msg, editedMessage.mediaPath, editedMessage.isDocument, editedMessage.editedDate);
 
             return new MessageObject(getCurrentAccount(), msg, true, true);
         }

@@ -138,8 +138,8 @@ import com.google.zxing.common.detector.MathUtils;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.messages.AyuMessagesController;
-import com.radolyn.ayugram.messages.AyuState;
-import com.radolyn.ayugram.messages.AyuUtils;
+import com.radolyn.ayugram.utils.AyuState;
+import com.radolyn.ayugram.utils.AyuGhostUtils;
 import com.radolyn.ayugram.ui.AyuMessageHistory;
 
 import org.telegram.PhoneFormat.PhoneFormat;
@@ -25089,6 +25089,7 @@ public class ChatActivity extends BaseFragment implements
                 int mid = messageIds.get(a);
                 MessageObject currentMessage = messagesDict[0].get(mid);
                 if (currentMessage != null) {
+                    currentMessage.messageOwner.ayuDeleted = true;
                     chatAdapter.updateRowWithMessageObject(currentMessage, false);
                 }
             }
@@ -33802,7 +33803,7 @@ public class ChatActivity extends BaseFragment implements
                 sendSecretMessageRead(selectedObject, true);
                 break;
             case AyuConstants.OPTION_READ_UNTIL:
-                AyuUtils.markRead(getMessagesController(), getConnectionsManager(), selectedObject);
+                AyuGhostUtils.markRead(getMessagesController(), getConnectionsManager(), selectedObject);
                 break;
             case OPTION_RETRY: {
                 final MessageObject object = selectedObject;

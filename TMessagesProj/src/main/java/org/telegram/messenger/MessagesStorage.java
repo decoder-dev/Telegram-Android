@@ -30,6 +30,7 @@ import androidx.annotation.UiThread;
 import androidx.collection.LongSparseArray;
 
 import com.radolyn.ayugram.AyuConfig;
+import com.radolyn.ayugram.proprietary.AyuHistoryHook;
 import com.radolyn.ayugram.messages.AyuMessagesController;
 
 import org.telegram.PhoneFormat.PhoneFormat;
@@ -9951,6 +9952,27 @@ public class MessagesStorage extends BaseController {
         if (dialogId == 777000 && serviceUnreadCount != 0) {
             count_unread = serviceUnreadCount;
         }
+
+        // --- AyuGram hook
+
+        if (!scheduled) {
+            AyuHistoryHook.doHook(
+                    this,
+                    getMessagesController(),
+                    res,
+                    currentUserId,
+                    dialogId,
+                    offset_date,
+                    minDate,
+                    count,
+                    load_type,
+                    threadMessageId,
+                    isTopic
+            );
+        }
+
+        // --- AyuGram hook
+
         int countQueryFinal = count_query;
         int maxIdOverrideFinal = max_id_override;
         int minUnreadIdFinal = min_unread_id;

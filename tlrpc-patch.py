@@ -13,6 +13,7 @@ data = r2.sub('restricted = false;', data)
 data = r3.sub('history_deleted = false;', data)
 
 data = data.replace('public boolean noforwards;', 'public boolean noforwards;\n        public boolean ayuNoforwards;')
+data = data.replace('public boolean from_scheduled;', 'public boolean from_scheduled;\n        public boolean ayuDeleted;')
 
 with open('./TMessagesProj/src/main/java/org/telegram/tgnet/TLRPC.java', 'w', encoding='utf-8') as f:
     f.write(data)
