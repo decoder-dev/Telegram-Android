@@ -123,8 +123,8 @@ public class AyuMessagesController {
         var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(oldMessage);
 
         if (!sameMedia && attachPathFile.exists()) {
-            var filename = attachPathFile.getName();
-            var dest = new File(attachmentsPath, filename);
+            var f = AyuUtils.getFilename(oldMessage, attachPathFile);
+            var dest = new File(attachmentsPath, f);
 
             // move file, because it's likely to be deleted by Telegram in a few seconds
             var success = AyuUtils.moveFile(attachPathFile, dest);
@@ -217,8 +217,8 @@ public class AyuMessagesController {
                 var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(msg);
 
                 if (attachPathFile.exists()) {
-                    var filename = attachPathFile.getName();
-                    var dest = new File(attachmentsPath, filename);
+                    var f = AyuUtils.getFilename(msg, attachPathFile);
+                    var dest = new File(attachmentsPath, f);
 
                     // move file, because it's likely to be deleted by Telegram in a few seconds
                     var success = AyuUtils.moveFile(attachPathFile, dest);
