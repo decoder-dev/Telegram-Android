@@ -25,7 +25,6 @@
     <string name="EditedMarkText">Edited mark</string>
     <string name="ShowGhostToggleInDrawer">Show ghost mode toggle</string>
 
-    <!-- Debug -->
     <string name="CleanDatabase">Clean database</string>
     <string name="WALMode">Enable WAL mode</string>
     <string name="CleanDatabaseNotification">AyuGram database cleaned</string>
@@ -41,6 +40,8 @@
 
     <string name="ReadUntilMenuText">Read until</string>
     <string name="ForwardsRestrictedInfoDeleted">Forwarding of deleted message is not supported.</string>
+
+    <string name="DeletedDateMenuText">Deleted Date</string>
 
     <string name="LikelyOfflineStatus">offline ?</string>
 
