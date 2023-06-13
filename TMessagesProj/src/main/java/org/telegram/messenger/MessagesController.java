@@ -19858,7 +19858,8 @@ public class MessagesController extends BaseController implements NotificationCe
                 for (var dialogId : dialogIds) {
                     for (var msgId : messageIds) {
                         var msg = messagesStorage.getMessage(dialogId, msgId);
-                        ayuMessagesController.onMessageDeleted(userId, dialogId, msgId, currentAccount, getConnectionsManager().getCurrentTime(), msg);
+                        var topicId = msg != null ? MessageObject.getTopicId(msg, isForum(dialogId)) : 0;
+                        ayuMessagesController.onMessageDeleted(userId, dialogId, topicId, msgId, currentAccount, getConnectionsManager().getCurrentTime(), msg);
                     }
 
                     AndroidUtilities.runOnUIThread(() -> {

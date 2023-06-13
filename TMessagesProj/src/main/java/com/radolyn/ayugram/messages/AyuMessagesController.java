@@ -158,15 +158,15 @@ public class AyuMessagesController {
         editedMessageDao.insert(revision);
     }
 
-    public void onMessageDeleted(long userId, long dialogId, int msgId, int accountId, int currentTime, TLRPC.Message msg) {
+    public void onMessageDeleted(long userId, long dialogId, long topicId, int msgId, int accountId, int currentTime, TLRPC.Message msg) {
         if (!AyuConfig.keepDeletedMessages) {
             return;
         }
 
-        onMessageDeletedInner(userId, dialogId, msgId, accountId, currentTime, msg);
+        onMessageDeletedInner(userId, dialogId, topicId, msgId, accountId, currentTime, msg);
     }
 
-    private void onMessageDeletedInner(long userId, long dialogId, int msgId, int accountId, int currentTime, TLRPC.Message msg) {
+    private void onMessageDeletedInner(long userId, long dialogId, long topicId, int msgId, int accountId, int currentTime, TLRPC.Message msg) {
         var deletedMessage = new DeletedMessage();
         deletedMessage.userId = userId;
         deletedMessage.dialogId = dialogId;
@@ -177,8 +177,12 @@ public class AyuMessagesController {
             deletedMessage.text = AyuMessageUtils.htmlify(msg);
             deletedMessage.date = msg.date;
             deletedMessage.flags = msg.flags;
+
             deletedMessage.peerId = MessageObject.getPeerId(msg.peer_id);
             deletedMessage.fromId = MessageObject.getPeerId(msg.from_id);
+            deletedMessage.topicId = topicId;
+
+            deletedMessage.out = msg.out;
             deletedMessage.editDate = msg.edit_date;
             deletedMessage.editHide = msg.edit_hide;
 
@@ -246,8 +250,8 @@ public class AyuMessagesController {
         return editedMessageDao.getAllRevisions(userId, dialogId, msgId);
     }
 
-    public List<DeletedMessageFull> getMessages(long userId, long dialogId, int startDate, int endDate, int limit) {
-        return deletedMessageDao.getMessages(userId, dialogId, startDate, endDate, limit);
+    public List<DeletedMessageFull> getMessages(long userId, long dialogId, long topicId, int startDate, int endDate, int limit) {
+        return deletedMessageDao.getMessages(userId, dialogId, topicId, startDate, endDate, limit);
     }
 
     public List<DeletedMessageFull> getMessagesGrouped(long userId, long dialogId, long groupedId) {
