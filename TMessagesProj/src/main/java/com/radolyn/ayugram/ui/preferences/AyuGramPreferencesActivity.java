@@ -61,6 +61,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
     private int deletedMarkTextRow;
     private int editedMarkTextRow;
     private int showGhostToggleInDrawerRow;
+    private int showKillButtonInDrawerRow;
     private int customizationDividerRow;
 
     private int debugHeaderRow;
@@ -95,6 +96,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         deletedMarkTextRow = newRow();
         editedMarkTextRow = newRow();
         showGhostToggleInDrawerRow = newRow();
+        showKillButtonInDrawerRow = newRow();
         customizationDividerRow = newRow();
 
         debugHeaderRow = newRow();
@@ -146,6 +148,13 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         } else if (position == showGhostToggleInDrawerRow) {
             AyuConfig.editor.putBoolean("showGhostToggleInDrawer", AyuConfig.showGhostToggleInDrawer ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.showGhostToggleInDrawer);
+
+            NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+        } else if (position == showKillButtonInDrawerRow) {
+            AyuConfig.editor.putBoolean("showKillButtonInDrawer", AyuConfig.showKillButtonInDrawer ^= true).apply();
+            ((TextCheckCell) view).setChecked(AyuConfig.showKillButtonInDrawer);
+
+            NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
         } else if (position == deletedMarkTextRow) {
             var builder = new AlertDialog.Builder(getParentActivity());
             builder.setTitle(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText));
@@ -283,7 +292,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                         textCheckCell.setTextAndCheck(LocaleController.getString("EnableAds", R.string.EnableAds), AyuConfig.enableAds, true);
                     } else if (position == showGhostToggleInDrawerRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("ShowGhostToggleInDrawer", R.string.ShowGhostToggleInDrawer), AyuConfig.showGhostToggleInDrawer, true);
-                        NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+                    } else if (position == showKillButtonInDrawerRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString("ShowKllButtonInDrawer", R.string.ShowKllButtonInDrawer), AyuConfig.showKillButtonInDrawer, true);
                     } else if (position == WALModeRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("WALMode", R.string.WALMode), AyuConfig.WALMode, true);
                     }

@@ -9,6 +9,8 @@
 
 package com.radolyn.ayugram;
 
+import android.app.Activity;
+
 import com.google.android.exoplayer2.util.Log;
 
 import java.io.File;
@@ -24,5 +26,11 @@ public class AyuUtils {
         }
 
         return success;
+    }
+
+    public static void killApplication(Activity activity) {
+        activity.finishAndRemoveTask();
+        int pid = android.os.Process.myPid();
+        android.os.Process.killProcess(pid);
     }
 }

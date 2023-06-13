@@ -35,6 +35,7 @@ public class AyuConfig {
     public static boolean keepAliveService;
     public static boolean enableAds;
     public static boolean showGhostToggleInDrawer;
+    public static boolean showKillButtonInDrawer;
     public static boolean WALMode;
 
     private static boolean configLoaded;
@@ -75,6 +76,7 @@ public class AyuConfig {
             // deletedMarkText
             // editedMarkText
             showGhostToggleInDrawer = preferences.getBoolean("showGhostToggleInDrawer", true);
+            showKillButtonInDrawer = preferences.getBoolean("showKillButtonInDrawer", false);
 
             // ~ Debug
             WALMode = preferences.getBoolean("walMode", true);

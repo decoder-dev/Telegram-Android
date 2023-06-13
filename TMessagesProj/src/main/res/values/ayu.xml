@@ -24,6 +24,7 @@
     <string name="DeletedMarkText">Deleted mark</string>
     <string name="EditedMarkText">Edited mark</string>
     <string name="ShowGhostToggleInDrawer">Show ghost mode toggle</string>
+    <string name="ShowKllButtonInDrawer">Show kill app button</string>
 
     <string name="CleanDatabase">Clean database</string>
     <string name="WALMode">Enable WAL mode</string>
@@ -31,6 +32,7 @@
 
     <string name="EnableGhostMode">Enable Ghost</string>
     <string name="DisableGhostMode">Disable Ghost</string>
+    <string name="KillApp">Kill App</string>
 
     <string name="GhostModeEnabled">Ghost mode turned on</string>
     <string name="GhostModeDisabled">Ghost mode turned off</string>
