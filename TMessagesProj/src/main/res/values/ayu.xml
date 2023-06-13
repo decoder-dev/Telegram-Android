@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This is the source code of AyuGram for Android.
+  ~
+  ~ We do not and cannot prevent the use of our code,
+  ~ but be respectful and credit the original author.
+  ~
+  ~ Copyright @Radolyn, 2023
+  -->
+
 <resources>
     <string name="AyuPreferences">AyuGram Preferences</string>
 
