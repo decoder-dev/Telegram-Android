@@ -29,7 +29,9 @@ public class DeletedMessage {
 
     public String text; // html formatted
     public String mediaPath; // full path
-    public boolean isDocument;
+    public int documentType; // 0 - none, 1 - photo, 2 - sticker, 3 - file
+    public byte[] documentSerialized; // for sticker
+
     public int flags;
     public int editDate;
     public boolean editHide;

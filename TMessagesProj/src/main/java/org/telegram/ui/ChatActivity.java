@@ -31242,7 +31242,7 @@ public class ChatActivity extends BaseFragment implements
         boolean isAyuDeleted =
                 message != null &&
                 message.messageOwner != null &&
-                AyuMessagesController.getInstance().isDeleted(getAccountInstance().getUserConfig().getClientUserId(), dialog_id, message.messageOwner.id);
+                message.messageOwner.ayuDeleted;
         // --- AyuGram hack
 
         boolean allowChatActions = true;

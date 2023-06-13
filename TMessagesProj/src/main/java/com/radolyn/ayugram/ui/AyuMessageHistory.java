@@ -52,7 +52,7 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
     @Override
     public View createView(Context context) {
         var firstMsg = messages.get(0);
-        var peer = getAccountInstance().getMessagesController().getUserOrChat(firstMsg.dialogId);
+        var peer = getMessagesController().getUserOrChat(firstMsg.dialogId);
         // todo: check sender of the message
 
         String name;
@@ -133,7 +133,7 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view;
             if (viewType == 1) {
-                view = new AyuMessageCell(context, getParentActivity(), AyuMessageHistory.this, getMessagesController());
+                view = new AyuMessageCell(context, getParentActivity(), AyuMessageHistory.this);
             } else {
                 view = null;
             }
@@ -146,7 +146,6 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
                 var ayuMessageDetailCell = (AyuMessageCell) holder.itemView;
 
                 var editedMessage = messages.get(position);
-
                 var msg = createMessageObject(editedMessage);
 
                 ayuMessageDetailCell.setMessageObject(msg, null, false, false);
@@ -161,7 +160,7 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
         }
 
         private MessageObject createMessageObject(EditedMessage editedMessage) {
-            var parseResult = AyuMessageUtils.unhtmlify(editedMessage.text, getMessagesController());
+            var parseResult = AyuMessageUtils.unhtmlify(editedMessage.text);
 
             var text = parseResult.first;
             var entities = parseResult.second;
@@ -178,7 +177,7 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
             msg.peer_id = new TLRPC.TL_peerUser();
             msg.peer_id.user_id = 1;
 
-            AyuFakeMessageUtils.fillMedia(msg, editedMessage.mediaPath, editedMessage.isDocument, editedMessage.editedDate);
+            AyuFakeMessageUtils.fillMedia(msg, editedMessage.mediaPath, editedMessage.isDocument ? 3 : 1, editedMessage.editedDate);
 
             return new MessageObject(getCurrentAccount(), msg, true, true);
         }
