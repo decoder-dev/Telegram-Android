@@ -96,7 +96,7 @@ public class MessageDetailsPopupWrapper {
         if (messageObject.messageOwner.ayuDeleted) {
             var userId = AccountInstance.getInstance(UserConfig.selectedAccount).getUserConfig().clientUserId;
             var deleted = AyuMessagesController.getInstance().getMessage(userId, messageObject.messageOwner.dialog_id, messageObject.messageOwner.id);
-            items.add(new Item(R.drawable.msg_calendar2, LocaleController.getString(R.string.DeletedDateMenuText), formatTime(deleted.message.deletedDate, true)));
+            items.add(new Item(R.drawable.msg_calendar2, LocaleController.getString(R.string.DeleteDateMenuText), formatTime(deleted.message.deletedDate, true)));
         }
 
         // --- AyuGram hook
