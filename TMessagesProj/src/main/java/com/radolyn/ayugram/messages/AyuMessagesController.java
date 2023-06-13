@@ -32,6 +32,7 @@ import com.radolyn.ayugram.proprietary.AyuMessageUtils;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.MessageObject;
+import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.TLRPC;
 
 import java.io.File;
@@ -187,28 +188,54 @@ public class AyuMessagesController {
             deletedMessage.editDate = msg.edit_date;
             deletedMessage.editHide = msg.edit_hide;
 
-            var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(msg);
+            // --- media work
 
-            if (attachPathFile.exists()) {
-                var filename = attachPathFile.getName();
-                var dest = new File(attachmentsPath, filename);
+            if (msg.media == null) {
+                deletedMessage.documentType = 0; // none
+            } else if (msg.media instanceof TLRPC.TL_messageMediaPhoto && msg.media.photo != null) {
+                deletedMessage.documentType = 1; // photo
+            } else if (msg.media instanceof TLRPC.TL_messageMediaDocument && msg.media.document != null && (msg.media.document.mime_type.equals("image/webp") || msg.media.document.mime_type.equals("application/x-tgsticker"))) {
+                deletedMessage.documentType = 2; // sticker
 
-                // move file, because it's likely to be deleted by Telegram in a few seconds
-                var success = AyuUtils.moveFile(attachPathFile, dest);
+                try {
+                    NativeByteBuffer buffer = new NativeByteBuffer(msg.media.getObjectSize());
+                    msg.media.serializeToStream(buffer);
+                    buffer.reuse();
+                    buffer.buffer.rewind();
+                    byte[] arr = new byte[buffer.buffer.remaining()];
+                    buffer.buffer.get(arr);
 
-                if (success) {
-                    attachPathFile = new File(dest.getAbsolutePath());
+                    deletedMessage.documentSerialized = arr;
+                } catch (Exception e) {
+                    Log.e("AyuGram", "fake news sticker");
+                }
+            } else {
+                deletedMessage.documentType = 3; // file
+            }
+
+            if (deletedMessage.documentType == 1 || deletedMessage.documentType == 3) {
+                var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(msg);
+
+                if (attachPathFile.exists()) {
+                    var filename = attachPathFile.getName();
+                    var dest = new File(attachmentsPath, filename);
+
+                    // move file, because it's likely to be deleted by Telegram in a few seconds
+                    var success = AyuUtils.moveFile(attachPathFile, dest);
+
+                    if (success) {
+                        attachPathFile = new File(dest.getAbsolutePath());
+                    } else {
+                        attachPathFile = new File("/");
+                    }
                 } else {
                     attachPathFile = new File("/");
                 }
-            } else {
-                attachPathFile = new File("/");
+
+                var attachPath = attachPathFile.getAbsolutePath();
+
+                deletedMessage.mediaPath = attachPath.equals("/") ? null : attachPath;
             }
-
-            var attachPath = attachPathFile.getAbsolutePath();
-
-            deletedMessage.mediaPath = attachPath.equals("/") ? null : attachPath;
-            deletedMessage.isDocument = !(msg.media instanceof TLRPC.TL_messageMediaPhoto && msg.media.photo != null);
         }
 
         var fakeMsgId = deletedMessageDao.insert(deletedMessage);
