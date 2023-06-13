@@ -194,7 +194,7 @@ public class AyuMessagesController {
                 deletedMessage.documentType = 0; // none
             } else if (msg.media instanceof TLRPC.TL_messageMediaPhoto && msg.media.photo != null) {
                 deletedMessage.documentType = 1; // photo
-            } else if (msg.media instanceof TLRPC.TL_messageMediaDocument && msg.media.document != null && (msg.media.document.mime_type.equals("image/webp") || msg.media.document.mime_type.equals("application/x-tgsticker"))) {
+            } else if (msg.media instanceof TLRPC.TL_messageMediaDocument && msg.media.document != null && (MessageObject.isStickerMessage(msg) || msg.media.document.mime_type.equals("application/x-tgsticker"))) {
                 deletedMessage.documentType = 2; // sticker
 
                 try {
