@@ -9,50 +9,27 @@
 
 package com.radolyn.ayugram.utils;
 
+import com.radolyn.ayugram.AyuConfig;
+
 public class AyuState {
-    private static final Object automaticallyScheduledSync = new Object();
-    private static final Object allowReadPacketSync = new Object();
-    private static boolean automaticallyScheduled;
-    private static boolean allowReadPacket;
+    private static final AyuStateVariable allowReadPacket = new AyuStateVariable();
+    private static final AyuStateVariable automaticallyScheduled = new AyuStateVariable();
 
-    public static boolean isAutomaticallyScheduled() {
-        synchronized (automaticallyScheduledSync) {
-            return automaticallyScheduled;
-        }
+    public static void setAllowReadPacket(boolean val, int resetAfter) {
+        allowReadPacket.val = val;
+        allowReadPacket.resetAfter = resetAfter;
     }
 
-    public static void resetAutomaticallyScheduled() {
-        synchronized (automaticallyScheduledSync) {
-            automaticallyScheduled = false;
-        }
+    public static boolean getAllowReadPacket() {
+        return AyuConfig.sendReadPackets || allowReadPacket.process();
     }
 
-    public static void setAutomaticallyScheduled() {
-        synchronized (automaticallyScheduledSync) {
-            automaticallyScheduled = true;
-        }
+    public static void setAutomaticallyScheduled(boolean val, int resetAfter) {
+        automaticallyScheduled.val = val;
+        automaticallyScheduled.resetAfter = resetAfter;
     }
 
-    public static boolean isAllowReadPacket() {
-        synchronized (allowReadPacketSync) {
-            return allowReadPacket;
-        }
-    }
-
-    public static void resetAllowReadPacket() {
-        synchronized (allowReadPacketSync) {
-            allowReadPacket = false;
-        }
-    }
-
-    public static void setAllowReadPacket() {
-        synchronized (allowReadPacketSync) {
-            allowReadPacket = true;
-        }
-    }
-
-    public static void reset() {
-        automaticallyScheduled = false;
-        allowReadPacket = false;
+    public static boolean getAutomaticallyScheduled() {
+        return automaticallyScheduled.process();
     }
 }

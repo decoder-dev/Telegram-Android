@@ -9957,6 +9957,10 @@ public class MessagesStorage extends BaseController {
         // --- AyuGram hook
 
         if (!scheduled) {
+            var s = dialogId + " " +  mergeDialogId + " " +  count + " " +  max_id + " " +  offset_date + " " +  minDate + " " +  classGuid + " " +  load_type + " " +  scheduled + " " +  threadMessageId + " " +  loadIndex + " " +  processMessages + " " +  isTopic;
+
+            Log.d("AyuGram", s);
+
             AyuHistoryHook.doHook(
                     this,
                     getMessagesController(),

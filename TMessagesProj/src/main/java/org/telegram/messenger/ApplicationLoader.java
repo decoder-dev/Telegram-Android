@@ -38,8 +38,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.radolyn.ayugram.AyuConfig;
 
-import org.json.JSONObject;
-import org.telegram.messenger.utils.Choreographer60FpsContent;
+import com.radolyn.ayugram.sync.AyuSyncController;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -277,6 +276,9 @@ public class ApplicationLoader extends Application {
             DownloadController.getInstance(a);
         }
         BillingController.getInstance().startConnection();
+
+        // AyuGram: start sync
+        AyuSyncController.create();
     }
 
     public ApplicationLoader() {

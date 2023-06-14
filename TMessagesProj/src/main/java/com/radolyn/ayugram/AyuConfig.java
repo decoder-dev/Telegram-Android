@@ -11,8 +11,6 @@ package com.radolyn.ayugram;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
-
-
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -36,6 +34,7 @@ public class AyuConfig {
     public static boolean enableAds;
     public static boolean showGhostToggleInDrawer;
     public static boolean showKillButtonInDrawer;
+    public static boolean syncEnabled;
     public static boolean WALMode;
 
     private static boolean configLoaded;
@@ -78,6 +77,11 @@ public class AyuConfig {
             showGhostToggleInDrawer = preferences.getBoolean("showGhostToggleInDrawer", true);
             showKillButtonInDrawer = preferences.getBoolean("showKillButtonInDrawer", false);
 
+            // ~ AyuSync
+            // syncServerURL
+            // syncServerToken
+            syncEnabled = preferences.getBoolean("syncEnabled", false);
+
             // ~ Debug
             WALMode = preferences.getBoolean("walMode", true);
 
@@ -107,7 +111,7 @@ public class AyuConfig {
     }
 
     public static String getDeletedMark() {
-        return AyuConfig.preferences.getString("deletedMarkText", "🧹");
+        return AyuConfig.preferences.getString("deletedMarkText", AyuConstants.DEFAULT_DELETED_MARK);
     }
 
     public static String getEditedMark() {
@@ -116,5 +120,13 @@ public class AyuConfig {
 
     public static String getWALMode() {
         return AyuConfig.WALMode ? "WAL" : "OFF";
+    }
+
+    public static String getSyncServerURL() {
+        return preferences.getString("syncServerURL", AyuConstants.AYU_SYNC_SERVER);
+    }
+
+    public static String getSyncServerToken() {
+        return preferences.getString("syncServerToken", "");
     }
 }

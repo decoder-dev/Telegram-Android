@@ -21,9 +21,34 @@ AyuGram4A does **NOT** include proprietary exteraGram features.
 
 Follow our [Telegram channel](https://t.me/ayugram1338).
 
+Alpha versions can be downloaded
+from [GitHub Actions](https://github.com/AyuGram/AyuGram4A/actions/workflows/release.yml).
+
+## Want to throw some money?
+
+Developing AyuGram is not such a simple task.
+We'd be grateful for any donation <3
+
+In addition, you'll receive **AyuGram MVP** status.
+
+## AyuGram MVP? Seriously?
+
+Not the best name, I guess, but why not.
+You'll get a supporter mark in profile and access to the official AyuSync server.
+
+## AyuSync? What is it?
+
+**AyuSync** is our synchronization service available to **AyuGram MVP** users.
+It can sync read states and message history.
+
+You can implement a sync server by yourself if you don't trust us and specify it in the AyuGram
+Preferences. If you do so, you don't need **AyuGram MVP** status.
+
+Server specification can be found [here](https://github.com/AyuGram/AyuSyncSpecification).
+
 ## Why there's no `X` feature from Telegraher?
 
-Because I'm too lazy, and some Telegraher's features are useless for the most of people.
+Because I'm too lazy, and some Telegraher's features are useless for most of the people.
 
 ## Want to contribute?
 
@@ -34,11 +59,11 @@ Work on any feature you want.
 ## Want to fork?
 
 If you're making a fork, you **should** specify **AyuGram** & **exteraGram** in credits.
-Otherwise open source doesn't really work.
+Otherwise, open source won't really work.
 
-Depending on your GitHub profile, we'll decide send an invite to the proprietary repo or not.
+Depending on your GitHub profile, we'll decide whether to send an invitation to the proprietary repo or not.
 
-And, if you're a kid that don't really want to give credits properly - go and cry writing boilerplate code.
+And, if you're a kid that doesn't really want to give credits properly - go and cry writing boilerplate code.
 
 ## How to build
 
@@ -48,7 +73,17 @@ And, if you're a kid that don't really want to give credits properly - go and cr
    making your **very** own fork, then you should take some time to write this part of code
 4. Create dummy classes for extera's proprietary methods & classes (in `boost` folder)
 5. Replace `google-services.json` (we don't want to see crash reports from your app...)
-6. You are ready to compile `AyuGram`
+6. Generate application certificate and fill API_KEYS:
+   ```
+   APP_ID = 6
+   APP_HASH = "eb06d4abfb49dc3eeb1aeb98ae0f581e"
+   MAPS_V2_API = NA
+   
+   SIGNING_KEY_PASSWORD = <...>
+   SIGNING_KEY_ALIAS = <...>
+   SIGNING_KEY_STORE_PASSWORD = <...>
+   ```
+7. You are ready to compile `AyuGram`
 
 - **AyuGram** can be built with **Android Studio** or from the command line with **Gradle**:
 
