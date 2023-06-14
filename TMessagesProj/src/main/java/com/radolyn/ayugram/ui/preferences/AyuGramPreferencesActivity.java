@@ -11,33 +11,25 @@ package com.radolyn.ayugram.ui.preferences;
 
 import android.content.Context;
 import android.view.View;
-import android.widget.LinearLayout;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.messages.AyuMessagesController;
+import com.radolyn.ayugram.sync.AyuSyncState;
+import com.radolyn.ayugram.ui.AyuUi;
 import com.radolyn.ayugram.utils.AyuState;
-
-import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.NotificationCenter;
-import org.telegram.messenger.R;
-import org.telegram.messenger.UserConfig;
-import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.messenger.*;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Cells.EditTextSettingsCell;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Components.BulletinFactory;
 
-public class AyuGramPreferencesActivity extends BasePreferencesActivity {
+public class AyuGramPreferencesActivity extends BasePreferencesActivity implements NotificationCenter.NotificationCenterDelegate {
     private int ghostEssentialsHeaderRow;
+    private int ghostFastToggleRow;
     private int sendReadPacketsRow;
     private int sendOnlinePacketsRow;
     private int sendUploadProgressRow;
@@ -64,6 +56,10 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
     private int showKillButtonInDrawerRow;
     private int customizationDividerRow;
 
+    private int ayuSyncHeaderRow;
+    private int ayuSyncStatusBtnRow;
+    private int ayuSyncDividersRow;
+
     private int debugHeaderRow;
     private int WALModeRow;
     private int cleanDatabaseBtnRow;
@@ -73,6 +69,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         super.updateRowsId();
 
         ghostEssentialsHeaderRow = newRow();
+        ghostFastToggleRow = newRow();
         sendReadPacketsRow = newRow();
         sendOnlinePacketsRow = newRow();
         sendUploadProgressRow = newRow();
@@ -99,37 +96,92 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         showKillButtonInDrawerRow = newRow();
         customizationDividerRow = newRow();
 
+        ayuSyncHeaderRow = newRow();
+        ayuSyncStatusBtnRow = newRow();
+        ayuSyncDividersRow = newRow();
+
         debugHeaderRow = newRow();
         WALModeRow = newRow();
         cleanDatabaseBtnRow = newRow();
     }
 
     @Override
+    public boolean onFragmentCreate() {
+        super.onFragmentCreate();
+        NotificationCenter.getGlobalInstance().addObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
+        NotificationCenter.getGlobalInstance().addObserver(this, AyuConstants.AYUSYNC_STATE_CHANGED);
+        return true;
+    }
+
+    @Override
+    public void didReceivedNotification(int id, int account, Object... args) {
+        if (id == AyuConstants.MESSAGES_DELETED_NOTIFICATION) {
+            // todo: update database size
+        } else if (id == AyuConstants.AYUSYNC_STATE_CHANGED) {
+            if (listAdapter != null) {
+                listAdapter.notifyItemChanged(ayuSyncStatusBtnRow);
+            }
+        }
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        super.onFragmentDestroy();
+        NotificationCenter.getGlobalInstance().removeObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
+        NotificationCenter.getGlobalInstance().removeObserver(this, AyuConstants.AYUSYNC_STATE_CHANGED);
+    }
+
+    private void updateGhostViews() {
+        var msg = AyuConfig.isGhostModeActive()
+                ? LocaleController.getString(R.string.DisableGhostMode)
+                : LocaleController.getString(R.string.EnableGhostMode);
+
+        listAdapter.notifyItemChanged(ghostFastToggleRow, msg);
+        listAdapter.notifyItemChanged(sendReadPacketsRow, !AyuConfig.isGhostModeActive());
+        listAdapter.notifyItemChanged(sendOnlinePacketsRow, !AyuConfig.isGhostModeActive());
+        listAdapter.notifyItemChanged(sendUploadProgressRow, !AyuConfig.isGhostModeActive());
+        listAdapter.notifyItemChanged(sendOfflinePacketAfterOnlineRow, AyuConfig.isGhostModeActive());
+
+        NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+    }
+
+    @Override
     protected void onItemClick(View view, int position, float x, float y) {
-        if (position == sendReadPacketsRow) {
+        if (position == ghostFastToggleRow) {
+            AyuConfig.toggleGhostMode();
+
+            updateGhostViews();
+        } else if (position == sendReadPacketsRow) {
             AyuConfig.editor.putBoolean("sendReadPackets", AyuConfig.sendReadPackets ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.sendReadPackets);
 
-            AyuState.resetAllowReadPacket();
+            AyuState.setAllowReadPacket(false, -1);
+            updateGhostViews();
         } else if (position == sendOnlinePacketsRow) {
             AyuConfig.editor.putBoolean("sendOnlinePackets", AyuConfig.sendOnlinePackets ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.sendOnlinePackets);
+
+            updateGhostViews();
         } else if (position == sendUploadProgressRow) {
             AyuConfig.editor.putBoolean("sendUploadProgress", AyuConfig.sendUploadProgress ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.sendUploadProgress);
+
+            updateGhostViews();
         } else if (position == sendOfflinePacketAfterOnlineRow) {
             AyuConfig.editor.putBoolean("sendOfflinePacketAfterOnline", AyuConfig.sendOfflinePacketAfterOnline ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.sendOfflinePacketAfterOnline);
+
+            updateGhostViews();
         } else if (position == markReadAfterSendRow) {
             AyuConfig.editor.putBoolean("markReadAfterSend", AyuConfig.markReadAfterSend ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.markReadAfterSend);
 
-            AyuState.resetAllowReadPacket();
+            AyuState.setAllowReadPacket(false, -1);
         } else if (position == useScheduledMessagesRow) {
             AyuConfig.editor.putBoolean("useScheduledMessages", AyuConfig.useScheduledMessages ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.useScheduledMessages);
 
-            AyuState.resetAutomaticallyScheduled();
+            AyuState.setAutomaticallyScheduled(false, -1);
         } else if (position == keepDeletedMessagesRow) {
             AyuConfig.editor.putBoolean("keepDeletedMessages", AyuConfig.keepDeletedMessages ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.keepDeletedMessages);
@@ -156,63 +208,41 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
 
             NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
         } else if (position == deletedMarkTextRow) {
-            var builder = new AlertDialog.Builder(getParentActivity());
-            builder.setTitle(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText));
-            var layout = new LinearLayout(getParentActivity());
-            var input = new EditTextSettingsCell(getParentActivity());
-            input.setText(AyuConfig.getDeletedMark(), true);
-
-            layout.setGravity(LinearLayout.VERTICAL);
-            layout.addView(input);
-            builder.setView(layout);
-            builder.setPositiveButton(LocaleController.getString("Save", R.string.Save), (dialog, which) -> {
-                AyuConfig.editor.putString("deletedMarkText", input.getText()).apply();
-                ((TextCell) view).setTextAndValue(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
-            });
-            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> dialog.cancel());
-            builder.setNeutralButton(LocaleController.getString("Reset", R.string.Reset), (dialog, which) -> {
-                AyuConfig.editor.putString("deletedMarkText", "🧹").apply();
-                ((TextCell) view).setTextAndValue(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
-            });
-
-            builder.show();
+            AyuUi.spawnEditBox(
+                    getParentActivity(),
+                    ((TextCell) view),
+                    LocaleController.getString(R.string.DeletedMarkText),
+                    AyuConfig::getDeletedMark,
+                    "deletedMarkText",
+                    AyuConstants.DEFAULT_DELETED_MARK
+            );
         } else if (position == editedMarkTextRow) {
-            var builder = new AlertDialog.Builder(getParentActivity());
-            builder.setTitle(LocaleController.getString("EditedMarkText", R.string.EditedMarkText));
-            var layout = new LinearLayout(getParentActivity());
-            var input = new EditTextSettingsCell(getParentActivity());
-            input.setText(AyuConfig.getEditedMark(), true);
-
-            layout.setGravity(LinearLayout.VERTICAL);
-            layout.addView(input);
-            builder.setView(layout);
-            builder.setPositiveButton(LocaleController.getString("Save", R.string.Save), (dialog, which) -> {
-                AyuConfig.editor.putString("editedMarkText", input.getText()).apply();
-                ((TextCell) view).setTextAndValue(LocaleController.getString("EditedMarkText", R.string.EditedMarkText), AyuConfig.getEditedMark(), true);
-            });
-            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), (dialog, which) -> dialog.cancel());
-            builder.setNeutralButton(LocaleController.getString("Reset", R.string.Reset), (dialog, which) -> {
-                AyuConfig.editor.putString("editedMarkText", LocaleController.getString("EditedMessage", R.string.EditedMessage)).apply();
-                ((TextCell) view).setTextAndValue(LocaleController.getString("EditedMarkText", R.string.EditedMarkText), AyuConfig.getEditedMark(), true);
-            });
-
-            builder.show();
+            AyuUi.spawnEditBox(
+                    getParentActivity(),
+                    ((TextCell) view),
+                    LocaleController.getString(R.string.EditedMarkText),
+                    AyuConfig::getEditedMark,
+                    "editedMarkText",
+                    LocaleController.getString("EditedMessage", R.string.EditedMessage) // don't remove key
+            );
+        } else if (position == ayuSyncStatusBtnRow) {
+            presentFragment(new AyuSyncPreferencesActivity());
         } else if (position == WALModeRow) {
             AyuConfig.editor.putBoolean("WALMode", AyuConfig.WALMode ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.WALMode);
         } else if (position == cleanDatabaseBtnRow) {
             AyuMessagesController.getInstance().clean();
-            AyuState.reset();
 
+            // reset size
             ((TextCell) view).setValue("…");
 
-            BulletinFactory.of(this).createSimpleBulletin(R.raw.info, LocaleController.getString("CleanDatabaseNotification", R.string.CleanDatabaseNotification)).show();
+            BulletinFactory.of(this).createSimpleBulletin(R.raw.info, LocaleController.getString(R.string.CleanDatabaseNotification)).show();
         }
     }
 
     @Override
     protected String getTitle() {
-        return LocaleController.getString("AyuPreferences", R.string.AyuPreferences);
+        return LocaleController.getString(R.string.AyuPreferences);
     }
 
     @Override
@@ -227,11 +257,6 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
         }
 
         @Override
-        public int getItemCount() {
-            return rowCount;
-        }
-
-        @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position, boolean payload) {
             switch (holder.getItemViewType()) {
                 case 1:
@@ -239,28 +264,40 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                     break;
                 case 2:
                     TextCell textCell = (TextCell) holder.itemView;
-                    if (position == deletedMarkTextRow) {
-                        textCell.setTextAndValue(LocaleController.getString("DeletedMarkText", R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
+                    if (position == ghostFastToggleRow) {
+                        var msg = AyuConfig.isGhostModeActive()
+                                ? LocaleController.getString(R.string.DisableGhostMode)
+                                : LocaleController.getString(R.string.EnableGhostMode);
+
+                        textCell.setTextAndIcon(msg, R.drawable.ayu_ghost, true);
+                    } else if (position == deletedMarkTextRow) {
+                        textCell.setTextAndValue(LocaleController.getString(R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
                     } else if (position == editedMarkTextRow) {
-                        textCell.setTextAndValue(LocaleController.getString("EditedMarkText", R.string.EditedMarkText), AyuConfig.getEditedMark(), true);
+                        textCell.setTextAndValue(LocaleController.getString(R.string.EditedMarkText), AyuConfig.getEditedMark(), true);
+                    } else if (position == ayuSyncStatusBtnRow) {
+                        var status = AyuSyncState.getConnectionStateString();
+
+                        textCell.setTextAndValue(LocaleController.getString(R.string.AyuSyncStatusTitle), status, true);
                     } else if (position == cleanDatabaseBtnRow) {
                         var file = ApplicationLoader.applicationContext.getDatabasePath(AyuConstants.AYU_DATABASE);
                         var size = file.exists() ? file.length() : 0;
 
-                        textCell.setTextAndValueAndIcon(LocaleController.getString("CleanDatabase", R.string.CleanDatabase), AndroidUtilities.formatFileSize(size), R.drawable.msg_clearcache, false);
+                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.CleanDatabase), AndroidUtilities.formatFileSize(size), R.drawable.msg_clearcache, false);
                         textCell.setColors(Theme.key_text_RedBold, Theme.key_text_RedBold);
                     }
                     break;
                 case 3:
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
                     if (position == ghostEssentialsHeaderRow) {
-                        headerCell.setText(LocaleController.getString("GhostEssentialsHeader", R.string.GhostEssentialsHeader));
+                        headerCell.setText(LocaleController.getString(R.string.GhostEssentialsHeader));
                     } else if (position == spyHeaderRow) {
-                        headerCell.setText(LocaleController.getString("SpyEssentialsHeader", R.string.SpyEssentialsHeader));
+                        headerCell.setText(LocaleController.getString(R.string.SpyEssentialsHeader));
                     } else if (position == qolHeaderRow) {
-                        headerCell.setText(LocaleController.getString("QoLTogglesHeader", R.string.QoLTogglesHeader));
+                        headerCell.setText(LocaleController.getString(R.string.QoLTogglesHeader));
                     } else if (position == customizationHeaderRow) {
-                        headerCell.setText(LocaleController.getString("CustomizationHeader", R.string.CustomizationHeader));
+                        headerCell.setText(LocaleController.getString(R.string.CustomizationHeader));
+                    } else if (position == ayuSyncHeaderRow) {
+                        headerCell.setText(LocaleController.getString(R.string.AyuSyncHeader));
                     } else if (position == debugHeaderRow) {
                         headerCell.setText(LocaleController.getString("SettingsDebug", R.string.SettingsDebug));
                     }
@@ -269,33 +306,33 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                     TextCheckCell textCheckCell = (TextCheckCell) holder.itemView;
                     textCheckCell.setEnabled(true, null);
                     if (position == sendReadPacketsRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("SendReadPackets", R.string.SendReadPackets), AyuConfig.sendReadPackets, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.SendReadPackets), AyuConfig.sendReadPackets, true);
                     } else if (position == sendOnlinePacketsRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("SendOnlinePackets", R.string.SendOnlinePackets), AyuConfig.sendOnlinePackets, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.SendOnlinePackets), AyuConfig.sendOnlinePackets, true);
                     } else if (position == sendUploadProgressRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("SendUploadProgress", R.string.SendUploadProgress), AyuConfig.sendUploadProgress, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.SendUploadProgress), AyuConfig.sendUploadProgress, true);
                     } else if (position == sendOfflinePacketAfterOnlineRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("SendOfflinePacketAfterOnline", R.string.SendOfflinePacketAfterOnline), AyuConfig.sendOfflinePacketAfterOnline, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.SendOfflinePacketAfterOnline), AyuConfig.sendOfflinePacketAfterOnline, true);
                     } else if (position == markReadAfterSendRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("MarkReadAfterSend", R.string.MarkReadAfterSend), AyuConfig.markReadAfterSend, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MarkReadAfterSend), AyuConfig.markReadAfterSend, true);
                     } else if (position == useScheduledMessagesRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("UseScheduledMessages", R.string.UseScheduledMessages) + " β", AyuConfig.useScheduledMessages, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.UseScheduledMessages) + " β", AyuConfig.useScheduledMessages, true);
                     } else if (position == keepDeletedMessagesRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("KeepDeletedMessages", R.string.KeepDeletedMessages), AyuConfig.keepDeletedMessages, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.KeepDeletedMessages), AyuConfig.keepDeletedMessages, true);
                     } else if (position == keepMessagesHistoryRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("KeepMessagesHistory", R.string.KeepMessagesHistory), AyuConfig.keepMessagesHistory, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.KeepMessagesHistory), AyuConfig.keepMessagesHistory, true);
                     } else if (position == showFromChannelRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("ShowFromChannel", R.string.ShowFromChannel), AyuConfig.showFromChannel, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.ShowFromChannel), AyuConfig.showFromChannel, true);
                     } else if (position == keepAliveServiceRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("KeepAliveService", R.string.KeepAliveService) + " β", AyuConfig.keepAliveService, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.KeepAliveService) + " β", AyuConfig.keepAliveService, true);
                     } else if (position == enableAdsRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("EnableAds", R.string.EnableAds), AyuConfig.enableAds, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.EnableAds), AyuConfig.enableAds, true);
                     } else if (position == showGhostToggleInDrawerRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("ShowGhostToggleInDrawer", R.string.ShowGhostToggleInDrawer), AyuConfig.showGhostToggleInDrawer, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.ShowGhostToggleInDrawer), AyuConfig.showGhostToggleInDrawer, true);
                     } else if (position == showKillButtonInDrawerRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("ShowKllButtonInDrawer", R.string.ShowKllButtonInDrawer), AyuConfig.showKillButtonInDrawer, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.ShowKllButtonInDrawer), AyuConfig.showKillButtonInDrawer, true);
                     } else if (position == WALModeRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString("WALMode", R.string.WALMode), AyuConfig.WALMode, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.WALMode), AyuConfig.WALMode, true);
                     }
                     break;
             }
@@ -307,16 +344,24 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity {
                     position == ghostDividerRow ||
                             position == spyDividerRow ||
                             position == qolDividerRow ||
-                            position == customizationDividerRow
+                            position == customizationDividerRow ||
+                            position == ayuSyncDividersRow
             ) {
                 return 1;
-            } else if (position == deletedMarkTextRow || position == editedMarkTextRow || position == cleanDatabaseBtnRow) {
+            } else if (
+                    position == ghostFastToggleRow ||
+                            position == deletedMarkTextRow ||
+                            position == editedMarkTextRow ||
+                            position == ayuSyncStatusBtnRow ||
+                            position == cleanDatabaseBtnRow
+            ) {
                 return 2;
             } else if (
                     position == ghostEssentialsHeaderRow ||
                             position == spyHeaderRow ||
                             position == qolHeaderRow ||
                             position == customizationHeaderRow ||
+                            position == ayuSyncHeaderRow ||
                             position == debugHeaderRow
             ) {
                 return 3;

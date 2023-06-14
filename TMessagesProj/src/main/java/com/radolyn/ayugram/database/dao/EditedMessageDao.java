@@ -12,7 +12,6 @@ package com.radolyn.ayugram.database.dao;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
-
 import com.radolyn.ayugram.database.entities.EditedMessage;
 import com.radolyn.ayugram.messages.AyuMessagesController;
 
@@ -34,6 +33,12 @@ public interface EditedMessageDao {
 
     @Query("SELECT * FROM editedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId AND editedDate = :date")
     EditedMessage getRevision(long userId, long dialogId, long messageId, long date);
+
+    @Query("SELECT COUNT(*) FROM editedmessage WHERE userId = :userId AND editedDate > :fromDate")
+    int getSyncCount(long userId, long fromDate);
+
+    @Query("SELECT * FROM editedmessage WHERE userId = :userId AND editedDate > :fromDate ORDER BY editedDate LIMIT 50 OFFSET :offset")
+    List<EditedMessage> getForSync(long userId, long fromDate, int offset);
 
     @Insert
     void insert(EditedMessage revision);

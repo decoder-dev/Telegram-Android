@@ -11,16 +11,12 @@ package com.radolyn.ayugram.messages;
 
 import android.os.Environment;
 import android.text.TextUtils;
-
-import androidx.annotation.OptIn;
-import androidx.room.ExperimentalRoomApi;
-import androidx.room.Room;
-
-import android.util.Log;
+import com.exteragram.messenger.ExteraConfig;
+import com.google.android.exoplayer2.util.Log;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.AyuUtils;
-import com.radolyn.ayugram.database.AyuDatabase;
+import com.radolyn.ayugram.database.AyuData;
 import com.radolyn.ayugram.database.dao.DeletedMessageDao;
 import com.radolyn.ayugram.database.dao.EditedMessageDao;
 import com.radolyn.ayugram.database.entities.DeletedMessage;
@@ -28,7 +24,6 @@ import com.radolyn.ayugram.database.entities.DeletedMessageFull;
 import com.radolyn.ayugram.database.entities.DeletedMessageReaction;
 import com.radolyn.ayugram.database.entities.EditedMessage;
 import com.radolyn.ayugram.proprietary.AyuMessageUtils;
-
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.MessageObject;
@@ -39,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class AyuMessagesController {
@@ -50,11 +44,10 @@ public class AyuMessagesController {
             attachmentsSubfolder
     );
     private static AyuMessagesController instance;
-    private final AyuDatabase database;
     private final EditedMessageDao editedMessageDao;
     private final DeletedMessageDao deletedMessageDao;
 
-    private @OptIn(markerClass = ExperimentalRoomApi.class) AyuMessagesController() {
+    private AyuMessagesController() {
         // recreate for testing if debug
         if (ExteraConfig.getLogging()) {
             ApplicationLoader.applicationContext.deleteDatabase(AyuConstants.AYU_DATABASE);
@@ -72,14 +65,8 @@ public class AyuMessagesController {
             }
         }
 
-        database = Room.databaseBuilder(ApplicationLoader.applicationContext, AyuDatabase.class, AyuConstants.AYU_DATABASE)
-                .allowMainThreadQueries()
-                .fallbackToDestructiveMigration()
-                .setAutoCloseTimeout(10, TimeUnit.MINUTES)
-                .build();
-
-        editedMessageDao = database.editedMessageDao();
-        deletedMessageDao = database.deletedMessageDao();
+        editedMessageDao = AyuData.getEditedMessageDao();
+        deletedMessageDao = AyuData.getDeletedMessageDao();
     }
 
     public static AyuMessagesController getInstance() {
@@ -302,12 +289,7 @@ public class AyuMessagesController {
     }
 
     public void clean() {
-        editedMessageDao.cleanTable();
-        deletedMessageDao.cleanTable();
-
-        database.close();
-
-        ApplicationLoader.applicationContext.deleteDatabase(AyuConstants.AYU_DATABASE);
+        AyuData.clean();
 
         // force recreate database to avoid crash
         instance = null;

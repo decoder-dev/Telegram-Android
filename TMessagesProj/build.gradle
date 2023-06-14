@@ -104,9 +104,15 @@ dependencies {
     implementation "androidx.credentials:credentials-play-services-auth:1.6.0-alpha04"
 
     // AyuGram deps
-    def room_version = "2.4.3"
+
+    // ~ Database deps
+    def room_version = "2.5.1"
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
+
+    // ~ AyuGram Sync deps
+    implementation "dev.gustavoavila:java-android-websocket-client:2.0.2"
+    implementation "com.squareup.okhttp3:okhttp:4.10.0"
 
     implementation files('libs/libgsaverification-client.aar')
 }
@@ -292,17 +298,11 @@ android {
     namespace 'org.telegram.messenger'
 }
 
-
-def getProps(String propName) {
-    def propsFile = rootProject.file('local.properties')
-    if (propsFile.exists()) {
-        def props = new Properties()
-        props.load(new FileInputStream(propsFile))
-        return props[propName]
-    } else {
-        return "";
-    }
+// AyuGram: kotlin fix...
+configurations.implementation {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
 }
+
 apply plugin: 'com.google.gms.google-services'
 
 task checkVisibility {

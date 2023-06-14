@@ -95,6 +95,9 @@
         </intent>
     </queries>
 
+    <uses-sdk tools:overrideLibrary="androidx.camera.view, androidx.camera.extensions, androidx.camera.lifecycle, androidx.camera.camera2, androidx.camera.core" />
+
+    <!-- AyuGram: remove for release `usesCleartextTraffic` -->
     <application
         android:name="org.telegram.messenger.ApplicationLoader"
         android:allowBackup="true"
@@ -103,16 +106,11 @@
         android:hardwareAccelerated="true"
         android:largeHeap="true"
         android:theme="@style/Theme.TMessages.Start"
-        android:manageSpaceActivity="org.telegram.ui.ExternalActionActivity"
-        android:supportsRtl="false"
-        android:requestLegacyExternalStorage="true"
-        android:preserveLegacyExternalStorage="true"
-        android:allowAudioPlaybackCapture="true"
-        tools:replace="android:supportsRtl"
         android:usesCleartextTraffic="true"
-        android:enableOnBackInvokedCallback="true"
-    >
-        <!-- usesCleartextTraffic for browser supporting opening http:// links -->
+        tools:replace="android:supportsRtl">
+        <meta-data
+            android:name="com.google.android.maps.v2.API_KEY"
+            android:value="@string/MAPS_V2_API" />
 
         <activity-alias
             android:enabled="true"

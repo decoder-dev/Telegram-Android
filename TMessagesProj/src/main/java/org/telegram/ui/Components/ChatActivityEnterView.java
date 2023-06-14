@@ -7280,7 +7280,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                 // we have to ensure that we have a small window for an error
                 scheduleDate += 1; // 1 sec
 
-                AyuState.setAutomaticallyScheduled();
+                AyuState.setAutomaticallyScheduled(true, 1);
             }
 
             return sendMessageInternal(true, scheduleDate, 0, 0, true);

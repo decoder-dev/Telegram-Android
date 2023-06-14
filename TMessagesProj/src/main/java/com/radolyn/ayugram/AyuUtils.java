@@ -9,18 +9,20 @@
 
 package com.radolyn.ayugram;
 
-import static org.telegram.messenger.Utilities.random;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.os.Build;
+import android.provider.Settings.Secure;
 import android.text.TextUtils;
-
 import com.google.android.exoplayer2.util.Log;
-
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLoader;
 import org.telegram.tgnet.TLRPC;
 
 import java.io.File;
+
+import static org.telegram.messenger.Utilities.random;
 
 public class AyuUtils {
     private static final char[] chars = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();
@@ -73,6 +75,19 @@ public class AyuUtils {
         f += AyuUtils.getExtension(filename);
 
         return f;
+    }
+
+    public static String getPackageName() {
+        return ApplicationLoader.applicationContext.getPackageName();
+    }
+
+    @SuppressLint("HardwareIds")
+    public static String getDeviceIdentifier() {
+        return Secure.getString(ApplicationLoader.applicationContext.getContentResolver(), Secure.ANDROID_ID);
+    }
+
+    public static String getDeviceName() {
+        return Build.MANUFACTURER + Build.MODEL;
     }
 
     public static void killApplication(Activity activity) {

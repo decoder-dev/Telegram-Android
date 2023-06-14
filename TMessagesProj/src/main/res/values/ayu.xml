@@ -23,8 +23,7 @@
     <string name="KeepDeletedMessages">Keep deleted messages</string>
     <string name="KeepMessagesHistory">Keep edits history</string>
 
-    <string name="QoLTogglesHeader">QoL toggles</string>
-    <string name="RealForwardTime">Show real forward time</string>
+    <string name="QoLTogglesHeader">Useful features</string>
     <string name="ShowFromChannel">Show «channel» label</string>
     <string name="KeepAliveService">Keep Alive Service</string>
     <string name="EnableAds">Enable ads</string>
@@ -34,6 +33,29 @@
     <string name="EditedMarkText">Edited mark</string>
     <string name="ShowGhostToggleInDrawer">Show ghost mode toggle</string>
     <string name="ShowKllButtonInDrawer">Show kill app button</string>
+
+    <string name="AyuSyncHeader" translatable="false">AyuSync</string>
+    <string name="AyuSyncStatusTitle">Sync status</string>
+    <string name="AyuSyncStatusOk">connected</string>
+    <string name="AyuSyncStatusErrorDisconnected">disconnected</string>
+    <string name="AyuSyncStatusErrorNotRegistered">not registered</string>
+    <string name="AyuSyncStatusErrorNoToken">no token</string>
+    <string name="AyuSyncStatusErrorInvalidToken">invalid token</string>
+    <string name="AyuSyncStatusErrorNoMVP">no MVP</string>
+
+    <string name="AyuSyncServerURL" translatable="false">AyuSync URL</string>
+    <string name="AyuSyncServerToken">AyuSync token</string>
+    <string name="AyuSyncEnable">Enable synchronization</string>
+
+    <string name="AyuSyncVisitProfile">Visit profile</string>
+    <string name="AyuSyncForceSync">Force sync clients</string>
+
+    <string name="AyuSyncDeviceIdentifier">Device identifier</string>
+    <string name="AyuSyncLastEventSent">Last sent event</string>
+    <string name="AyuSyncLastEventReceived">Last received event</string>
+    <string name="AyuSyncLastPacketNever">never</string>
+
+    <string name="AyuSyncIdentifierCopied">Identifier copied to clipboard.</string>
 
     <string name="CleanDatabase">Clean database</string>
     <string name="WALMode">Enable WAL mode</string>
@@ -50,7 +72,7 @@
     <string name="EditsHistoryMenuText">History</string>
 
     <string name="ReadUntilMenuText">Read until</string>
-    <string name="ForwardsRestrictedInfoDeleted">Forwarding of deleted message is not supported.</string>
+    <string name="ForwardsRestrictedInfoDeleted">Forwarding of a deleted message is not supported.</string>
 
     <string name="DeleteDateMenuText">Delete Date</string>
 

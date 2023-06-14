@@ -13132,11 +13132,7 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private void openScheduledMessages() {
-        openScheduledMessages(0, false);
-    }
-    private void openScheduledMessages(int fromMessageId, boolean showConvertToast) {
-        if (AyuState.isAutomaticallyScheduled()) {
-            AyuState.resetAutomaticallyScheduled();
+        if (AyuState.getAutomaticallyScheduled()) {
             return;
         }
         if (parentLayout == null || parentLayout.getLastFragment() != this) {
@@ -33799,11 +33795,11 @@ public class ChatActivity extends BaseFragment implements
                 presentFragment(new AyuMessageHistory(getUserConfig().clientUserId, selectedObject));
                 break;
             case AyuConstants.OPTION_TTL:
-                AyuState.setAllowReadPacket();
+                AyuState.setAllowReadPacket(true, 1);
                 sendSecretMessageRead(selectedObject, true);
                 break;
             case AyuConstants.OPTION_READ_UNTIL:
-                AyuGhostUtils.markRead(getMessagesController(), getConnectionsManager(), selectedObject);
+                AyuGhostUtils.markRead(currentAccount, selectedObject.messageOwner.id, getMessagesController().getInputPeer(selectedObject.messageOwner.peer_id));
                 break;
             case OPTION_RETRY: {
                 final MessageObject object = selectedObject;
