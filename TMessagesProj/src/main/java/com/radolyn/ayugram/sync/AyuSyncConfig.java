@@ -10,15 +10,14 @@
 package com.radolyn.ayugram.sync;
 
 import com.radolyn.ayugram.AyuConfig;
-import org.telegram.messenger.BuildVars;
 
 public class AyuSyncConfig {
     private static String getWebSocketProtocol() {
-        return BuildVars.isBetaApp() ? "ws://" : "wss://";
+        return AyuConfig.useSecureConnection ? "wss://" : "ws://";
     }
 
     private static String getHTTPProtocol() {
-        return BuildVars.isBetaApp() ? "http://" : "https://";
+        return AyuConfig.useSecureConnection ? "https://" : "http://";
     }
 
     public static String getWebSocketURL() {

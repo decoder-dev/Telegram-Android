@@ -83,6 +83,18 @@ public class AyuSyncController {
         instance = new AyuSyncControllerEmpty();
     }
 
+    private static void enqueueRetry() {
+        queue.postRunnable(() -> {
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            create();
+        });
+    }
+
     private final HashMap<Long, Integer> accounts;
     private final OkHttpClient client;
 
@@ -101,14 +113,17 @@ public class AyuSyncController {
         if (TextUtils.isEmpty(AyuSyncConfig.getToken())) {
             nullifyInstance();
             AyuSyncState.setConnectionState(AyuSyncConnectionState.NoToken);
+            // don't enqueue retry
+            // there will be an attempt when token changed
             return;
         }
 
-        var self = getSelf();
+        var self = getSelfForConnect();
 
         if (self == null) {
             nullifyInstance();
             AyuSyncState.setConnectionState(AyuSyncConnectionState.InvalidToken);
+            // retry already enqueued if needed
             return;
         }
 
@@ -118,6 +133,7 @@ public class AyuSyncController {
         if (self.mvpUntil == null) {
             nullifyInstance();
             AyuSyncState.setConnectionState(AyuSyncConnectionState.NoMVP);
+            enqueueRetry();
             return;
         }
 
@@ -153,6 +169,7 @@ public class AyuSyncController {
         if (!success) {
             nullifyInstance();
             AyuSyncState.setConnectionState(AyuSyncConnectionState.NotRegistered);
+            enqueueRetry();
             return;
         }
 
@@ -160,7 +177,7 @@ public class AyuSyncController {
         Log.d("AyuSync", "WebSocket client created: " + res);
     }
 
-    private AyuUser getSelf() {
+    private AyuUser getSelfForConnect() {
         var url = AyuSyncConfig.getAyuBaseURL() + "/info";
 
         var request = new Request.Builder()
@@ -177,6 +194,7 @@ public class AyuSyncController {
                     .fromJson(response.body().string(), AyuUser.class);
         } catch (IOException e) {
             Log.d("AyuSync", "Failed to get self: " + e.getMessage());
+            enqueueRetry();
         }
 
         return null;

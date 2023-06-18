@@ -12,11 +12,11 @@ package com.radolyn.ayugram.sync;
 import com.google.android.exoplayer2.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuUtils;
 import dev.gustavoavila.websocketclient.WebSocketClient;
+import dev.gustavoavila.websocketclient.exceptions.InvalidServerHandshakeException;
 
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -35,6 +35,8 @@ public class AyuSyncWebSocketClient extends WebSocketClient {
         } catch (URISyntaxException e) {
             return false;
         }
+
+        Log.d("AyuSync", "Creating new WebSocket client");
 
         instance = new AyuSyncWebSocketClient(url);
 
@@ -74,9 +76,13 @@ public class AyuSyncWebSocketClient extends WebSocketClient {
 
     @Override
     public void send(String message) {
-        super.send(message);
+        try {
+            super.send(message);
 
-        AyuSyncState.setLastSent((int) (System.currentTimeMillis() / 1000));
+            AyuSyncState.setLastSent((int) (System.currentTimeMillis() / 1000));
+        } catch (Exception e) {
+            Log.e("AyuSync", "Error while sending message", e);
+        }
     }
 
     @Override
@@ -90,8 +96,12 @@ public class AyuSyncWebSocketClient extends WebSocketClient {
     public void onTextReceived(String message) {
         AyuSyncState.setLastReceived((int) (System.currentTimeMillis() / 1000));
 
-        var response = new Gson().fromJson(message, JsonObject.class);
-        AyuSyncController.getInstance().invokeHandler(response);
+        try {
+            var response = new Gson().fromJson(message, JsonObject.class);
+            AyuSyncController.getInstance().invokeHandler(response);
+        } catch (Exception e) {
+            Log.e("AyuSync", "Error while invoking handler", e);
+        }
     }
 
     @Override
@@ -111,11 +121,26 @@ public class AyuSyncWebSocketClient extends WebSocketClient {
 
     @Override
     public void onException(Exception e) {
-        if (e instanceof SocketException || e instanceof SocketTimeoutException) {
-            AyuSyncState.setConnectionState(AyuSyncConnectionState.Disconnected);
-        }
+        AyuSyncState.setConnectionState(AyuSyncConnectionState.Disconnected);
 
         Log.e("AyuSync", e.toString());
+
+        if ((e instanceof InvalidServerHandshakeException) && AyuConfig.syncEnabled && instance == this) {
+            // this fucking library doesn't support any other exception except `IOException`
+            // so we have to reinitialize instance
+
+            // using reflection call doesn't work
+
+            AyuSyncController.nullifyInstance();
+
+            try {
+                Thread.sleep(1500);
+            } catch (Exception e2) {
+                Log.d("AyuSync", "jaBBa", e2);
+            }
+
+            AyuSyncController.create();
+        }
     }
 
     @Override
