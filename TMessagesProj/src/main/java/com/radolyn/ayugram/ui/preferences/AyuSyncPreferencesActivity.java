@@ -50,6 +50,7 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
     private int deviceIdentifierRow;
     private int lastReceivedEventRow;
     private int lastSentEventRow;
+    private int useSecureConnectionRow;
 
     @Override
     protected void updateRowsId() {
@@ -70,6 +71,7 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
         deviceIdentifierRow = newRow();
         lastSentEventRow = newRow();
         lastReceivedEventRow = newRow();
+        useSecureConnectionRow = newRow();
     }
 
     @Override
@@ -158,6 +160,12 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
         } else if (position == deviceIdentifierRow) {
             AndroidUtilities.addToClipboard(AyuUtils.getDeviceIdentifier());
             BulletinFactory.of(this).createCopyBulletin(LocaleController.getString(R.string.AyuSyncIdentifierCopied)).show();
+        } else if (position == useSecureConnectionRow) {
+            AyuConfig.editor.putBoolean("useSecureConnection", AyuConfig.useSecureConnection ^= true).apply();
+            ((TextCheckCell) view).setChecked(AyuConfig.useSecureConnection);
+
+            AyuSyncController.nullifyInstance();
+            AyuSyncController.create();
         }
     }
 
@@ -202,13 +210,13 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
                     } else if (position == lastSentEventRow) {
                         var last = AyuSyncState.getLastSent() != 0
                                 ? LocaleController.formatDateAudio(AyuSyncState.getLastSent(), true)
-                                : LocaleController.getString(R.string.AyuSyncLastPacketNever);
+                                : LocaleController.getString(R.string.AyuSyncLastEventNever);
 
                         textCell.setTextAndValue(LocaleController.getString(R.string.AyuSyncLastEventSent), last, true);
                     } else if (position == lastReceivedEventRow) {
                         var last = AyuSyncState.getLastReceived() != 0
                                 ? LocaleController.formatDateAudio(AyuSyncState.getLastReceived(), true)
-                                : LocaleController.getString(R.string.AyuSyncLastPacketNever);
+                                : LocaleController.getString(R.string.AyuSyncLastEventNever);
 
                         textCell.setTextAndValue(LocaleController.getString(R.string.AyuSyncLastEventReceived), last, true);
                     }
@@ -226,6 +234,8 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
                     textCheckCell.setEnabled(true, null);
                     if (position == syncEnabledRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.AyuSyncEnable), AyuConfig.syncEnabled, true);
+                    } else if (position == useSecureConnectionRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.AyuSyncUseSecureConnection), AyuConfig.useSecureConnection, true);
                     }
                     break;
             }

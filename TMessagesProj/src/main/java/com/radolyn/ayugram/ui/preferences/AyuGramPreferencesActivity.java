@@ -116,7 +116,11 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == AyuConstants.MESSAGES_DELETED_NOTIFICATION) {
-            // todo: update database size
+            // recalculate database size
+            // todo: why doesn't work??
+            if (listAdapter != null) {
+                listAdapter.notifyItemChanged(cleanDatabaseBtnRow);
+            }
         } else if (id == AyuConstants.AYUSYNC_STATE_CHANGED) {
             if (listAdapter != null) {
                 listAdapter.notifyItemChanged(ayuSyncStatusBtnRow);

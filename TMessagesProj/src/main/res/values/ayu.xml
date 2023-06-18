@@ -53,7 +53,9 @@
     <string name="AyuSyncDeviceIdentifier">Device identifier</string>
     <string name="AyuSyncLastEventSent">Last sent event</string>
     <string name="AyuSyncLastEventReceived">Last received event</string>
-    <string name="AyuSyncLastPacketNever">never</string>
+    <string name="AyuSyncLastEventNever">never</string>
+
+    <string name="AyuSyncUseSecureConnection">Use HTTPS &amp; WSS</string>
 
     <string name="AyuSyncIdentifierCopied">Identifier copied to clipboard.</string>
 

@@ -12,6 +12,7 @@ package com.radolyn.ayugram;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 
@@ -35,6 +36,7 @@ public class AyuConfig {
     public static boolean showGhostToggleInDrawer;
     public static boolean showKillButtonInDrawer;
     public static boolean syncEnabled;
+    public static boolean useSecureConnection;
     public static boolean WALMode;
 
     private static boolean configLoaded;
@@ -81,6 +83,7 @@ public class AyuConfig {
             // syncServerURL
             // syncServerToken
             syncEnabled = preferences.getBoolean("syncEnabled", false);
+            useSecureConnection = preferences.getBoolean("useSecureConnection", !BuildVars.isBetaApp());
 
             // ~ Debug
             WALMode = preferences.getBoolean("walMode", true);
