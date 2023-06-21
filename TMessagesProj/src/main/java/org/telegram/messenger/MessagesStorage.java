@@ -9953,31 +9953,6 @@ public class MessagesStorage extends BaseController {
         if (dialogId == 777000 && serviceUnreadCount != 0) {
             count_unread = serviceUnreadCount;
         }
-
-        // --- AyuGram hook
-
-        if (!scheduled) {
-            var s = dialogId + " " +  mergeDialogId + " " +  count + " " +  max_id + " " +  offset_date + " " +  minDate + " " +  classGuid + " " +  load_type + " " +  scheduled + " " +  threadMessageId + " " +  loadIndex + " " +  processMessages + " " +  isTopic;
-
-            Log.d("AyuGram", s);
-
-            AyuHistoryHook.doHook(
-                    this,
-                    getMessagesController(),
-                    res,
-                    currentUserId,
-                    dialogId,
-                    offset_date,
-                    minDate,
-                    count,
-                    load_type,
-                    threadMessageId,
-                    isTopic
-            );
-        }
-
-        // --- AyuGram hook
-
         int countQueryFinal = count_query;
         int maxIdOverrideFinal = max_id_override;
         int minUnreadIdFinal = min_unread_id;

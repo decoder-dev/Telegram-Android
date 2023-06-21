@@ -427,7 +427,7 @@ public class ConnectionsManager extends BaseController {
             ) {
                 if (!AyuState.getAllowReadPacket()) {
                     var fakeRes = new TLRPC.TL_messages_affectedMessages();
-                    // idk if this should be -1 or what, check `TL_messages_readMessageContents` usages
+                    // IDK if this should be -1 or what, check `TL_messages_readMessageContents` usages
                     fakeRes.pts = -1;
                     fakeRes.pts_count = 0;
 
