@@ -108,7 +108,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     @Override
     public boolean onFragmentCreate() {
         super.onFragmentCreate();
-        NotificationCenter.getGlobalInstance().addObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
+        // todo: register `MESSAGES_DELETED_NOTIFICATION` on all notification centers, not only on the current account
+        NotificationCenter.getInstance(UserConfig.selectedAccount).addObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
         NotificationCenter.getGlobalInstance().addObserver(this, AyuConstants.AYUSYNC_STATE_CHANGED);
         return true;
     }
@@ -117,7 +118,6 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == AyuConstants.MESSAGES_DELETED_NOTIFICATION) {
             // recalculate database size
-            // todo: why doesn't work??
             if (listAdapter != null) {
                 listAdapter.notifyItemChanged(cleanDatabaseBtnRow);
             }
@@ -131,7 +131,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
-        NotificationCenter.getGlobalInstance().removeObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
+        NotificationCenter.getInstance(UserConfig.selectedAccount).removeObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
         NotificationCenter.getGlobalInstance().removeObserver(this, AyuConstants.AYUSYNC_STATE_CHANGED);
     }
 
