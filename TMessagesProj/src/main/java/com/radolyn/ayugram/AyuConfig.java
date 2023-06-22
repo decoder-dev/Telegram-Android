@@ -60,7 +60,7 @@ public class AyuConfig {
             sendUploadProgress = preferences.getBoolean("sendUploadProgress", true);
 
             sendOfflinePacketAfterOnline = preferences.getBoolean("sendOfflinePacketAfterOnline", false);
-            markReadAfterSend = preferences.getBoolean("markReadAfterSend", false);
+            markReadAfterSend = preferences.getBoolean("markReadAfterSend", true);
 
             useScheduledMessages = preferences.getBoolean("useScheduledMessages", false);
 
