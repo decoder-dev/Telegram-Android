@@ -194,7 +194,7 @@ public class AyuMessagesController {
 
                     deletedMessage.documentSerialized = arr;
                 } catch (Exception e) {
-                    Log.e("AyuGram", "fake news sticker");
+                    Log.e("AyuGram", "fake news sticker", e);
                 }
             } else {
                 deletedMessage.documentType = 3; // file
@@ -291,7 +291,7 @@ public class AyuMessagesController {
     public void clean() {
         AyuData.clean();
 
-        // force recreate database to avoid crash
+        // force recreate a database to avoid crash
         instance = null;
     }
 }

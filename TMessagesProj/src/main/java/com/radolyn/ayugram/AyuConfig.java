@@ -68,7 +68,7 @@ public class AyuConfig {
             keepDeletedMessages = preferences.getBoolean("keepDeletedMessages", true);
             keepMessagesHistory = preferences.getBoolean("keepMessagesHistory", true);
 
-            // ~ QoL
+            // ~ Useful features
             showFromChannel = preferences.getBoolean("showFromChannel", true);
             keepAliveService = preferences.getBoolean("keepAliveService", true);
             enableAds = preferences.getBoolean("enableAds", false);
@@ -93,7 +93,7 @@ public class AyuConfig {
     }
 
     public static boolean isGhostModeActive() {
-        return !sendReadPackets && !sendOnlinePackets;
+        return !sendReadPackets && !sendOnlinePackets && !sendUploadProgress && sendOfflinePacketAfterOnline;
     }
 
     public static void setGhostMode(boolean enabled) {
