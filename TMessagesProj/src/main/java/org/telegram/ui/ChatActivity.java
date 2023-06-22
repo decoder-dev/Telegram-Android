@@ -78,11 +78,7 @@ import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.text.style.URLSpan;
-import android.util.Pair;
-import android.util.Property;
-import android.util.SparseArray;
-import android.util.SparseIntArray;
-import android.util.TypedValue;
+import android.util.*;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
@@ -21391,8 +21387,17 @@ public class ChatActivity extends BaseFragment implements
 
                 var dialogId = getDialogId();
                 var threadId = getThreadId();
+                
+                // - deleted messages between loaded part and unloaded part
+                // IDK what should I do :(
 
-                AyuHistoryHook.doHook(currentAccount, messArr, startId, endId, dialogId, 10000, threadId);
+                var dialog = getMessagesController().getDialog(dialogId);
+
+                if (dialog != null && dialog.top_message == endId) {
+                    endId = Integer.MAX_VALUE;
+                }
+
+                AyuHistoryHook.doHook(currentAccount, messArr, startId, endId, dialogId, 300, threadId);
             }
             // --- AyuGram hook
 
