@@ -61,7 +61,10 @@ public class AyuUtils {
     }
 
     public static String getFilename(TLRPC.Message msg, File attachPathFile) {
-        var filename = FileLoader.getMessageFileName(msg);
+        var filename = FileLoader.getDocumentFileName(msg.media.document);
+        if (TextUtils.isEmpty(filename)) {
+            filename = FileLoader.getMessageFileName(msg);
+        }
         if (TextUtils.isEmpty(filename)) {
             filename = attachPathFile.getName();
         }
