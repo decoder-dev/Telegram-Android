@@ -19,6 +19,7 @@ public class AyuSyncState {
     private static int lastSent;
     private static int lastReceived;
     private static AyuSyncConnectionState connectionState = AyuSyncConnectionState.NotRegistered;
+    private static int registerStatusCode;
 
     public static int getLastSent() {
         return lastSent;
@@ -77,5 +78,15 @@ public class AyuSyncState {
         }
 
         return status;
+    }
+
+    public static int getRegisterStatusCode() {
+        return registerStatusCode;
+    }
+
+    public static void setRegisterStatusCode(int registerStatusCode) {
+        AyuSyncState.registerStatusCode = registerStatusCode;
+
+        AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(AyuConstants.AYUSYNC_REGISTER_STATUS_CODE_CHANGED));
     }
 }

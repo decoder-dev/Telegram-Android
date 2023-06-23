@@ -32,9 +32,10 @@ import java.util.HashMap;
 
 public class AyuSyncController {
 
-    private static AyuSyncController instance;
     private static final DispatchQueue queue = new DispatchQueue("AyuSyncController");
-
+    private static AyuSyncController instance;
+    private final HashMap<Long, Integer> accounts;
+    private final OkHttpClient client;
 
     public AyuSyncController() {
         accounts = new HashMap<>();
@@ -95,9 +96,6 @@ public class AyuSyncController {
         });
     }
 
-    private final HashMap<Long, Integer> accounts;
-    private final OkHttpClient client;
-
     private void loadAccounts() {
         accounts.clear();
 
@@ -157,6 +155,7 @@ public class AyuSyncController {
         try (var response = client.newCall(request).execute()) {
             success = response.isSuccessful();
             Log.d("AyuSync", "Register device status: " + response.code());
+            AyuSyncState.setRegisterStatusCode(response.code());
         } catch (IOException e) {
             success = false;
             Log.d("AyuSync", "Failed to register device: " + e.getMessage());

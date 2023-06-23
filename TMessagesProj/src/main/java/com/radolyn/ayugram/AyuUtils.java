@@ -87,7 +87,7 @@ public class AyuUtils {
     }
 
     public static String getDeviceName() {
-        return Build.MANUFACTURER + Build.MODEL;
+        return Build.MANUFACTURER + " " + Build.MODEL;
     }
 
     public static void killApplication(Activity activity) {

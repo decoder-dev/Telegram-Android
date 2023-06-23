@@ -47,6 +47,7 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
 
     private int debugHeaderRow;
     private int ayuSyncStatusRow;
+    private int registerStatusCodeRow;
     private int deviceIdentifierRow;
     private int lastReceivedEventRow;
     private int lastSentEventRow;
@@ -68,6 +69,7 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
 
         debugHeaderRow = newRow();
         ayuSyncStatusRow = newRow();
+        registerStatusCodeRow = newRow();
         deviceIdentifierRow = newRow();
         lastSentEventRow = newRow();
         lastReceivedEventRow = newRow();
@@ -80,6 +82,7 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
         NotificationCenter.getGlobalInstance().addObserver(this, AyuConstants.AYUSYNC_STATE_CHANGED);
         NotificationCenter.getGlobalInstance().addObserver(this, AyuConstants.AYUSYNC_LAST_SENT_CHANGED);
         NotificationCenter.getGlobalInstance().addObserver(this, AyuConstants.AYUSYNC_LAST_RECEIVED_CHANGED);
+        NotificationCenter.getGlobalInstance().addObserver(this, AyuConstants.AYUSYNC_REGISTER_STATUS_CODE_CHANGED);
         return true;
     }
 
@@ -97,6 +100,10 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
             if (listAdapter != null) {
                 listAdapter.notifyItemChanged(lastReceivedEventRow);
             }
+        } else if (id == AyuConstants.AYUSYNC_REGISTER_STATUS_CODE_CHANGED) {
+            if (listAdapter != null) {
+                listAdapter.notifyItemChanged(registerStatusCodeRow);
+            }
         }
     }
 
@@ -106,6 +113,7 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
         NotificationCenter.getGlobalInstance().removeObserver(this, AyuConstants.AYUSYNC_STATE_CHANGED);
         NotificationCenter.getGlobalInstance().removeObserver(this, AyuConstants.AYUSYNC_LAST_SENT_CHANGED);
         NotificationCenter.getGlobalInstance().removeObserver(this, AyuConstants.AYUSYNC_LAST_RECEIVED_CHANGED);
+        NotificationCenter.getGlobalInstance().removeObserver(this, AyuConstants.AYUSYNC_REGISTER_STATUS_CODE_CHANGED);
     }
 
     @Override
@@ -219,6 +227,13 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
                                 : LocaleController.getString(R.string.AyuSyncLastEventNever);
 
                         textCell.setTextAndValue(LocaleController.getString(R.string.AyuSyncLastEventReceived), last, true);
+                    } else if (position == registerStatusCodeRow) {
+                        var val = AyuSyncState.getRegisterStatusCode();
+                        if (val == 0) {
+                            textCell.setTextAndValue(LocaleController.getString(R.string.AyuSyncRegisterStatusCode), "?", true);
+                        } else {
+                            textCell.setTextAndValue(LocaleController.getString(R.string.AyuSyncRegisterStatusCode), String.valueOf(val), true);
+                        }
                     }
                     break;
                 case 3:
@@ -256,7 +271,8 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
                             position == ayuSyncStatusRow ||
                             position == deviceIdentifierRow ||
                             position == lastSentEventRow ||
-                            position == lastReceivedEventRow
+                            position == lastReceivedEventRow ||
+                            position == registerStatusCodeRow
             ) {
                 return 2;
             } else if (

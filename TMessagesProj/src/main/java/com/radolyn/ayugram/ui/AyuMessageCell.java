@@ -12,10 +12,8 @@ package com.radolyn.ayugram.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
-
 import com.radolyn.ayugram.database.entities.EditedMessage;
 import com.radolyn.ayugram.proprietary.AyuMessageUtils;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
