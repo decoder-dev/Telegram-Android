@@ -184,7 +184,9 @@ public class AyuSyncController {
                 .get()
                 .build();
 
-        try (var response = client.newCall(request).execute()) {
+        try {
+            var response = client.newCall(request).execute();
+
             Log.d("AyuSync", "Get self status: " + response.code());
 
             return new GsonBuilder()
@@ -220,7 +222,8 @@ public class AyuSyncController {
                 .build();
 
         boolean success;
-        try (var response = client.newCall(request).execute()) {
+        try {
+            var response = client.newCall(request).execute();
             success = response.isSuccessful();
             Log.d("AyuSync", "Force sync status: " + response.code());
         } catch (IOException e) {
@@ -330,7 +333,7 @@ public class AyuSyncController {
         Log.d("AyuSync", "userId: " + userId + ", type: " + type);
 
         if (!accountExists(userId)) {
-            Log.d("AyuSync", "Ignoring sync request from unknown account");
+            Log.w("AyuSync", "Sync for unknown account: " + userId);
             return;
         }
 
