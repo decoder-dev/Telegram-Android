@@ -21406,15 +21406,13 @@ public class ChatActivity extends BaseFragment implements
                 if (messArr.size() < count) {
                     startId = 0;
                 }
-
-                AyuHistoryHook.doHook(currentAccount, messArr, startId, endId, dialogId, limit, threadId);
             } else {
                 if (!messages.isEmpty()) {
                     endId = AyuUtils.getMinRealId(messages);
                 }
-
-                AyuHistoryHook.doHook(currentAccount, messArr, startId, endId, dialogId, limit, threadId);
             }
+
+            AyuHistoryHook.doHook(currentAccount, messArr, startId, endId, dialogId, limit, threadId);
             // --- AyuGram hook
 
             for (int a = 0; a < messArr.size(); a++) {
