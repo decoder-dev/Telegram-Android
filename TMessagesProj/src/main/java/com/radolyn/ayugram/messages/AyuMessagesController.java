@@ -178,6 +178,7 @@ public class AyuMessagesController {
                 deletedMessage.documentType = 2; // sticker
 
                 try {
+                    // телеграм полная хуйня, поэтому приходится сериализовать стикер вручную
                     NativeByteBuffer buffer = new NativeByteBuffer(msg.media.getObjectSize());
                     msg.media.serializeToStream(buffer);
                     buffer.reuse();
