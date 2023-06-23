@@ -18,9 +18,11 @@ import com.google.android.exoplayer2.util.Log;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLoader;
+import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import static org.telegram.messenger.Utilities.random;
 
@@ -94,5 +96,16 @@ public class AyuUtils {
         activity.finishAndRemoveTask();
         int pid = android.os.Process.myPid();
         android.os.Process.killProcess(pid);
+    }
+
+    public static int getMinRealId(ArrayList<MessageObject> messages) {
+        for (int i = messages.size() - 1; i > 0; i--) {
+            var message = messages.get(i);
+            if (message.getId() > 0) {
+                return message.getId();
+            }
+        }
+
+        return Integer.MAX_VALUE; // no questions
     }
 }
