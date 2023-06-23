@@ -22688,73 +22688,12 @@ public class ChatActivity extends BaseFragment implements
             }
             ArrayList<Integer> markAsDeletedMessages = (ArrayList<Integer>) args[0];
             long channelId = (Long) args[1];
-            boolean update = args.length > 2 && (boolean) args[2];
-            boolean sent = args.length > 3 && (boolean) args[3];
-            int scheduledMessageId = args.length > 5 ? (int) args[5] : 0;
-            ArrayList<Integer> sentMessages = null;
-            if (args.length > 6) sentMessages = (ArrayList<Integer>) args[6];
-            boolean movedToScheduled = args.length > 4 && (boolean) args[4] || sentMessages != null && !sentMessages.isEmpty();
-            final ArrayList<MessageObject> messages = new ArrayList<>();
-            MessageObject conversionMessage = null;
-            boolean conversion = false;
-            boolean deletedThreadMessage = false;
-            for (int msg_id : markAsDeletedMessages) {
-                MessageObject msg = messagesDict[0].get(msg_id);
-                if (msg_id == threadMessageId) {
-                    deletedThreadMessage = true;
-                }
-                if (msg != null) {
-                    if (msg.messageOwner != null && msg.messageOwner.video_processing_pending) {
-                        if (conversionMessage == null) conversionMessage = msg;
-                        conversion = true;
-                    }
-                    messages.add(msg);
-                }
+
+            // --- AyuGram hook
+            if (!AyuConfig.keepDeletedMessages) {
+                processDeletedMessages(markAsDeletedMessages, channelId);
             }
-            if (scheduleNowDialog != null && selectedObject != null && markAsDeletedMessages.contains(selectedObject.getId())) {
-                scheduleNowDialog.dismiss();
-                scheduleNowDialog = null;
-            }
-            processDeletedMessages(markAsDeletedMessages, channelId, sent, !movedToScheduled);
-            if (movedToScheduled && chatMode != ChatActivity.MODE_SCHEDULED) {
-                getMessagesController().forceNoReload(dialog_id, ChatActivity.MODE_SCHEDULED);
-                openScheduledMessages(scheduledMessageId, true);
-            } else if (chatMode == ChatActivity.MODE_SCHEDULED && update && conversion && LaunchActivity.getSafeLastFragment() == this && isFullyVisible && sentMessages != null && !sentMessages.isEmpty() && parentLayout != null) {
-                if (this.messages.isEmpty() || markAsDeletedMessages.contains(convertingToastMessageId)) {
-                    finishFragment();
-                    if (parentLayout == null) return;
-                    BulletinFactory.of(parentLayout.getBackgroundFragment())
-                        .createSimpleBulletin(R.raw.contact_check, getString(R.string.VideoConversionDone))
-                        .show(true);
-                } else {
-                    int messageId = sentMessages.get(0);
-                    BulletinFactory.of(this)
-                        .createSimpleBulletin(R.raw.contact_check, getString(R.string.VideoConversionDone), getString(R.string.VideoConversionDoneView), () -> {
-                            if (parentLayout == null) return;
-                            BaseFragment fragment = parentLayout.getBackgroundFragment();
-                            if (fragment instanceof ChatActivity && ((ChatActivity) fragment).getDialogId() == dialog_id) {
-                                finishFragment();
-                                ((ChatActivity) fragment).scrollToMessageId(messageId, 0, true, 0, true, 0);
-                            } else {
-                                presentFragment(ChatActivity.of(dialog_id, messageId));
-                            }
-                        })
-                        .setDuration(3500)
-                        .show(true);
-                }
-            }
-            if (deletedThreadMessage && isThreadChat() && !isTopic) {
-                if (parentLayout != null && parentLayout.getLastFragment() == this) {
-                    finishFragment();
-                } else {
-                    removeSelfFromStack();
-                }
-            }
-        } else if (id == NotificationCenter.quickRepliesDeleted) {
-            if (chatMode != MODE_QUICK_REPLIES) return;
-            if ((Long) args[1] != getQuickReplyId()) return;
-            ArrayList<Integer> markAsDeletedMessages = (ArrayList<Integer>) args[0];
-            processDeletedMessages(markAsDeletedMessages, 0, false);
+            // --- AyuGram hook
         } else if (id == NotificationCenter.messageReceivedByServer) {
             Boolean scheduled = (Boolean) args[6];
             if (scheduled != (chatMode == MODE_SCHEDULED)) {

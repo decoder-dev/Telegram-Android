@@ -72,6 +72,7 @@ import android.widget.TextView;
 import androidx.media3.common.C;
 import androidx.media3.exoplayer.ExoPlayer;
 
+import com.radolyn.ayugram.AyuConfig;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.ImageLocation;
@@ -474,6 +475,11 @@ public class SecretMediaViewer implements NotificationCenter.NotificationCenterD
             if (scheduled) {
                 return;
             }
+            // --- AyuGram hook
+            if (AyuConfig.keepDeletedMessages) {
+                return;
+            }
+            // --- AyuGram hook
             if (currentMessageObject == null) {
                 return;
             }
