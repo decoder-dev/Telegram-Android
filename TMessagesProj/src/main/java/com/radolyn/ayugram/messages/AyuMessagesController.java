@@ -85,23 +85,16 @@ public class AyuMessagesController {
     }
 
     private void onMessageEditedInner(TLRPC.Message oldMessage, TLRPC.Message newMessage, long userId, int accountId, int currentTime) {
-        boolean sameMedia = false;
+        boolean sameMedia = true;
         boolean isDocument = false;
         if (oldMessage.media instanceof TLRPC.TL_messageMediaPhoto && newMessage.media instanceof TLRPC.TL_messageMediaPhoto && oldMessage.media.photo != null && newMessage.media.photo != null) {
             sameMedia = oldMessage.media.photo.id == newMessage.media.photo.id;
         } else if (oldMessage.media instanceof TLRPC.TL_messageMediaDocument && newMessage.media instanceof TLRPC.TL_messageMediaDocument && oldMessage.media.document != null && newMessage.media.document != null) {
             sameMedia = oldMessage.media.document.id == newMessage.media.document.id;
             isDocument = true;
-        } else if (oldMessage.media instanceof TLRPC.TL_messageMediaWebPage && newMessage.media instanceof TLRPC.TL_messageMediaWebPage) {
-            sameMedia = true;
         }
 
         if (sameMedia && TextUtils.equals(oldMessage.message, newMessage.message)) {
-            return;
-        }
-
-        // reactions fix
-        if (!sameMedia && newMessage.edit_hide) {
             return;
         }
 
