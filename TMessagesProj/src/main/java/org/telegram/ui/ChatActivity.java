@@ -133,6 +133,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.google.zxing.common.detector.MathUtils;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
+import com.radolyn.ayugram.AyuUtils;
 import com.radolyn.ayugram.messages.AyuMessagesController;
 import com.radolyn.ayugram.proprietary.AyuHistoryHook;
 import com.radolyn.ayugram.utils.AyuState;
@@ -21378,15 +21379,20 @@ public class ChatActivity extends BaseFragment implements
             }
 
             // --- AyuGram hook
+            var dialogId = getDialogId();
+            var threadId = getThreadId();
+
+            var startId = 0;
+            var endId = Integer.MAX_VALUE;
+
+            var limit = 500;
+
             if (!messArr.isEmpty()) {
                 var msg1 = messArr.get(0);
                 var msg2 = messArr.get(messArr.size() - 1);
 
-                var startId = Math.min(msg1.getId(), msg2.getId());
-                var endId = Math.max(msg1.getId(), msg2.getId());
-
-                var dialogId = getDialogId();
-                var threadId = getThreadId();
+                startId = Math.min(msg1.getId(), msg2.getId());
+                endId = Math.max(msg1.getId(), msg2.getId());
                 
                 // - deleted messages between loaded part and unloaded part
                 // IDK what should I do :(
@@ -21397,7 +21403,17 @@ public class ChatActivity extends BaseFragment implements
                     endId = Integer.MAX_VALUE;
                 }
 
-                AyuHistoryHook.doHook(currentAccount, messArr, startId, endId, dialogId, 300, threadId);
+                if (messArr.size() < count) {
+                    startId = 0;
+                }
+
+                AyuHistoryHook.doHook(currentAccount, messArr, startId, endId, dialogId, limit, threadId);
+            } else {
+                if (!messages.isEmpty()) {
+                    endId = AyuUtils.getMinRealId(messages);
+                }
+
+                AyuHistoryHook.doHook(currentAccount, messArr, startId, endId, dialogId, limit, threadId);
             }
             // --- AyuGram hook
 
