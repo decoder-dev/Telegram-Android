@@ -24,6 +24,10 @@ public class AyuSyncWebSocketClient extends WebSocketClient {
 
     private static AyuSyncWebSocketClient instance;
 
+    private AyuSyncWebSocketClient(URI uri) {
+        super(uri);
+    }
+
     public static boolean create() {
         if (instance != null) {
             return true;
@@ -68,10 +72,6 @@ public class AyuSyncWebSocketClient extends WebSocketClient {
 
         instance.close(200, 0, "nullified");
         instance = null;
-    }
-
-    private AyuSyncWebSocketClient(URI uri) {
-        super(uri);
     }
 
     @Override

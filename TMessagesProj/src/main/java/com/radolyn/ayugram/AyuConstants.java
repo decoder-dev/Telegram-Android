@@ -25,6 +25,7 @@ public class AyuConstants {
     public static final int AYUSYNC_STATE_CHANGED = 6970;
     public static final int AYUSYNC_LAST_SENT_CHANGED = 6971;
     public static final int AYUSYNC_LAST_RECEIVED_CHANGED = 6972;
+    public static final int AYUSYNC_REGISTER_STATUS_CODE_CHANGED = 6973;
     public static String AYU_SYNC_SERVER = BuildVars.isBetaApp() ? "ayusync-dev.radolyn.com:5000" : "ayusync.radolyn.com";
     public static String DEFAULT_DELETED_MARK = "🧹";
     public static String AYU_DATABASE = "ayu-data";

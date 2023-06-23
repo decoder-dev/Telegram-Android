@@ -10,9 +10,7 @@
 package com.radolyn.ayugram.utils;
 
 import android.text.TextUtils;
-
 import com.google.android.exoplayer2.util.Log;
-
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.TLRPC;
 
