@@ -23,7 +23,7 @@
   <string name="AyuSyncHeader">AyuSync</string>
   <string name="AyuSyncStatusTitle">Статус синхронізації</string>
   <string name="AyuSyncStatusOk">під’єднано</string>
-  <string name="AyuSyncStatusErrorDisconnected">від'єднано</string>
+  <string name="AyuSyncStatusErrorDisconnected">від\'єднано</string>
   <string name="AyuSyncStatusErrorNotRegistered">не зареєстрований</string>
   <string name="AyuSyncStatusErrorNoToken">немає токена</string>
   <string name="AyuSyncStatusErrorInvalidToken">невірний токен</string>
