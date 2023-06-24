@@ -21410,6 +21410,11 @@ public class ChatActivity extends BaseFragment implements
                 if (!messages.isEmpty()) {
                     endId = AyuUtils.getMinRealId(messages);
                 }
+
+                if (isCache) {
+                    startId = 0;
+                    endId = 0;
+                }
             }
 
             AyuHistoryHook.doHook(currentAccount, messArr, startId, endId, dialogId, limit, threadId);
