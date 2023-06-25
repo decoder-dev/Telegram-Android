@@ -39,6 +39,8 @@ public class AyuConfig {
     public static boolean enableAds;
     public static boolean localPremium;
     public static boolean regexFiltersEnabled;
+    public static boolean regexFiltersInChats;
+    public static boolean regexFiltersCaseInsensitive;
     public static boolean showGhostToggleInDrawer;
     public static boolean showKillButtonInDrawer;
     public static boolean syncEnabled;
@@ -80,6 +82,8 @@ public class AyuConfig {
             enableAds = preferences.getBoolean("enableAds", false);
             localPremium = preferences.getBoolean("localPremium", false);
             regexFiltersEnabled = preferences.getBoolean("regexFiltersEnabled", false);
+            regexFiltersInChats = preferences.getBoolean("regexFiltersInChats", false);
+            regexFiltersCaseInsensitive = preferences.getBoolean("regexFiltersCaseInsensitive", true);
             // regexFilters
 
             // ~ Customization

@@ -11,24 +11,26 @@ package com.radolyn.ayugram.ui.preferences;
 
 import android.content.Context;
 import android.view.View;
-import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import com.radolyn.ayugram.AyuConfig;
+import com.radolyn.ayugram.AyuFilter;
 import com.radolyn.ayugram.ui.preferences.utils.RegexFilterPopup;
-import org.jetbrains.annotations.NotNull;
-import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
-import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
-import org.telegram.ui.Components.LayoutHelper;
 
 public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
+
+    private int generalHeaderRow;
+    private int enableInChatsRow;
+    private int caseInsensitiveRow;
+    private int generalDividerRow;
+
 
     private int filtersHeaderRow;
 
@@ -41,6 +43,11 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
     protected void updateRowsId() {
         super.updateRowsId();
 
+        generalHeaderRow = newRow();
+        enableInChatsRow = newRow();
+        caseInsensitiveRow = newRow();
+        generalDividerRow = newRow();
+
         filtersHeaderRow = newRow();
 
         var filters = AyuConfig.getRegexFilters();
@@ -52,12 +59,20 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
 
     @Override
     protected void onItemClick(View view, int position, float x, float y) {
-       if (position > filtersHeaderRow && position < filtersDividerRow) {
-           // clicked on filter
-           RegexFilterPopup.show(this, view, x, y, position - filtersHeaderRow - 1);
-       } else if (position == addFilterBtnRow) {
+        if (position > filtersHeaderRow && position < filtersDividerRow) {
+            // clicked on filter
+            RegexFilterPopup.show(this, view, x, y, position - filtersHeaderRow - 1);
+        } else if (position == enableInChatsRow) {
+            AyuConfig.editor.putBoolean("regexFiltersInChats", AyuConfig.regexFiltersInChats ^= true).apply();
+            ((TextCheckCell) view).setChecked(AyuConfig.regexFiltersInChats);
+        } else if (position == caseInsensitiveRow) {
+            AyuConfig.editor.putBoolean("regexFiltersCaseInsensitive", AyuConfig.regexFiltersCaseInsensitive ^= true).apply();
+            ((TextCheckCell) view).setChecked(AyuConfig.regexFiltersCaseInsensitive);
+
+            AyuFilter.rebuildCache();
+        } else if (position == addFilterBtnRow) {
             presentFragment(new RegexFilterEditActivity(-1));
-       }
+        }
     }
 
     @Override
@@ -99,8 +114,19 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
                     break;
                 case 3:
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
-                    if (position == filtersHeaderRow) {
+                    if (position == generalHeaderRow) {
+                        headerCell.setText(LocaleController.getString(R.string.General));
+                    } else if (position == filtersHeaderRow) {
                         headerCell.setText(LocaleController.getString(R.string.RegexFiltersHeader));
+                    }
+                    break;
+                case 5:
+                    TextCheckCell textCheckCell = (TextCheckCell) holder.itemView;
+                    textCheckCell.setEnabled(true, null);
+                    if (position == enableInChatsRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.RegexFiltersEnableInChats), AyuConfig.regexFiltersInChats, true);
+                    } else if (position == caseInsensitiveRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.RegexFiltersCaseInsensitive), AyuConfig.regexFiltersCaseInsensitive, true);
                     }
                     break;
             }
@@ -109,13 +135,20 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
         @Override
         public int getItemViewType(int position) {
             if (
-                    position == filtersDividerRow
+                    position == generalDividerRow ||
+                            position == filtersDividerRow
             ) {
                 return 1;
             } else if (
-                    position == filtersHeaderRow
+                    position == generalHeaderRow ||
+                            position == filtersHeaderRow
             ) {
                 return 3;
+            } else if (
+                    position == enableInChatsRow ||
+                            position == caseInsensitiveRow
+            ) {
+                return 5;
             }
             return 2;
         }

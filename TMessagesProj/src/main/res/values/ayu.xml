@@ -24,6 +24,8 @@
   <string name="RegexFilters">Message filters</string>
   <string name="RegexFiltersSubText">filters</string>
   <string name="RegexFiltersHeader">Filters</string>
+  <string name="RegexFiltersEnableInChats">Enable in chats</string>
+  <string name="RegexFiltersCaseInsensitive">Case insensitive expressions</string>
   <string name="RegexFiltersAdd">Add filter</string>
   <string name="RegexFiltersEdit">Edit filter</string>
   <string name="RegexFiltersAddDescription">You can use site <![CDATA[<a href="https://regex101.com">regex101.com</a>]]> to fully test your regular expression.
