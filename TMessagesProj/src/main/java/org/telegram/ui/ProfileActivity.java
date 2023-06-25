@@ -136,6 +136,8 @@ import com.exteragram.messenger.utils.CanvasUtils;
 import com.exteragram.messenger.utils.ChatUtils;
 import com.exteragram.messenger.utils.LocaleUtils;
 import com.radolyn.ayugram.AyuConfig;
+
+import com.radolyn.ayugram.ui.preferences.AyuGramPreferencesActivity;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
@@ -637,6 +639,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int passwordSuggestionRow;
     private int settingsSectionRow;
     private int settingsSectionRow2;
+    private int exteraRow;
+    private int ayuRow;
     private int notificationRow;
     private int languageRow;
     private int privacyRow;
@@ -4566,6 +4570,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 ChatUsersActivity fragment = new ChatUsersActivity(args);
                 fragment.setInfo(chatInfo);
                 presentFragment(fragment);
+            } else if (position == exteraRow) {
+                presentFragment(new MainPreferencesActivity());
+            } else if (position == ayuRow) {
+                presentFragment(new AyuGramPreferencesActivity());
             } else if (position == notificationRow) {
                 presentFragment(new NotificationsSettingsActivity());
             } else if (position == privacyRow) {
@@ -10521,6 +10529,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         passwordSuggestionRow = -1;
         settingsSectionRow = -1;
         settingsSectionRow2 = -1;
+        exteraRow = -1;
+        ayuRow = -1;
         notificationRow = -1;
         languageRow = -1;
         premiumRow = -1;
@@ -10694,6 +10704,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
 
                 settingsSectionRow2 = rowCount++;
+                exteraRow = rowCount++;
+                ayuRow = rowCount++;
                 chatRow = rowCount++;
                 privacyRow = rowCount++;
                 notificationRow = rowCount++;
@@ -13903,8 +13915,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         textCell.setColors(-1, Theme.key_text_RedRegular);
                         textCell.setColors(-1, Theme.key_text_RedRegular);
                     } else if (position == languageRow) {
-                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.Language), LocaleController.getCurrentLanguageName(), false, R.drawable.msg2_language, false);
-                        textCell.setImageLeft(23);
+                        textCell.setTextAndValueAndIcon(LocaleController.getString("Language", R.string.Language), LocaleController.getCurrentLanguageName(), false, R.drawable.msg2_language, false);
+                        if (!ExteraConfig.useSolarIcons)
+                            textCell.setImageLeft(23);
+                    } else if (position == exteraRow) {
+                        textCell.setTextAndIcon(LocaleController.getString("Preferences", R.string.Preferences), R.drawable.etg_settings, true);
+                    } else if (position == ayuRow) {
+                        textCell.setTextAndIcon(LocaleController.getString("AyuPreferences", R.string.AyuPreferences), R.drawable.msg2_reactions2, true);
                     } else if (position == notificationRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.NotificationsAndSounds), R.drawable.msg2_notifications, true);
                     } else if (position == privacyRow) {
@@ -14354,7 +14371,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         position == languageRow || position == setUsernameRow || position == bioRow ||
                         position == versionRow || position == dataRow || position == chatRow ||
                         position == questionRow || position == devicesRow || position == filtersRow || position == stickersRow ||
-                        position == faqRow || position == policyRow || position == sendLogsRow || position == sendLastLogsRow ||
+                        position == policyRow || position == sendLogsRow || position == sendLastLogsRow || position == exteraRow || position == ayuRow ||
                         position == clearLogsRow || position == switchBackendRow || position == setAvatarRow ||
                         position == addToGroupButtonRow || position == premiumRow || position == premiumGiftingRow ||
                         position == businessRow || position == liteModeRow || position == birthdayRow || position == channelRow ||
@@ -14397,7 +14414,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             } else if (position == settingsTimerRow || position == settingsKeyRow || position == reportRow || position == reportReactionRow || position == deleteReactionRow ||
                     position == subscribersRow || position == subscribersRequestsRow || position == administratorsRow || position == settingsRow || position == blockedUsersRow ||
                     position == addMemberRow || position == joinRow || position == unblockRow ||
-                    position == sendMessageRow || position == notificationRow || position == privacyRow ||
+                    position == sendMessageRow || position == notificationRow || position == exteraRow || position == ayuRow || position == privacyRow ||
                     position == languageRow || position == dataRow || position == chatRow ||
                     position == questionRow || position == devicesRow || position == filtersRow || position == stickersRow ||
                     position == faqRow || position == policyRow || position == sendLogsRow || position == sendLastLogsRow ||
@@ -15752,6 +15769,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, graceSuggestionSectionRow, sparseIntArray);
             put(++pointer, settingsSectionRow, sparseIntArray);
             put(++pointer, settingsSectionRow2, sparseIntArray);
+            put(++pointer, exteraRow, sparseIntArray);
+            put(++pointer, ayuRow, sparseIntArray);
             put(++pointer, notificationRow, sparseIntArray);
             put(++pointer, languageRow, sparseIntArray);
             put(++pointer, premiumRow, sparseIntArray);
