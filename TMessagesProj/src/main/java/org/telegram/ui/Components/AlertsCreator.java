@@ -79,6 +79,7 @@ import androidx.annotation.RawRes;
 import androidx.annotation.RequiresApi;
 import androidx.core.util.Consumer;
 
+import com.radolyn.ayugram.utils.AyuState;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -8122,10 +8123,7 @@ public class AlertsCreator {
 
         AlertDialog.OnButtonClickListener deleteAction = (dialogInterface, i) -> {
             ArrayList<Integer> ids = null;
-            long thisDialogId = dialogId;
-            if (isSavedMessages) {
-                thisDialogId = UserConfig.getInstance(currentAccount).getClientUserId();
-            }
+            AyuState.setAllowDeleteMessages(true, 1);
             if (selectedMessage != null) {
                 ArrayList<MessageObject> ephemeralMessages = new ArrayList<>();
                 ids = new ArrayList<>();
