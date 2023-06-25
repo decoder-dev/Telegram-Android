@@ -14,6 +14,7 @@ import com.radolyn.ayugram.AyuConfig;
 public class AyuState {
     private static final AyuStateVariable allowReadPacket = new AyuStateVariable();
     private static final AyuStateVariable automaticallyScheduled = new AyuStateVariable();
+    private static final AyuStateVariable allowDeleteMessages = new AyuStateVariable();
 
     public static void setAllowReadPacket(boolean val, int resetAfter) {
         allowReadPacket.val = val;
@@ -31,5 +32,14 @@ public class AyuState {
 
     public static boolean getAutomaticallyScheduled() {
         return automaticallyScheduled.process();
+    }
+
+    public static void setAllowDeleteMessages(boolean val, int resetAfter) {
+        allowDeleteMessages.val = val;
+        allowDeleteMessages.resetAfter = resetAfter;
+    }
+
+    public static boolean getAllowDeleteMessages() {
+        return !AyuConfig.keepDeletedMessages || allowDeleteMessages.process();
     }
 }
