@@ -38537,7 +38537,7 @@ public class ChatActivity extends BaseFragment implements
                 var msg = messages.get(position - messagesStartRow);
 
                 // --- AyuGram hook
-                if (AyuConfig.regexFiltersEnabled) {
+                if (AyuConfig.regexFiltersEnabled && (AyuConfig.regexFiltersInChats || ChatObject.isChannel(currentChat))) {
                     if (AyuFilter.isFiltered(msg)) {
                         return -1;
                     }

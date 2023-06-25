@@ -21,9 +21,15 @@ public class AyuFilter {
     public static void rebuildCache() {
         var filters = AyuConfig.getRegexFilters();
 
+        var flags = Pattern.MULTILINE;
+        if (AyuConfig.regexFiltersCaseInsensitive) {
+            flags |= Pattern.CASE_INSENSITIVE;
+        }
+
         patterns = new ArrayList<>();
-        for (var filter: filters) {
-            patterns.add(Pattern.compile(filter, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE));
+        for (var filter : filters) {
+
+            patterns.add(Pattern.compile(filter, flags));
         }
     }
 
@@ -40,7 +46,7 @@ public class AyuFilter {
             rebuildCache();
         }
 
-        for (var pattern: patterns) {
+        for (var pattern : patterns) {
             if (pattern.matcher(text).find()) {
                 return true;
             }
