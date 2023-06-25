@@ -58,6 +58,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     private int showFromChannelRow;
     private int keepAliveServiceRow;
     private int enableAdsRow;
+    private int localPremiumRow;
     private int filtersRow;
     private int qolDividerRow;
 
@@ -99,6 +100,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         showFromChannelRow = newRow();
         keepAliveServiceRow = newRow();
         enableAdsRow = newRow();
+        localPremiumRow = newRow();
         filtersRow = newRow();
         qolDividerRow = newRow();
 
@@ -214,6 +216,16 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         } else if (position == enableAdsRow) {
             AyuConfig.editor.putBoolean("enableAds", AyuConfig.enableAds ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.enableAds);
+        } else if (position == localPremiumRow) {
+            AyuConfig.editor.putBoolean("localPremium", AyuConfig.localPremium ^= true).apply();
+            ((TextCheckCell) view).setChecked(AyuConfig.localPremium);
+
+            getMessagesController().updatePremium(AyuConfig.localPremium);
+            NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.premiumStatusChangedGlobal);
+
+            getMediaDataController().loadPremiumPromo(false);
+            getMediaDataController().loadReactions(false, true);
         } else if (position == filtersRow) {
             NotificationsCheckCell checkCell = (NotificationsCheckCell) view;
             if (LocaleController.isRTL && x <= AndroidUtilities.dp(76) || !LocaleController.isRTL && x >= view.getMeasuredWidth() - AndroidUtilities.dp(76)) {
@@ -299,8 +311,6 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                         textCell.setTextAndValue(LocaleController.getString(R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
                     } else if (position == editedMarkTextRow) {
                         textCell.setTextAndValue(LocaleController.getString(R.string.EditedMarkText), AyuConfig.getEditedMark(), true);
-                    } else if (position == filtersRow) {
-                        textCell.setTextAndCheck(LocaleController.getString(R.string.RegexFilters), AyuConfig.regexFiltersEnabled, true);
                     } else if (position == ayuSyncStatusBtnRow) {
                         var status = AyuSyncState.getConnectionStateString();
 
@@ -354,6 +364,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.KeepAliveService) + " β", AyuConfig.keepAliveService, true);
                     } else if (position == enableAdsRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.EnableAds), AyuConfig.enableAds, true);
+                    } else if (position == localPremiumRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.LocalPremium) + " β", AyuConfig.localPremium, true);
                     } else if (position == showGhostToggleInDrawerRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.ShowGhostToggleInDrawer), AyuConfig.showGhostToggleInDrawer, true);
                     } else if (position == showKillButtonInDrawerRow) {

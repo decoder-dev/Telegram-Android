@@ -37,6 +37,7 @@ public class AyuConfig {
     public static boolean showFromChannel;
     public static boolean keepAliveService;
     public static boolean enableAds;
+    public static boolean localPremium;
     public static boolean regexFiltersEnabled;
     public static boolean showGhostToggleInDrawer;
     public static boolean showKillButtonInDrawer;
@@ -77,6 +78,7 @@ public class AyuConfig {
             showFromChannel = preferences.getBoolean("showFromChannel", true);
             keepAliveService = preferences.getBoolean("keepAliveService", true);
             enableAds = preferences.getBoolean("enableAds", false);
+            localPremium = preferences.getBoolean("localPremium", false);
             regexFiltersEnabled = preferences.getBoolean("regexFiltersEnabled", false);
             // regexFilters
 
