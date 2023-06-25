@@ -20,6 +20,14 @@
   <string name="EditedMarkText">Edited mark</string>
   <string name="ShowGhostToggleInDrawer">Show ghost mode toggle</string>
   <string name="ShowKllButtonInDrawer">Show kill app button</string>
+  <string name="RegexFilters">Message filters</string>
+  <string name="RegexFiltersSubText">filters</string>
+  <string name="RegexFiltersHeader">Filters</string>
+  <string name="RegexFiltersAdd">Add filter</string>
+  <string name="RegexFiltersEdit">Edit filter</string>
+  <string name="RegexFiltersAddDescription">You can use site <![CDATA[<a href="https://regex101.com">regex101.com</a>]]> to fully test your regular expression.
+    You can also use plain text, but don\'t forget to escape brackets.</string>
+  <string name="RegexFiltersAddError">Regex syntax error</string>
   <string name="AyuSyncHeader">AyuSync</string>
   <string name="AyuSyncStatusTitle">Sync status</string>
   <string name="AyuSyncStatusOk">connected</string>
