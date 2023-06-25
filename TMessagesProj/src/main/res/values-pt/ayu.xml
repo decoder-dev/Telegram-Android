@@ -15,11 +15,22 @@
   <string name="ShowFromChannel">Mostrar rótulo «canal»</string>
   <string name="KeepAliveService">Manter o serviço ativo</string>
   <string name="EnableAds">Habilitar anúncios</string>
+  <string name="LocalPremium">Local Telegram Premium</string>
   <string name="CustomizationHeader">Personalização</string>
   <string name="DeletedMarkText">Marca da exclusão</string>
   <string name="EditedMarkText">Edited mark</string>
   <string name="ShowGhostToggleInDrawer">Mostrar switch do modo Ghost</string>
   <string name="ShowKllButtonInDrawer">Show kill app button</string>
+  <string name="RegexFilters">Message filters</string>
+  <string name="RegexFiltersSubText">filters</string>
+  <string name="RegexFiltersHeader">Filters</string>
+  <string name="RegexFiltersEnableInChats">Enable in chats</string>
+  <string name="RegexFiltersCaseInsensitive">Case insensitive expressions</string>
+  <string name="RegexFiltersAdd">Add filter</string>
+  <string name="RegexFiltersEdit">Edit filter</string>
+  <string name="RegexFiltersAddDescription">You can use site <![CDATA[<a href="https://regex101.com">regex101.com</a>]]> to fully test your regular expression.
+You can also use plain text, but don\'t forget to escape brackets.</string>
+  <string name="RegexFiltersAddError">Regex syntax error</string>
   <string name="AyuSyncHeader">AyuSync</string>
   <string name="AyuSyncStatusTitle">Sync status</string>
   <string name="AyuSyncStatusOk">connected</string>
