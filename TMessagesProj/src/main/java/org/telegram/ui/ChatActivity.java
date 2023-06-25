@@ -21403,7 +21403,7 @@ public class ChatActivity extends BaseFragment implements
                     endId = Integer.MAX_VALUE;
                 }
 
-                if (messArr.size() < count) {
+                if (messArr.size() < count && !(isCache && messArr.size() == 1)) {
                     startId = 0;
                 }
             } else {
@@ -21417,6 +21417,7 @@ public class ChatActivity extends BaseFragment implements
                 }
             }
 
+            Log.d("AyuGram", "messArr: " + messArr.size() + " , startId: " + startId +  " , endId: " + endId + " , limit" + limit + " , load_type: " + load_type + " , isCache: " + isCache);
             AyuHistoryHook.doHook(currentAccount, messArr, startId, endId, dialogId, limit, threadId);
             // --- AyuGram hook
 
