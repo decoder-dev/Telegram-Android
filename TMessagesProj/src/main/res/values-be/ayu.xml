@@ -15,11 +15,22 @@
   <string name="ShowFromChannel">Паказаць пазнаку «канал»</string>
   <string name="KeepAliveService">Падтрымлівайце службу ў працоўным стане</string>
   <string name="EnableAds">Уключыць рэкламу</string>
+  <string name="LocalPremium">Local Telegram Premium</string>
   <string name="CustomizationHeader">Наладжваньне</string>
   <string name="DeletedMarkText">Аддаленая адзнака</string>
   <string name="EditedMarkText">Адзнака аб змяненні</string>
   <string name="ShowGhostToggleInDrawer">Перамыкач рэжыму адлюстравання прывіда</string>
   <string name="ShowKllButtonInDrawer">Паказваць кнопку завяршэння праграмы</string>
+  <string name="RegexFilters">Message filters</string>
+  <string name="RegexFiltersSubText">filters</string>
+  <string name="RegexFiltersHeader">Filters</string>
+  <string name="RegexFiltersEnableInChats">Enable in chats</string>
+  <string name="RegexFiltersCaseInsensitive">Case insensitive expressions</string>
+  <string name="RegexFiltersAdd">Add filter</string>
+  <string name="RegexFiltersEdit">Edit filter</string>
+  <string name="RegexFiltersAddDescription">You can use site <![CDATA[<a href="https://regex101.com">regex101.com</a>]]> to fully test your regular expression.
+You can also use plain text, but don\'t forget to escape brackets.</string>
+  <string name="RegexFiltersAddError">Regex syntax error</string>
   <string name="AyuSyncHeader">AyuSync</string>
   <string name="AyuSyncStatusTitle">Стан сінхранізацыі</string>
   <string name="AyuSyncStatusOk">далучаны</string>

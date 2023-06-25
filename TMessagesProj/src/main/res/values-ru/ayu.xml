@@ -15,11 +15,22 @@
   <string name="ShowFromChannel">Показывать надпись «канал»</string>
   <string name="KeepAliveService">Работать в фоне</string>
   <string name="EnableAds">Включить рекламу</string>
+  <string name="LocalPremium">Локальный Telegram Premium</string>
   <string name="CustomizationHeader">Персонализация</string>
   <string name="DeletedMarkText">Метка удалённого сообщения</string>
   <string name="EditedMarkText">Метка изменённого сообщения</string>
   <string name="ShowGhostToggleInDrawer">Показывать переключатель режима призрака</string>
   <string name="ShowKllButtonInDrawer">Кнопка закрытия приложения</string>
+  <string name="RegexFilters">Фильтры сообщений</string>
+  <string name="RegexFiltersSubText">фильтров</string>
+  <string name="RegexFiltersHeader">Фильтры</string>
+  <string name="RegexFiltersEnableInChats">Включить в чатах</string>
+  <string name="RegexFiltersCaseInsensitive">Без учета регистра</string>
+  <string name="RegexFiltersAdd">Добавить фильтр</string>
+  <string name="RegexFiltersEdit">Изменить фильтр</string>
+  <string name="RegexFiltersAddDescription">Вы можете использовать сайт <![CDATA[<a href="https://regex101.com">regex101.com</a>]]> для проверки регулярного выражения.
+Вы также можете использовать обычный текст, но не забудьте поставить \ перед скобками.</string>
+  <string name="RegexFiltersAddError">Синтаксическая ошибка</string>
   <string name="AyuSyncHeader">AyuSync</string>
   <string name="AyuSyncStatusTitle">Статус синхронизации</string>
   <string name="AyuSyncStatusOk">подключен</string>
