@@ -11,6 +11,7 @@ package com.radolyn.ayugram.ui.preferences;
 
 import android.content.Context;
 import android.view.View;
+import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
@@ -20,14 +21,24 @@ import com.radolyn.ayugram.messages.AyuMessagesController;
 import com.radolyn.ayugram.sync.AyuSyncState;
 import com.radolyn.ayugram.ui.AyuUi;
 import com.radolyn.ayugram.utils.AyuState;
+import org.jetbrains.annotations.NotNull;
 import org.telegram.messenger.*;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.NotificationsCheckCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Components.BulletinFactory;
+import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.NotificationsCustomSettingsActivity;
+import org.telegram.ui.NotificationsSettingsActivity;
+
+import java.util.ArrayList;
 
 public class AyuGramPreferencesActivity extends BasePreferencesActivity implements NotificationCenter.NotificationCenterDelegate {
+
+    private static final int TOGGLE_BUTTON_VIEW = 1000;
+
     private int ghostEssentialsHeaderRow;
     private int ghostFastToggleRow;
     private int sendReadPacketsRow;
@@ -47,6 +58,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     private int showFromChannelRow;
     private int keepAliveServiceRow;
     private int enableAdsRow;
+    private int filtersRow;
     private int qolDividerRow;
 
     private int customizationHeaderRow;
@@ -87,6 +99,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         showFromChannelRow = newRow();
         keepAliveServiceRow = newRow();
         enableAdsRow = newRow();
+        filtersRow = newRow();
         qolDividerRow = newRow();
 
         customizationHeaderRow = newRow();
@@ -201,6 +214,14 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         } else if (position == enableAdsRow) {
             AyuConfig.editor.putBoolean("enableAds", AyuConfig.enableAds ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.enableAds);
+        } else if (position == filtersRow) {
+            NotificationsCheckCell checkCell = (NotificationsCheckCell) view;
+            if (LocaleController.isRTL && x <= AndroidUtilities.dp(76) || !LocaleController.isRTL && x >= view.getMeasuredWidth() - AndroidUtilities.dp(76)) {
+                AyuConfig.editor.putBoolean("regexFiltersEnabled", AyuConfig.regexFiltersEnabled ^= true).apply();
+                checkCell.setChecked(AyuConfig.regexFiltersEnabled, 0);
+            } else {
+                presentFragment(new RegexFiltersPreferencesActivity());
+            }
         } else if (position == showGhostToggleInDrawerRow) {
             AyuConfig.editor.putBoolean("showGhostToggleInDrawer", AyuConfig.showGhostToggleInDrawer ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.showGhostToggleInDrawer);
@@ -278,6 +299,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                         textCell.setTextAndValue(LocaleController.getString(R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
                     } else if (position == editedMarkTextRow) {
                         textCell.setTextAndValue(LocaleController.getString(R.string.EditedMarkText), AyuConfig.getEditedMark(), true);
+                    } else if (position == filtersRow) {
+                        textCell.setTextAndCheck(LocaleController.getString(R.string.RegexFilters), AyuConfig.regexFiltersEnabled, true);
                     } else if (position == ayuSyncStatusBtnRow) {
                         var status = AyuSyncState.getConnectionStateString();
 
@@ -339,7 +362,26 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.WALMode), AyuConfig.WALMode, true);
                     }
                     break;
+                case TOGGLE_BUTTON_VIEW:
+                    NotificationsCheckCell notificationsCheckCell = (NotificationsCheckCell) holder.itemView;
+                    if (position == filtersRow) {
+                        var count = AyuConfig.getRegexFilters().size();
+                        notificationsCheckCell.setTextAndValueAndCheck(LocaleController.getString(R.string.RegexFilters), count + " " + LocaleController.getString(R.string.RegexFiltersSubText), AyuConfig.regexFiltersEnabled, true);
+                    }
+                    break;
             }
+        }
+
+        @NonNull
+        @NotNull
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup parent, int viewType) {
+            if (viewType == TOGGLE_BUTTON_VIEW) {
+                var view = new NotificationsCheckCell(mContext);
+                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                return new RecyclerListView.Holder(view);
+            }
+            return super.onCreateViewHolder(parent, viewType);
         }
 
         @Override
@@ -369,6 +411,10 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                             position == debugHeaderRow
             ) {
                 return 3;
+            } else if (
+                    position == filtersRow
+            ) {
+                return TOGGLE_BUTTON_VIEW;
             }
             return 5;
         }

@@ -133,6 +133,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.google.zxing.common.detector.MathUtils;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
+import com.radolyn.ayugram.AyuFilter;
 import com.radolyn.ayugram.AyuUtils;
 import com.radolyn.ayugram.messages.AyuMessagesController;
 import com.radolyn.ayugram.proprietary.AyuHistoryHook;
@@ -37906,21 +37907,8 @@ public class ChatActivity extends BaseFragment implements
                 });
             } else if (viewType == 4) {
                 view = new ChatLoadingCell(mContext, contentView, themeDelegate);
-            } else if (viewType == 6) {
-                view = new UserInfoCell(mContext, currentAccount, themeDelegate);
-            } else if (viewType == 7) {
-                view = new ChatActionCell(mContext, false, themeDelegate);
-            } else if (viewType == 8) {
-                view = new BotAskCell(mContext, currentAccount, themeDelegate) {
-                    @Override
-                    public int getSideMenuWidth() {
-                        return ChatActivity.this.getSideMenuWidth();
-                    }
-                };
-            } else if (viewType == 10) {
-                ChatMessageUnsupportedCell cell = new ChatMessageUnsupportedCell(mContext, themeDelegate);
-                cell.setDelegate(getChatMessageCellDelegate());
-                view = cell;
+            } else if (viewType == -1) {
+                view = new View(mContext);
             }
             view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));
             return new RecyclerListView.Holder(view);
@@ -38545,17 +38533,18 @@ public class ChatActivity extends BaseFragment implements
                 return 1;
             }
             if (position >= messagesStartRow && position < messagesEndRow) {
-                final ArrayList<MessageObject> messages;
-                if (isFrozen) {
-                    messages = frozenMessages;
-                } else if (isFiltered) {
-                    messages = filteredMessages;
-                } else {
-                    messages = ChatActivity.this.messages;
+                ArrayList<MessageObject> messages = isFrozen ? frozenMessages : ChatActivity.this.messages;
+                var msg = messages.get(position - messagesStartRow);
+
+                // --- AyuGram hook
+                if (AyuConfig.regexFiltersEnabled) {
+                    if (AyuFilter.isFiltered(msg)) {
+                        return -1;
+                    }
                 }
-                MessageObject message = messages.get(position - messagesStartRow);
-                if (isBananaFiltered(message)) return BANANA_FILTERED_ROW;
-                return message.contentType;
+                // --- AyuGram hook
+
+                return msg.contentType;
             } else if (position == botInfoRow) {
                 return 3;
             } else if (position == userInfoRow) {
