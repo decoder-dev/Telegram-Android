@@ -15,6 +15,7 @@
   <string name="ShowFromChannel">Show «channel» label</string>
   <string name="KeepAliveService">Keep Alive Service</string>
   <string name="EnableAds">Enable ads</string>
+  <string name="LocalPremium">Local Telegram Premium</string>
   <string name="CustomizationHeader">Customization</string>
   <string name="DeletedMarkText">Deleted mark</string>
   <string name="EditedMarkText">Edited mark</string>
