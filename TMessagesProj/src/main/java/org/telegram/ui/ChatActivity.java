@@ -21400,11 +21400,13 @@ public class ChatActivity extends BaseFragment implements
 
                 var dialog = getMessagesController().getDialog(dialogId);
 
+                // allows loading messages that are under bottom messages
                 if (dialog != null && dialog.top_message == endId) {
                     endId = Integer.MAX_VALUE;
                 }
 
-                if (messArr.size() < count && !(isCache && messArr.size() == 1)) {
+                // allows loading messages that are uppermore than the dialog (make sure it's the up and not a cache)
+                if (messArr.size() < count && !isCache && (load_type == 2 || load_type == 1)) {
                     startId = 0;
                 }
             } else {
