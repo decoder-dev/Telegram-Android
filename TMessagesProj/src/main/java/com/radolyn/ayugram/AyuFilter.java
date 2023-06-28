@@ -29,7 +29,6 @@ public class AyuFilter {
 
         patterns = new ArrayList<>();
         for (var filter : filters) {
-
             patterns.add(Pattern.compile(filter, flags));
         }
     }
@@ -77,6 +76,14 @@ public class AyuFilter {
     }
 
     public static boolean isFiltered(MessageObject msg) {
-        return AyuConfig.regexFiltersEnabled && msg != null && (isFiltered(msg.messageText) || isFiltered(msg.caption) || isFiltered(msg.messageOwner.entities));
+        return AyuConfig.regexFiltersEnabled && msg != null && (
+                isFiltered(msg.messageText) ||
+                        isFiltered(msg.caption) ||
+                        isFiltered(msg.messageOwner.entities) ||
+                        (
+                                msg.isPoll() &&
+                                        isFiltered(((TLRPC.TL_messageMediaPoll) msg.messageOwner.media).poll.question)
+                        )
+        );
     }
 }

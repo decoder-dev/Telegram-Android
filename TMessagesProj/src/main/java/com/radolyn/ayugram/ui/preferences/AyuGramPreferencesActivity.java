@@ -19,7 +19,7 @@ import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.messages.AyuMessagesController;
 import com.radolyn.ayugram.sync.AyuSyncState;
-import com.radolyn.ayugram.ui.AyuUi;
+import com.radolyn.ayugram.ui.preferences.utils.AyuUi;
 import com.radolyn.ayugram.utils.AyuState;
 import org.jetbrains.annotations.NotNull;
 import org.telegram.messenger.*;
