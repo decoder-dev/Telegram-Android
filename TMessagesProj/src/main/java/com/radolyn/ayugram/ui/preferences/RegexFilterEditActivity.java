@@ -11,17 +11,16 @@ package com.radolyn.ayugram.ui.preferences;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
-import android.text.Html;
-import android.text.Spannable;
-import android.text.SpannableString;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import com.exteragram.messenger.utils.LocaleUtils;
 import com.radolyn.ayugram.AyuConfig;
+import com.radolyn.ayugram.AyuUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
@@ -42,6 +41,7 @@ public class RegexFilterEditActivity extends BaseFragment {
 
     private View doneButton;
     private TextView helpTextView;
+    private TextView errorTextView;
 
     private final static int done_button = 1;
 
@@ -65,6 +65,7 @@ public class RegexFilterEditActivity extends BaseFragment {
                     try {
                         Pattern.compile(text);
                     } catch (PatternSyntaxException e) {
+                        errorTextView.setText(AyuUtils.htmlToString("<b>" + e.getDescription() + "</b>"));
                         BulletinFactory.of(RegexFilterEditActivity.this).createSimpleBulletin(R.raw.error, LocaleController.getString(R.string.RegexFiltersAddError)).show();
                         return;
                     }
@@ -93,6 +94,25 @@ public class RegexFilterEditActivity extends BaseFragment {
 
         editField.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         editField.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        // jaBBa для даунов
+        editField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                doneButton.setEnabled(!TextUtils.isEmpty(s));
+
+                if (errorTextView != null) {
+                    errorTextView.setText("");
+                }
+            }
+        });
 
         if (filterIdx != -1) {
             editField.setText(AyuConfig.getRegexFilters().get(filterIdx));
@@ -100,21 +120,21 @@ public class RegexFilterEditActivity extends BaseFragment {
 
         linearLayout.addView(editField, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 24, 24, 24, 0));
 
-        var text = LocaleController.getString(R.string.RegexFiltersAddDescription);
-        Spannable htmlParsed;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            htmlParsed = new SpannableString(Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY));
-        } else {
-            htmlParsed = new SpannableString(Html.fromHtml(text));
-        }
-
         helpTextView = new TextView(context);
         helpTextView.setFocusable(true);
         helpTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         helpTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText8));
         helpTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
-        helpTextView.setText(LocaleUtils.formatWithURLs(htmlParsed));
+        helpTextView.setText(AyuUtils.htmlToString(LocaleController.getString(R.string.RegexFiltersAddDescription)));
         linearLayout.addView(helpTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT, 24, 10, 24, 0));
+
+        errorTextView = new TextView(context);
+        errorTextView.setFocusable(true);
+        errorTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        errorTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText8));
+        errorTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
+        errorTextView.setText("");
+        linearLayout.addView(errorTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT, 24, 10, 24, 0));
 
         return fragmentView;
     }
