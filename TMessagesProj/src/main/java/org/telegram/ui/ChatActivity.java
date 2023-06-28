@@ -21383,49 +21383,79 @@ public class ChatActivity extends BaseFragment implements
             var dialogId = getDialogId();
             var threadId = getThreadId();
 
-            var minVal = isSecretChat() ? Integer.MAX_VALUE : 0;
-            var maxVal = isSecretChat() ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+            int minVal = isSecretChat() ? Integer.MAX_VALUE : 0;
+            int maxVal = isSecretChat() ? Integer.MIN_VALUE : Integer.MAX_VALUE;
 
-            var startId = minVal; // top message (startId < endId)
+            int startId = minVal; // top message (startId < endId)
             // ...deleted messages
-            var endId = minVal; // bottom message
+            int endId = minVal; // bottom message
 
             var limit = 500;
 
-            if (!messArr.isEmpty()) {
-                var msg1 = messArr.get(0);
-                var msg2 = messArr.get(messArr.size() - 1);
+            var msgIds = AyuHistoryHook.getMinAndMaxIds(messArr);
 
-                startId = Math.min(msg1.getId(), msg2.getId());
-                endId = Math.max(msg1.getId(), msg2.getId());
+            if (!DialogObject.isEncryptedDialog(dialogId)) {
+                if (!messArr.isEmpty()) {
+                    int msg1 = msgIds.first; // smaller
+                    int msg2 = msgIds.second; // bigger
 
-                // - deleted messages between loaded part and unloaded part
-                // IDK what should I do :(
+                    startId = Math.min(msg1, msg2);
+                    endId = Math.max(msg1, msg2);
 
-                var dialog = getMessagesController().getDialog(dialogId);
+                    // - deleted messages between loaded part and unloaded part
+                    // IDK what should I do :(
 
-                // allows loading messages that are under bottom messages
-                if (dialog != null && dialog.top_message == endId) {
-                    // startId is the smallest in the current batch
-                    endId = maxVal;
-                }
-                // allows loading messages that are uppermore than the dialog (make sure it's the up and not a cache)
-                else if (messArr.size() < count && !isCache && (load_type == 2 || load_type == 1) && !messArr.isEmpty()) {
-                    var msgId1 = messArr.get(0).getId();
-                    var msgId2 = messArr.get(messArr.size() - 1).getId();
+                    var dialog = getMessagesController().getDialog(dialogId);
 
-                    startId = minVal;
-                    endId = Math.min(msgId1, msgId2);
+                    // allows loading messages that are under bottom messages
+                    if (dialog != null && dialog.top_message == endId) {
+                        // startId is the smallest in the current batch
+                        endId = maxVal;
+                    }
+                    // allows loading messages that are uppermore than the dialog (make sure it's the up and not a cache)
+                    else if (messArr.size() < count && !isCache && (load_type == 2 || load_type == 1) && !messArr.isEmpty()) {
+                        startId = minVal;
+                        endId = Math.min(msg1, msg2);
+                    }
+                } else {
+                    if (!messages.isEmpty()) {
+                        endId = AyuUtils.getMinRealId(messages);
+                    }
+
+                    if (isCache) {
+                        startId = minVal;
+                        endId = minVal;
+                    }
                 }
             } else {
-                if (!messages.isEmpty()) {
-                    endId = AyuUtils.getMinRealId(messages);
+                // works for secret chats only, because they're all cached
+                var secretRes = getMessagesStorage().getMinAndMaxForDialog(dialogId);
+                int secretStartId = secretRes.second; // bigger
+                int secretEndId = secretRes.first; // smaller
+
+                int msg1 = msgIds.second; // bigger
+                int msg2 = msgIds.first; // smaller
+
+                if (Math.abs(secretStartId - secretEndId) == 1 || (secretStartId == msg1 && secretEndId == msg2)) { // empty dialog, so load as much as we can
+                    startId = minVal;
+                    endId = maxVal;
+                    Log.d("AyuGram", "case 1");
+                } else if (secretStartId == msg1) { // loaded up to top
+                    startId = minVal;
+                    endId = msg2;
+                    Log.d("AyuGram", "case 2");
+                } else if (secretEndId == msg2) { // loaded up to bottom
+                    startId = msg1;
+                    endId = maxVal;
+                    Log.d("AyuGram", "case 3");
+                } else { // just between some messages
+                    startId = msg1;
+                    endId = msg2;
+                    Log.d("AyuGram", "case 4");
                 }
 
-                if (isCache) {
-                    startId = minVal;
-                    endId = minVal;
-                }
+                Log.d("AyuGram", "omfg " + secretStartId + " " + secretEndId);
+                Log.d("AyuGram", "omfg2 " + msg1 + " " + msg2);
             }
 
             if (startId > endId) {

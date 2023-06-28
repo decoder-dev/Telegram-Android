@@ -14520,6 +14520,23 @@ public class MessagesStorage extends BaseController {
         return new LongSparseArray<>();
     }
 
+    public Pair<Integer, Integer> getMinAndMaxForDialog(long dialogId) {
+        SQLiteCursor cursor = null;
+        try {
+            cursor = database.queryFinalized(String.format(Locale.US, "SELECT MIN(mid), MAX(mid) FROM messages_v2 WHERE uid = %d", dialogId));
+            if (cursor.next()) {
+                return new Pair<>(cursor.intValue(0), cursor.intValue(1));
+            }
+        } catch (Exception e) {
+            checkSQLException(e);
+        } finally {
+            if (cursor != null) {
+                cursor.dispose();
+            }
+        }
+        return new Pair<>(0, 0);
+    }
+
     protected void deletePushMessages(long dialogId, ArrayList<Integer> messages) {
         try {
             database.executeFast(String.format(Locale.US, "DELETE FROM unread_push_messages WHERE uid = %d AND mid IN(%s)", dialogId, TextUtils.join(",", messages))).stepThis().dispose();
