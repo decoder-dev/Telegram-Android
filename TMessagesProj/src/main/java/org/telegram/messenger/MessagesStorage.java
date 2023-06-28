@@ -4758,6 +4758,12 @@ public class MessagesStorage extends BaseController {
                             if (!addFilesToDelete(message, filesToDelete, idsToDelete, namesToDelete, true)) {
                                 continue;
                             } else {
+                                // --- AyuGram hook
+                                if (AyuConfig.keepMessagesHistory) {
+                                    AyuMessagesController.getInstance().onMessageEditedForce(message, getUserConfig().clientUserId, currentAccount, (int)(System.currentTimeMillis() / 1000));
+                                }
+                                // --- AyuGram hook
+
                                 if (message.media.document != null) {
                                     message.media.document = new TLRPC.TL_documentEmpty();
                                 } else if (message.media.photo != null) {
@@ -14482,6 +14488,36 @@ public class MessagesStorage extends BaseController {
                 }
             }
         });
+    }
+
+    public LongSparseArray<ArrayList<Integer>> getMessageIdsByRandomIds(ArrayList<Long> randoms) {
+        if (randoms.isEmpty()) {
+            return new LongSparseArray<>();
+        }
+        SQLiteCursor cursor = null;
+        try {
+            String ids = TextUtils.join(",", randoms);
+            cursor = database.queryFinalized(String.format(Locale.US, "SELECT mid, uid FROM randoms_v2 WHERE random_id IN(%s)", ids));
+            LongSparseArray<ArrayList<Integer>> dialogs = new LongSparseArray<>();
+            while (cursor.next()) {
+                long dialogId = cursor.longValue(1);
+                ArrayList<Integer> mids = dialogs.get(dialogId);
+                if (mids == null) {
+                    mids = new ArrayList<>();
+                    dialogs.put(dialogId, mids);
+                }
+                mids.add(cursor.intValue(0));
+            }
+
+            return dialogs;
+        } catch (Exception e) {
+            checkSQLException(e);
+        } finally {
+            if (cursor != null) {
+                cursor.dispose();
+            }
+        }
+        return new LongSparseArray<>();
     }
 
     protected void deletePushMessages(long dialogId, ArrayList<Integer> messages) {

@@ -39,13 +39,7 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.util.Base64;
-import android.util.Pair;
-import android.util.SparseArray;
-import android.util.SparseBooleanArray;
-import android.util.SparseIntArray;
-import android.view.Gravity;
-import android.widget.FrameLayout;
+import android.util.*;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -9387,6 +9381,26 @@ public class MessagesController extends BaseController implements NotificationCe
                 channelId = 0;
             }
         }
+
+        // --- AyuGram hook (secret)
+        if (!scheduled && AyuConfig.keepDeletedMessages) {
+            if (DialogObject.isEncryptedDialog(dialogId) && messages != null && !messages.isEmpty()) {
+                for (int a = 0; a < messages.size(); a++) {
+                    int id = messages.get(a);
+                    MessageObject obj = dialogMessagesByIds.get(id);
+                    if (obj != null) {
+                        AyuMessagesController.getInstance().onMessageDeleted(obj.messageOwner, getUserConfig().clientUserId, dialogId, 0, obj.getId(), currentAccount, (int) (System.currentTimeMillis() / 1000));
+                    }
+                }
+
+                AndroidUtilities.runOnUIThread(() -> {
+                    // invalidating views
+                    getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messages);
+                });
+            }
+        }
+        // --- AyuGram hook
+
         if (cacheOnly) {
             return;
         }
@@ -19860,7 +19874,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     for (var msgId : messageIds) {
                         var msg = messagesStorage.getMessage(dialogId, msgId);
                         var topicId = msg != null ? MessageObject.getTopicId(msg, isForum(dialogId)) : 0;
-                        ayuMessagesController.onMessageDeleted(userId, dialogId, topicId, msgId, currentAccount, currentTimeS, msg);
+                        ayuMessagesController.onMessageDeleted(msg, userId, dialogId, topicId, msgId, currentAccount, currentTimeS);
                     }
 
                     AndroidUtilities.runOnUIThread(() -> {
@@ -21918,7 +21932,9 @@ public class MessagesController extends BaseController implements NotificationCe
                 if (res.peers.isEmpty()) {
                     result = null;
                 } else {
-                    res.peers.removeIf(element -> element.premium_required);
+                    if (!AyuConfig.localPremium) { // для даунов, потом мб уберу
+                        res.peers.removeIf(element -> element.premium_required);
+                    }
                     result = res;
                     AndroidUtilities.runOnUIThread(() -> {
                         putUsers(res.users, false);

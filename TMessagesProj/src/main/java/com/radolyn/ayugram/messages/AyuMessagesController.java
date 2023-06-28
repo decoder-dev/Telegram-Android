@@ -81,10 +81,18 @@ public class AyuMessagesController {
             return;
         }
 
-        onMessageEditedInner(oldMessage, newMessage, userId, accountId, currentTime);
+        onMessageEditedInner(oldMessage, newMessage, userId, accountId, currentTime, false);
     }
 
-    private void onMessageEditedInner(TLRPC.Message oldMessage, TLRPC.Message newMessage, long userId, int accountId, int currentTime) {
+    public void onMessageEditedForce(TLRPC.Message message, long userId, int accountId, int currentTime) {
+        if (!AyuConfig.keepMessagesHistory) {
+            return;
+        }
+
+        onMessageEditedInner(message, message, userId, accountId, currentTime, true);
+    }
+
+    private void onMessageEditedInner(TLRPC.Message oldMessage, TLRPC.Message newMessage, long userId, int accountId, int currentTime, boolean force) {
         boolean sameMedia = true;
         boolean isDocument = false;
         if (oldMessage.media instanceof TLRPC.TL_messageMediaPhoto && newMessage.media instanceof TLRPC.TL_messageMediaPhoto && oldMessage.media.photo != null && newMessage.media.photo != null) {
@@ -92,6 +100,10 @@ public class AyuMessagesController {
         } else if (oldMessage.media instanceof TLRPC.TL_messageMediaDocument && newMessage.media instanceof TLRPC.TL_messageMediaDocument && oldMessage.media.document != null && newMessage.media.document != null) {
             sameMedia = oldMessage.media.document.id == newMessage.media.document.id;
             isDocument = true;
+        }
+
+        if (force) {
+            sameMedia = false;
         }
 
         if (sameMedia && TextUtils.equals(oldMessage.message, newMessage.message)) {
@@ -139,15 +151,19 @@ public class AyuMessagesController {
         editedMessageDao.insert(revision);
     }
 
-    public void onMessageDeleted(long userId, long dialogId, long topicId, int msgId, int accountId, int currentTime, TLRPC.Message msg) {
+    public void onMessageDeleted(TLRPC.Message msg, long userId, long dialogId, long topicId, int msgId, int accountId, int currentTime) {
         if (!AyuConfig.keepDeletedMessages) {
             return;
         }
 
-        onMessageDeletedInner(userId, dialogId, topicId, msgId, accountId, currentTime, msg);
+        onMessageDeletedInner(msg, userId, dialogId, topicId, msgId, accountId, currentTime);
     }
 
-    private void onMessageDeletedInner(long userId, long dialogId, long topicId, int msgId, int accountId, int currentTime, TLRPC.Message msg) {
+    private void onMessageDeletedInner(TLRPC.Message msg, long userId, long dialogId, long topicId, int msgId, int accountId, int currentTime) {
+        if (deletedMessageDao.exists(userId, dialogId, topicId, msgId)) {
+            return;
+        }
+
         var deletedMessage = new DeletedMessage();
         deletedMessage.userId = userId;
         deletedMessage.dialogId = dialogId;
