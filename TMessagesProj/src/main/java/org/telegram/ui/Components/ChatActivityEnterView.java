@@ -7270,9 +7270,9 @@ public class ChatActivityEnterView extends FrameLayout implements
             }, resourcesProvider);
             return true;
         } else {
-            // --- AyuGram hook
+            // --- AyuGram scheduled hook
             var scheduleDate = 0;
-            if (AyuConfig.useScheduledMessages) {
+            if (AyuConfig.useScheduledMessages && !DialogObject.isEncryptedDialog(dialog_id)) {
                 scheduleDate = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 10; // min t = 10 sec
 
                 // ..but here's the problem:
@@ -7282,9 +7282,9 @@ public class ChatActivityEnterView extends FrameLayout implements
 
                 AyuState.setAutomaticallyScheduled(true, 1);
             }
-
-            return sendMessageInternal(true, scheduleDate, 0, 0, true);
             // --- AyuGram hook
+
+            sendMessageInternal(true, scheduleDate);
         }
     }
 

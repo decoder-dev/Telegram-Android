@@ -2078,8 +2078,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             return;
         }
 
-        // --- AyuGram hook
-        if (AyuConfig.useScheduledMessages && scheduleDateOrig == 0) {
+        // --- AyuGram scheduled hook
+        if (AyuConfig.useScheduledMessages && scheduleDateOrig == 0 && !DialogObject.isEncryptedDialog(peer)) {
             scheduleDateOrig = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 10;
             scheduleDateOrig += 1;
 
@@ -11690,9 +11690,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                     if (editingMessageObject != null || pollToAddOptionMessageObject != null) {
                                         accountInstance.getSendMessagesHelper().editMessage(editingMessageObject, pollToAddOptionMessageObject, photoFinal, null, null, null, null, params, false, info.hasMediaSpoilers, parentFinal);
                                     } else {
-                                        // --- AyuGram hook
+                                        // --- AyuGram scheduled hook
                                         var scheduleDateTemp = scheduleDate;
-                                        if (AyuConfig.useScheduledMessages && scheduleDateTemp == 0) {
+                                        if (AyuConfig.useScheduledMessages && scheduleDateTemp == 0 && !DialogObject.isEncryptedDialog(dialogId)) {
                                             scheduleDateTemp = accountInstance.getConnectionsManager().getCurrentTime() + 10;
                                             scheduleDateTemp += 10;
 
