@@ -170,7 +170,11 @@ public class AyuMessagesController {
         deletedMessage.messageId = msgId;
         deletedMessage.deletedDate = currentTime;
 
+        Log.d("AyuGram", "saving message " + msgId + " for " + dialogId + " with topic " + topicId);
+
         if (msg != null) {
+            Log.d("AyuGram", "saving message full");
+
             deletedMessage.text = AyuMessageUtils.htmlify(msg);
             deletedMessage.date = msg.date;
             deletedMessage.flags = msg.flags;
