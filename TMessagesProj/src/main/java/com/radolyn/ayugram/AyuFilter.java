@@ -11,6 +11,7 @@ package com.radolyn.ayugram;
 
 import android.text.TextUtils;
 import org.telegram.messenger.MessageObject;
+import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
 import java.util.regex.Pattern;
@@ -55,7 +56,27 @@ public class AyuFilter {
         return false;
     }
 
+    private static boolean isFiltered(ArrayList<TLRPC.MessageEntity> entities) {
+        if (entities == null || entities.isEmpty()) {
+            return false;
+        }
+
+        for (var entity : entities) {
+            if (entity instanceof TLRPC.TL_messageEntityUrl) {
+                if (isFiltered(entity.url)) {
+                    return true;
+                }
+            } else if (entity instanceof TLRPC.TL_messageEntityTextUrl) {
+                if (isFiltered(entity.url)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public static boolean isFiltered(MessageObject msg) {
-        return AyuConfig.regexFiltersEnabled && msg != null && (isFiltered(msg.messageText) || isFiltered(msg.caption));
+        return AyuConfig.regexFiltersEnabled && msg != null && (isFiltered(msg.messageText) || isFiltered(msg.caption) || isFiltered(msg.messageOwner.entities));
     }
 }
