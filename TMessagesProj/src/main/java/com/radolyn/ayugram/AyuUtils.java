@@ -163,7 +163,7 @@ public class AyuUtils {
     public static int getMinRealId(ArrayList<MessageObject> messages) {
         for (int i = messages.size() - 1; i > 0; i--) {
             var message = messages.get(i);
-            if (message.getId() > 0) {
+            if (message.getId() > 0 && !message.isSending()) {
                 return message.getId();
             }
         }
