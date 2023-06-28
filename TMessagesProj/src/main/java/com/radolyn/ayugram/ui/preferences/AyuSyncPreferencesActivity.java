@@ -20,7 +20,7 @@ import com.radolyn.ayugram.AyuUtils;
 import com.radolyn.ayugram.sync.AyuSyncConfig;
 import com.radolyn.ayugram.sync.AyuSyncController;
 import com.radolyn.ayugram.sync.AyuSyncState;
-import com.radolyn.ayugram.ui.AyuUi;
+import com.radolyn.ayugram.ui.preferences.utils.AyuUi;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;

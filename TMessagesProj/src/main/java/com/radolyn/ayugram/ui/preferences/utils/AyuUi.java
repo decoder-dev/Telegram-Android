@@ -7,7 +7,7 @@
  * Copyright @Radolyn, 2023
  */
 
-package com.radolyn.ayugram.ui;
+package com.radolyn.ayugram.ui.preferences.utils;
 
 import android.app.Activity;
 import android.widget.LinearLayout;
