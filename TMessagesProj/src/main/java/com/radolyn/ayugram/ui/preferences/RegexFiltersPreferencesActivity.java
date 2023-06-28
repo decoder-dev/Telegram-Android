@@ -31,13 +31,13 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
     private int caseInsensitiveRow;
     private int generalDividerRow;
 
+    private int addFilterBtnRow;
+    private int addFilterDividerRow;
 
     private int filtersHeaderRow;
 
     // .. filters
 
-    private int filtersDividerRow;
-    private int addFilterBtnRow;
 
     @Override
     protected void updateRowsId() {
@@ -48,18 +48,18 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
         caseInsensitiveRow = newRow();
         generalDividerRow = newRow();
 
+        addFilterBtnRow = newRow();
+        addFilterDividerRow = newRow();
+
         filtersHeaderRow = newRow();
 
         var filters = AyuConfig.getRegexFilters();
         rowCount += filters.size();
-
-        filtersDividerRow = newRow();
-        addFilterBtnRow = newRow();
     }
 
     @Override
     protected void onItemClick(View view, int position, float x, float y) {
-        if (position > filtersHeaderRow && position < filtersDividerRow) {
+        if (position > filtersHeaderRow) {
             // clicked on filter
             RegexFilterPopup.show(this, view, x, y, position - filtersHeaderRow - 1);
         } else if (position == enableInChatsRow) {
@@ -106,7 +106,7 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
                     break;
                 case 2:
                     TextCell textCell = (TextCell) holder.itemView;
-                    if (position > filtersHeaderRow && position < filtersDividerRow) {
+                    if (position > filtersHeaderRow) {
                         textCell.setText(AyuConfig.getRegexFilters().get(position - filtersHeaderRow - 1), true);
                     } else if (position == addFilterBtnRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.RegexFiltersAdd), R.drawable.msg_add, false);
@@ -136,7 +136,7 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
         public int getItemViewType(int position) {
             if (
                     position == generalDividerRow ||
-                            position == filtersDividerRow
+                            position == addFilterDividerRow
             ) {
                 return 1;
             } else if (

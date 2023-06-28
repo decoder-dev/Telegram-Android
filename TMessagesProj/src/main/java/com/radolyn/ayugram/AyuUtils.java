@@ -14,8 +14,12 @@ import android.app.Activity;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.provider.Settings.Secure;
+import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.TextUtils;
 import androidx.core.util.Pair;
+import com.exteragram.messenger.utils.LocaleUtils;
 import com.google.android.exoplayer2.util.Log;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -169,6 +173,17 @@ public class AyuUtils {
         }
 
         return Integer.MAX_VALUE; // no questions
+    }
+
+    public static CharSequence htmlToString(String text) {
+        Spannable htmlParsed;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            htmlParsed = new SpannableString(Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY));
+        } else {
+            htmlParsed = new SpannableString(Html.fromHtml(text));
+        }
+
+        return LocaleUtils.formatWithURLs(htmlParsed);
     }
 
     public static boolean isMediaDownloadable(MessageObject message) {
