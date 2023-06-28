@@ -38573,7 +38573,10 @@ public class ChatActivity extends BaseFragment implements
 
                 // --- AyuGram hook
                 if (AyuConfig.regexFiltersEnabled && (AyuConfig.regexFiltersInChats || ChatObject.isChannel(currentChat))) {
-                    if (AyuFilter.isFiltered(msg)) {
+                    var group = getGroup(msg.getGroupId());
+                    var msgToCheck = group == null ? msg : group.findPrimaryMessageObject();
+
+                    if (AyuFilter.isFiltered(msgToCheck)) {
                         return -1;
                     }
                 }
