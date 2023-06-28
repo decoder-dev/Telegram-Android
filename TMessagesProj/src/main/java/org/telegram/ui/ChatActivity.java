@@ -14577,7 +14577,7 @@ public class ChatActivity extends BaseFragment implements
         }
         int result = getSendMessagesHelper().sendMessage(arrayList, dialog_id, fromMyName, hideCaption, notify, scheduleDate, 0, getThreadMessage(), -1, payStars, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
         AlertsCreator.showSendMediaAlert(result, this, themeDelegate);
-        if (result != 0) {
+        if (result != 0 || AyuState.getAutomaticallyScheduled()) {
             AndroidUtilities.runOnUIThread(() -> {
                 waitingForSendingMessageLoad = false;
                 hideFieldPanel(true);
