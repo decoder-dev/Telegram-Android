@@ -21466,7 +21466,11 @@ public class ChatActivity extends BaseFragment implements
 
             Log.d("AyuGram", "messArr: " + messArr.size() + " , startId: " + startId +  " , endId: " + endId + " , limit: " + limit + " , load_type: " + load_type + " , isCache: " + isCache);
             if (startId != minVal || endId != minVal) {
+                var needToReset = messArr.size() == count;
                 AyuHistoryHook.doHook(currentAccount, messArr, startId, endId, dialogId, limit, threadId, isSecretChat());
+                if (needToReset) {
+                    count = messArr.size();
+                }
             }
             // --- AyuGram hook
 
