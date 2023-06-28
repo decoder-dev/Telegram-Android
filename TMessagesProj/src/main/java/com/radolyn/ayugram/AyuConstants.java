@@ -21,6 +21,7 @@ public class AyuConstants {
     public static final int OPTION_READ_UNTIL = 1338_03;
     public static final int DRAWER_TOGGLE_GHOST = 1000;
     public static final int DRAWER_KILL_APP = 1001;
+    public static final int SECRET_MESSAGES_DELETED_NOTIFICATION = 6968;
     public static final int MESSAGES_DELETED_NOTIFICATION = 6969;
     public static final int AYUSYNC_STATE_CHANGED = 6970;
     public static final int AYUSYNC_LAST_SENT_CHANGED = 6971;

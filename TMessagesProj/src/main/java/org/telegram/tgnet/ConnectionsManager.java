@@ -402,7 +402,12 @@ public class ConnectionsManager extends BaseController {
         // --- AyuGram request hook
         {
             // don't send upload & typing status
-            if (!AyuConfig.sendUploadProgress && object instanceof TLRPC.TL_messages_setTyping) {
+            if (!AyuConfig.sendUploadProgress &&
+                    (
+                            object instanceof TLRPC.TL_messages_setTyping ||
+                            object instanceof TLRPC.TL_messages_setEncryptedTyping
+                    )
+            ) {
                 // no need to run `onComplete`
                 return;
             }

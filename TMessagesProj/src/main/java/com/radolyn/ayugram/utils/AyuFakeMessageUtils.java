@@ -10,7 +10,9 @@
 package com.radolyn.ayugram.utils;
 
 import android.text.TextUtils;
+import androidx.core.util.Pair;
 import com.google.android.exoplayer2.util.Log;
+import com.radolyn.ayugram.AyuUtils;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.TLRPC;
 
@@ -47,11 +49,17 @@ public class AyuFakeMessageUtils {
 
         if (documentType == 1) {
             var name = file.getName();
-            var start = name.indexOf("#") + 1;
-            var end = name.indexOf("@");
-            var size = name.substring(start, end).split("x");
-            var w = Integer.parseInt(size[0]);
-            var h = Integer.parseInt(size[1]);
+            var parsedSize = AyuUtils.extractImageSizeFromName(name);
+            if (parsedSize == null) {
+                parsedSize = AyuUtils.extractImageSizeFromFile(file.getAbsolutePath());
+            }
+
+            if (parsedSize == null) {
+                parsedSize = new Pair<>(500, 302);
+            }
+
+            var w = parsedSize.first;
+            var h = parsedSize.second;
 
             message.media = new TLRPC.TL_messageMediaPhoto();
             message.media.flags = 1;
@@ -73,7 +81,7 @@ public class AyuFakeMessageUtils {
             message.media.document = new TLRPC.TL_document();
             message.media.document.date = date;
             message.media.document.localPath = mediaPath;
-            message.media.document.file_name = file.getName();
+            message.media.document.file_name = AyuUtils.getReadableFilename(file.getName());
             message.media.document.size = file.length();
         }
     }

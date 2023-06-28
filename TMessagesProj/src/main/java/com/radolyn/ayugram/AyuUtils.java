@@ -11,9 +11,11 @@ package com.radolyn.ayugram;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.provider.Settings.Secure;
 import android.text.TextUtils;
+import androidx.core.util.Pair;
 import com.google.android.exoplayer2.util.Log;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -43,11 +45,19 @@ public class AyuUtils {
 
     public static String removeExtension(String filename) {
         int index = filename.lastIndexOf('.');
+        if (index == -1) { // no extension
+            return filename;
+        }
+
         return filename.substring(0, index);
     }
 
     public static String getExtension(String filename) {
         int index = filename.lastIndexOf('.');
+        if (index == -1) { // no extension
+            return "";
+        }
+
         return filename.substring(index);
     }
 
@@ -82,6 +92,55 @@ public class AyuUtils {
         return f;
     }
 
+    public static String getReadableFilename(String name) {
+        var ext = AyuUtils.getExtension(name);
+        var index = name.lastIndexOf("@");
+        if (index == -1) {
+            return name;
+        }
+
+        return name.substring(0, index) + ext;
+    }
+
+    public static Pair<Integer, Integer> extractImageSizeFromName(String name) {
+        var start = name.lastIndexOf("#") + 1;
+        if (start == 0) {
+            return null;
+        }
+
+        var end = name.lastIndexOf("@");
+        if (end == -1) {
+            return null;
+        }
+
+        try {
+            var size = name.substring(start, end).split("x");
+            var w = Integer.parseInt(size[0]);
+            var h = Integer.parseInt(size[1]);
+
+            return new Pair<>(w, h);
+        } catch (Exception e) {
+            Log.d("AyuGram", "extractImageSizeFromName fucked", e);
+            return null;
+        }
+    }
+
+    public static Pair<Integer, Integer> extractImageSizeFromFile(String path) {
+        try {
+            var options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(path, options);
+
+            var w = options.outWidth;
+            var h = options.outHeight;
+
+            return new Pair<>(w, h);
+        } catch (Exception e) {
+            Log.d("AyuGram", "extractImageSizeFromFile fucked", e);
+            return null;
+        }
+    }
+
     public static String getPackageName() {
         return ApplicationLoader.applicationContext.getPackageName();
     }
@@ -110,5 +169,32 @@ public class AyuUtils {
         }
 
         return Integer.MAX_VALUE; // no questions
+    }
+
+    public static boolean isMediaDownloadable(MessageObject message) {
+        if (message == null || message.messageOwner == null || message.messageOwner.media == null) {
+            return false;
+        }
+
+        if (message.messageOwner.media.photo instanceof TLRPC.TL_photoEmpty) {
+            return false;
+        }
+
+        if (message.messageOwner.media.document instanceof TLRPC.TL_documentEmpty) {
+            return false;
+        }
+
+        if (MessageObject.isMediaEmpty(message.messageOwner)) {
+            return false;
+        }
+
+        return message.isSecretMedia() ||
+                message.isGif() ||
+                message.isNewGif() ||
+                message.isRoundVideo() ||
+                message.isVideo() ||
+                message.isDocument() ||
+                message.isMusic() ||
+                message.isVoice();
     }
 }

@@ -24,6 +24,26 @@ import com.radolyn.ayugram.AyuConfig;
 
 
 public class NotificationsService extends Service {
+    private static final String[] notifications = new String[]{
+            "Don't swipe me!",
+            "Letting you receive notifications…",
+            "Helping you receive pushes…",
+            "dontkillmyapp.com",
+            "⊂(◉‿◉)つ",
+            "(｡◕‿‿◕｡)",
+            "(｡◕‿◕｡)",
+            "¯\\_(ツ)_/¯",
+            "\\(^-^)/",
+            "＼(＾O＾)／",
+            "\\(ᵔᵕᵔ)/",
+            "ԅ(≖‿≖ԅ)",
+            "(⊃｡•́‿•̀｡)⊃",
+            "•ᴗ•",
+            "(~‾▿‾)~",
+            "｡^‿^｡",
+            "(⁎˃ᆺ˂)",
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
