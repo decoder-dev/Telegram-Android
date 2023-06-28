@@ -31442,6 +31442,65 @@ public class ChatActivity extends BaseFragment implements
             }
 
             /// --- AyuGram menu
+            if (message != null
+                    && message.messageOwner.from_id != null
+                    && message.messageOwner.from_id.user_id != getAccountInstance().getUserConfig().getClientUserId()
+                    && AyuMessagesController.getInstance().hasAnyRevisions(getAccountInstance().getUserConfig().getClientUserId(), dialog_id, message.messageOwner.id)
+            ) {
+                var idx = options.size() - 1;
+
+                if (options.contains(OPTION_DETAILS)) {
+                    idx = options.indexOf(OPTION_DETAILS);
+                }
+
+                items.add(idx, LocaleController.getString("EditsHistoryMenuText", R.string.EditsHistoryMenuText));
+                options.add(idx, AyuConstants.OPTION_HISTORY);
+                icons.add(idx, R.drawable.msg_log);
+            }
+
+            if (message != null && message.messageOwner.ttl > 0 && !isAyuDeleted) {
+                var idx = options.size() - 1;
+
+                if (options.contains(OPTION_DETAILS)) {
+                    idx = options.indexOf(OPTION_DETAILS);
+                }
+
+                items.add(idx, "TTL: " + LocaleController.formatTTLString(message.messageOwner.ttl));
+                options.add(idx, AyuConstants.OPTION_TTL);
+                icons.add(idx, R.drawable.msg_autodelete);
+            }
+
+            if (!(options.contains(OPTION_SAVE_TO_GALLERY) || options.contains(OPTION_SAVE_TO_GALLERY2))
+                    && AyuUtils.isMediaDownloadable(selectedObject)
+            ) {
+                var idx = options.size() - 1;
+
+                if (options.contains(OPTION_DETAILS)) {
+                    idx = options.indexOf(OPTION_DETAILS);
+                }
+
+                items.add(idx, LocaleController.getString("SaveToGallery", R.string.SaveToGallery));
+                options.add(idx, OPTION_SAVE_TO_GALLERY);
+                icons.add(idx, R.drawable.msg_gallery);
+            }
+            if (!options.contains(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC)
+                    && AyuUtils.isMediaDownloadable(selectedObject)
+            ) {
+                var idx = options.size() - 1;
+
+                if (options.contains(OPTION_SAVE_TO_GALLERY)) {
+                    idx = options.indexOf(OPTION_SAVE_TO_GALLERY) + 1;
+                } else if (options.contains(OPTION_SAVE_TO_GALLERY2)) {
+                    idx = options.indexOf(OPTION_SAVE_TO_GALLERY2) + 1;
+                } else if (options.contains(OPTION_DETAILS)) {
+                    idx = options.indexOf(OPTION_DETAILS);
+                }
+
+                items.add(idx, LocaleController.getString("SaveToDownloads", R.string.SaveToDownloads));
+                options.add(idx, OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
+                icons.add(idx, R.drawable.msg_download);
+            }
+
             if (!AyuConfig.sendReadPackets && !isAyuDeleted
                     && message != null
                     && message.messageOwner.from_id != null
@@ -31452,47 +31511,16 @@ public class ChatActivity extends BaseFragment implements
                 icons.add(R.drawable.msg_view_file);
             }
 
-            if (message != null
-                    && message.messageOwner.from_id != null
-                    && message.messageOwner.from_id.user_id != getAccountInstance().getUserConfig().getClientUserId()
-                    && AyuMessagesController.getInstance().hasAnyRevisions(getAccountInstance().getUserConfig().getClientUserId(), dialog_id, message.messageOwner.id)
-            ) {
-                items.add(LocaleController.getString("EditsHistoryMenuText", R.string.EditsHistoryMenuText));
-                options.add(AyuConstants.OPTION_HISTORY);
-                icons.add(R.drawable.msg_log);
-            }
-
-            if (message != null && message.messageOwner.ttl > 0 && !isAyuDeleted) {
-                items.add("TTL: " + LocaleController.formatTTLString(message.messageOwner.ttl));
-                options.add(AyuConstants.OPTION_TTL);
-                icons.add(R.drawable.msg_autodelete);
-            }
-
-            if (!(options.contains(OPTION_SAVE_TO_GALLERY) || options.contains(OPTION_SAVE_TO_GALLERY2))
-                    && AyuUtils.isMediaDownloadable(selectedObject)
-            ) {
-                items.add(LocaleController.getString("SaveToGallery", R.string.SaveToGallery));
-                options.add(OPTION_SAVE_TO_GALLERY);
-                icons.add(R.drawable.msg_gallery);
-            }
-            if (!options.contains(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC)
-                    && AyuUtils.isMediaDownloadable(selectedObject)
-            ) {
-                items.add(LocaleController.getString("SaveToDownloads", R.string.SaveToDownloads));
-                options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
-                icons.add(R.drawable.msg_download);
-            }
-
             if (options.contains(OPTION_FORWARD) && (message != null && message.messageOwner.ayuNoforwards || (currentChat != null && currentChat.ayuNoforwards))) {
                 items.remove(LocaleController.getString("Forward", R.string.Forward));
-                options.remove((Object)OPTION_FORWARD);
-                icons.remove((Object)R.drawable.msg_forward);
+                options.remove((Object) OPTION_FORWARD);
+                icons.remove((Object) R.drawable.msg_forward);
             }
 
             if (options.contains(OPTION_SHARE) && (message != null && message.messageOwner.ayuNoforwards || (currentChat != null && currentChat.ayuNoforwards))) {
                 items.remove(LocaleController.getString("ShareFile", R.string.ShareFile));
-                options.remove((Object)OPTION_SHARE);
-                icons.remove((Object)R.drawable.msg_shareout);
+                options.remove((Object) OPTION_SHARE);
+                icons.remove((Object) R.drawable.msg_shareout);
             }
             // --- AyuGram menu
 
