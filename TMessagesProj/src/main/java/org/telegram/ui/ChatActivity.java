@@ -1307,7 +1307,6 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_SEND_MONEY = 117;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
-            AyuConstants.SECRET_MESSAGES_DELETED_NOTIFICATION,
             AyuConstants.MESSAGES_DELETED_NOTIFICATION,
 
             NotificationCenter.messagesRead,
@@ -3090,7 +3089,6 @@ public class ChatActivity extends BaseFragment implements
             observersGroup.add(NotificationCenter.hashtagSearchUpdated);
         }
 
-        getNotificationCenter().addObserver(this, AyuConstants.SECRET_MESSAGES_DELETED_NOTIFICATION);
         getNotificationCenter().addObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
 
         super.onFragmentCreate();
@@ -3477,7 +3475,6 @@ public class ChatActivity extends BaseFragment implements
         getNotificationCenter().removePostponeNotificationsCallback(postponeNotificationsWhileLoadingCallback);
         getMessagesController().setLastCreatedDialogId(dialog_id, chatMode == MODE_SCHEDULED, false);
 
-        getNotificationCenter().removeObserver(this, AyuConstants.SECRET_MESSAGES_DELETED_NOTIFICATION);
         getNotificationCenter().removeObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
 
         if (observersGroup != null) {
@@ -25080,25 +25077,7 @@ public class ChatActivity extends BaseFragment implements
         }
 
         // --- AyuGram hook
-        if (id == AyuConstants.SECRET_MESSAGES_DELETED_NOTIFICATION) {
-            long dialogId = (Long) args[0];
-            if (getDialogId() != dialogId) {
-                return;
-            }
-            if (chatAdapter == null) {
-                return;
-            }
-            ArrayList<Long> messageIds = (ArrayList<Long>) args[1];
-            var messagesController = getMessagesController();
-            for (int a = 0, N = messageIds.size(); a < N; a++) {
-                long mid = messageIds.get(a);
-                MessageObject currentMessage = messagesController.dialogMessagesByRandomIds.get(mid);
-                if (currentMessage != null) {
-                    currentMessage.messageOwner.ayuDeleted = true;
-                    chatAdapter.updateRowWithMessageObject(currentMessage, false);
-                }
-            }
-        } else if (id == AyuConstants.MESSAGES_DELETED_NOTIFICATION) {
+        if (id == AyuConstants.MESSAGES_DELETED_NOTIFICATION) {
             long dialogId = (Long) args[0];
             if (getDialogId() != dialogId && (ChatObject.isChannel(currentChat) || dialogId != 0)) {
                 return;
@@ -31509,18 +31488,6 @@ public class ChatActivity extends BaseFragment implements
                 items.add(LocaleController.getString("ReadUntilMenuText", R.string.ReadUntilMenuText));
                 options.add(AyuConstants.OPTION_READ_UNTIL);
                 icons.add(R.drawable.msg_view_file);
-            }
-
-            if (options.contains(OPTION_FORWARD) && (message != null && message.messageOwner.ayuNoforwards || (currentChat != null && currentChat.ayuNoforwards))) {
-                items.remove(LocaleController.getString("Forward", R.string.Forward));
-                options.remove((Object) OPTION_FORWARD);
-                icons.remove((Object) R.drawable.msg_forward);
-            }
-
-            if (options.contains(OPTION_SHARE) && (message != null && message.messageOwner.ayuNoforwards || (currentChat != null && currentChat.ayuNoforwards))) {
-                items.remove(LocaleController.getString("ShareFile", R.string.ShareFile));
-                options.remove((Object) OPTION_SHARE);
-                icons.remove((Object) R.drawable.msg_shareout);
             }
             // --- AyuGram menu
 
