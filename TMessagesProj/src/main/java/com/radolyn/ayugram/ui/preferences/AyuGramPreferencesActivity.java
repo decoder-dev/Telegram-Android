@@ -349,7 +349,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                     } else if (position == markReadAfterSendRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MarkReadAfterSend), AyuConfig.markReadAfterSend, true);
                     } else if (position == useScheduledMessagesRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.UseScheduledMessages) + " β", AyuConfig.useScheduledMessages, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.UseScheduledMessages), AyuConfig.useScheduledMessages, true);
                     } else if (position == keepDeletedMessagesRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.KeepDeletedMessages), AyuConfig.keepDeletedMessages, true);
                     } else if (position == keepMessagesHistoryRow) {

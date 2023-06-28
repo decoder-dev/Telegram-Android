@@ -56,6 +56,6 @@ public class AyuFilter {
     }
 
     public static boolean isFiltered(MessageObject msg) {
-        return AyuConfig.regexFiltersEnabled && (isFiltered(msg.messageText) || isFiltered(msg.caption));
+        return AyuConfig.regexFiltersEnabled && msg != null && (isFiltered(msg.messageText) || isFiltered(msg.caption));
     }
 }

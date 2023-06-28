@@ -7270,21 +7270,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             }, resourcesProvider);
             return true;
         } else {
-            // --- AyuGram scheduled hook
-            var scheduleDate = 0;
-            if (AyuConfig.useScheduledMessages && !DialogObject.isEncryptedDialog(dialog_id)) {
-                scheduleDate = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 10; // min t = 10 sec
-
-                // ..but here's the problem:
-                // "If the schedule_date is less than 10 seconds in the future, the message will be sent immediately, generating a normal updateNewMessage/updateNewChannelMessage."
-                // we have to ensure that we have a small window for an error
-                scheduleDate += 1; // 1 sec
-
-                AyuState.setAutomaticallyScheduled(true, 1);
-            }
-            // --- AyuGram hook
-
-            sendMessageInternal(true, scheduleDate);
+            sendMessageInternal(true, 0);
         }
     }
 
