@@ -83,12 +83,19 @@ public class AyuUtils {
         if (TextUtils.isEmpty(filename)) {
             filename = attachPathFile.getName();
         }
+        if (TextUtils.isEmpty(filename)) {
+            // well, shit happens
+            filename = "unnamed";
+        }
 
         var f = AyuUtils.removeExtension(filename);
 
-        if (msg.media instanceof TLRPC.TL_messageMediaPhoto) {
+        if (msg.media instanceof TLRPC.TL_messageMediaPhoto && msg.media.photo.sizes != null && !msg.media.photo.sizes.isEmpty()) {
             var photoSize = FileLoader.getClosestPhotoSizeWithSize(msg.media.photo.sizes, AndroidUtilities.getPhotoSize());
-            f += "#" + photoSize.w + "x" + photoSize.h;
+
+            if (photoSize != null) {
+                f += "#" + photoSize.w + "x" + photoSize.h;
+            }
         }
 
         f += "@" + AyuUtils.generateRandomString(6);
