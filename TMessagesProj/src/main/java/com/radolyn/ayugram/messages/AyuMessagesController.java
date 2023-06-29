@@ -91,14 +91,16 @@ public class AyuMessagesController {
     }
 
     private void onMessageEditedInner(TLRPC.Message oldMessage, TLRPC.Message newMessage, long userId, int accountId, int currentTime, boolean force) {
-        boolean sameMedia = true;
-        var documentType = AyuConstants.DOCUMENT_TYPE_FILE;
+        boolean sameMedia = oldMessage.media.getClass() == newMessage.media.getClass();
         if (oldMessage.media instanceof TLRPC.TL_messageMediaPhoto && newMessage.media instanceof TLRPC.TL_messageMediaPhoto && oldMessage.media.photo != null && newMessage.media.photo != null) {
             sameMedia = oldMessage.media.photo.id == newMessage.media.photo.id;
-            documentType = AyuConstants.DOCUMENT_TYPE_PHOTO;
         } else if (oldMessage.media instanceof TLRPC.TL_messageMediaDocument && newMessage.media instanceof TLRPC.TL_messageMediaDocument && oldMessage.media.document != null && newMessage.media.document != null) {
             sameMedia = oldMessage.media.document.id == newMessage.media.document.id;
-//            documentType = AyuConstants.DOCUMENT_TYPE_FILE;
+        }
+
+        var documentType = AyuConstants.DOCUMENT_TYPE_FILE;
+        if (oldMessage.media instanceof TLRPC.TL_messageMediaPhoto && oldMessage.media.photo != null) {
+            documentType = AyuConstants.DOCUMENT_TYPE_PHOTO;
         }
 
         if (force) {
