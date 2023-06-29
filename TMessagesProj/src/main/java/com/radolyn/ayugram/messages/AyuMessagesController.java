@@ -81,7 +81,11 @@ public class AyuMessagesController {
             return;
         }
 
-        onMessageEditedInner(oldMessage, newMessage, userId, accountId, currentTime, false);
+        try {
+            onMessageEditedInner(oldMessage, newMessage, userId, accountId, currentTime, false);
+        } catch (Exception e) {
+            Log.e("AyuGram", "error onMessageEdited", e);
+        }
     }
 
     public void onMessageEditedForce(TLRPC.Message message, long userId, int accountId, int currentTime) {
@@ -89,7 +93,11 @@ public class AyuMessagesController {
             return;
         }
 
-        onMessageEditedInner(message, message, userId, accountId, currentTime, true);
+        try {
+            onMessageEditedInner(message, message, userId, accountId, currentTime, true);
+        } catch (Exception e) {
+            Log.e("AyuGram", "error onMessageEditedForce", e);
+        }
     }
 
     private void onMessageEditedInner(TLRPC.Message oldMessage, TLRPC.Message newMessage, long userId, int accountId, int currentTime, boolean force) {
@@ -156,7 +164,11 @@ public class AyuMessagesController {
             return;
         }
 
-        onMessageDeletedInner(msg, userId, dialogId, topicId, msgId, accountId, currentTime);
+        try {
+            onMessageDeletedInner(msg, userId, dialogId, topicId, msgId, accountId, currentTime);
+        } catch (Exception e) {
+            Log.e("AyuGram", "error onMessageDeleted", e);
+        }
     }
 
     private void onMessageDeletedInner(TLRPC.Message msg, long userId, long dialogId, long topicId, int msgId, int accountId, int currentTime) {
