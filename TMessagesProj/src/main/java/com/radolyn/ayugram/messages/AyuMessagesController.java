@@ -118,7 +118,12 @@ public class AyuMessagesController {
         var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(oldMessage);
 
         if (!sameMedia && shouldSaveMedia(accountId, dialogId, oldMessage)) {
-            attachPathFile = processAttachment(accountId, oldMessage);
+            try {
+                attachPathFile = processAttachment(accountId, oldMessage);
+            } catch (Exception e) {
+                attachPathFile = new File("/");
+                Log.e("AyuGram", "failed to save media");
+            }
         }
 
         var attachPath = attachPathFile.getAbsolutePath();
@@ -211,7 +216,13 @@ public class AyuMessagesController {
                 }
 
                 if (deletedMessage.documentType == AyuConstants.DOCUMENT_TYPE_PHOTO || deletedMessage.documentType == AyuConstants.DOCUMENT_TYPE_FILE) {
-                    var attachPathFile = processAttachment(accountId, msg);
+                    var attachPathFile = new File("/");
+
+                    try {
+                        attachPathFile = processAttachment(accountId, msg);
+                    } catch (Exception e) {
+                        Log.e("AyuGram", "failed to save media");
+                    }
                     var attachPath = attachPathFile.getAbsolutePath();
 
                     deletedMessage.mediaPath = attachPath.equals("/") ? null : attachPath;
