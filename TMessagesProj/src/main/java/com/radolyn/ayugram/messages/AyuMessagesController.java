@@ -24,9 +24,7 @@ import com.radolyn.ayugram.database.entities.DeletedMessageFull;
 import com.radolyn.ayugram.database.entities.DeletedMessageReaction;
 import com.radolyn.ayugram.database.entities.EditedMessage;
 import com.radolyn.ayugram.proprietary.AyuMessageUtils;
-import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.FileLoader;
-import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.*;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.TLRPC;
 
@@ -77,7 +75,7 @@ public class AyuMessagesController {
     }
 
     public void onMessageEdited(TLRPC.Message oldMessage, TLRPC.Message newMessage, long userId, int accountId, int currentTime) {
-        if (!AyuConfig.keepMessagesHistory) {
+        if (!AyuConfig.saveMessagesHistory) {
             return;
         }
 
@@ -85,7 +83,7 @@ public class AyuMessagesController {
     }
 
     public void onMessageEditedForce(TLRPC.Message message, long userId, int accountId, int currentTime) {
-        if (!AyuConfig.keepMessagesHistory) {
+        if (!AyuConfig.saveMessagesHistory) {
             return;
         }
 
@@ -111,9 +109,11 @@ public class AyuMessagesController {
             return;
         }
 
+        var dialogId = MessageObject.getDialogId(oldMessage);
+
         var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(oldMessage);
 
-        if (!sameMedia && attachPathFile.exists()) {
+        if (!sameMedia && attachPathFile.exists() && shouldSaveMedia(accountId, dialogId, oldMessage)) {
             var f = AyuUtils.getFilename(oldMessage, attachPathFile);
             var dest = new File(attachmentsPath, f);
 
@@ -133,7 +133,6 @@ public class AyuMessagesController {
         revision.mediaPath = attachPath.equals("/") ? null : attachPath;
         revision.documentType = documentType;
 
-        var dialogId = MessageObject.getDialogId(oldMessage);
         var messageId = newMessage.id;
 
         if (!sameMedia && !TextUtils.isEmpty(revision.mediaPath) && editedMessageDao.isFirstRevisionWithChangedMedia(userId, dialogId, messageId)) {
@@ -153,7 +152,7 @@ public class AyuMessagesController {
     }
 
     public void onMessageDeleted(TLRPC.Message msg, long userId, long dialogId, long topicId, int msgId, int accountId, int currentTime) {
-        if (!AyuConfig.keepDeletedMessages) {
+        if (!AyuConfig.saveDeletedMessages) {
             return;
         }
 
@@ -192,58 +191,60 @@ public class AyuMessagesController {
 
             // --- media work
 
-            if (msg.media == null) {
-                deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_NONE; // none
-            } else if (msg.media instanceof TLRPC.TL_messageMediaPhoto && msg.media.photo != null) {
-                deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_PHOTO; // photo
-            } else if (msg.media instanceof TLRPC.TL_messageMediaDocument && msg.media.document != null && (MessageObject.isStickerMessage(msg) || msg.media.document.mime_type.equals("application/x-tgsticker"))) {
-                deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_STICKER; // sticker
+            if (shouldSaveMedia(accountId, dialogId, msg)) {
+                if (msg.media == null) {
+                    deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_NONE; // none
+                } else if (msg.media instanceof TLRPC.TL_messageMediaPhoto && msg.media.photo != null) {
+                    deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_PHOTO; // photo
+                } else if (msg.media instanceof TLRPC.TL_messageMediaDocument && msg.media.document != null && (MessageObject.isStickerMessage(msg) || msg.media.document.mime_type.equals("application/x-tgsticker"))) {
+                    deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_STICKER; // sticker
 
-                try {
-                    // телеграм полная хуйня, поэтому приходится сериализовать стикер вручную
-                    NativeByteBuffer buffer = new NativeByteBuffer(msg.media.getObjectSize());
-                    msg.media.serializeToStream(buffer);
-                    buffer.reuse();
-                    buffer.buffer.rewind();
-                    byte[] arr = new byte[buffer.buffer.remaining()];
-                    buffer.buffer.get(arr);
+                    try {
+                        // телеграм полная хуйня, поэтому приходится сериализовать стикер вручную
+                        NativeByteBuffer buffer = new NativeByteBuffer(msg.media.getObjectSize());
+                        msg.media.serializeToStream(buffer);
+                        buffer.reuse();
+                        buffer.buffer.rewind();
+                        byte[] arr = new byte[buffer.buffer.remaining()];
+                        buffer.buffer.get(arr);
 
-                    deletedMessage.documentSerialized = arr;
-                } catch (Exception e) {
-                    Log.e("AyuGram", "fake news sticker", e);
+                        deletedMessage.documentSerialized = arr;
+                    } catch (Exception e) {
+                        Log.e("AyuGram", "fake news sticker", e);
+                    }
+                } else {
+                    deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_FILE; // file
                 }
-            } else {
-                deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_FILE; // file
-            }
 
-            if (deletedMessage.documentType == AyuConstants.DOCUMENT_TYPE_PHOTO || deletedMessage.documentType == AyuConstants.DOCUMENT_TYPE_FILE) {
-                var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(msg);
+                if (deletedMessage.documentType == AyuConstants.DOCUMENT_TYPE_PHOTO || deletedMessage.documentType == AyuConstants.DOCUMENT_TYPE_FILE) {
+                    var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(msg);
 
-                if (attachPathFile.exists()) {
-                    var f = AyuUtils.getFilename(msg, attachPathFile);
-                    var dest = new File(attachmentsPath, f);
+                    if (attachPathFile.exists()) {
+                        var f = AyuUtils.getFilename(msg, attachPathFile);
+                        var dest = new File(attachmentsPath, f);
 
-                    // move file, because it's likely to be deleted by Telegram in a few seconds
-                    var success = AyuUtils.moveFile(attachPathFile, dest);
+                        // move file, because it's likely to be deleted by Telegram in a few seconds
+                        var success = AyuUtils.moveFile(attachPathFile, dest);
 
-                    if (success) {
-                        attachPathFile = new File(dest.getAbsolutePath());
+                        if (success) {
+                            attachPathFile = new File(dest.getAbsolutePath());
+                        } else {
+                            attachPathFile = new File("/");
+                        }
                     } else {
                         attachPathFile = new File("/");
                     }
-                } else {
-                    attachPathFile = new File("/");
+
+                    var attachPath = attachPathFile.getAbsolutePath();
+
+                    deletedMessage.mediaPath = attachPath.equals("/") ? null : attachPath;
                 }
-
-                var attachPath = attachPathFile.getAbsolutePath();
-
-                deletedMessage.mediaPath = attachPath.equals("/") ? null : attachPath;
             }
         }
 
         var fakeMsgId = deletedMessageDao.insert(deletedMessage);
 
-        if (msg != null && msg.reactions != null) {
+        if (msg != null && msg.reactions != null && AyuConfig.saveReactions) {
             processDeletedReactions(fakeMsgId, msg.reactions);
         }
     }
@@ -271,6 +272,39 @@ public class AyuMessagesController {
 
             deletedMessageDao.insertReaction(deletedReaction);
         }
+    }
+
+    private boolean shouldSaveMedia(int accountId, long dialogId, TLRPC.Message message) {
+        if (!AyuConfig.saveMedia) {
+            return false;
+        }
+
+        if (message.media == null) {
+            return false;
+        }
+
+        if (DialogObject.isUserDialog(dialogId)) {
+            return AyuConfig.saveMediaInPrivateChats;
+        }
+
+        var messagesController = MessagesController.getInstance(accountId);
+        var chat = messagesController.getChat(dialogId);
+        if (chat == null) {
+            Log.e("AyuGram", "chat is null so saving media just in case");
+            return true;
+        }
+        var isPublic = ChatObject.isPublic(chat);
+
+        if (ChatObject.isChannel(chat)) {
+            if (isPublic && AyuConfig.saveMediaInPublicChannels) {
+                return true;
+            } else return !isPublic && AyuConfig.saveMediaInPrivateChannels;
+        }
+
+        // then it's a group
+        if (isPublic && AyuConfig.saveMediaInPublicGroups) {
+            return true;
+        } else return !isPublic && AyuConfig.saveMediaInPrivateGroups;
     }
 
     public boolean hasAnyRevisions(long userId, long dialogId, int msgId) {

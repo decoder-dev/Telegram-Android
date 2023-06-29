@@ -43,11 +43,11 @@ import android.text.style.RelativeSizeSpan;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
 import android.util.Base64;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.collection.LongSparseArray;
-import androidx.core.graphics.ColorUtils;
+
+import com.exteragram.messenger.boost.encryption.BaseEncryptor;
 import com.radolyn.ayugram.AyuConfig;
 
 import org.telegram.PhoneFormat.PhoneFormat;
@@ -10050,7 +10050,7 @@ public class MessageObject {
     }
 
     public boolean needDrawBluredPreview() {
-        return needDrawBluredPreview(!AyuConfig.keepDeletedMessages);
+        return needDrawBluredPreview(!AyuConfig.saveDeletedMessages);
     }
 
     public boolean needDrawBluredPreview(boolean really) {

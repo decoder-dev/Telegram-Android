@@ -9333,7 +9333,7 @@ public class MessagesController extends BaseController implements NotificationCe
         }
 
         // --- AyuGram hook
-        if (!scheduled && AyuConfig.keepDeletedMessages) {
+        if (!scheduled && AyuConfig.saveDeletedMessages) {
             if (DialogObject.isEncryptedDialog(dialogId) && messages != null && !messages.isEmpty()) { // process TTL messages from secrets
                 for (int a = 0; a < messages.size(); a++) {
                     int id = messages.get(a);
@@ -14643,7 +14643,7 @@ public class MessagesController extends BaseController implements NotificationCe
         ArrayList<Long> randomIds = new ArrayList<>();
         randomIds.add(randomId);
         getSecretChatHelper().sendMessagesReadMessage(chat, randomIds, null);
-        if (ttl > 0 && !AyuConfig.keepDeletedMessages) {
+        if (ttl > 0 && !AyuConfig.saveDeletedMessages) {
             int time = getConnectionsManager().getCurrentTime();
             getMessagesStorage().createTaskForSecretChat(chat.id, time, time, 0, randomIds);
         }
@@ -16950,7 +16950,7 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     private void checkChannelError(String text, long channelId) {
-        if (AyuConfig.keepDeletedMessages) {
+        if (AyuConfig.saveDeletedMessages) {
             return;
         }
 
@@ -19872,7 +19872,7 @@ public class MessagesController extends BaseController implements NotificationCe
         }
 
         // --- AyuGram request hook
-        if (AyuConfig.keepDeletedMessages && deletedMessages != null) {
+        if (AyuConfig.saveDeletedMessages && deletedMessages != null) {
             var currentTimeS = (int)(currentTime / 1000);
             var messagesStorage = getMessagesStorage();
             var userId = getAccountInstance().getUserConfig().clientUserId;

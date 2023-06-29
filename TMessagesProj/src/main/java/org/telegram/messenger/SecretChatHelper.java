@@ -19,7 +19,6 @@ import android.util.LongSparseArray;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 
-import com.google.android.exoplayer2.util.Log;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.messages.AyuMessagesController;
@@ -153,7 +152,7 @@ public class SecretChatHelper extends BaseController {
                 }
 
                 // --- AyuGram hook (secret)
-                if (AyuConfig.keepDeletedMessages) {
+                if (AyuConfig.saveDeletedMessages) {
                     for (var i = 0; i < dialogsWithMessages.size(); i++) {
                         var dialogId = dialogsWithMessages.keyAt(i);
                         var messages = dialogsWithMessages.valueAt(i);

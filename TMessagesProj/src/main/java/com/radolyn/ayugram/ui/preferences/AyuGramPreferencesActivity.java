@@ -46,9 +46,11 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     private int ghostDividerRow;
 
     private int spyHeaderRow;
-    private int keepDeletedMessagesRow;
-    private int keepMessagesHistoryRow;
-    private int spyDividerRow;
+    private int saveDeletedMessagesRow;
+    private int saveMessagesHistoryRow;
+    private int spyDivider1Row;
+    private int messageSavingBtnRow;
+    private int spyDivider2Row;
 
     private int qolHeaderRow;
     private int showFromChannelRow;
@@ -88,9 +90,11 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         ghostDividerRow = newRow();
 
         spyHeaderRow = newRow();
-        keepDeletedMessagesRow = newRow();
-        keepMessagesHistoryRow = newRow();
-        spyDividerRow = newRow();
+        saveDeletedMessagesRow = newRow();
+        saveMessagesHistoryRow = newRow();
+        spyDivider1Row = newRow();
+        messageSavingBtnRow = newRow();
+        spyDivider2Row = newRow();
 
         qolHeaderRow = newRow();
         showFromChannelRow = newRow();
@@ -197,12 +201,14 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
             ((TextCheckCell) view).setChecked(AyuConfig.useScheduledMessages);
 
             AyuState.setAutomaticallyScheduled(false, -1);
-        } else if (position == keepDeletedMessagesRow) {
-            AyuConfig.editor.putBoolean("keepDeletedMessages", AyuConfig.keepDeletedMessages ^= true).apply();
-            ((TextCheckCell) view).setChecked(AyuConfig.keepDeletedMessages);
-        } else if (position == keepMessagesHistoryRow) {
-            AyuConfig.editor.putBoolean("keepMessagesHistory", AyuConfig.keepMessagesHistory ^= true).apply();
-            ((TextCheckCell) view).setChecked(AyuConfig.keepMessagesHistory);
+        } else if (position == saveDeletedMessagesRow) {
+            AyuConfig.editor.putBoolean("keepDeletedMessages", AyuConfig.saveDeletedMessages ^= true).apply();
+            ((TextCheckCell) view).setChecked(AyuConfig.saveDeletedMessages);
+        } else if (position == saveMessagesHistoryRow) {
+            AyuConfig.editor.putBoolean("keepMessagesHistory", AyuConfig.saveMessagesHistory ^= true).apply();
+            ((TextCheckCell) view).setChecked(AyuConfig.saveMessagesHistory);
+        } else if (position == messageSavingBtnRow) {
+            presentFragment(new MessageSavingPreferencesActivity());
         } else if (position == showFromChannelRow) {
             AyuConfig.editor.putBoolean("showFromChannel", AyuConfig.showFromChannel ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.showFromChannel);
@@ -303,6 +309,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                                 : LocaleController.getString(R.string.EnableGhostMode);
 
                         textCell.setTextAndIcon(msg, R.drawable.ayu_ghost, true);
+                    } else if (position == messageSavingBtnRow) {
+                        textCell.setText(LocaleController.getString(R.string.MessageSavingBtn), true);
                     } else if (position == deletedMarkTextRow) {
                         textCell.setTextAndValue(LocaleController.getString(R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
                     } else if (position == editedMarkTextRow) {
@@ -350,10 +358,10 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MarkReadAfterSend), AyuConfig.markReadAfterSend, true);
                     } else if (position == useScheduledMessagesRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.UseScheduledMessages), AyuConfig.useScheduledMessages, true);
-                    } else if (position == keepDeletedMessagesRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.KeepDeletedMessages), AyuConfig.keepDeletedMessages, true);
-                    } else if (position == keepMessagesHistoryRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.KeepMessagesHistory), AyuConfig.keepMessagesHistory, true);
+                    } else if (position == saveDeletedMessagesRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.SaveDeletedMessages), AyuConfig.saveDeletedMessages, true);
+                    } else if (position == saveMessagesHistoryRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.SaveMessagesHistory), AyuConfig.saveMessagesHistory, true);
                     } else if (position == showFromChannelRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.ShowFromChannel), AyuConfig.showFromChannel, true);
                     } else if (position == keepAliveServiceRow) {
@@ -396,7 +404,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         public int getItemViewType(int position) {
             if (
                     position == ghostDividerRow ||
-                            position == spyDividerRow ||
+                            position == spyDivider1Row ||
+                            position == spyDivider2Row ||
                             position == qolDividerRow ||
                             position == customizationDividerRow ||
                             position == ayuSyncDividersRow
@@ -404,6 +413,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                 return 1;
             } else if (
                     position == ghostFastToggleRow ||
+                            position == messageSavingBtnRow ||
                             position == deletedMarkTextRow ||
                             position == editedMarkTextRow ||
                             position == ayuSyncStatusBtnRow ||
