@@ -365,7 +365,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                     } else if (position == showFromChannelRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.ShowFromChannel), AyuConfig.showFromChannel, true);
                     } else if (position == keepAliveServiceRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.KeepAliveService) + " β", AyuConfig.keepAliveService, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.KeepAliveService), AyuConfig.keepAliveService, true);
                     } else if (position == enableAdsRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.EnableAds), AyuConfig.enableAds, true);
                     } else if (position == localPremiumRow) {

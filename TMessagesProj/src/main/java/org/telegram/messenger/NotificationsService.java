@@ -8,6 +8,7 @@
 
 package org.telegram.messenger;
 
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
@@ -20,6 +21,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.radolyn.ayugram.AyuConfig;
+import org.telegram.ui.LaunchActivity;
 
 
 
@@ -58,22 +60,24 @@ public class NotificationsService extends Service {
                     .setSound(null, null)
                     .build();
 
-
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
             notificationManager.createNotificationChannel(channel);
-            android.app.Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                            .setSmallIcon(R.drawable.notification)
-                            .setShowWhen(false)
-                            .setOngoing(true)
-                            .setContentTitle(com.radolyn.ayugram.AyuConstants.APP_NAME)
-                            .setContentText(LocaleController.getString(R.string.BananaKeepAliveStatus))
-                            .setCategory(NotificationCompat.CATEGORY_STATUS)
-                            .build();
-            if (Build.VERSION.SDK_INT >= 34) {
-                startForeground(9999, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
-            } else {
-                startForeground(9999, notification);
-            }
+
+            var cuteText = notifications[new Random().nextInt(notifications.length)];
+
+            var startIntent = new Intent(this, LaunchActivity.class);
+            var pendingIntent = PendingIntent.getActivity(this, 0, startIntent, PendingIntent.FLAG_MUTABLE);
+
+            var notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setContentIntent(pendingIntent)
+                    .setSmallIcon(R.drawable.msg_premium_badge)
+                    .setShowWhen(false)
+                    .setOngoing(true)
+                    .setContentText(cuteText)
+                    .setCategory(NotificationCompat.CATEGORY_STATUS)
+                    .build();
+
+            startForeground(9999, notification);
         }
     }
 
