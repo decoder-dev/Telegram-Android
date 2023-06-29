@@ -115,18 +115,8 @@ public class AyuMessagesController {
 
         var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(oldMessage);
 
-        if (!sameMedia && attachPathFile.exists() && shouldSaveMedia(accountId, dialogId, oldMessage)) {
-            var f = AyuUtils.getFilename(oldMessage, attachPathFile);
-            var dest = new File(attachmentsPath, f);
-
-            // move file, because it's likely to be deleted by Telegram in a few seconds
-            var success = AyuUtils.moveFile(attachPathFile, dest);
-
-            if (success) {
-                attachPathFile = new File(dest.getAbsolutePath());
-            } else {
-                attachPathFile = new File("/");
-            }
+        if (!sameMedia && shouldSaveMedia(accountId, dialogId, oldMessage)) {
+            attachPathFile = processAttachment(accountId, oldMessage);
         }
 
         var attachPath = attachPathFile.getAbsolutePath();
@@ -195,11 +185,11 @@ public class AyuMessagesController {
 
             if (shouldSaveMedia(accountId, dialogId, msg)) {
                 if (msg.media == null) {
-                    deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_NONE; // none
+                    deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_NONE;
                 } else if (msg.media instanceof TLRPC.TL_messageMediaPhoto && msg.media.photo != null) {
-                    deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_PHOTO; // photo
+                    deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_PHOTO;
                 } else if (msg.media instanceof TLRPC.TL_messageMediaDocument && msg.media.document != null && (MessageObject.isStickerMessage(msg) || msg.media.document.mime_type.equals("application/x-tgsticker"))) {
-                    deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_STICKER; // sticker
+                    deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_STICKER;
 
                     try {
                         // телеграм полная хуйня, поэтому приходится сериализовать стикер вручную
@@ -215,28 +205,11 @@ public class AyuMessagesController {
                         Log.e("AyuGram", "fake news sticker", e);
                     }
                 } else {
-                    deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_FILE; // file
+                    deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_FILE;
                 }
 
                 if (deletedMessage.documentType == AyuConstants.DOCUMENT_TYPE_PHOTO || deletedMessage.documentType == AyuConstants.DOCUMENT_TYPE_FILE) {
-                    var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(msg);
-
-                    if (attachPathFile.exists()) {
-                        var f = AyuUtils.getFilename(msg, attachPathFile);
-                        var dest = new File(attachmentsPath, f);
-
-                        // move file, because it's likely to be deleted by Telegram in a few seconds
-                        var success = AyuUtils.moveFile(attachPathFile, dest);
-
-                        if (success) {
-                            attachPathFile = new File(dest.getAbsolutePath());
-                        } else {
-                            attachPathFile = new File("/");
-                        }
-                    } else {
-                        attachPathFile = new File("/");
-                    }
-
+                    var attachPathFile = processAttachment(accountId, msg);
                     var attachPath = attachPathFile.getAbsolutePath();
 
                     deletedMessage.mediaPath = attachPath.equals("/") ? null : attachPath;
@@ -274,6 +247,27 @@ public class AyuMessagesController {
 
             deletedMessageDao.insertReaction(deletedReaction);
         }
+    }
+
+    private File processAttachment(int accountId, TLRPC.Message msg) {
+        var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(msg);
+
+        if (attachPathFile.exists()) {
+            var f = AyuUtils.getFilename(msg, attachPathFile);
+            var dest = new File(attachmentsPath, f);
+
+            var success = AyuUtils.moveFile(attachPathFile, dest);
+
+            if (success) {
+                attachPathFile = new File(dest.getAbsolutePath());
+            } else {
+                attachPathFile = new File("/");
+            }
+        } else {
+            attachPathFile = new File("/");
+        }
+
+        return attachPathFile;
     }
 
     private boolean shouldSaveMedia(int accountId, long dialogId, TLRPC.Message message) {
