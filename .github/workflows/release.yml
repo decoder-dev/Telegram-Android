@@ -30,6 +30,9 @@ jobs:
             SIGNING_KEY_STORE_PASSWORD = ${{ secrets.CERT_KEY }}
           write-mode: overwrite
 
+      - name: Update packages
+        run: sudo apt-get update
+
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
