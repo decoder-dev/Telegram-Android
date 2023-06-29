@@ -9331,6 +9331,50 @@ public class MessagesController extends BaseController implements NotificationCe
         if ((messages == null || messages.isEmpty()) && taskId == 0) {
             return;
         }
+
+        // --- AyuGram hook
+        if (!scheduled && AyuConfig.keepDeletedMessages) {
+            if (DialogObject.isEncryptedDialog(dialogId) && messages != null && !messages.isEmpty()) { // process TTL messages from secrets
+                for (int a = 0; a < messages.size(); a++) {
+                    int id = messages.get(a);
+                    MessageObject obj = dialogMessagesByIds.get(id);
+                    if (obj == null) {
+                        var msg = getMessagesStorage().getMessage(dialogId, id);
+                        if (msg != null) {
+                            obj = new MessageObject(currentAccount, msg, false, false);
+                        }
+                    }
+
+                    if (obj != null) {
+                        AyuMessagesController.getInstance().onMessageDeleted(obj.messageOwner, getUserConfig().clientUserId, dialogId, 0, obj.getId(), currentAccount, (int) (System.currentTimeMillis() / 1000));
+                    }
+                }
+
+                AndroidUtilities.runOnUIThread(() -> {
+                    // invalidating views
+                    getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messages);
+                });
+            } else if (messages != null && !messages.isEmpty() && taskId != 0) {
+                var invalidate = new ArrayList<Integer>();
+
+                for (var msgId : messages) {
+                    var msg = getMessagesStorage().getMessage(dialogId, msgId);
+                    if (msg != null) {
+                        if (msg.ttl > 0 || msg.ttl_period > 0) {
+                            invalidate.add(msgId);
+                            AyuMessagesController.getInstance().onMessageDeleted(msg, getUserConfig().clientUserId, dialogId, MessageObject.getTopicId(msg, isForum(msg)), msgId, currentAccount, (int) (System.currentTimeMillis() / 1000));
+                        }
+                    }
+                }
+
+                AndroidUtilities.runOnUIThread(() -> {
+                    // invalidating views
+                    getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, invalidate);
+                });
+            }
+        }
+        // --- AyuGram hook
+
         ArrayList<Integer> toSend = null;
         long channelId;
         if (taskId == 0) {
@@ -9381,25 +9425,6 @@ public class MessagesController extends BaseController implements NotificationCe
                 channelId = 0;
             }
         }
-
-        // --- AyuGram hook (secret)
-        if (!scheduled && AyuConfig.keepDeletedMessages) {
-            if (DialogObject.isEncryptedDialog(dialogId) && messages != null && !messages.isEmpty()) {
-                for (int a = 0; a < messages.size(); a++) {
-                    int id = messages.get(a);
-                    MessageObject obj = dialogMessagesByIds.get(id);
-                    if (obj != null) {
-                        AyuMessagesController.getInstance().onMessageDeleted(obj.messageOwner, getUserConfig().clientUserId, dialogId, 0, obj.getId(), currentAccount, (int) (System.currentTimeMillis() / 1000));
-                    }
-                }
-
-                AndroidUtilities.runOnUIThread(() -> {
-                    // invalidating views
-                    getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messages);
-                });
-            }
-        }
-        // --- AyuGram hook
 
         if (cacheOnly) {
             return;
