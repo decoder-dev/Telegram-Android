@@ -22,7 +22,8 @@ public class EditedMessage {
     public int messageId;
     public int editedDate;
 
-    public String text; // html formatted
+    public String text; // plain text
+    public String textEntities; // JSON+TL serialized
     public String mediaPath; // full path
-    public boolean isDocument;
+    public int documentType; // see DOCUMENT_TYPE_*
 }

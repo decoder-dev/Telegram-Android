@@ -13,7 +13,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
 import com.radolyn.ayugram.database.entities.EditedMessage;
-import com.radolyn.ayugram.proprietary.AyuMessageUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -56,9 +55,7 @@ public class AyuMessageCell extends ChatMessageCell {
 
     private void copyText(BaseFragment fragment) {
         if (!TextUtils.isEmpty(editedMessage.text)) {
-            var unhtmlified = AyuMessageUtils.unhtmlify(editedMessage.text);
-
-            AndroidUtilities.addToClipboard(unhtmlified.first);
+            AndroidUtilities.addToClipboard(editedMessage.text);
             BulletinFactory.of(fragment).createCopyBulletin(LocaleController.getString("MessageCopied", R.string.MessageCopied)).show();
         }
     }
