@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 16,
-    "identityHash": "a290ea6d01c962e14e100128de5ac96f",
+    "identityHash": "ce4fa61fadc0ad9058b1b59b8558a358",
     "entities": [
       {
         "tableName": "EditedMessage",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`fakeId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `dialogId` INTEGER NOT NULL, `messageId` INTEGER NOT NULL, `editedDate` INTEGER NOT NULL, `text` TEXT, `textEntities` TEXT, `mediaPath` TEXT, `isDocument` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`fakeId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `dialogId` INTEGER NOT NULL, `messageId` INTEGER NOT NULL, `editedDate` INTEGER NOT NULL, `text` TEXT, `textEntities` TEXT, `mediaPath` TEXT, `documentType` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "fakeId",
@@ -57,8 +57,8 @@
             "notNull": false
           },
           {
-            "fieldPath": "isDocument",
-            "columnName": "isDocument",
+            "fieldPath": "documentType",
+            "columnName": "documentType",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -260,7 +260,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a290ea6d01c962e14e100128de5ac96f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ce4fa61fadc0ad9058b1b59b8558a358')"
     ]
   }
 }

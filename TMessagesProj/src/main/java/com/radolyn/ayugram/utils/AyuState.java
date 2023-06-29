@@ -40,6 +40,6 @@ public class AyuState {
     }
 
     public static boolean getAllowDeleteMessages() {
-        return !AyuConfig.keepDeletedMessages || allowDeleteMessages.process();
+        return !AyuConfig.saveDeletedMessages || allowDeleteMessages.process();
     }
 }

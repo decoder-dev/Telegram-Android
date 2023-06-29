@@ -31,8 +31,18 @@ public class AyuConfig {
     public static boolean sendOfflinePacketAfterOnline;
     public static boolean sendUploadProgress;
     public static boolean useScheduledMessages;
-    public static boolean keepDeletedMessages;
-    public static boolean keepMessagesHistory;
+    public static boolean saveDeletedMessages;
+    public static boolean saveMessagesHistory;
+
+    public static boolean saveMedia;
+    public static boolean saveMediaInPrivateChats;
+    public static boolean saveMediaInPublicChannels;
+    public static boolean saveMediaInPrivateChannels;
+    public static boolean saveMediaInPublicGroups;
+    public static boolean saveMediaInPrivateGroups;
+    public static boolean saveFormatting;
+    public static boolean saveReactions;
+
     public static boolean markReadAfterSend;
     public static boolean showFromChannel;
     public static boolean keepAliveService;
@@ -73,8 +83,19 @@ public class AyuConfig {
             useScheduledMessages = preferences.getBoolean("useScheduledMessages", false);
 
             // ~ Message edits & deletion history
-            keepDeletedMessages = preferences.getBoolean("keepDeletedMessages", true);
-            keepMessagesHistory = preferences.getBoolean("keepMessagesHistory", true);
+            saveDeletedMessages = preferences.getBoolean("saveDeletedMessages", true);
+            saveMessagesHistory = preferences.getBoolean("saveMessagesHistory", true);
+
+            // ~ Message saving features
+            saveMedia = preferences.getBoolean("saveMedia", true);
+            saveMediaInPrivateChats = preferences.getBoolean("saveMediaInPrivateChats", true);
+            saveMediaInPublicChannels = preferences.getBoolean("saveMediaInPublicChannels", false);
+            saveMediaInPrivateChannels = preferences.getBoolean("saveMediaInPrivateChannels", true);
+            saveMediaInPublicGroups = preferences.getBoolean("saveMediaInPublicGroups", false);
+            saveMediaInPrivateGroups = preferences.getBoolean("saveMediaInPrivateGroups", true);
+
+            saveFormatting = preferences.getBoolean("saveFormatting", true);
+            saveReactions = preferences.getBoolean("saveReactions", true);
 
             // ~ Useful features
             showFromChannel = preferences.getBoolean("showFromChannel", true);
