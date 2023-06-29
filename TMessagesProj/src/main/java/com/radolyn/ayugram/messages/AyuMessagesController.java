@@ -94,12 +94,13 @@ public class AyuMessagesController {
 
     private void onMessageEditedInner(TLRPC.Message oldMessage, TLRPC.Message newMessage, long userId, int accountId, int currentTime, boolean force) {
         boolean sameMedia = true;
-        boolean isDocument = false;
+        var documentType = AyuConstants.DOCUMENT_TYPE_FILE;
         if (oldMessage.media instanceof TLRPC.TL_messageMediaPhoto && newMessage.media instanceof TLRPC.TL_messageMediaPhoto && oldMessage.media.photo != null && newMessage.media.photo != null) {
             sameMedia = oldMessage.media.photo.id == newMessage.media.photo.id;
+            documentType = AyuConstants.DOCUMENT_TYPE_PHOTO;
         } else if (oldMessage.media instanceof TLRPC.TL_messageMediaDocument && newMessage.media instanceof TLRPC.TL_messageMediaDocument && oldMessage.media.document != null && newMessage.media.document != null) {
             sameMedia = oldMessage.media.document.id == newMessage.media.document.id;
-            isDocument = true;
+//            documentType = AyuConstants.DOCUMENT_TYPE_FILE;
         }
 
         if (force) {
@@ -130,7 +131,7 @@ public class AyuMessagesController {
 
         var revision = new EditedMessage();
         revision.mediaPath = attachPath.equals("/") ? null : attachPath;
-        revision.isDocument = isDocument;
+        revision.documentType = documentType;
 
         var dialogId = MessageObject.getDialogId(oldMessage);
         var messageId = newMessage.id;
@@ -144,7 +145,8 @@ public class AyuMessagesController {
         revision.userId = userId;
         revision.dialogId = dialogId;
         revision.messageId = messageId;
-        revision.text = AyuMessageUtils.htmlify(oldMessage);
+        revision.text = oldMessage.message;
+        revision.textEntities = AyuMessageUtils.serialize(oldMessage.entities);
         revision.editedDate = currentTime;
 
         editedMessageDao.insert(revision);
@@ -174,7 +176,8 @@ public class AyuMessagesController {
         if (msg != null) {
             Log.d("AyuGram", "saving message full");
 
-            deletedMessage.text = AyuMessageUtils.htmlify(msg);
+            deletedMessage.text = msg.message;
+            deletedMessage.textEntities = AyuMessageUtils.serialize(msg.entities);
             deletedMessage.date = msg.date;
             deletedMessage.flags = msg.flags;
 
@@ -190,11 +193,11 @@ public class AyuMessagesController {
             // --- media work
 
             if (msg.media == null) {
-                deletedMessage.documentType = 0; // none
+                deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_NONE; // none
             } else if (msg.media instanceof TLRPC.TL_messageMediaPhoto && msg.media.photo != null) {
-                deletedMessage.documentType = 1; // photo
+                deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_PHOTO; // photo
             } else if (msg.media instanceof TLRPC.TL_messageMediaDocument && msg.media.document != null && (MessageObject.isStickerMessage(msg) || msg.media.document.mime_type.equals("application/x-tgsticker"))) {
-                deletedMessage.documentType = 2; // sticker
+                deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_STICKER; // sticker
 
                 try {
                     // телеграм полная хуйня, поэтому приходится сериализовать стикер вручную
@@ -210,10 +213,10 @@ public class AyuMessagesController {
                     Log.e("AyuGram", "fake news sticker", e);
                 }
             } else {
-                deletedMessage.documentType = 3; // file
+                deletedMessage.documentType = AyuConstants.DOCUMENT_TYPE_FILE; // file
             }
 
-            if (deletedMessage.documentType == 1 || deletedMessage.documentType == 3) {
+            if (deletedMessage.documentType == AyuConstants.DOCUMENT_TYPE_PHOTO || deletedMessage.documentType == AyuConstants.DOCUMENT_TYPE_FILE) {
                 var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(msg);
 
                 if (attachPathFile.exists()) {

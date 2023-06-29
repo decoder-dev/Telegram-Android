@@ -27,10 +27,11 @@ public class DeletedMessage {
     public int date;
     public int deletedDate;
 
-    public String text; // html formatted
-    public String mediaPath; // full path
-    public int documentType; // 0 - none, 1 - photo, 2 - sticker, 3 - file
-    public byte[] documentSerialized; // for sticker
+    public String text; // plain text
+    public String textEntities; // JSON+TL serialized
+    public String mediaPath; // absolute local path
+    public int documentType; // see DOCUMENT_TYPE_*
+    public byte[] documentSerialized; // for sticker; TL serialized
 
     public int flags;
     public int editDate;

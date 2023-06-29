@@ -153,15 +153,10 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
         }
 
         private MessageObject createMessageObject(EditedMessage editedMessage) {
-            var parseResult = AyuMessageUtils.unhtmlify(editedMessage.text);
-
-            var text = parseResult.first;
-            var entities = parseResult.second;
-
             // shamefully copied from Extera's sticker size preview
             var msg = new TLRPC.TL_message();
-            msg.message = text;
-            msg.entities = entities;
+            msg.message = editedMessage.text;
+            msg.entities = AyuMessageUtils.deserialize(editedMessage.textEntities);
             msg.date = editedMessage.editedDate;
             msg.dialog_id = -1;
             msg.flags = 512;
@@ -170,7 +165,7 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
             msg.peer_id = new TLRPC.TL_peerUser();
             msg.peer_id.user_id = 1;
 
-            AyuFakeMessageUtils.fillMedia(msg, editedMessage.mediaPath, editedMessage.isDocument ? 3 : 1, editedMessage.editedDate);
+            AyuFakeMessageUtils.fillMedia(msg, editedMessage.mediaPath, editedMessage.documentType, editedMessage.editedDate);
 
             return new MessageObject(getCurrentAccount(), msg, true, true);
         }

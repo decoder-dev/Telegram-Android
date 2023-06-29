@@ -12,6 +12,7 @@ package com.radolyn.ayugram.utils;
 import android.text.TextUtils;
 import androidx.core.util.Pair;
 import com.google.android.exoplayer2.util.Log;
+import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.AyuUtils;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.TLRPC;
@@ -25,11 +26,11 @@ public class AyuFakeMessageUtils {
     }
 
     public static void fillMedia(TLRPC.TL_message message, String mediaPath, int documentType, int date, byte[] documentData) {
-        if (documentType == 0 || (documentType != 2 && TextUtils.isEmpty(mediaPath))) {
+        if (documentType == AyuConstants.DOCUMENT_TYPE_NONE || (documentType != AyuConstants.DOCUMENT_TYPE_STICKER && TextUtils.isEmpty(mediaPath))) {
             return;
         }
 
-        if (documentType == 2) {
+        if (documentType == AyuConstants.DOCUMENT_TYPE_STICKER) {
             try {
                 var data = new NativeByteBuffer(documentData.length);
                 data.put(ByteBuffer.wrap(documentData));
@@ -47,7 +48,7 @@ public class AyuFakeMessageUtils {
         message.attachPath = mediaPath;
         var file = new File(mediaPath);
 
-        if (documentType == 1) {
+        if (documentType == AyuConstants.DOCUMENT_TYPE_PHOTO) {
             var name = file.getName();
             var parsedSize = AyuUtils.extractImageSizeFromName(name);
             if (parsedSize == null) {
@@ -74,7 +75,7 @@ public class AyuFakeMessageUtils {
             photoSize.type = "y";
             photoSize.location = new AyuFileLocation(mediaPath);
             message.media.photo.sizes.add(photoSize);
-        } else if (documentType == 3) {
+        } else if (documentType == AyuConstants.DOCUMENT_TYPE_FILE) {
             message.media = new TLRPC.TL_messageMediaDocument();
             message.media.flags |= 1;
 
