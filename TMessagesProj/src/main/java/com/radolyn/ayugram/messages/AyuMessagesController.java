@@ -25,10 +25,12 @@ import com.radolyn.ayugram.database.entities.DeletedMessageReaction;
 import com.radolyn.ayugram.database.entities.EditedMessage;
 import com.radolyn.ayugram.proprietary.AyuMessageUtils;
 import org.telegram.messenger.*;
+import org.telegram.messenger.secretmedia.EncryptedFileInputStream;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.TLRPC;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -252,10 +254,10 @@ public class AyuMessagesController {
     private File processAttachment(int accountId, TLRPC.Message msg) {
         var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(msg);
 
-        if (attachPathFile.exists()) {
-            var f = AyuUtils.getFilename(msg, attachPathFile);
-            var dest = new File(attachmentsPath, f);
+        var f = AyuUtils.getFilename(msg, attachPathFile);
+        var dest = new File(attachmentsPath, f);
 
+        if (attachPathFile.exists()) {
             var success = AyuUtils.moveFile(attachPathFile, dest);
 
             if (success) {
@@ -264,6 +266,34 @@ public class AyuMessagesController {
                 attachPathFile = new File("/");
             }
         } else {
+            var possibleEncrypted = new File(FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE), attachPathFile.getName() + ".enc");
+            if (possibleEncrypted.exists()) {
+                var keyFile = new File(FileLoader.getInternalCacheDir(), possibleEncrypted.getName() + ".key");
+
+                Log.d("AyuGram", "key file " + keyFile.getAbsolutePath() + " exists " + keyFile.exists());
+
+                if (keyFile.exists()) {
+                    try {
+                        try (var stream = new EncryptedFileInputStream(possibleEncrypted, keyFile)) {
+                            try (var outStream = new FileOutputStream(dest)) {
+                                var buffer = new byte[1024];
+                                int read;
+                                while ((read = stream.read(buffer)) != -1) {
+                                    outStream.write(buffer, 0, read);
+                                }
+
+                                Log.d("AyuGram", "encrypted media copy success");
+
+                                return dest;
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e("AyuGram", "encrypted media copy failed", e);
+                        return new File("/");
+                    }
+                }
+            }
+
             attachPathFile = new File("/");
         }
 
