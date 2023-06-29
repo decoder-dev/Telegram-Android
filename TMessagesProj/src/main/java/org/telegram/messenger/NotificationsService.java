@@ -8,6 +8,7 @@
 
 package org.telegram.messenger;
 
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
@@ -20,6 +21,7 @@ import androidx.core.app.NotificationChannelCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.google.android.exoplayer2.util.Log;
 import com.radolyn.ayugram.AyuConfig;
 import org.telegram.ui.LaunchActivity;
 
@@ -65,17 +67,31 @@ public class NotificationsService extends Service {
 
             var cuteText = notifications[new Random().nextInt(notifications.length)];
 
-            var startIntent = new Intent(this, LaunchActivity.class);
-            var pendingIntent = PendingIntent.getActivity(this, 0, startIntent, PendingIntent.FLAG_MUTABLE);
+            Notification notification;
 
-            var notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                    .setContentIntent(pendingIntent)
-                    .setSmallIcon(R.drawable.msg_premium_badge)
-                    .setShowWhen(false)
-                    .setOngoing(true)
-                    .setContentText(cuteText)
-                    .setCategory(NotificationCompat.CATEGORY_STATUS)
-                    .build();
+            try {
+                var startIntent = new Intent(this, LaunchActivity.class);
+                var pendingIntent = PendingIntent.getActivity(this, 0, startIntent, PendingIntent.FLAG_MUTABLE);
+
+                notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                        .setContentIntent(pendingIntent)
+                        .setSmallIcon(R.drawable.msg_premium_badge)
+                        .setShowWhen(false)
+                        .setOngoing(true)
+                        .setContentText(cuteText)
+                        .setCategory(NotificationCompat.CATEGORY_STATUS)
+                        .build();
+            } catch (Exception e) {
+                Log.e("AyuGram", "Xiaomi moment", e);
+
+                notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                        .setSmallIcon(R.drawable.msg_premium_badge)
+                        .setShowWhen(false)
+                        .setOngoing(true)
+                        .setContentText(cuteText)
+                        .setCategory(NotificationCompat.CATEGORY_STATUS)
+                        .build();
+            }
 
             startForeground(9999, notification);
         }
