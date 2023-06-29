@@ -390,6 +390,7 @@ public class AyuMessagesController {
 
     public void clean() {
         AyuData.clean();
+        AyuData.create();
 
         // force recreate a database to avoid crash
         instance = null;

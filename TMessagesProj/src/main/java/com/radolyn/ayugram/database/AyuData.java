@@ -16,11 +16,15 @@ import com.radolyn.ayugram.database.dao.EditedMessageDao;
 import org.telegram.messenger.ApplicationLoader;
 
 public class AyuData {
-    private static final AyuDatabase database;
-    private static final EditedMessageDao editedMessageDao;
-    private static final DeletedMessageDao deletedMessageDao;
+    private static AyuDatabase database;
+    private static EditedMessageDao editedMessageDao;
+    private static DeletedMessageDao deletedMessageDao;
 
     static {
+        create();
+    }
+
+    public static void create() {
         database = Room.databaseBuilder(ApplicationLoader.applicationContext, AyuDatabase.class, AyuConstants.AYU_DATABASE)
                 .allowMainThreadQueries()
                 .fallbackToDestructiveMigration()
