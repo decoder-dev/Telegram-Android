@@ -110,8 +110,6 @@ public class AyuMessagesController {
             return;
         }
 
-        var revision = new EditedMessage();
-
         var attachPathFile = FileLoader.getInstance(accountId).getPathToMessage(oldMessage);
 
         if (!sameMedia && attachPathFile.exists()) {
@@ -130,6 +128,7 @@ public class AyuMessagesController {
 
         var attachPath = attachPathFile.getAbsolutePath();
 
+        var revision = new EditedMessage();
         revision.mediaPath = attachPath.equals("/") ? null : attachPath;
         revision.isDocument = isDocument;
 
