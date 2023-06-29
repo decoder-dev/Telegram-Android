@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.database.entities.EditedMessage;
 import com.radolyn.ayugram.messages.AyuMessagesController;
 import com.radolyn.ayugram.proprietary.AyuMessageUtils;
@@ -30,16 +31,20 @@ import org.telegram.ui.Components.RecyclerListView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class AyuMessageHistory extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
     private final List<EditedMessage> messages;
     private final int rowCount;
+    private final MessageObject messageObject;
+
     private RecyclerListView listView;
 
     public AyuMessageHistory(long userId, MessageObject messageObject) {
         var messagesController = AyuMessagesController.getInstance();
         messages = messagesController.getRevisions(userId, messageObject.messageOwner.dialog_id, messageObject.messageOwner.id);
         rowCount = messages.size();
+        this.messageObject = messageObject;
     }
 
     @Override
@@ -166,6 +171,10 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
             msg.peer_id.user_id = 1;
 
             AyuFakeMessageUtils.fillMedia(msg, editedMessage.mediaPath, editedMessage.documentType, editedMessage.editedDate);
+
+            if (editedMessage.documentType == AyuConstants.DOCUMENT_TYPE_FILE && Objects.equals(editedMessage.mediaPath, FileLoader.getInstance(currentAccount).getPathToMessage(messageObject.messageOwner).getAbsolutePath())) {
+                msg.media.document = messageObject.messageOwner.media.document;
+            }
 
             return new MessageObject(getCurrentAccount(), msg, true, true);
         }
