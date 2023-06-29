@@ -93,7 +93,8 @@ public class AyuMessagesController {
     }
 
     private void onMessageEditedInner(TLRPC.Message oldMessage, TLRPC.Message newMessage, long userId, int accountId, int currentTime, boolean force) {
-        boolean sameMedia = oldMessage.media.getClass() == newMessage.media.getClass();
+        boolean sameMedia = oldMessage.media == newMessage.media ||
+                (oldMessage.media != null && newMessage.media != null && oldMessage.media.getClass() == newMessage.media.getClass());
         if (oldMessage.media instanceof TLRPC.TL_messageMediaPhoto && newMessage.media instanceof TLRPC.TL_messageMediaPhoto && oldMessage.media.photo != null && newMessage.media.photo != null) {
             sameMedia = oldMessage.media.photo.id == newMessage.media.photo.id;
         } else if (oldMessage.media instanceof TLRPC.TL_messageMediaDocument && newMessage.media instanceof TLRPC.TL_messageMediaDocument && oldMessage.media.document != null && newMessage.media.document != null) {
