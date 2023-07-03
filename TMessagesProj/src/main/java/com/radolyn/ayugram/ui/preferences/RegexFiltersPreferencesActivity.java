@@ -51,10 +51,13 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
         addFilterBtnRow = newRow();
         addFilterDividerRow = newRow();
 
-        filtersHeaderRow = newRow();
-
         var filters = AyuConfig.getRegexFilters();
-        rowCount += filters.size();
+        var count = filters.size();
+
+        if (count != 0) {
+            filtersHeaderRow = newRow();
+            rowCount += filters.size();
+        }
     }
 
     @Override
