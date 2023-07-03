@@ -388,6 +388,26 @@ public class AyuMessagesController {
         return deletedMessageDao.isDeleted(userId, dialogId, ids);
     }
 
+    public void delete(long userId, long dialogId, int msgId) {
+        var msg = getMessage(userId, dialogId, msgId);
+        if (msg == null) {
+            return;
+        }
+
+        deletedMessageDao.delete(userId, dialogId, msgId);
+
+        if (!TextUtils.isEmpty(msg.message.mediaPath)) {
+            var p = new File(msg.message.mediaPath);
+            if (p.exists()) {
+                try {
+                    p.delete();
+                } catch (Exception e) {
+                    Log.e("AyuGram", "failed to delete file " + msg.message.mediaPath, e);
+                }
+            }
+        }
+    }
+
     public void clean() {
         AyuData.clean();
         AyuData.create();

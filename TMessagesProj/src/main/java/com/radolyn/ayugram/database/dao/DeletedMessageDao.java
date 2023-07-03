@@ -45,6 +45,9 @@ public interface DeletedMessageDao {
     @Query("SELECT EXISTS(SELECT * FROM deletedmessage WHERE userId = :userId AND dialogId = :dialogId AND topicId = :topicId AND messageId = :msgId)")
     boolean exists(long userId, long dialogId, long topicId, int msgId);
 
+    @Query("DELETE FROM deletedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :msgId")
+    void delete(long userId, long dialogId, int msgId);
+
     @Insert
     void insertReaction(DeletedMessageReaction reaction);
 }
