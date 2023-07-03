@@ -65,7 +65,12 @@ public class RegexFilterEditActivity extends BaseFragment {
                     try {
                         Pattern.compile(text);
                     } catch (PatternSyntaxException e) {
-                        errorTextView.setText(AyuUtils.htmlToString("<b>" + e.getDescription() + "</b>"));
+                        var errorText = e.getMessage();
+                        if (!TextUtils.isEmpty(errorText)) {
+                            errorText = errorText.replace(text, "");
+                        }
+
+                        errorTextView.setText(AyuUtils.htmlToString("<b>" + errorText + "</b>"));
                         BulletinFactory.of(RegexFilterEditActivity.this).createSimpleBulletin(R.raw.error, LocaleController.getString(R.string.RegexFiltersAddError)).show();
                         return;
                     }
