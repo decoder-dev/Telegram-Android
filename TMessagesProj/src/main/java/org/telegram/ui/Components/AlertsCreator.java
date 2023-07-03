@@ -8123,7 +8123,6 @@ public class AlertsCreator {
 
         AlertDialog.OnButtonClickListener deleteAction = (dialogInterface, i) -> {
             ArrayList<Integer> ids = null;
-            AyuState.setAllowDeleteMessages(true, 1);
             if (selectedMessage != null) {
                 ArrayList<MessageObject> ephemeralMessages = new ArrayList<>();
                 ids = new ArrayList<>();
@@ -8137,6 +8136,7 @@ public class AlertsCreator {
                         }
 
                         ids.add(messageObject.getId());
+                        AyuState.permitDeleteMessage(dialogId, messageObject.getId());
                         if (encryptedChat != null && messageObject.messageOwner.random_id != 0 && messageObject.type != 10) {
                             if (random_ids == null) {
                                 random_ids = new ArrayList<>();
@@ -8145,14 +8145,11 @@ public class AlertsCreator {
                         }
                     }
                 } else {
-                    if (selectedMessage.isEphemeral()) {
-                        ephemeralMessages.add(selectedMessage);
-                    } else {
-                        ids.add(selectedMessage.getId());
-                        if (encryptedChat != null && selectedMessage.messageOwner.random_id != 0 && selectedMessage.type != 10) {
-                            random_ids = new ArrayList<>();
-                            random_ids.add(selectedMessage.messageOwner.random_id);
-                        }
+                    ids.add(selectedMessage.getId());
+                    AyuState.permitDeleteMessage(dialogId, selectedMessage.getId());
+                    if (encryptedChat != null && selectedMessage.messageOwner.random_id != 0 && selectedMessage.type != 10) {
+                        random_ids = new ArrayList<>();
+                        random_ids.add(selectedMessage.messageOwner.random_id);
                     }
                 }
                 if (mergeDialogId != 0 && selectedMessage.messageOwner.peer_id != null && selectedMessage.messageOwner.peer_id.chat_id == -mergeDialogId) {
@@ -8169,6 +8166,7 @@ public class AlertsCreator {
                     ids = new ArrayList<>();
                     for (int b = 0; b < selectedMessages[a].size(); b++) {
                         ids.add(selectedMessages[a].keyAt(b));
+                        AyuState.permitDeleteMessage(dialogId, selectedMessages[a].keyAt(b));
                     }
                     ArrayList<Long> random_ids = null;
                     if (encryptedChat != null) {

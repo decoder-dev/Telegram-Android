@@ -22752,12 +22752,7 @@ public class ChatActivity extends BaseFragment implements
             }
             ArrayList<Integer> markAsDeletedMessages = (ArrayList<Integer>) args[0];
             long channelId = (Long) args[1];
-
-            // --- AyuGram hook
-            if (AyuState.getAllowDeleteMessages()) {
-                processDeletedMessages(markAsDeletedMessages, channelId);
-            }
-            // --- AyuGram hook
+            processDeletedMessages(markAsDeletedMessages, channelId);
         } else if (id == NotificationCenter.messageReceivedByServer) {
             Boolean scheduled = (Boolean) args[6];
             if (scheduled != (chatMode == MODE_SCHEDULED)) {
@@ -26766,7 +26761,13 @@ public class ChatActivity extends BaseFragment implements
         int commentsDeleted = 0;
         for (int a = 0; a < size; a++) {
             Integer mid = markAsDeletedMessages.get(a);
-            MessageObject obj = chatAdapter != null && chatAdapter.isFiltered ? filteredMessagesDict.get(mid) :  messagesDict[loadIndex].get(mid);
+            if (AyuState.deletePermitted(getDialogId(), mid)) {
+                AyuState.messageDeleted(getDialogId(), mid);
+            } else {
+                continue;
+            }
+
+            MessageObject obj = messagesDict[loadIndex].get(mid);
             if (selectedObject != null && obj == selectedObject || obj != null && selectedObjectGroup != null && selectedObjectGroup == groupedMessagesMap.get(obj.getGroupId())) {
                 closeMenu();
             }
