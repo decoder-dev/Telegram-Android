@@ -383,9 +383,8 @@ public class ApplicationLoader extends Application {
             enabled = MessagesController.getMainSettings(UserConfig.selectedAccount).getBoolean("keepAliveService", false);
         }
         if (enabled) {
-            if (AyuConfig.keepAliveService && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                Log.d("TFOSS", "Scheduling legacy push-service recovery");
-                // Telegram-FOSS: unconditionally enable push service
+            if (AyuConfig.keepAliveService) {
+                Log.d("TFOSS", "Trying to start push service every minute");
                 AlarmManager am = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
                 Intent i = new Intent(applicationContext, NotificationsService.class);
                 pendingIntent = PendingIntent.getService(applicationContext, 0, i, PendingIntent.FLAG_IMMUTABLE);
@@ -396,11 +395,7 @@ public class ApplicationLoader extends Application {
 
             try {
                 Log.d("TFOSS", "Starting push service...");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && AyuConfig.keepAliveService) {
-                    applicationContext.startForegroundService(new Intent(applicationContext, NotificationsService.class));
-                } else {
-                    applicationContext.startService(new Intent(applicationContext, NotificationsService.class));
-                }
+                applicationContext.startService(new Intent(applicationContext, NotificationsService.class));
             } catch (Throwable ignore) {
                 Log.d("TFOSS", "Failed to start push service");
             }

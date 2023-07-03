@@ -69,6 +69,7 @@ public class NotificationsService extends Service {
 
             Notification notification;
 
+            // todo: remove try catch
             try {
                 var startIntent = new Intent(this, LaunchActivity.class);
                 var pendingIntent = PendingIntent.getActivity(this, 0, startIntent, PendingIntent.FLAG_MUTABLE);
