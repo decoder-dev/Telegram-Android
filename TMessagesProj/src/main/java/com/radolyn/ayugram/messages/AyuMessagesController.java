@@ -338,7 +338,7 @@ public class AyuMessagesController {
         }
 
         var messagesController = MessagesController.getInstance(accountId);
-        var chat = messagesController.getChat(dialogId);
+        var chat = messagesController.getChat(Math.abs(dialogId)); // abs because tg is a bullshit
         if (chat == null) {
             Log.e("AyuGram", "chat is null so saving media just in case");
             return true;
@@ -375,17 +375,6 @@ public class AyuMessagesController {
 
     public List<DeletedMessageFull> getMessagesGrouped(long userId, long dialogId, long groupedId) {
         return deletedMessageDao.getMessagesGrouped(userId, dialogId, groupedId);
-    }
-
-    public boolean isDeleted(long userId, long dialogId, int msgId) {
-        return deletedMessageDao.isDeleted(userId, dialogId, msgId);
-    }
-
-    public boolean isDeleted(long userId, ArrayList<MessageObject> messageObjects) {
-        var ids = messageObjects.stream().map(MessageObject::getId).collect(Collectors.toList());
-        var dialogId = messageObjects.get(0).messageOwner.dialog_id;
-
-        return deletedMessageDao.isDeleted(userId, dialogId, ids);
     }
 
     public void delete(long userId, long dialogId, int msgId) {
