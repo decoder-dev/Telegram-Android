@@ -21,12 +21,6 @@ import java.util.List;
 
 @Dao
 public interface DeletedMessageDao {
-    @Query("SELECT EXISTS(SELECT * FROM deletedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId)")
-    boolean isDeleted(long userId, long dialogId, long messageId);
-
-    @Query("SELECT EXISTS(SELECT * FROM deletedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId in (:messageIds))")
-    boolean isDeleted(long userId, long dialogId, List<Integer> messageIds);
-
     @Transaction
     @Query("SELECT * FROM deletedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId")
     DeletedMessageFull getMessage(long userId, long dialogId, int messageId);
@@ -42,12 +36,12 @@ public interface DeletedMessageDao {
     @Insert
     long insert(DeletedMessage msg);
 
+    @Insert
+    void insertReaction(DeletedMessageReaction reaction);
+
     @Query("SELECT EXISTS(SELECT * FROM deletedmessage WHERE userId = :userId AND dialogId = :dialogId AND topicId = :topicId AND messageId = :msgId)")
     boolean exists(long userId, long dialogId, long topicId, int msgId);
 
     @Query("DELETE FROM deletedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :msgId")
     void delete(long userId, long dialogId, int msgId);
-
-    @Insert
-    void insertReaction(DeletedMessageReaction reaction);
 }
