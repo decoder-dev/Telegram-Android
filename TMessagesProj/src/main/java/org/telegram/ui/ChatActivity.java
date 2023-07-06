@@ -12343,10 +12343,10 @@ public class ChatActivity extends BaseFragment implements
 
     private boolean hasSelectedNoforwardsMessage() {
         try {
-            for (int i = 0; i < selectedMessagesIds.length; ++i) {
-                for (int j = 0; j < selectedMessagesIds[i].size(); ++j) {
-                    MessageObject msg = selectedMessagesIds[i].valueAt(j);
-                    if (msg != null && msg.messageOwner != null && msg.messageOwner.noforwards) {
+            for (SparseArrayWithTouch<MessageObject> selectedMessagesId : selectedMessagesIds) {
+                for (int j = 0; j < selectedMessagesId.size(); ++j) {
+                    MessageObject msg = selectedMessagesId.valueAt(j);
+                    if (msg != null && msg.messageOwner != null && (msg.messageOwner.noforwards || msg.messageOwner.ayuDeleted)) {
                         return true;
                     }
                 }
