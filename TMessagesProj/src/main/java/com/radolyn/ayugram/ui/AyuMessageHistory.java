@@ -19,7 +19,6 @@ import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.database.entities.EditedMessage;
 import com.radolyn.ayugram.messages.AyuMessagesController;
 import com.radolyn.ayugram.proprietary.AyuMessageUtils;
-import com.radolyn.ayugram.utils.AyuFakeMessageUtils;
 import org.telegram.messenger.*;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -160,23 +159,17 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
         private MessageObject createMessageObject(EditedMessage editedMessage) {
             // shamefully copied from Extera's sticker size preview
             var msg = new TLRPC.TL_message();
-            msg.message = editedMessage.text;
-            msg.entities = AyuMessageUtils.deserialize(editedMessage.textEntities);
-            msg.date = editedMessage.editedDate;
-            msg.dialog_id = -1;
-            msg.flags = 512;
-            msg.id = Utilities.random.nextInt();
-            msg.out = false;
-            msg.peer_id = new TLRPC.TL_peerUser();
-            msg.peer_id.user_id = 1;
+            AyuMessageUtils.map(editedMessage, msg, currentAccount);
+            AyuMessageUtils.mapMedia(editedMessage, msg);
 
-            AyuFakeMessageUtils.fillMedia(msg, editedMessage.mediaPath, editedMessage.documentType, editedMessage.editedDate);
+            msg.date = editedMessage.entityCreateDate;
+            msg.edit_hide = true;
 
             if (editedMessage.documentType == AyuConstants.DOCUMENT_TYPE_FILE && Objects.equals(editedMessage.mediaPath, FileLoader.getInstance(currentAccount).getPathToMessage(messageObject.messageOwner).getAbsolutePath())) {
                 msg.media.document = messageObject.messageOwner.media.document;
             }
 
-            return new MessageObject(getCurrentAccount(), msg, true, true);
+            return new MessageObject(getCurrentAccount(), msg, false, true);
         }
     }
 }

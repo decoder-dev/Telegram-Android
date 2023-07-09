@@ -22,6 +22,7 @@ import android.util.SparseIntArray;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.messages.AyuMessagesController;
+import com.radolyn.ayugram.messages.AyuSavePreferences;
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.ConnectionsManager;
@@ -158,7 +159,9 @@ public class SecretChatHelper extends BaseController {
                         var messages = dialogsWithMessages.valueAt(i);
 
                         for (var msg : messages) {
-                            AyuMessagesController.getInstance().onMessageDeleted(msg, getUserConfig().clientUserId, dialogId, 0, msg.id, currentAccount, (int)(System.currentTimeMillis() / 1000));
+                            var prefs = new AyuSavePreferences(msg, currentAccount);
+                            prefs.setDialogId(dialogId);
+                            AyuMessagesController.getInstance().onMessageDeleted(prefs);
                         }
 
                         // invalidating views

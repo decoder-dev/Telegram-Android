@@ -19,10 +19,10 @@ import java.util.List;
 
 @Dao
 public interface EditedMessageDao {
-    @Query("SELECT * FROM editedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId ORDER BY editedDate")
+    @Query("SELECT * FROM editedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId ORDER BY entityCreateDate")
     List<EditedMessage> getAllRevisions(long userId, long dialogId, long messageId);
 
-    @Query("UPDATE editedmessage SET mediaPath = :newPath WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId AND editedDate < :beforeDate")
+    @Query("UPDATE editedmessage SET mediaPath = :newPath WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId AND entityCreateDate < :beforeDate")
     void updateAttachmentForRevisionsBeforeDate(long userId, long dialogId, long messageId, String newPath, long beforeDate);
 
     @Query("SELECT NOT EXISTS(SELECT * FROM editedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId AND mediaPath LIKE '%" + AyuMessagesController.attachmentsSubfolder + "%')")
@@ -31,13 +31,13 @@ public interface EditedMessageDao {
     @Query("SELECT EXISTS(SELECT * FROM editedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId)")
     boolean hasAnyRevisions(long userId, long dialogId, long messageId);
 
-    @Query("SELECT * FROM editedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId AND editedDate = :date")
+    @Query("SELECT * FROM editedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId AND entityCreateDate = :date")
     EditedMessage getRevision(long userId, long dialogId, long messageId, long date);
 
-    @Query("SELECT COUNT(*) FROM editedmessage WHERE userId = :userId AND editedDate > :fromDate")
+    @Query("SELECT COUNT(*) FROM editedmessage WHERE userId = :userId AND entityCreateDate > :fromDate")
     int getSyncCount(long userId, long fromDate);
 
-    @Query("SELECT * FROM editedmessage WHERE userId = :userId AND editedDate > :fromDate ORDER BY editedDate LIMIT 50 OFFSET :offset")
+    @Query("SELECT * FROM editedmessage WHERE userId = :userId AND entityCreateDate > :fromDate ORDER BY entityCreateDate LIMIT 50 OFFSET :offset")
     List<EditedMessage> getForSync(long userId, long fromDate, int offset);
 
     @Insert
