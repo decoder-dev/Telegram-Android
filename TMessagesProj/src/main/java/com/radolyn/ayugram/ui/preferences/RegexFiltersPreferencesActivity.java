@@ -65,7 +65,7 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
     @Override
     protected void onItemClick(View view, int position, float x, float y) {
         if (position > filtersHeaderRow && filtersHeaderRow != -1) {
-            // clicked on filter
+            // clicked on a filter
             RegexFilterPopup.show(this, view, x, y, position - filtersHeaderRow - 1);
         } else if (position == enableInChatsRow) {
             AyuConfig.editor.putBoolean("regexFiltersInChats", AyuConfig.regexFiltersInChats ^= true).apply();
