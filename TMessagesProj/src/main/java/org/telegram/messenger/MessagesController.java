@@ -49,6 +49,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.util.Consumer;
 
+import com.radolyn.ayugram.messages.AyuSavePreferences;
 import com.radolyn.ayugram.utils.AyuState;
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
@@ -9352,7 +9353,9 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
 
                     if (obj != null) {
-                        AyuMessagesController.getInstance().onMessageDeleted(obj.messageOwner, getUserConfig().clientUserId, dialogId, 0, obj.getId(), currentAccount, (int) (System.currentTimeMillis() / 1000));
+                        var prefs = new AyuSavePreferences(obj.messageOwner, currentAccount);
+                        prefs.setDialogId(dialogId);
+                        AyuMessagesController.getInstance().onMessageDeleted(prefs);
                     }
                 }
 
@@ -9372,7 +9375,10 @@ public class MessagesController extends BaseController implements NotificationCe
                     if (msg != null) {
                         if (msg.ttl > 0 || msg.ttl_period > 0) {
                             invalidate.add(msgId);
-                            AyuMessagesController.getInstance().onMessageDeleted(msg, getUserConfig().clientUserId, dialogId, MessageObject.getTopicId(msg, isForum(msg)), msgId, currentAccount, (int) (System.currentTimeMillis() / 1000));
+
+                            var prefs = new AyuSavePreferences(msg, currentAccount);
+                            prefs.setDialogId(dialogId);
+                            AyuMessagesController.getInstance().onMessageDeleted(prefs);
                         }
                     }
                 }
@@ -19918,7 +19924,10 @@ public class MessagesController extends BaseController implements NotificationCe
                     for (var msgId : messageIds) {
                         var msg = messagesStorage.getMessage(dialogId, msgId);
                         var topicId = msg != null ? MessageObject.getTopicId(msg, isForum(dialogId)) : 0;
-                        ayuMessagesController.onMessageDeleted(msg, userId, dialogId, topicId, msgId, currentAccount, currentTimeS);
+
+                        // TLRPC.Message msg, int accountId, long dialogId, int topicId, int messageId, int requestCatchTime
+                        var prefs = new AyuSavePreferences(msg, currentAccount, dialogId, topicId, msgId, currentTimeS);
+                        ayuMessagesController.onMessageDeleted(prefs);
                     }
 
                     AndroidUtilities.runOnUIThread(() -> {
