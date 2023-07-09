@@ -202,10 +202,10 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
 
             AyuState.setAutomaticallyScheduled(false, -1);
         } else if (position == saveDeletedMessagesRow) {
-            AyuConfig.editor.putBoolean("keepDeletedMessages", AyuConfig.saveDeletedMessages ^= true).apply();
+            AyuConfig.editor.putBoolean("saveDeletedMessages", AyuConfig.saveDeletedMessages ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.saveDeletedMessages);
         } else if (position == saveMessagesHistoryRow) {
-            AyuConfig.editor.putBoolean("keepMessagesHistory", AyuConfig.saveMessagesHistory ^= true).apply();
+            AyuConfig.editor.putBoolean("saveMessagesHistory", AyuConfig.saveMessagesHistory ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.saveMessagesHistory);
         } else if (position == messageSavingBtnRow) {
             presentFragment(new MessageSavingPreferencesActivity());
