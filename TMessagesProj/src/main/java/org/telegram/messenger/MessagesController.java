@@ -9363,7 +9363,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     // invalidating views
                     getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messages);
                 });
-            } else if (messages != null && !messages.isEmpty() && taskId != 0) {
+            } else if (messages != null && !messages.isEmpty() && taskId != 0) { // process TTL messages
                 var invalidate = new ArrayList<Integer>();
 
                 for (var msgId : messages) {
@@ -9387,7 +9387,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     // invalidating views
                     getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, invalidate);
                 });
-            } else if ((messages != null && !messages.isEmpty())) {
+            } else if ((messages != null && !messages.isEmpty())) { // process manual deletion of deleted messages
                 var ayuMessagesController = AyuMessagesController.getInstance();
                 var userId = UserConfig.getInstance(currentAccount).clientUserId;
 

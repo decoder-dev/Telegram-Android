@@ -9,6 +9,7 @@
 
 package com.radolyn.ayugram.sync;
 
+import android.util.Log;
 import com.radolyn.ayugram.AyuConstants;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
@@ -46,6 +47,7 @@ public class AyuSyncState {
     }
 
     public static void setConnectionState(AyuSyncConnectionState connectionState) {
+        Log.d("AyuSync", "setConnectionState: " + connectionState);
         AyuSyncState.connectionState = connectionState;
 
         AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(AyuConstants.AYUSYNC_STATE_CHANGED));

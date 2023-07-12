@@ -17,15 +17,20 @@ public class AyuSavePreferences {
     private final TLRPC.Message message;
     private final int accountId;
     private final long userId;
-    private long dialogId;
-    private final int topicId;
-    private final int messageId;
-    private final int requestCatchTime;
+    private long dialogId = -1;
+    private int topicId = -1;
+    private int messageId = -1;
+    private int requestCatchTime = -1;
 
     public AyuSavePreferences(TLRPC.Message msg, int accountId, long dialogId, int topicId, int messageId, int requestCatchTime) {
         this.message = msg;
         this.accountId = accountId;
         this.userId = UserConfig.getInstance(accountId).getClientUserId();
+
+        if (msg == null) {
+            return;
+        }
+
         this.dialogId = dialogId;
         this.topicId = topicId;
         this.messageId = messageId;
@@ -36,6 +41,11 @@ public class AyuSavePreferences {
         this.message = msg;
         this.accountId = accountId;
         this.userId = UserConfig.getInstance(accountId).getClientUserId();
+
+        if (msg == null) {
+            return;
+        }
+
         this.dialogId = msg.dialog_id;
         this.topicId = MessageObject.getTopicId(msg, false);
         this.messageId = msg.id;
@@ -54,16 +64,16 @@ public class AyuSavePreferences {
         return userId;
     }
 
+    public long getDialogId() {
+        return dialogId;
+    }
+
     public void setDialogId(long dialogId) {
         if (dialogId == 0) {
             return;
         }
 
         this.dialogId = dialogId;
-    }
-
-    public long getDialogId() {
-        return dialogId;
     }
 
     public int getTopicId() {
