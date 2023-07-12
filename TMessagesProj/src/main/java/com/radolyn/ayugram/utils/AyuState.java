@@ -17,6 +17,7 @@ import java.util.ArrayList;
 public class AyuState {
     private static final AyuStateVariable allowReadPacket = new AyuStateVariable();
     private static final AyuStateVariable automaticallyScheduled = new AyuStateVariable();
+    private static final AyuStateVariable hideSelection = new AyuStateVariable();
     private static final LongSparseArray<ArrayList<Integer>> deletePermitted = new LongSparseArray<>();
 
     public static void setAllowReadPacket(boolean val, int resetAfter) {
@@ -35,6 +36,15 @@ public class AyuState {
 
     public static boolean getAutomaticallyScheduled() {
         return automaticallyScheduled.process();
+    }
+
+    public static void setHideSelection(boolean val, int resetAfter) {
+        hideSelection.val = val;
+        hideSelection.resetAfter = resetAfter;
+    }
+
+    public static boolean getHideSelection() {
+        return hideSelection.process();
     }
 
     public static void permitDeleteMessage(long dialogId, int messageId) {

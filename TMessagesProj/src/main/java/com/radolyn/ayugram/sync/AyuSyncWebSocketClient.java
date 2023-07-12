@@ -70,7 +70,13 @@ public class AyuSyncWebSocketClient extends WebSocketClient {
 
         AyuSyncState.setConnectionState(AyuSyncConnectionState.Disconnected);
 
-        instance.close(200, 0, "nullified");
+        try {
+            // crashed once with "java.lang.IllegalStateException: Timer already cancelled."
+            instance.close(200, 0, "nullified");
+        } catch (Exception e) {
+            Log.e("AyuSync", "Error while closing WebSocket", e);
+        }
+
         instance = null;
     }
 

@@ -17,15 +17,14 @@ import com.google.gson.JsonObject;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuUtils;
 import com.radolyn.ayugram.sync.models.*;
+import com.radolyn.ayugram.utils.AyuGhostUtils;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.telegram.messenger.DispatchQueue;
 import org.telegram.messenger.MessagesController;
-import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.UserConfig;
-import org.telegram.messenger.support.LongSparseIntArray;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -311,22 +310,13 @@ public class AyuSyncController {
         var accountId = accounts.get(req.userId);
 
         var controller = MessagesController.getInstance(accountId);
-        var storage = MessagesStorage.getInstance(accountId);
 
         var dialog = controller.getDialog(req.args.dialogId);
         if (dialog.unread_count <= req.args.unread) {
             return;
         }
 
-        var markAsReadMessagesInbox = new LongSparseIntArray();
-        var stillUnreadMessagesCount = new LongSparseIntArray();
-
-        markAsReadMessagesInbox.put(req.args.dialogId, req.args.untilId);
-        stillUnreadMessagesCount.put(req.args.dialogId, req.args.unread);
-
-        controller.dialogs_read_inbox_max.put(req.args.dialogId, req.args.untilId);
-        storage.updateDialogsWithReadMessages(markAsReadMessagesInbox, null, null, stillUnreadMessagesCount, true);
-        storage.markMessagesAsRead(markAsReadMessagesInbox, null, null, true);
+        AyuGhostUtils.markReadLocally(accountId, req.args.dialogId, req.args.untilId, req.args.unread);
     }
 
     public void invokeHandler(JsonObject req) {

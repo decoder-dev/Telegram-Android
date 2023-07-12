@@ -10,6 +10,9 @@
 package com.radolyn.ayugram.utils;
 
 import android.util.Pair;
+import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
+import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -18,13 +21,43 @@ public class AyuGhostUtils {
     public static void markRead(int accountId, int messageId, TLRPC.InputPeer peer) {
         var connectionsManager = ConnectionsManager.getInstance(accountId);
 
-        TLRPC.TL_messages_readHistory request = new TLRPC.TL_messages_readHistory();
-        request.peer = peer;
-        request.max_id = messageId;
+        TLObject req;
+        if (peer instanceof TLRPC.TL_inputPeerChannel) {
+            TLRPC.TL_channels_readHistory request = new TLRPC.TL_channels_readHistory();
+            request.channel = MessagesController.getInputChannel(peer);
+            request.max_id = messageId;
+            req = request;
+        } else {
+            TLRPC.TL_messages_readHistory request = new TLRPC.TL_messages_readHistory();
+            request.peer = peer;
+            request.max_id = messageId;
+            req = request;
+        }
 
         AyuState.setAllowReadPacket(true, 1);
-        connectionsManager.sendRequest(request, (response, error) -> {
+        connectionsManager.sendRequest(req, (response, error) -> {
+            if (error == null) {
+                if (response instanceof TLRPC.TL_messages_affectedMessages) {
+                    TLRPC.TL_messages_affectedMessages res = (TLRPC.TL_messages_affectedMessages) response;
+                    MessagesController.getInstance(accountId).processNewDifferenceParams(-1, res.pts, -1, res.pts_count);
+                }
+            }
         });
+    }
+
+    public static void markReadLocally(Integer accountId, long dialogId, int untilId, int unread) {
+        var controller = MessagesController.getInstance(accountId);
+        var storage = MessagesStorage.getInstance(accountId);
+
+        var markAsReadMessagesInbox = new LongSparseIntArray();
+        var stillUnreadMessagesCount = new LongSparseIntArray();
+
+        markAsReadMessagesInbox.put(dialogId, untilId);
+        stillUnreadMessagesCount.put(dialogId, unread);
+
+        controller.dialogs_read_inbox_max.put(dialogId, untilId);
+        storage.updateDialogsWithReadMessages(markAsReadMessagesInbox, null, null, stillUnreadMessagesCount, true);
+        storage.markMessagesAsRead(markAsReadMessagesInbox, null, null, true);
     }
 
     public static Long getDialogId(TLRPC.InputPeer peer) {

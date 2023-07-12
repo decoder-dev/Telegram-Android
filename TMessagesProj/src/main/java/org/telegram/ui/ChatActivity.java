@@ -25128,6 +25128,13 @@ public class ChatActivity extends BaseFragment implements
                     chatAdapter.updateRowWithMessageObject(currentMessage, false);
                 }
             }
+
+            if (AyuState.getHideSelection()) {
+                // thanks to the som fucking tg bug & poor design,
+                // I can't deselect messages rn
+                // neither they can deselect themselves
+                startMessageUnselect();
+            }
         }
         // --- AyuGram hook
     }

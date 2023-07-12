@@ -134,6 +134,11 @@ public class AyuMessagesController {
             return;
         }
 
+        if (prefs.getMessage() == null) {
+            Log.w("AyuGram", "null msg ?");
+            return;
+        }
+
         try {
             onMessageDeletedInner(prefs);
         } catch (Exception e) {
@@ -157,12 +162,8 @@ public class AyuMessagesController {
 
         Log.d("AyuGram", "saving message " + prefs.getMessageId() + " for " + prefs.getDialogId() + " with topic " + prefs.getTopicId());
 
-        if (msg != null) {
-            Log.d("AyuGram", "saving message full");
-
-            AyuMessageUtils.map(prefs, deletedMessage);
-            AyuMessageUtils.mapMedia(prefs, deletedMessage, true);
-        }
+        AyuMessageUtils.map(prefs, deletedMessage);
+        AyuMessageUtils.mapMedia(prefs, deletedMessage, true);
 
         var fakeMsgId = deletedMessageDao.insert(deletedMessage);
 

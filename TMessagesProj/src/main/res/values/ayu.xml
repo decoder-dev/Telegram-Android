@@ -19,9 +19,9 @@
   <string name="MessageSavingSaveMediaInPrivateChannels">…in private channels</string>
   <string name="MessageSavingSaveMediaInPublicGroups">…in public groups</string>
   <string name="MessageSavingSaveMediaInPrivateGroups">…in private groups</string>
+  <string name="MessageSavingOtherHeader">Other</string>
   <string name="MessageSavingSaveFormatting">Save formatting</string>
   <string name="MessageSavingSaveReactions">Save reactions</string>
-  <string name="MessageSavingOtherHeader">Other</string>
   <string name="QoLTogglesHeader">Useful features</string>
   <string name="ShowFromChannel">Show «channel» label</string>
   <string name="KeepAliveService">Keep Alive Service</string>
@@ -32,6 +32,10 @@
   <string name="EditedMarkText">Edited mark</string>
   <string name="ShowGhostToggleInDrawer">Show ghost mode toggle</string>
   <string name="ShowKllButtonInDrawer">Show kill app button</string>
+  <string name="SettingsShowID">Show peer ID</string>
+  <string name="SettingsShowID_Hide">Hide</string>
+  <string name="SettingsRecentStickersCount">Recent stickers count</string>
+  <string name="SettingsCustomizationHint">After making changes to the "Customization" section, you must restart the application.</string>
   <string name="RegexFilters">Message filters</string>
   <string name="RegexFiltersSubText">filters</string>
   <string name="RegexFiltersHeader">Filters</string>
@@ -40,7 +44,7 @@
   <string name="RegexFiltersAdd">Add filter</string>
   <string name="RegexFiltersEdit">Edit filter</string>
   <string name="RegexFiltersAddDescription">You can use site <![CDATA[<a href="https://regex101.com">regex101.com</a>]]> to fully test your regular expression.
-You can also use plain text, but don\'t forget to escape brackets.</string>
+    You can also use plain text, but don\'t forget to escape brackets.</string>
   <string name="RegexFiltersAddError">Regex syntax error</string>
   <string name="AyuSyncHeader">AyuSync</string>
   <string name="AyuSyncStatusTitle">Sync status</string>
@@ -62,28 +66,35 @@ You can also use plain text, but don\'t forget to escape brackets.</string>
   <string name="AyuSyncUseSecureConnection">Use HTTPS &amp; WSS</string>
   <string name="AyuSyncIdentifierCopied">Identifier copied to clipboard.</string>
   <string name="AyuSyncRegisterStatusCode">Register status code</string>
-  <string name="CleanDatabase">Clean database</string>
+  <string name="AyuSyncOpenPreferences">Open preferences</string>
+  <string name="AyuSyncDownloadAgent">Download agent</string>
   <string name="WALMode">Enable WAL mode</string>
+  <string name="CleanDatabase">Clean database</string>
   <string name="CleanDatabaseNotification">AyuGram database cleaned</string>
+  <string name="BetaFeatures">Beta features</string>
+  <string name="StickerConfirmation">Confirmation when sending stickers</string>
+  <string name="GIFConfirmation">Confirmation when sending GIFs</string>
+  <string name="VoiceConfirmation">Confirmation when sending voice messages</string>
   <string name="EnableGhostMode">Enable Ghost</string>
   <string name="DisableGhostMode">Disable Ghost</string>
   <string name="KillApp">Kill App</string>
+  <string name="DrawerGhostModeToggle">Ghost Mode</string>
   <string name="GhostModeEnabled">Ghost mode turned on</string>
   <string name="GhostModeDisabled">Ghost mode turned off</string>
   <string name="EditsHistoryTitle">Edits history</string>
   <string name="EditsHistoryMenuText">History</string>
   <string name="ReadUntilMenuText">Read until</string>
+  <string name="DeleteKeepLocally">Keep locally</string>
+  <string name="BoxActionReset">Reset</string>
+  <string name="ReadConfirmationBoxQuestion">Do you want to read all messages?</string>
+  <string name="ReadConfirmationBoxActionText">Read</string>
   <string name="ForwardsRestrictedInfoDeleted">Forwarding of a deleted message is not supported.</string>
   <string name="DeleteDateMenuText">Delete Date</string>
   <string name="LikelyOfflineStatus">offline ?</string>
   <string name="GhostModeShortcut">Enter with Ghost</string>
   <string name="SettingsWatermark">AyuGram developed and maintained by Radolyn Labs.</string>
-  <string name="SettingsCustomizationHint">After making changes to the "Customization" section, you must restart the application.</string>
-  <string name="SettingsRecentStickersCount">Recent stickers count</string>
-  <string name="SettingsShowID">Show peer ID</string>
-  <string name="SettingsShowID_Hide">Hide</string>
   <string name="SettingsShowMessageSeconds">Show message seconds</string>
   <string name="ContextCopyID">Copy ID</string>
   <string name="IDCopiedToast">ID copied to clipboard.</string>
-  <string name="DrawerGhostModeToggle">Ghost Mode</string>
+  <string name="ContextHideMessage">Hide</string>
 </resources>
