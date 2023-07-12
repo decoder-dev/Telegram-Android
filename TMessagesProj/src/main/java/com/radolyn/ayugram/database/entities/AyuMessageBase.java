@@ -22,8 +22,19 @@ public abstract class AyuMessageBase {
     public int flags;
 
     public int editDate;
-    public boolean editHide;
-    public boolean out;
+    public int views;
+
+    public int fwdFlags;
+    public long fwdFromId;
+    public String fwdName;
+    public int fwdDate;
+    public String fwdPostAuthor;
+
+    public int replyFlags;
+    public int replyMessageId;
+    public long replyPeerId;
+    public int replyTopId;
+    public boolean replyForumTopic;
 
     public int entityCreateDate;
 

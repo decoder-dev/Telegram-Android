@@ -73,7 +73,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
 
     private int debugHeaderRow;
     private int WALModeRow;
-    private int cleanDatabaseBtnRow;
+    private int cleanAyuDatabaseBtnRow;
+    private int eraseLocalDatabaseBtnRow;
 
     @Override
     protected void updateRowsId() {
@@ -117,7 +118,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
 
         debugHeaderRow = newRow();
         WALModeRow = newRow();
-        cleanDatabaseBtnRow = newRow();
+        cleanAyuDatabaseBtnRow = newRow();
+        eraseLocalDatabaseBtnRow = newRow();
     }
 
     @Override
@@ -134,7 +136,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         if (id == AyuConstants.MESSAGES_DELETED_NOTIFICATION) {
             // recalculate database size
             if (listAdapter != null) {
-                listAdapter.notifyItemChanged(cleanDatabaseBtnRow);
+                listAdapter.notifyItemChanged(cleanAyuDatabaseBtnRow);
             }
         } else if (id == AyuConstants.AYUSYNC_STATE_CHANGED) {
             if (listAdapter != null) {
@@ -269,13 +271,31 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         } else if (position == WALModeRow) {
             AyuConfig.editor.putBoolean("WALMode", AyuConfig.WALMode ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.WALMode);
-        } else if (position == cleanDatabaseBtnRow) {
+        } else if (position == cleanAyuDatabaseBtnRow) {
             AyuMessagesController.getInstance().clean();
 
             // reset size
             ((TextCell) view).setValue("…");
 
             BulletinFactory.of(this).createSimpleBulletin(R.raw.info, LocaleController.getString(R.string.CleanDatabaseNotification)).show();
+        } else if (position == eraseLocalDatabaseBtnRow) {
+            getMessagesStorage().clearLocalDatabase();
+
+            try {
+                getMessagesStorage().getDatabase().executeFast("DELETE FROM messages_v2").stepThis().dispose();
+            } catch (Exception e) {
+                FileLog.e(e);
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.error, LocaleController.getString(R.string.ErrorOccurred)).show();
+            }
+
+            try {
+                getMessagesStorage().getDatabase().executeFast("DELETE FROM dialogs").stepThis().dispose();
+            } catch (Exception e) {
+                FileLog.e(e);
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.error, LocaleController.getString(R.string.ErrorOccurred)).show();
+            }
+
+            BulletinFactory.of(this).createSimpleBulletin(R.raw.info, LocaleController.getString(R.string.RestartRequired)).show();
         }
     }
 
@@ -319,11 +339,14 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                         var status = AyuSyncState.getConnectionStateString();
 
                         textCell.setTextAndValue(LocaleController.getString(R.string.AyuSyncStatusTitle), status, true);
-                    } else if (position == cleanDatabaseBtnRow) {
+                    } else if (position == cleanAyuDatabaseBtnRow) {
                         var file = ApplicationLoader.applicationContext.getDatabasePath(AyuConstants.AYU_DATABASE);
                         var size = file.exists() ? file.length() : 0;
 
                         textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.CleanDatabase), AndroidUtilities.formatFileSize(size), R.drawable.msg_clearcache, false);
+                        textCell.setColors(Theme.key_text_RedBold, Theme.key_text_RedBold);
+                    } else if (position == eraseLocalDatabaseBtnRow) {
+                        textCell.setTextAndIcon(LocaleController.getString(R.string.ClearLocalDatabase), R.drawable.msg_clearcache, false);
                         textCell.setColors(Theme.key_text_RedBold, Theme.key_text_RedBold);
                     }
                     break;
@@ -417,7 +440,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                             position == deletedMarkTextRow ||
                             position == editedMarkTextRow ||
                             position == ayuSyncStatusBtnRow ||
-                            position == cleanDatabaseBtnRow
+                            position == cleanAyuDatabaseBtnRow ||
+                            position == eraseLocalDatabaseBtnRow
             ) {
                 return 2;
             } else if (
