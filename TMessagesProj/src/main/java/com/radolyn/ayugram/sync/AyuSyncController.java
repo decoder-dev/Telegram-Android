@@ -250,15 +250,15 @@ public class AyuSyncController {
 
             var unread = controller.getDialogUnreadCount(dialog);
 
-            var req2 = new SyncRead();
-            req2.userId = req.userId;
+            var readEv = new SyncRead();
+            readEv.userId = req.userId;
 
-            req2.args = new SyncRead.SyncReadArgs();
-            req2.args.dialogId = dialogId;
-            req2.args.untilId = dialogReadMaxId;
-            req2.args.unread = unread;
+            readEv.args = new SyncRead.SyncReadArgs();
+            readEv.args.dialogId = dialogId;
+            readEv.args.untilId = dialogReadMaxId;
+            readEv.args.unread = unread;
 
-            readsBatchEvent.args.events.add(req2);
+            readsBatchEvent.args.events.add(readEv);
         }
 
         var readEventsMessage = new Gson().toJson(readsBatchEvent);
@@ -313,6 +313,11 @@ public class AyuSyncController {
         var controller = MessagesController.getInstance(accountId);
         var storage = MessagesStorage.getInstance(accountId);
 
+        var dialog = controller.getDialog(req.args.dialogId);
+        if (dialog.unread_count <= req.args.unread) {
+            return;
+        }
+
         var markAsReadMessagesInbox = new LongSparseIntArray();
         var stillUnreadMessagesCount = new LongSparseIntArray();
 
@@ -337,8 +342,6 @@ public class AyuSyncController {
             return;
         }
 
-        Log.d("AyuSync", "Request type: " + type);
-
         switch (type) {
             case "sync_force":
                 onForceSync(new Gson().fromJson(req, SyncForce.class));
@@ -356,6 +359,6 @@ public class AyuSyncController {
     }
 
     public boolean accountExists(long userId) {
-        return accounts.containsKey(userId);
+        return userId == 0 || accounts.containsKey(userId);
     }
 }

@@ -196,12 +196,12 @@ public class AyuMessagesController {
         }
     }
 
-    public boolean hasAnyRevisions(long userId, long dialogId, int msgId) {
-        return editedMessageDao.hasAnyRevisions(userId, dialogId, msgId);
+    public boolean hasAnyRevisions(long userId, long dialogId, int messageId) {
+        return editedMessageDao.hasAnyRevisions(userId, dialogId, messageId);
     }
 
-    public List<EditedMessage> getRevisions(long userId, long dialogId, int msgId) {
-        return editedMessageDao.getAllRevisions(userId, dialogId, msgId);
+    public List<EditedMessage> getRevisions(long userId, long dialogId, int messageId) {
+        return editedMessageDao.getAllRevisions(userId, dialogId, messageId);
     }
 
     public DeletedMessageFull getMessage(long userId, long dialogId, int messageId) {
@@ -216,13 +216,13 @@ public class AyuMessagesController {
         return deletedMessageDao.getMessagesGrouped(userId, dialogId, groupedId);
     }
 
-    public void delete(long userId, long dialogId, int msgId) {
-        var msg = getMessage(userId, dialogId, msgId);
+    public void delete(long userId, long dialogId, int messageId) {
+        var msg = getMessage(userId, dialogId, messageId);
         if (msg == null) {
             return;
         }
 
-        deletedMessageDao.delete(userId, dialogId, msgId);
+        deletedMessageDao.delete(userId, dialogId, messageId);
 
         if (!TextUtils.isEmpty(msg.message.mediaPath)) {
             var p = new File(msg.message.mediaPath);
