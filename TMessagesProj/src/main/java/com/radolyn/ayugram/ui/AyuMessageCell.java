@@ -59,4 +59,13 @@ public class AyuMessageCell extends ChatMessageCell {
             BulletinFactory.of(fragment).createCopyBulletin(LocaleController.getString("MessageCopied", R.string.MessageCopied)).show();
         }
     }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+
+        if (!TextUtils.isEmpty(editedMessage.hqThumbPath)) {
+            getPhotoImage().setImage(editedMessage.hqThumbPath, null, null, null, 0);
+        }
+    }
 }
