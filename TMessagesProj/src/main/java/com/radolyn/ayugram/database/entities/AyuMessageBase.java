@@ -41,6 +41,7 @@ public abstract class AyuMessageBase {
     public String text; // plain text
     public byte[] textEntities; // TL serialized
     public String mediaPath; // full path
+    public String hqThumbPath; // full path
     public int documentType; // see DOCUMENT_TYPE_*
     public byte[] documentSerialized; // for sticker; TL serialized
     public byte[] thumbsSerialized; // for video/etc.; TL serialized

@@ -26,6 +26,7 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.NativeByteBuffer;
+import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 
 import java.io.File;
@@ -75,10 +76,18 @@ public class AyuUtils {
         return sb.toString();
     }
 
-    public static String getFilename(TLRPC.Message msg, File attachPathFile) {
-        var filename = FileLoader.getDocumentFileName(msg.media.document);
-        if (TextUtils.isEmpty(filename)) {
-            filename = FileLoader.getMessageFileName(msg);
+    public static String getFilename(TLObject obj, File attachPathFile) {
+        String filename = null;
+        if (obj instanceof TLRPC.Message && ((TLRPC.Message) obj).media != null) {
+            filename = FileLoader.getDocumentFileName(((TLRPC.Message) obj).media.document);
+        }
+
+        if (obj instanceof TLRPC.Document) {
+            filename = FileLoader.getDocumentFileName((TLRPC.Document) obj);
+        }
+
+        if (TextUtils.isEmpty(filename) && obj instanceof TLRPC.Message) {
+            filename = FileLoader.getMessageFileName((TLRPC.Message) obj);
         }
         if (TextUtils.isEmpty(filename)) {
             filename = attachPathFile.getName();
@@ -90,8 +99,8 @@ public class AyuUtils {
 
         var f = AyuUtils.removeExtension(filename);
 
-        if (msg.media instanceof TLRPC.TL_messageMediaPhoto && msg.media.photo.sizes != null && !msg.media.photo.sizes.isEmpty()) {
-            var photoSize = FileLoader.getClosestPhotoSizeWithSize(msg.media.photo.sizes, AndroidUtilities.getPhotoSize());
+        if (obj instanceof TLRPC.Message && ((TLRPC.Message) obj).media instanceof TLRPC.TL_messageMediaPhoto && ((TLRPC.Message) obj).media.photo.sizes != null && !((TLRPC.Message) obj).media.photo.sizes.isEmpty()) {
+            var photoSize = FileLoader.getClosestPhotoSizeWithSize(((TLRPC.Message) obj).media.photo.sizes, AndroidUtilities.getPhotoSize());
 
             if (photoSize != null) {
                 f += "#" + photoSize.w + "x" + photoSize.h;
