@@ -35,6 +35,7 @@ public class MessageSavingPreferencesActivity extends BasePreferencesActivity {
     private int otherHeaderRow;
     private int saveFormatting;
     private int saveReactions;
+    private int saveForBots;
 
     @Override
     protected void updateRowsId() {
@@ -52,6 +53,7 @@ public class MessageSavingPreferencesActivity extends BasePreferencesActivity {
         otherHeaderRow = newRow();
         saveFormatting = newRow();
         saveReactions = newRow();
+        saveForBots = newRow();
     }
 
     @Override
@@ -102,6 +104,9 @@ public class MessageSavingPreferencesActivity extends BasePreferencesActivity {
         } else if (position == saveReactions) {
             AyuConfig.editor.putBoolean("saveReactions", AyuConfig.saveReactions ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.saveReactions);
+        } else if (position == saveForBots) {
+            AyuConfig.editor.putBoolean("saveForBots", AyuConfig.saveForBots ^= true).apply();
+            ((TextCheckCell) view).setChecked(AyuConfig.saveForBots);
         }
     }
 
@@ -167,6 +172,9 @@ public class MessageSavingPreferencesActivity extends BasePreferencesActivity {
                         textCheckCell.setEnabled(true, null);
                     } else if (position == saveReactions) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MessageSavingSaveReactions), AyuConfig.saveReactions, true);
+                        textCheckCell.setEnabled(true, null);
+                    } else if (position == saveForBots) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MessageSavingSaveForBots), AyuConfig.saveForBots, true);
                         textCheckCell.setEnabled(true, null);
                     }
                     break;

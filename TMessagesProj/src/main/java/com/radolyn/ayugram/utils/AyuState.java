@@ -57,7 +57,7 @@ public class AyuState {
         list.add(messageId);
     }
 
-    public static boolean deletePermitted(long dialogId, int messageId) {
+    public static boolean isDeletePermitted(long dialogId, int messageId) {
         var list = deletePermitted.get(dialogId);
         if (list == null) {
             return false;

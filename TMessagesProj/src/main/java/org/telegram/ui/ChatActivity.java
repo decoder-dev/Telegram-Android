@@ -26768,7 +26768,7 @@ public class ChatActivity extends BaseFragment implements
         int commentsDeleted = 0;
         for (int a = 0; a < size; a++) {
             Integer mid = markAsDeletedMessages.get(a);
-            if (AyuState.deletePermitted(getDialogId(), mid)) {
+            if (!AyuConfig.saveDeletedMessageFor(currentAccount, getDialogId()) || AyuState.isDeletePermitted(getDialogId(), mid)) {
                 AyuState.messageDeleted(getDialogId(), mid);
             } else {
                 continue;

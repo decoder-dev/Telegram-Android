@@ -69,11 +69,12 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
 
     private int ayuSyncHeaderRow;
     private int ayuSyncStatusBtnRow;
-    private int ayuSyncDividersRow;
+    private int ayuSyncDividerRow;
 
     private int debugHeaderRow;
     private int WALModeRow;
-    private int cleanAyuDatabaseBtnRow;
+    private int buttonsDividerRow;
+    private int clearAyuDatabaseBtnRow;
     private int eraseLocalDatabaseBtnRow;
 
     @Override
@@ -114,11 +115,12 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
 
         ayuSyncHeaderRow = newRow();
         ayuSyncStatusBtnRow = newRow();
-        ayuSyncDividersRow = newRow();
+        ayuSyncDividerRow = newRow();
 
         debugHeaderRow = newRow();
         WALModeRow = newRow();
-        cleanAyuDatabaseBtnRow = newRow();
+        buttonsDividerRow = newRow();
+        clearAyuDatabaseBtnRow = newRow();
         eraseLocalDatabaseBtnRow = newRow();
     }
 
@@ -136,7 +138,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         if (id == AyuConstants.MESSAGES_DELETED_NOTIFICATION) {
             // recalculate database size
             if (listAdapter != null) {
-                listAdapter.notifyItemChanged(cleanAyuDatabaseBtnRow);
+                listAdapter.notifyItemChanged(clearAyuDatabaseBtnRow);
             }
         } else if (id == AyuConstants.AYUSYNC_STATE_CHANGED) {
             if (listAdapter != null) {
@@ -153,17 +155,33 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     }
 
     private void updateGhostViews() {
-        var msg = AyuConfig.isGhostModeActive()
+        var isActive = AyuConfig.isGhostModeActive();
+
+        var msg = isActive
                 ? LocaleController.getString(R.string.DisableGhostMode)
                 : LocaleController.getString(R.string.EnableGhostMode);
 
         listAdapter.notifyItemChanged(ghostFastToggleRow, msg);
-        listAdapter.notifyItemChanged(sendReadPacketsRow, !AyuConfig.isGhostModeActive());
-        listAdapter.notifyItemChanged(sendOnlinePacketsRow, !AyuConfig.isGhostModeActive());
-        listAdapter.notifyItemChanged(sendUploadProgressRow, !AyuConfig.isGhostModeActive());
-        listAdapter.notifyItemChanged(sendOfflinePacketAfterOnlineRow, AyuConfig.isGhostModeActive());
+        listAdapter.notifyItemChanged(sendReadPacketsRow, !isActive);
+        listAdapter.notifyItemChanged(sendOnlinePacketsRow, !isActive);
+        listAdapter.notifyItemChanged(sendUploadProgressRow, !isActive);
+        listAdapter.notifyItemChanged(sendOfflinePacketAfterOnlineRow, isActive);
 
         NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+    }
+
+    private void toggleLocalPremium() {
+        var newState = !AyuConfig.localPremium;
+
+        AyuConfig.editor.putBoolean("localPremium", AyuConfig.localPremium = newState).apply();
+        listAdapter.notifyItemChanged(localPremiumRow, AyuConfig.localPremium);
+
+        getMessagesController().updatePremium(AyuConfig.localPremium);
+        NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.premiumStatusChangedGlobal);
+
+        getMediaDataController().loadPremiumPromo(false);
+        getMediaDataController().loadReactions(false, true);
     }
 
     @Override
@@ -198,11 +216,23 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
             ((TextCheckCell) view).setChecked(AyuConfig.markReadAfterSend);
 
             AyuState.setAllowReadPacket(false, -1);
+
+            if (AyuConfig.markReadAfterSend && AyuConfig.useScheduledMessages) {
+                AyuConfig.editor.putBoolean("useScheduledMessages", AyuConfig.useScheduledMessages ^= true).apply();
+
+                listAdapter.notifyItemChanged(useScheduledMessagesRow, false);
+            }
         } else if (position == useScheduledMessagesRow) {
             AyuConfig.editor.putBoolean("useScheduledMessages", AyuConfig.useScheduledMessages ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.useScheduledMessages);
 
             AyuState.setAutomaticallyScheduled(false, -1);
+
+            if (AyuConfig.useScheduledMessages && AyuConfig.markReadAfterSend) {
+                AyuConfig.editor.putBoolean("markReadAfterSend", AyuConfig.markReadAfterSend ^= true).apply();
+
+                listAdapter.notifyItemChanged(markReadAfterSendRow, false);
+            }
         } else if (position == saveDeletedMessagesRow) {
             AyuConfig.editor.putBoolean("saveDeletedMessages", AyuConfig.saveDeletedMessages ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.saveDeletedMessages);
@@ -220,16 +250,17 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         } else if (position == enableAdsRow) {
             AyuConfig.editor.putBoolean("enableAds", AyuConfig.enableAds ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.enableAds);
+
+            if (AyuConfig.enableAds && AyuConfig.localPremium) {
+                toggleLocalPremium();
+            }
         } else if (position == localPremiumRow) {
-            AyuConfig.editor.putBoolean("localPremium", AyuConfig.localPremium ^= true).apply();
-            ((TextCheckCell) view).setChecked(AyuConfig.localPremium);
+            toggleLocalPremium();
 
-            getMessagesController().updatePremium(AyuConfig.localPremium);
-            NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.premiumStatusChangedGlobal);
-
-            getMediaDataController().loadPremiumPromo(false);
-            getMediaDataController().loadReactions(false, true);
+            if (AyuConfig.localPremium && AyuConfig.enableAds) {
+                AyuConfig.editor.putBoolean("enableAds", AyuConfig.enableAds ^= true).apply();
+                listAdapter.notifyItemChanged(enableAdsRow, false);
+            }
         } else if (position == filtersRow) {
             NotificationsCheckCell checkCell = (NotificationsCheckCell) view;
             if (LocaleController.isRTL && x <= AndroidUtilities.dp(76) || !LocaleController.isRTL && x >= view.getMeasuredWidth() - AndroidUtilities.dp(76)) {
@@ -271,13 +302,13 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         } else if (position == WALModeRow) {
             AyuConfig.editor.putBoolean("WALMode", AyuConfig.WALMode ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.WALMode);
-        } else if (position == cleanAyuDatabaseBtnRow) {
+        } else if (position == clearAyuDatabaseBtnRow) {
             AyuMessagesController.getInstance().clean();
 
             // reset size
             ((TextCell) view).setValue("…");
 
-            BulletinFactory.of(this).createSimpleBulletin(R.raw.info, LocaleController.getString(R.string.CleanDatabaseNotification)).show();
+            BulletinFactory.of(this).createSimpleBulletin(R.raw.info, LocaleController.getString(R.string.ClearAyuDatabaseNotification)).show();
         } else if (position == eraseLocalDatabaseBtnRow) {
             getMessagesStorage().clearLocalDatabase();
 
@@ -323,6 +354,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                     break;
                 case 2:
                     TextCell textCell = (TextCell) holder.itemView;
+                    textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     if (position == ghostFastToggleRow) {
                         var msg = AyuConfig.isGhostModeActive()
                                 ? LocaleController.getString(R.string.DisableGhostMode)
@@ -339,14 +371,14 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                         var status = AyuSyncState.getConnectionStateString();
 
                         textCell.setTextAndValue(LocaleController.getString(R.string.AyuSyncStatusTitle), status, true);
-                    } else if (position == cleanAyuDatabaseBtnRow) {
+                    } else if (position == clearAyuDatabaseBtnRow) {
                         var file = ApplicationLoader.applicationContext.getDatabasePath(AyuConstants.AYU_DATABASE);
                         var size = file.exists() ? file.length() : 0;
 
-                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.CleanDatabase), AndroidUtilities.formatFileSize(size), R.drawable.msg_clearcache, false);
+                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.ClearAyuDatabase), AndroidUtilities.formatFileSize(size), R.drawable.msg_clearcache, true);
                         textCell.setColors(Theme.key_text_RedBold, Theme.key_text_RedBold);
                     } else if (position == eraseLocalDatabaseBtnRow) {
-                        textCell.setTextAndIcon(LocaleController.getString(R.string.ClearLocalDatabase), R.drawable.msg_clearcache, false);
+                        textCell.setTextAndIcon(LocaleController.getString(R.string.EraseLocalDatabase), R.drawable.msg_clearcache, false);
                         textCell.setColors(Theme.key_text_RedBold, Theme.key_text_RedBold);
                     }
                     break;
@@ -405,7 +437,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                     NotificationsCheckCell notificationsCheckCell = (NotificationsCheckCell) holder.itemView;
                     if (position == filtersRow) {
                         var count = AyuConfig.getRegexFilters().size();
-                        notificationsCheckCell.setTextAndValueAndCheck(LocaleController.getString(R.string.RegexFilters), count + " " + LocaleController.getString(R.string.RegexFiltersSubText), AyuConfig.regexFiltersEnabled, true);
+                        notificationsCheckCell.setTextAndValueAndCheck(LocaleController.getString(R.string.RegexFilters), count + " " + LocaleController.getString(R.string.RegexFiltersAmount), AyuConfig.regexFiltersEnabled, true);
                     }
                     break;
             }
@@ -431,7 +463,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                             position == spyDivider2Row ||
                             position == qolDividerRow ||
                             position == customizationDividerRow ||
-                            position == ayuSyncDividersRow
+                            position == ayuSyncDividerRow ||
+                            position == buttonsDividerRow
             ) {
                 return 1;
             } else if (
@@ -440,7 +473,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                             position == deletedMarkTextRow ||
                             position == editedMarkTextRow ||
                             position == ayuSyncStatusBtnRow ||
-                            position == cleanAyuDatabaseBtnRow ||
+                            position == clearAyuDatabaseBtnRow ||
                             position == eraseLocalDatabaseBtnRow
             ) {
                 return 2;

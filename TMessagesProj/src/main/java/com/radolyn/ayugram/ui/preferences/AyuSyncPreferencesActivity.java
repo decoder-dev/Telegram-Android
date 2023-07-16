@@ -125,7 +125,7 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
                     LocaleController.getString(R.string.AyuSyncServerURL),
                     AyuConfig::getSyncServerURL,
                     "syncServerURL",
-                    AyuConstants.AYU_SYNC_SERVER,
+                    AyuConstants.DEFAULT_AYUSYNC_SERVER,
                     s -> {
                         AyuSyncController.nullifyInstance();
                         AyuSyncController.create();
