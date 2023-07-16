@@ -12,17 +12,6 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Base64;
 
-import androidx.annotation.Keep;
-
-import androidx.annotation.OptIn;
-import androidx.media3.common.util.UnstableApi;
-import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter;
-import com.google.android.gms.tasks.Task;
-import com.google.android.play.core.integrity.IntegrityManager;
-import com.google.android.play.core.integrity.IntegrityManagerFactory;
-import com.google.android.play.core.integrity.IntegrityTokenRequest;
-import com.google.android.play.core.integrity.IntegrityTokenResponse;
-
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.sync.AyuSyncController;
@@ -1568,34 +1557,32 @@ public class ConnectionsManager extends BaseController {
         }
     }
 
-    public static long lastPremiumFloodWaitShown = 0;
-    @Keep
-    public static void onPremiumFloodWait(final int currentAccount, final int requestToken, boolean isUpload) {
-        AndroidUtilities.runOnUIThread(() -> {
-            if (UserConfig.selectedAccount != currentAccount) {
-                return;
-            }
-            AndroidUtilities.runOnUIThread(() -> {
-                boolean updated = false;
-                if (isUpload) {
-                    FileUploadOperation operation = FileLoader.getInstance(currentAccount).findUploadOperationByRequestToken(requestToken);
-                    if (operation != null) {
-                        updated = !operation.caughtPremiumFloodWait;
-                        operation.caughtPremiumFloodWait = true;
-                    }
-                } else {
-                    FileLoadOperation operation = FileLoader.getInstance(currentAccount).findLoadOperationByRequestToken(requestToken);
-                    if (operation != null) {
-                        updated = !operation.caughtPremiumFloodWait;
-                        operation.caughtPremiumFloodWait = true;
-                    }
+    private static class FirebaseTask extends AsyncTask<Void, Void, NativeByteBuffer> {
+
+        private int currentAccount;
+
+        public FirebaseTask(int instance) {
+            super();
+            currentAccount = instance;
+        }
+
+        protected NativeByteBuffer doInBackground(Void... voids) {
+            Utilities.stageQueue.postRunnable(() -> {
+                if (BuildVars.LOGS_ENABLED) {
+                    FileLog.d("failed to get firebase result");
+                    FileLog.d("start dns txt task");
                 }
-                final boolean finalUpdated = updated;
-                if (finalUpdated) {
-                    NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.premiumFloodWaitReceived);
-                }
+                DnsTxtLoadTask task = new DnsTxtLoadTask(currentAccount);
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null, null, null);
+                currentTask = task;
             });
-        });
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(NativeByteBuffer result) {
+
+        }
     }
 
     @Keep
