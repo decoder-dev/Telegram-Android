@@ -37,11 +37,17 @@ import java.util.regex.PatternSyntaxException;
 public class RegexFilterEditActivity extends BaseFragment {
 
     private final static int done_button = 1;
+
     private final int filterIdx;
+
     private EditTextBoldCursor editField;
     private View doneButton;
     private TextView helpTextView;
     private TextView errorTextView;
+
+    public RegexFilterEditActivity() {
+        filterIdx = -1;
+    }
 
     public RegexFilterEditActivity(int filterIdx) {
         this.filterIdx = filterIdx; // use -1 to CREATE, not EDIT

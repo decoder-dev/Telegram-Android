@@ -12,10 +12,7 @@ package com.radolyn.ayugram;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import com.google.gson.Gson;
-import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.BuildVars;
-import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.R;
+import org.telegram.messenger.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +39,7 @@ public class AyuConfig {
     public static boolean saveMediaInPrivateGroups;
     public static boolean saveFormatting;
     public static boolean saveReactions;
+    public static boolean saveForBots;
 
     public static boolean markReadAfterSend;
     public static boolean showFromChannel;
@@ -86,13 +84,14 @@ public class AyuConfig {
             saveDeletedMessages = preferences.getBoolean("saveDeletedMessages", true);
             saveMessagesHistory = preferences.getBoolean("saveMessagesHistory", true);
 
-            // ~ Message saving features
+            // ~ Message saving preferences
             saveMedia = preferences.getBoolean("saveMedia", true);
             saveMediaInPrivateChats = preferences.getBoolean("saveMediaInPrivateChats", true);
             saveMediaInPublicChannels = preferences.getBoolean("saveMediaInPublicChannels", false);
             saveMediaInPrivateChannels = preferences.getBoolean("saveMediaInPrivateChannels", true);
             saveMediaInPublicGroups = preferences.getBoolean("saveMediaInPublicGroups", false);
             saveMediaInPrivateGroups = preferences.getBoolean("saveMediaInPrivateGroups", true);
+            saveForBots = preferences.getBoolean("saveForBots", true);
 
             saveFormatting = preferences.getBoolean("saveFormatting", true);
             saveReactions = preferences.getBoolean("saveReactions", true);
@@ -147,6 +146,32 @@ public class AyuConfig {
         setGhostMode(!isGhostModeActive());
     }
 
+    public static boolean saveDeletedMessageFor(int accountId, long dialogId) {
+        if (!AyuConfig.saveDeletedMessages) {
+            return false;
+        }
+
+        var user = MessagesController.getInstance(accountId).getUser(Math.abs(dialogId));
+        if (user == null) {
+            return true;
+        }
+
+        return !user.bot || AyuConfig.saveForBots;
+    }
+
+    public static boolean saveEditedMessageFor(int accountId, long dialogId) {
+        if (!AyuConfig.saveMessagesHistory) {
+            return false;
+        }
+
+        var user = MessagesController.getInstance(accountId).getUser(Math.abs(dialogId));
+        if (user == null) {
+            return true;
+        }
+
+        return !user.bot || AyuConfig.saveForBots;
+    }
+
     public static String getDeletedMark() {
         return AyuConfig.preferences.getString("deletedMarkText", AyuConstants.DEFAULT_DELETED_MARK);
     }
@@ -160,7 +185,7 @@ public class AyuConfig {
     }
 
     public static String getSyncServerURL() {
-        return preferences.getString("syncServerURL", AyuConstants.AYU_SYNC_SERVER);
+        return preferences.getString("syncServerURL", AyuConstants.DEFAULT_AYUSYNC_SERVER);
     }
 
     public static String getSyncServerToken() {

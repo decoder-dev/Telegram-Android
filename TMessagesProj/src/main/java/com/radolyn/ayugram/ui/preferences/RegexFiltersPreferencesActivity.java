@@ -76,7 +76,7 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
 
             AyuFilter.rebuildCache();
         } else if (position == addFilterBtnRow) {
-            presentFragment(new RegexFilterEditActivity(-1));
+            presentFragment(new RegexFilterEditActivity());
         }
     }
 

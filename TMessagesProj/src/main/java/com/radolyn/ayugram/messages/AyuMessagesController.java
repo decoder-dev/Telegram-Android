@@ -11,7 +11,6 @@ package com.radolyn.ayugram.messages;
 
 import android.os.Environment;
 import android.text.TextUtils;
-import com.exteragram.messenger.ExteraConfig;
 import com.google.android.exoplayer2.util.Log;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
@@ -23,7 +22,6 @@ import com.radolyn.ayugram.database.entities.DeletedMessageFull;
 import com.radolyn.ayugram.database.entities.DeletedMessageReaction;
 import com.radolyn.ayugram.database.entities.EditedMessage;
 import com.radolyn.ayugram.proprietary.AyuMessageUtils;
-import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.tgnet.TLRPC;
 
@@ -43,14 +41,13 @@ public class AyuMessagesController {
     private final DeletedMessageDao deletedMessageDao;
 
     private AyuMessagesController() {
-        // recreate for testing if debug
-        if (ExteraConfig.getLogging()) {
-            ApplicationLoader.applicationContext.deleteDatabase(AyuConstants.AYU_DATABASE);
-            if (attachmentsPath.exists()) {
-                attachmentsPath.delete();
-            }
-        }
+        initializeAttachmentsFolder();
 
+        editedMessageDao = AyuData.getEditedMessageDao();
+        deletedMessageDao = AyuData.getDeletedMessageDao();
+    }
+
+    private static void initializeAttachmentsFolder() {
         if (!attachmentsPath.exists()) {
             attachmentsPath.mkdirs();
             try {
@@ -59,9 +56,6 @@ public class AyuMessagesController {
                 // ignored, I hate java
             }
         }
-
-        editedMessageDao = AyuData.getEditedMessageDao();
-        deletedMessageDao = AyuData.getDeletedMessageDao();
     }
 
     public static AyuMessagesController getInstance() {
@@ -72,10 +66,6 @@ public class AyuMessagesController {
     }
 
     public void onMessageEdited(AyuSavePreferences prefs, TLRPC.Message newMessage) {
-        if (!AyuConfig.saveMessagesHistory) {
-            return;
-        }
-
         try {
             onMessageEditedInner(prefs, newMessage, false);
         } catch (Exception e) {
@@ -85,10 +75,6 @@ public class AyuMessagesController {
     }
 
     public void onMessageEditedForce(AyuSavePreferences prefs) {
-        if (!AyuConfig.saveMessagesHistory) {
-            return;
-        }
-
         try {
             onMessageEditedInner(prefs, prefs.getMessage(), true);
         } catch (Exception e) {
@@ -98,6 +84,10 @@ public class AyuMessagesController {
     }
 
     private void onMessageEditedInner(AyuSavePreferences prefs, TLRPC.Message newMessage, boolean force) {
+        if (!AyuConfig.saveEditedMessageFor(prefs.getAccountId(), prefs.getDialogId())) {
+            return;
+        }
+
         var oldMessage = prefs.getMessage();
 
         boolean sameMedia = oldMessage.media == newMessage.media ||
@@ -130,10 +120,6 @@ public class AyuMessagesController {
     }
 
     public void onMessageDeleted(AyuSavePreferences prefs) {
-        if (!AyuConfig.saveDeletedMessages) {
-            return;
-        }
-
         if (prefs.getMessage() == null) {
             Log.w("AyuGram", "null msg ?");
             return;
@@ -148,6 +134,10 @@ public class AyuMessagesController {
     }
 
     private void onMessageDeletedInner(AyuSavePreferences prefs) {
+        if (!AyuConfig.saveDeletedMessageFor(prefs.getAccountId(), prefs.getDialogId())) {
+            return;
+        }
+
         if (deletedMessageDao.exists(prefs.getUserId(), prefs.getDialogId(), prefs.getTopicId(), prefs.getMessageId())) {
             return;
         }
