@@ -10,14 +10,17 @@
 package com.radolyn.ayugram;
 
 import android.text.TextUtils;
+import android.util.LongSparseArray;
 import com.exteragram.messenger.utils.ChatUtils;
 import org.telegram.messenger.MessageObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
 public class AyuFilter {
     private static ArrayList<Pattern> patterns;
+    private static LongSparseArray<HashMap<Integer, Boolean>> filteredCache;
 
     public static void rebuildCache() {
         var filters = AyuConfig.getRegexFilters();
@@ -31,19 +34,17 @@ public class AyuFilter {
         for (var filter : filters) {
             patterns.add(Pattern.compile(filter, flags));
         }
+
+        filteredCache = new LongSparseArray<>();
     }
 
-    public static boolean isFiltered(CharSequence text) {
+    private static boolean isFiltered(CharSequence text) {
         if (!AyuConfig.regexFiltersEnabled) {
             return false;
         }
 
         if (TextUtils.isEmpty(text)) {
             return false;
-        }
-
-        if (patterns == null) {
-            rebuildCache();
         }
 
         for (var pattern : patterns) {
@@ -56,6 +57,43 @@ public class AyuFilter {
     }
 
     public static boolean isFiltered(MessageObject msg, MessageObject.GroupedMessages group) {
-        return AyuConfig.regexFiltersEnabled && msg != null && isFiltered(ChatUtils.getMessageText(msg, group));
+        if (!AyuConfig.regexFiltersEnabled) {
+            return false;
+        }
+
+        if (msg == null) {
+            return false;
+        }
+
+        if (patterns == null) {
+            rebuildCache();
+        }
+
+        Boolean res;
+
+        var cached = filteredCache.get(msg.getDialogId());
+        if (cached != null) {
+            res = cached.get(msg.getId());
+            if (res != null) {
+                return res;
+            }
+        }
+
+        res = isFiltered(ChatUtils.getMessageText(msg, group));
+
+        if (cached == null) {
+            cached = new HashMap<>();
+            filteredCache.put(msg.getDialogId(), cached);
+        }
+
+        cached.put(msg.getId(), res);
+
+        if (group != null && group.messages != null && !group.messages.isEmpty()) {
+            for (var m : group.messages) {
+                cached.put(m.getId(), res);
+            }
+        }
+
+        return res;
     }
 }
