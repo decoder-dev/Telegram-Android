@@ -112,7 +112,8 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
                 case 2:
                     TextCell textCell = (TextCell) holder.itemView;
                     if (position > filtersHeaderRow && filtersHeaderRow != -1) {
-                        textCell.setText(AyuConfig.getRegexFilters().get(position - filtersHeaderRow - 1), true);
+                        var dividerNeeded = position != filtersHeaderRow + AyuConfig.getRegexFilters().size();
+                        textCell.setText(AyuConfig.getRegexFilters().get(position - filtersHeaderRow - 1), dividerNeeded);
                     } else if (position == addFilterBtnRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.RegexFiltersAdd), R.drawable.msg_add, false);
                     }
@@ -131,7 +132,7 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
                     if (position == enableInChatsRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.RegexFiltersEnableInChats), AyuConfig.regexFiltersInChats, true);
                     } else if (position == caseInsensitiveRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.RegexFiltersCaseInsensitive), AyuConfig.regexFiltersCaseInsensitive, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.RegexFiltersCaseInsensitive), AyuConfig.regexFiltersCaseInsensitive, false);
                     }
                     break;
             }
