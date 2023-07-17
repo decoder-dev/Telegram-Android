@@ -93,6 +93,7 @@ import com.google.firebase.appindexing.FirebaseUserActions;
 import com.google.firebase.appindexing.builders.AssistActionBuilder;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
+import com.radolyn.ayugram.AyuCustomHandlers;
 import com.radolyn.ayugram.AyuUtils;
 
 import org.telegram.PhoneFormat.PhoneFormat;
@@ -3038,99 +3039,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                         url = url.replace("tg:addlist", "tg://telegram.org").replace("tg://addlist", "tg://telegram.org");
                                         data = Uri.parse(url);
                                         folderSlug = data.getQueryParameter("slug");
-                                    } else if (url.startsWith("tg:message") || url.startsWith("tg://message")) {
-                                        url = url.replace("tg:message", "tg://telegram.org").replace("tg://message", "tg://telegram.org");
-                                        data = Uri.parse(url);
-                                        chatLinkSlug = data.getQueryParameter("slug");
-                                    } else if (url.startsWith("tg:stars_topup") || url.startsWith("tg://stars_topup")) {
-                                        url = url.replace("tg:stars_topup", "tg://telegram.org").replace("tg://stars_topup", "tg://telegram.org");
-                                        data = Uri.parse(url);
-                                        long balance = 0;
-                                        try {
-                                            balance = (int) Long.parseLong(data.getQueryParameter("balance"));
-                                            if (balance < 0 || balance >= Integer.MAX_VALUE) balance = 0;
-                                        } catch (Exception e) {
-                                            FileLog.e(e);
-                                        }
-                                        String purpose = data.getQueryParameter("purpose");
-                                        StarsController.getInstance(intentAccount[0]).showStarsTopup(this, balance, purpose);
-                                    } else if (url.startsWith("tg:ton") || url.startsWith("tg://ton")) {
-                                        if (progress != null) {
-                                            progress.end();
-                                        }
-                                        presentFragment(new TONIntroActivity());
-                                        return pushOpened;
-                                    } else if (url.startsWith("tg:stars") || url.startsWith("tg://stars")) {
-                                        if (progress != null) {
-                                            progress.end();
-                                        }
-                                        presentFragment(new StarsIntroActivity());
-                                        return pushOpened;
-                                    } else if (url.startsWith("tg:send_gift") || url.startsWith("tg://send_gift")) {
-                                        String toParam = data.getQueryParameter("to");
-                                        if (toParam != null && toParam.startsWith("@")) {
-                                            toParam = toParam.substring(1);
-                                        }
-                                        final String to = toParam;
-                                        if (TextUtils.isEmpty(to)) {
-                                            if (progress != null) {
-                                                progress.end();
-                                            }
-                                            UserSelectorBottomSheet.open(0, BirthdayController.getInstance(currentAccount).getState());
-                                            return pushOpened;
-                                        }
-
-                                        long toId = 0;
-                                        try {
-                                            toId = Long.parseLong(to);
-                                        } catch (Exception e) {}
-
-                                        if (toId != 0) {
-                                            if (progress != null) {
-                                                progress.end();
-                                            }
-                                            final TLObject obj = MessagesController.getInstance(currentAccount).getUserOrChat(toId);
-                                            if (obj == null) {
-                                                BaseFragment lastFragment = LaunchActivity.getLastFragment();
-                                                if (lastFragment != null) {
-                                                    if (lastFragment instanceof ChatActivity) {
-                                                        ((ChatActivity) lastFragment).shakeContent();
-                                                    }
-                                                }
-                                                return pushOpened;
-                                            }
-                                            new GiftSheet(this, intentAccount[0], toId, null)
-                                                .show();
-                                            return pushOpened;
-                                        }
-
-                                        if (progress != null) {
-                                            progress.init();
-                                        }
-                                        final Runnable cancel = MessagesController.getInstance(intentAccount[0]).getUserNameResolver().resolve(to, null, (peerId) -> {
-                                            if (progress != null) {
-                                                progress.end();
-                                            }
-
-                                            final TLObject obj = peerId == null ? null : MessagesController.getInstance(currentAccount).getUserOrChat(peerId);
-                                            if (obj == null) {
-                                                BaseFragment lastFragment = LaunchActivity.getLastFragment();
-                                                if (lastFragment != null) {
-                                                    if (lastFragment instanceof ChatActivity) {
-                                                        ((ChatActivity) lastFragment).shakeContent();
-                                                    }
-                                                }
-                                                return;
-                                            }
-
-                                            new GiftSheet(this, intentAccount[0], peerId, null)
-                                                .show();
-                                        });
-                                        if (progress != null && cancel != null) {
-                                            progress.onCancel(cancel);
-                                        }
-
-                                        return pushOpened;
+                                    } else if ((url.startsWith("tg:extera") || url.startsWith("tg://extera"))) {
+                                        open_settings = 7;
+                                    } else if ((url.startsWith("tg:update") || url.startsWith("tg://update"))) {
+                                        checkUpdates = true;
+                                    } else if ((url.startsWith("tg:ayu") || url.startsWith("tg://ayu"))) {
+                                        AyuCustomHandlers.handleAyu(getLastFragment());
+                                    } else if ((url.startsWith("tg:xiaomi") || url.startsWith("tg://xiaomi"))) {
+                                        AyuCustomHandlers.handleXiaomi(getLastFragment());
                                     } else {
                                         unsupportedUrl = url.replace("tg://", "").replace("tg:", "");
                                         int index;
