@@ -18,7 +18,7 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 
 public class AyuGhostUtils {
-    public static void markRead(int accountId, int messageId, TLRPC.InputPeer peer) {
+    public static void markReadOnServer(int accountId, int messageId, TLRPC.InputPeer peer) {
         var connectionsManager = ConnectionsManager.getInstance(accountId);
 
         TLObject req;
