@@ -24,7 +24,11 @@ import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
 
+import java.util.ArrayList;
+
 public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
+
+    private ArrayList<String> filters;
 
     private int generalHeaderRow;
     private int enableInChatsRow;
@@ -53,7 +57,7 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
 
         filtersHeaderRow = -1;
 
-        var filters = AyuConfig.getRegexFilters();
+        filters = AyuConfig.getRegexFilters();
         var count = filters.size();
 
         if (count != 0) {
@@ -112,8 +116,8 @@ public class RegexFiltersPreferencesActivity extends BasePreferencesActivity {
                 case 2:
                     TextCell textCell = (TextCell) holder.itemView;
                     if (position > filtersHeaderRow && filtersHeaderRow != -1) {
-                        var dividerNeeded = position != filtersHeaderRow + AyuConfig.getRegexFilters().size();
-                        textCell.setText(AyuConfig.getRegexFilters().get(position - filtersHeaderRow - 1), dividerNeeded);
+                        var dividerNeeded = position != filtersHeaderRow + filters.size();
+                        textCell.setText(filters.get(position - filtersHeaderRow - 1), dividerNeeded);
                     } else if (position == addFilterBtnRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.RegexFiltersAdd), R.drawable.msg_add, false);
                     }
