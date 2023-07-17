@@ -137,6 +137,7 @@ import com.radolyn.ayugram.AyuFilter;
 import com.radolyn.ayugram.AyuUtils;
 import com.radolyn.ayugram.messages.AyuMessagesController;
 import com.radolyn.ayugram.proprietary.AyuHistoryHook;
+import com.radolyn.ayugram.ui.DummyView;
 import com.radolyn.ayugram.utils.AyuState;
 import com.radolyn.ayugram.utils.AyuGhostUtils;
 import com.radolyn.ayugram.ui.AyuMessageHistory;
@@ -30175,6 +30176,8 @@ public class ChatActivity extends BaseFragment implements
                     message = ((ChatMessageCell) view).getMessageObject();
                 } else if (view instanceof ChatActionCell) {
                     message = ((ChatActionCell) view).getMessageObject();
+                } else if (view instanceof DummyView) {
+                    message = ((DummyView) view).getMessageObject();
                 }
                 if (message != null && message.messageOwner != null && message.messageOwner.media_unread && message.messageOwner.mentioned) {
                     if (!message.isVoice() && !message.isRoundVideo()) {
@@ -33847,7 +33850,7 @@ public class ChatActivity extends BaseFragment implements
                 sendSecretMessageRead(selectedObject, true);
                 break;
             case AyuConstants.OPTION_READ_UNTIL:
-                AyuGhostUtils.markRead(currentAccount, selectedObject.messageOwner.id, getMessagesController().getInputPeer(selectedObject.messageOwner.peer_id));
+                AyuGhostUtils.markReadOnServer(currentAccount, selectedObject.messageOwner.id, getMessagesController().getInputPeer(selectedObject.messageOwner.peer_id));
                 break;
             case OPTION_RETRY: {
                 final MessageObject object = selectedObject;
@@ -37969,7 +37972,7 @@ public class ChatActivity extends BaseFragment implements
             } else if (viewType == 4) {
                 view = new ChatLoadingCell(mContext, contentView, themeDelegate);
             } else if (viewType == -1000) {
-                view = new View(mContext);
+                view = new DummyView(mContext);
             }
             view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));
             return new RecyclerListView.Holder(view);
@@ -38579,6 +38582,9 @@ public class ChatActivity extends BaseFragment implements
                     if (createUnreadMessageAfterId != 0) {
                         createUnreadMessageAfterId = 0;
                     }
+                } else if (view instanceof DummyView) {
+                    DummyView dummyView = (DummyView) view;
+                    dummyView.setMessageObject(message);
                 }
             }
         }
@@ -38603,7 +38609,6 @@ public class ChatActivity extends BaseFragment implements
                     var msgToCheck = group == null ? msg : group.findPrimaryMessageObject();
 
                     if (AyuFilter.isFiltered(msgToCheck, group)) {
-                        // fixme: mark as read if in visible part
                         return -1000;
                     }
                 }
