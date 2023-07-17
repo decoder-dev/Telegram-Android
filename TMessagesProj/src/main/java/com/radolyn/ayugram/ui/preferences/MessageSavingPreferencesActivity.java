@@ -165,7 +165,7 @@ public class MessageSavingPreferencesActivity extends BasePreferencesActivity {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MessageSavingSaveMediaInPublicGroups), AyuConfig.saveMediaInPublicGroups, true);
                         textCheckCell.setEnabled(AyuConfig.saveMedia, null);
                     } else if (position == saveMediaInPrivateGroupsRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MessageSavingSaveMediaInPrivateGroups), AyuConfig.saveMediaInPrivateGroups, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MessageSavingSaveMediaInPrivateGroups), AyuConfig.saveMediaInPrivateGroups, false);
                         textCheckCell.setEnabled(AyuConfig.saveMedia, null);
                     } else if (position == saveFormatting) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MessageSavingSaveFormatting), AyuConfig.saveFormatting, true);
@@ -174,7 +174,7 @@ public class MessageSavingPreferencesActivity extends BasePreferencesActivity {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MessageSavingSaveReactions), AyuConfig.saveReactions, true);
                         textCheckCell.setEnabled(true, null);
                     } else if (position == saveForBots) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MessageSavingSaveForBots), AyuConfig.saveForBots, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MessageSavingSaveForBots), AyuConfig.saveForBots, false);
                         textCheckCell.setEnabled(true, null);
                     }
                     break;

@@ -248,9 +248,9 @@ public class AyuSyncPreferencesActivity extends BasePreferencesActivity implemen
                     TextCheckCell textCheckCell = (TextCheckCell) holder.itemView;
                     textCheckCell.setEnabled(true, null);
                     if (position == syncEnabledRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.AyuSyncEnable), AyuConfig.syncEnabled, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.AyuSyncEnable), AyuConfig.syncEnabled, false);
                     } else if (position == useSecureConnectionRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.AyuSyncUseSecureConnection), AyuConfig.useSecureConnection, true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.AyuSyncUseSecureConnection), AyuConfig.useSecureConnection, false);
                     }
                     break;
             }
