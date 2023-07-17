@@ -55,17 +55,11 @@ If you don't want to send crash reports, you can disable it in **exteraGram Pref
 
 💖 **Made with extera's Monet theme.**
 
-![General Preferences](.github/demos/demo1.png)
+<img src='.github/demos/demo1.png' width='210'> <img src='.github/demos/demo2.png' width='210'>
 
-![General Preferences](.github/demos/demo2.png)
+<img src='.github/demos/demo3.png' width='210'> <img src='.github/demos/demo4.png' width='210'>
 
-![AyuSync Preferences](.github/demos/demo3.png)
-
-![Filters Preferences](.github/demos/demo4.png)
-
-![Message History](.github/demos/demo5.png)
-
-![Message History](.github/demos/demo6.png)
+<img src='.github/demos/demo5.png' width='210'> <img src='.github/demos/demo6.png' width='210'>
 
 ## Downloads?
 
