@@ -76,7 +76,7 @@ public class HeaderSettingsCell extends FrameLayout {
         subtitleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_REGULAR));
         subtitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         subtitleTextView.setLineSpacing(AndroidUtilities.dp(2), 1f);
-        subtitleTextView.setText(LocaleController.getString("AboutExteraDescription", R.string.AboutExteraDescription));
+        subtitleTextView.setText(LocaleController.getString("SettingsDescription", R.string.SettingsDescription));
         subtitleTextView.setGravity(Gravity.CENTER);
         subtitleTextView.setLines(0);
         subtitleTextView.setMaxLines(0);
