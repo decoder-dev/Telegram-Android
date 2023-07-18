@@ -8169,7 +8169,7 @@ public class AlertsCreator {
         cell.setTag(4);
 
         cell.setPadding(LocaleController.isRTL ? AndroidUtilities.dp(16) : AndroidUtilities.dp(8), 0, LocaleController.isRTL ? AndroidUtilities.dp(8) : AndroidUtilities.dp(16), 0);
-        ayuFrameLayout.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 0, ayuFrameLayout.getTop() + 48, 0, 0));
+        ayuFrameLayout.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 0, 48 * ayuFrameLayout.getChildCount(), 0, 0));
 
         cell.setOnClickListener(v -> {
             CheckBoxCell cell1 = (CheckBoxCell) v;
