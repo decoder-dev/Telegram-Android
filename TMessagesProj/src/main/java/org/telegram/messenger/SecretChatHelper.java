@@ -123,26 +123,47 @@ public class SecretChatHelper extends BaseController {
         if (!pendingEncMessagesToDelete.isEmpty()) {
             ArrayList<Long> pendingEncMessagesToDeleteCopy = new ArrayList<>(pendingEncMessagesToDelete);
 
-            // save before because they will be removed when `runOnUIThread` happens
-            var dialogsWithMessageIds = getMessagesStorage().getMessageIdsByRandomIds(pendingEncMessagesToDeleteCopy);
-            var dialogsWithMessages = new LongSparseArray<ArrayList<TLRPC.Message>>();
-            for (var i = 0; i < dialogsWithMessageIds.size(); i++) {
-                var dialogId = dialogsWithMessageIds.keyAt(i);
-                var messageIds = dialogsWithMessageIds.valueAt(i);
+            // --- AyuGram hook (secret)
 
-                for (var messageId : messageIds) {
-                    var message = getMessagesStorage().getMessage(dialogId, messageId);
-                    if (message != null) {
-                        var messages = dialogsWithMessages.get(dialogId);
-                        if (messages == null) {
-                            messages = new ArrayList<>();
-                            dialogsWithMessages.put(dialogId, messages);
+            if (AyuConfig.saveDeletedMessages) {
+                // save before because they will be removed when `runOnUIThread` happens
+                var dialogsWithMessageIds = getMessagesStorage().getMessageIdsByRandomIds(pendingEncMessagesToDeleteCopy);
+                var dialogsWithMessages = new LongSparseArray<ArrayList<TLRPC.Message>>();
+                for (var i = 0; i < dialogsWithMessageIds.size(); i++) {
+                    var dialogId = dialogsWithMessageIds.keyAt(i);
+                    var messageIds = dialogsWithMessageIds.valueAt(i);
+
+                    for (var messageId : messageIds) {
+                        var message = getMessagesStorage().getMessage(dialogId, messageId);
+                        if (message != null) {
+                            var messages = dialogsWithMessages.get(dialogId);
+                            if (messages == null) {
+                                messages = new ArrayList<>();
+                                dialogsWithMessages.put(dialogId, messages);
+                            }
+
+                            messages.add(message);
                         }
-
-                        messages.add(message);
                     }
                 }
+
+                for (var i = 0; i < dialogsWithMessages.size(); i++) {
+                    var dialogId = dialogsWithMessages.keyAt(i);
+                    var messages = dialogsWithMessages.valueAt(i);
+
+                    for (var msg : messages) {
+                        var prefs = new AyuSavePreferences(msg, currentAccount);
+                        prefs.setDialogId(dialogId);
+                        AyuMessagesController.getInstance().onMessageDeleted(prefs);
+                    }
+
+                    AndroidUtilities.runOnUIThread(() -> {
+                        // invalidating views
+                        getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, dialogsWithMessageIds.get(dialogId));
+                    });
+                }
             }
+            // --- AyuGram hook
 
             AndroidUtilities.runOnUIThread(() -> {
                 for (int a = 0; a < pendingEncMessagesToDeleteCopy.size(); a++) {
@@ -151,24 +172,6 @@ public class SecretChatHelper extends BaseController {
                         messageObject.deleted = true;
                     }
                 }
-
-                // --- AyuGram hook (secret)
-                if (AyuConfig.saveDeletedMessages) {
-                    for (var i = 0; i < dialogsWithMessages.size(); i++) {
-                        var dialogId = dialogsWithMessages.keyAt(i);
-                        var messages = dialogsWithMessages.valueAt(i);
-
-                        for (var msg : messages) {
-                            var prefs = new AyuSavePreferences(msg, currentAccount);
-                            prefs.setDialogId(dialogId);
-                            AyuMessagesController.getInstance().onMessageDeleted(prefs);
-                        }
-
-                        // invalidating views
-                        getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, dialogsWithMessageIds.get(dialogId));
-                    }
-                }
-                // --- AyuGram hook
             });
             ArrayList<Long> arr = new ArrayList<>(pendingEncMessagesToDelete);
             getMessagesStorage().markMessagesAsDeletedByRandoms(arr);

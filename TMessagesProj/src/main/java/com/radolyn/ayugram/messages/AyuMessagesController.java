@@ -110,10 +110,14 @@ public class AyuMessagesController {
         AyuMessageUtils.map(prefs, revision);
         AyuMessageUtils.mapMedia(prefs, revision, !sameMedia);
 
-        if (!sameMedia && !TextUtils.isEmpty(revision.mediaPath) && editedMessageDao.isFirstRevisionWithChangedMedia(prefs.getUserId(), prefs.getDialogId(), prefs.getMessageId())) {
-            // update previous revisions to reflect media change
-            // like, there's no previous file, so replace it with one we copied before...
-            editedMessageDao.updateAttachmentForRevisionsBeforeDate(prefs.getUserId(), prefs.getDialogId(), prefs.getMessageId(), revision.mediaPath, prefs.getRequestCatchTime());
+        if (!sameMedia && !TextUtils.isEmpty(revision.mediaPath)) {
+            var lastRevision = editedMessageDao.getLastRevision(prefs.getUserId(), prefs.getDialogId(), prefs.getMessageId());
+
+            if (lastRevision != null && !TextUtils.equals(revision.mediaPath, lastRevision.mediaPath) && lastRevision.mediaPath != null && !lastRevision.mediaPath.contains(attachmentsSubfolder)) {
+                // update previous revisions to reflect media change
+                // like, there's no previous file, so replace it with one we copied before...
+                editedMessageDao.updateAttachmentForRevisionsBetweenDates(prefs.getUserId(), prefs.getDialogId(), prefs.getMessageId(), lastRevision.mediaPath, revision.mediaPath);
+            }
         }
 
         editedMessageDao.insert(revision);

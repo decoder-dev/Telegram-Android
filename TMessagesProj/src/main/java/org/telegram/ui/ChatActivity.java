@@ -21414,6 +21414,7 @@ public class ChatActivity extends BaseFragment implements
                     }
 
                     // allows loading messages that are under bottom messages
+                    // todo: get rid of `dialog.top_message`, because it's very unstable
                     if (dialog != null && dialog.top_message == endId || topic != null && topic.top_message == endId) {
                         // startId is the smallest in the current batch
                         endId = maxVal;

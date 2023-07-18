@@ -165,8 +165,15 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
             msg.date = editedMessage.entityCreateDate;
             msg.edit_hide = true;
 
+            // let file be downloaded
             if (editedMessage.documentType == AyuConstants.DOCUMENT_TYPE_FILE && Objects.equals(editedMessage.mediaPath, FileLoader.getInstance(currentAccount).getPathToMessage(messageObject.messageOwner).getAbsolutePath())) {
                 msg.media.document = messageObject.messageOwner.media.document;
+            }
+
+            // fix reply state
+            if (messageObject.messageOwner.replyMessage != null) {
+                msg.replyMessage = messageObject.messageOwner.replyMessage;
+                msg.reply_to = messageObject.messageOwner.reply_to;
             }
 
             return new MessageObject(getCurrentAccount(), msg, false, true);
