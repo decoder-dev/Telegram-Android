@@ -4515,6 +4515,12 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
             AyuState.setAutomaticallyScheduled(true, 1);
         }
+
+        // user can't reply to deleted messages
+        // todo: include some part of the message to the reply
+        if (replyToMsg != null && replyToMsg.messageOwner != null && replyToMsg.messageOwner.ayuDeleted) {
+            replyToMsg = null;
+        }
         // --- AyuGram hook
 
         String originalPath = null;

@@ -13,7 +13,6 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
 import com.radolyn.ayugram.database.entities.EditedMessage;
-import com.radolyn.ayugram.messages.AyuMessagesController;
 
 import java.util.List;
 
@@ -22,17 +21,14 @@ public interface EditedMessageDao {
     @Query("SELECT * FROM editedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId ORDER BY entityCreateDate")
     List<EditedMessage> getAllRevisions(long userId, long dialogId, long messageId);
 
-    @Query("UPDATE editedmessage SET mediaPath = :newPath WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId AND entityCreateDate < :beforeDate")
-    void updateAttachmentForRevisionsBeforeDate(long userId, long dialogId, long messageId, String newPath, long beforeDate);
+    @Query("UPDATE editedmessage SET mediaPath = :newPath WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId AND mediaPath = :oldPath")
+    void updateAttachmentForRevisionsBetweenDates(long userId, long dialogId, long messageId, String oldPath, String newPath);
 
-    @Query("SELECT NOT EXISTS(SELECT * FROM editedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId AND mediaPath LIKE '%" + AyuMessagesController.attachmentsSubfolder + "%')")
-    boolean isFirstRevisionWithChangedMedia(long userId, long dialogId, long messageId);
+    @Query("SELECT * FROM editedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId ORDER BY entityCreateDate DESC LIMIT 1")
+    EditedMessage getLastRevision(long userId, long dialogId, long messageId);
 
     @Query("SELECT EXISTS(SELECT * FROM editedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId)")
     boolean hasAnyRevisions(long userId, long dialogId, long messageId);
-
-    @Query("SELECT * FROM editedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :messageId AND entityCreateDate = :date")
-    EditedMessage getRevision(long userId, long dialogId, long messageId, long date);
 
     @Query("SELECT COUNT(*) FROM editedmessage WHERE userId = :userId AND entityCreateDate > :fromDate")
     int getSyncCount(long userId, long fromDate);

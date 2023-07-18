@@ -37,7 +37,7 @@ import static org.telegram.messenger.Utilities.random;
 public class AyuUtils {
     private static final char[] chars = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();
 
-    public static boolean moveFile(File from, File to) {
+    public static boolean moveOrCopyFile(File from, File to) {
         boolean success;
         try {
             success = from.renameTo(to);
@@ -46,10 +46,22 @@ public class AyuUtils {
             success = false;
         }
 
+        if (!success) {
+            try {
+                success = AndroidUtilities.copyFile(from, to);
+            } catch (Exception e) {
+                Log.d("AyuGram", e.toString());
+            }
+        }
+
         return success;
     }
 
     public static String removeExtension(String filename) {
+        if (TextUtils.isEmpty(filename)) {
+            return filename;
+        }
+
         int index = filename.lastIndexOf('.');
         if (index == -1) { // no extension
             return filename;
@@ -59,6 +71,10 @@ public class AyuUtils {
     }
 
     public static String getExtension(String filename) {
+        if (TextUtils.isEmpty(filename)) {
+            return "";
+        }
+
         int index = filename.lastIndexOf('.');
         if (index == -1) { // no extension
             return "";

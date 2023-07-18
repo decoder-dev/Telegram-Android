@@ -66,6 +66,11 @@ public class RegexFilterEditActivity extends BaseFragment {
                 } else if (id == done_button) {
                     var text = editField.getText().toString();
 
+                    if (TextUtils.isEmpty(text)) {
+                        // todo: show error toast
+                        return;
+                    }
+
                     try {
                         Pattern.compile(text);
                     } catch (PatternSyntaxException e) {

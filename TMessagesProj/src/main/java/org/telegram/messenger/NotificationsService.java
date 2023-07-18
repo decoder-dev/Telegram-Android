@@ -29,10 +29,6 @@ import org.telegram.ui.LaunchActivity;
 
 public class NotificationsService extends Service {
     private static final String[] notifications = new String[]{
-            "Don't swipe me!",
-            "Letting you receive notifications…",
-            "Helping you receive pushes…",
-            "dontkillmyapp.com",
             "⊂(◉‿◉)つ",
             "(｡◕‿‿◕｡)",
             "(｡◕‿◕｡)",
@@ -46,6 +42,16 @@ public class NotificationsService extends Service {
             "(~‾▿‾)~",
             "｡^‿^｡",
             "(⁎˃ᆺ˂)",
+            "(≧◡≦)",
+            "\\(★ω★)/",
+            "(✿◠‿◠)",
+            "＼(٥⁀▽⁀ )／",
+            "(*^.^*)",
+            "( ` ω ´ )",
+            "｡ﾟ･ (>﹏<) ･ﾟ｡",
+            "╮(︶▽︶)╭",
+            "(￣～￣;)",
+            "(＾• ω •＾)"
     };
 
     @Override
