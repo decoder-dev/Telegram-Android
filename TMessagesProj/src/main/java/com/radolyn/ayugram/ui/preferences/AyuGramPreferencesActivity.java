@@ -199,23 +199,23 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
             }
         } else if (position == sendReadPacketsRow) {
             AyuConfig.editor.putBoolean("sendReadPackets", AyuConfig.sendReadPackets ^= true).apply();
-            ((TextCheckCell) view).setChecked(AyuConfig.sendReadPackets);
+            ((CheckBoxCell) view).setChecked(AyuConfig.sendReadPackets, true);
 
             AyuState.setAllowReadPacket(false, -1);
             updateGhostViews();
         } else if (position == sendOnlinePacketsRow) {
             AyuConfig.editor.putBoolean("sendOnlinePackets", AyuConfig.sendOnlinePackets ^= true).apply();
-            ((TextCheckCell) view).setChecked(AyuConfig.sendOnlinePackets);
+            ((CheckBoxCell) view).setChecked(AyuConfig.sendOnlinePackets, true);
 
             updateGhostViews();
         } else if (position == sendUploadProgressRow) {
             AyuConfig.editor.putBoolean("sendUploadProgress", AyuConfig.sendUploadProgress ^= true).apply();
-            ((TextCheckCell) view).setChecked(AyuConfig.sendUploadProgress);
+            ((CheckBoxCell) view).setChecked(AyuConfig.sendUploadProgress, true);
 
             updateGhostViews();
         } else if (position == sendOfflinePacketAfterOnlineRow) {
             AyuConfig.editor.putBoolean("sendOfflinePacketAfterOnline", AyuConfig.sendOfflinePacketAfterOnline ^= true).apply();
-            ((TextCheckCell) view).setChecked(AyuConfig.sendOfflinePacketAfterOnline);
+            ((CheckBoxCell) view).setChecked(AyuConfig.sendOfflinePacketAfterOnline, true);
 
             updateGhostViews();
         } else if (position == markReadAfterSendRow) {
