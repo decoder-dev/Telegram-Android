@@ -52,7 +52,6 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     private int spyDivider2Row;
 
     private int qolHeaderRow;
-    private int showFromChannelRow;
     private int keepAliveServiceRow;
     private int enableAdsRow;
     private int localPremiumRow;
@@ -107,7 +106,6 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         spyDivider2Row = newRow();
 
         qolHeaderRow = newRow();
-        showFromChannelRow = newRow();
         keepAliveServiceRow = newRow();
         enableAdsRow = newRow();
         localPremiumRow = newRow();
@@ -250,9 +248,6 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
             ((TextCheckCell) view).setChecked(AyuConfig.saveMessagesHistory);
         } else if (position == messageSavingBtnRow) {
             presentFragment(new MessageSavingPreferencesActivity());
-        } else if (position == showFromChannelRow) {
-            AyuConfig.editor.putBoolean("showFromChannel", AyuConfig.showFromChannel ^= true).apply();
-            ((TextCheckCell) view).setChecked(AyuConfig.showFromChannel);
         } else if (position == keepAliveServiceRow) {
             AyuConfig.editor.putBoolean("keepAliveService", AyuConfig.keepAliveService ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.keepAliveService);
@@ -422,8 +417,6 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.SaveDeletedMessages), AyuConfig.saveDeletedMessages, true);
                     } else if (position == saveMessagesHistoryRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.SaveMessagesHistory), AyuConfig.saveMessagesHistory, false);
-                    } else if (position == showFromChannelRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.ShowFromChannel), AyuConfig.showFromChannel, true);
                     } else if (position == keepAliveServiceRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.KeepAliveService), AyuConfig.keepAliveService, true);
                     } else if (position == enableAdsRow) {
