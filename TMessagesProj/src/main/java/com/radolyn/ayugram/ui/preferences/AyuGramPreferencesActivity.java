@@ -165,11 +165,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     private void updateGhostViews() {
         var isActive = AyuConfig.isGhostModeActive();
 
-        var msg = isActive
-                ? LocaleController.getString(R.string.DisableGhostMode)
-                : LocaleController.getString(R.string.EnableGhostMode);
-
-        listAdapter.notifyItemChanged(ghostModeToggleRow, msg);
+        listAdapter.notifyItemChanged(ghostModeToggleRow, payload);
         listAdapter.notifyItemChanged(sendReadPacketsRow, !isActive);
         listAdapter.notifyItemChanged(sendOnlinePacketsRow, !isActive);
         listAdapter.notifyItemChanged(sendUploadProgressRow, !isActive);
@@ -378,13 +374,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                 case 2:
                     TextCell textCell = (TextCell) holder.itemView;
                     textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                    if (position == ghostModeToggleRow) {
-                        var msg = AyuConfig.isGhostModeActive()
-                                ? LocaleController.getString(R.string.DisableGhostMode)
-                                : LocaleController.getString(R.string.EnableGhostMode);
-
-                        textCell.setTextAndIcon(msg, R.drawable.ayu_ghost, true);
-                    } else if (position == messageSavingBtnRow) {
+                    if (position == messageSavingBtnRow) {
                         textCell.setText(LocaleController.getString(R.string.MessageSavingBtn), false);
                     } else if (position == deletedMarkTextRow) {
                         textCell.setTextAndValue(LocaleController.getString(R.string.DeletedMarkText), AyuConfig.getDeletedMark(), true);
@@ -452,7 +442,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                     TextCheckCell2 checkCell = (TextCheckCell2) holder.itemView;
                     if (position == ghostModeToggleRow) {
                         int selectedCount = getGhostModeSelectedCount();
-                        checkCell.setTextAndCheck("Ghost Mode", selectedCount > 0, true, true);
+                        checkCell.setTextAndCheck(LocaleController.getString(R.string.GhostModeToggle), selectedCount > 0, true, true);
                         checkCell.setCollapseArrow(String.format(Locale.US, "%d/4", selectedCount), !ghostModeMenuExpanded, () -> {
                             AyuConfig.toggleGhostMode();
                             updateGhostViews();
