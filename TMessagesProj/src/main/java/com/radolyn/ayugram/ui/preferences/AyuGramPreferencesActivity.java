@@ -388,10 +388,10 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                         var file = ApplicationLoader.applicationContext.getDatabasePath(AyuConstants.AYU_DATABASE);
                         var size = file.exists() ? file.length() : 0;
 
-                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.ClearAyuDatabase), AndroidUtilities.formatFileSize(size), R.drawable.msg_clearcache, true);
+                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.ClearAyuDatabase), AndroidUtilities.formatFileSize(size), R.drawable.msg_clear_solar, true);
                         textCell.setColors(Theme.key_text_RedBold, Theme.key_text_RedBold);
                     } else if (position == eraseLocalDatabaseBtnRow) {
-                        textCell.setTextAndIcon(LocaleController.getString(R.string.EraseLocalDatabase), R.drawable.msg_clearcache, false);
+                        textCell.setTextAndIcon(LocaleController.getString(R.string.EraseLocalDatabase), R.drawable.msg_archive, false);
                         textCell.setColors(Theme.key_text_RedBold, Theme.key_text_RedBold);
                     }
                     break;
