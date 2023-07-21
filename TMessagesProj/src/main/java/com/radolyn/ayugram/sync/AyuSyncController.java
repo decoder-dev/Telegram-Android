@@ -127,7 +127,7 @@ public class AyuSyncController {
         // note for the code explorers:
         // yes, you can nullify this code in smali, but we have server side check,
         // so you can't sync without AyuGram MVP.
-        if (self.mvpUntil == null) {
+        if (!self.isMVP) {
             nullifyInstance();
             AyuSyncState.setConnectionState(AyuSyncConnectionState.NoMVP);
             enqueueRetry();
@@ -137,7 +137,7 @@ public class AyuSyncController {
         var deviceName = AyuUtils.getDeviceName();
         var deviceIdentifier = AyuUtils.getDeviceIdentifier();
 
-        var url = AyuSyncConfig.getSyncBaseURL() + "/register";
+        var url = AyuSyncConfig.getRegisterDeviceURL();
 
         var obj = new JsonObject();
         obj.addProperty("name", deviceName);
@@ -176,7 +176,7 @@ public class AyuSyncController {
     }
 
     private AyuUser getSelfForConnect() {
-        var url = AyuSyncConfig.getAyuBaseURL() + "/info";
+        var url = AyuSyncConfig.getUserDataURL();
 
         var request = new Request.Builder()
                 .url(url)
@@ -192,7 +192,7 @@ public class AyuSyncController {
                     .setDateFormat("yyyy-MM-dd'T'HH:mm:ssz")
                     .create()
                     .fromJson(response.body().string(), AyuUser.class);
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.d("AyuSync", "Failed to get self: " + e.getMessage());
             enqueueRetry();
         }
@@ -207,7 +207,7 @@ public class AyuSyncController {
     private void forceSyncInner() {
         var userId = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
 
-        var url = AyuSyncConfig.getSyncBaseURL() + "/force";
+        var url = AyuSyncConfig.getForceSyncURL();
 
         var obj = new JsonObject();
         obj.addProperty("userId", userId);

@@ -9,12 +9,10 @@
 
 package com.radolyn.ayugram.sync.models;
 
-import java.util.Date;
-
 public class AyuUser {
     public String id;
 
     public String accessToken;
 
-    public Date mvpUntil;
+    public boolean isMVP;
 }

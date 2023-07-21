@@ -21,15 +21,19 @@ public class AyuSyncConfig {
     }
 
     public static String getWebSocketURL() {
-        return getWebSocketProtocol() + AyuConfig.getSyncServerURL() + "/v1/sync/ws";
+        return getWebSocketProtocol() + AyuConfig.getSyncServerURL() + "/sync/ws/v1";
     }
 
-    public static String getSyncBaseURL() {
-        return getHTTPProtocol() + AyuConfig.getSyncServerURL() + "/v1/sync";
+    public static String getUserDataURL() {
+        return getHTTPProtocol() + AyuConfig.getSyncServerURL() + "/user/v1";
     }
 
-    public static String getAyuBaseURL() {
-        return getHTTPProtocol() + AyuConfig.getSyncServerURL() + "/v1/ayu";
+    public static String getRegisterDeviceURL() {
+        return getHTTPProtocol() + AyuConfig.getSyncServerURL() + "/sync/register/v1";
+    }
+
+    public static String getForceSyncURL() {
+        return getHTTPProtocol() + AyuConfig.getSyncServerURL() + "/sync/force/v1";
     }
 
     public static String getToken() {
