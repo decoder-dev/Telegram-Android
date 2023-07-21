@@ -18869,7 +18869,22 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             boolean isAdmin = false, isOwner = false, isTag = false;
             SpannableStringBuilder adminString = null;
             String adminLabel;
-            if (messageObject.isWelcomeMessage()) {
+            if (isMegagroup && currentChat != null && messageObject.messageOwner.post_author != null && currentChat.id == -currentMessageObject.getFromChatId()) {
+                adminString = messageObject.messageOwner.post_author.replace("\n", "");
+                adminWidth = (int) Math.ceil(Theme.chat_adminPaint.measureText(adminString));
+                nameWidth -= adminWidth;
+            } else if (isMegagroup && currentChat != null && currentMessageObject.isForwardedChannelPost()) {
+                adminString = LocaleController.getString("DiscussChannel", R.string.DiscussChannel);
+                adminWidth = (int) Math.ceil(Theme.chat_adminPaint.measureText(adminString));
+                nameWidth -= adminWidth;
+            } else if ((currentUser != null || currentChat != null) && !currentMessageObject.isOutOwner() && !currentMessageObject.isAnyKindOfSticker() && currentMessageObject.type != MessageObject.TYPE_ROUND_VIDEO && delegate != null && (adminLabel = delegate.getAdminRank(currentUser != null ? currentUser.id : currentChat.id)) != null) {
+                if (adminLabel.length() == 0) {
+                    adminLabel = LocaleController.getString("ChatAdmin", R.string.ChatAdmin);
+                }
+                adminString = adminLabel;
+                adminWidth = (int) Math.ceil(Theme.chat_adminPaint.measureText(adminString));
+                nameWidth -= adminWidth;
+            } else {
                 adminString = null;
             } else if (isMegagroup && currentChat != null && messageObject.messageOwner.post_author != null && currentChat.id == -currentMessageObject.getFromChatId()) {
                 adminString = new SpannableStringBuilder(messageObject.messageOwner.post_author.replace("\n", ""));

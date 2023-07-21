@@ -42,7 +42,6 @@ public class AyuConfig {
     public static boolean saveForBots;
 
     public static boolean markReadAfterSend;
-    public static boolean showFromChannel;
     public static boolean keepAliveService;
     public static boolean enableAds;
     public static boolean localPremium;
@@ -97,7 +96,6 @@ public class AyuConfig {
             saveReactions = preferences.getBoolean("saveReactions", true);
 
             // ~ Useful features
-            showFromChannel = preferences.getBoolean("showFromChannel", true);
             keepAliveService = preferences.getBoolean("keepAliveService", true);
             enableAds = preferences.getBoolean("enableAds", false);
             localPremium = preferences.getBoolean("localPremium", false);
