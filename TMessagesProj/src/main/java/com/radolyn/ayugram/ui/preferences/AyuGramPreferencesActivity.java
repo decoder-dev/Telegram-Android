@@ -134,8 +134,10 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     public boolean onFragmentCreate() {
         super.onFragmentCreate();
         // todo: register `MESSAGES_DELETED_NOTIFICATION` on all notification centers, not only on the current account
+
         NotificationCenter.getInstance(UserConfig.selectedAccount).addObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
         NotificationCenter.getGlobalInstance().addObserver(this, AyuConstants.AYUSYNC_STATE_CHANGED);
+
         return true;
     }
 
@@ -156,6 +158,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
+
         NotificationCenter.getInstance(UserConfig.selectedAccount).removeObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
         NotificationCenter.getGlobalInstance().removeObserver(this, AyuConstants.AYUSYNC_STATE_CHANGED);
     }
