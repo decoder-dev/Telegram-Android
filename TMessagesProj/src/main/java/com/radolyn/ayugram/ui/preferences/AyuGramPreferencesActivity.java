@@ -53,7 +53,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
 
     private int qolHeaderRow;
     private int keepAliveServiceRow;
-    private int enableAdsRow;
+    private int disableAdsRow;
     private int localPremiumRow;
     private int filtersRow;
     private int qolDividerRow;
@@ -107,7 +107,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
 
         qolHeaderRow = newRow();
         keepAliveServiceRow = newRow();
-        enableAdsRow = newRow();
+        disableAdsRow = newRow();
         localPremiumRow = newRow();
         filtersRow = newRow();
         qolDividerRow = newRow();
@@ -251,20 +251,11 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         } else if (position == keepAliveServiceRow) {
             AyuConfig.editor.putBoolean("keepAliveService", AyuConfig.keepAliveService ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.keepAliveService);
-        } else if (position == enableAdsRow) {
-            AyuConfig.editor.putBoolean("enableAds", AyuConfig.enableAds ^= true).apply();
-            ((TextCheckCell) view).setChecked(AyuConfig.enableAds);
-
-            if (AyuConfig.enableAds && AyuConfig.localPremium) {
-                toggleLocalPremium();
-            }
+        } else if (position == disableAdsRow) {
+            AyuConfig.editor.putBoolean("disableAds", AyuConfig.disableAds ^= true).apply();
+            ((TextCheckCell) view).setChecked(AyuConfig.disableAds);
         } else if (position == localPremiumRow) {
             toggleLocalPremium();
-
-            if (AyuConfig.localPremium && AyuConfig.enableAds) {
-                AyuConfig.editor.putBoolean("enableAds", AyuConfig.enableAds ^= true).apply();
-                listAdapter.notifyItemChanged(enableAdsRow, false);
-            }
         } else if (position == filtersRow) {
             NotificationsCheckCell checkCell = (NotificationsCheckCell) view;
             if (LocaleController.isRTL && x <= AndroidUtilities.dp(76) || !LocaleController.isRTL && x >= view.getMeasuredWidth() - AndroidUtilities.dp(76)) {
@@ -419,8 +410,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.SaveMessagesHistory), AyuConfig.saveMessagesHistory, false);
                     } else if (position == keepAliveServiceRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.KeepAliveService), AyuConfig.keepAliveService, true);
-                    } else if (position == enableAdsRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.EnableAds), AyuConfig.enableAds, true);
+                    } else if (position == disableAdsRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.DisableAds), AyuConfig.disableAds, true);
                     } else if (position == localPremiumRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.LocalPremium) + " β", AyuConfig.localPremium, true);
                     } else if (position == showGhostToggleInDrawerRow) {
