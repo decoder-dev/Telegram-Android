@@ -33,17 +33,21 @@ import java.util.List;
 import java.util.Objects;
 
 public class AyuMessageHistory extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
-    private final List<EditedMessage> messages;
-    private final int rowCount;
     private final MessageObject messageObject;
-
+    private List<EditedMessage> messages;
+    private int rowCount;
     private RecyclerListView listView;
 
-    public AyuMessageHistory(long userId, MessageObject messageObject) {
-        var messagesController = AyuMessagesController.getInstance();
-        messages = messagesController.getRevisions(userId, messageObject.messageOwner.dialog_id, messageObject.messageOwner.id);
-        rowCount = messages.size();
+    public AyuMessageHistory(MessageObject messageObject) {
         this.messageObject = messageObject;
+
+        updateHistory();
+    }
+
+    private void updateHistory() {
+        var messagesController = AyuMessagesController.getInstance();
+        messages = messagesController.getRevisions(getUserConfig().clientUserId, messageObject.messageOwner.dialog_id, messageObject.messageOwner.id);
+        rowCount = messages.size();
     }
 
     @Override
@@ -104,8 +108,32 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
     }
 
     @Override
+    public boolean onFragmentCreate() {
+        super.onFragmentCreate();
+
+        NotificationCenter.getInstance(UserConfig.selectedAccount).addObserver(this, AyuConstants.MESSAGE_EDITED_NOTIFICATION);
+
+        return true;
+    }
+
+    @Override
     public void didReceivedNotification(int id, int account, Object... args) {
-        // todo: update list in real time
+        if (id == AyuConstants.MESSAGE_EDITED_NOTIFICATION) {
+            var dialogId = (long) args[0];
+            var messageId = (int) args[1];
+
+            if (dialogId == messageObject.messageOwner.dialog_id && messageId == messageObject.messageOwner.id) {
+                updateHistory();
+                listView.getAdapter().notifyDataSetChanged();
+            }
+        }
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        super.onFragmentDestroy();
+
+        NotificationCenter.getInstance(UserConfig.selectedAccount).removeObserver(this, AyuConstants.MESSAGE_EDITED_NOTIFICATION);
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {

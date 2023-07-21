@@ -22,7 +22,9 @@ import com.radolyn.ayugram.database.entities.DeletedMessageFull;
 import com.radolyn.ayugram.database.entities.DeletedMessageReaction;
 import com.radolyn.ayugram.database.entities.EditedMessage;
 import com.radolyn.ayugram.proprietary.AyuMessageUtils;
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.tgnet.TLRPC;
 
 import java.io.File;
@@ -121,6 +123,10 @@ public class AyuMessagesController {
         }
 
         editedMessageDao.insert(revision);
+
+        AndroidUtilities.runOnUIThread(() -> {
+            NotificationCenter.getInstance(prefs.getAccountId()).postNotificationName(AyuConstants.MESSAGE_EDITED_NOTIFICATION, prefs.getDialogId(), prefs.getMessageId());
+        });
     }
 
     public void onMessageDeleted(AyuSavePreferences prefs) {
@@ -235,7 +241,7 @@ public class AyuMessagesController {
         AyuData.clean();
         AyuData.create();
 
-        // force recreate a database to avoid crash
+        // force to recreate a database to avoid crash
         instance = null;
     }
 }
