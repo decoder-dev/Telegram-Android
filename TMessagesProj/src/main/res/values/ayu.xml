@@ -80,7 +80,7 @@
   <string name="EnableGhostMode">Enable Ghost</string>
   <string name="DisableGhostMode">Disable Ghost</string>
   <string name="KillApp">Kill App</string>
-  <string name="DrawerGhostModeToggle">Ghost Mode</string>
+  <string name="GhostModeToggle">Ghost Mode</string>
   <string name="GhostModeEnabled">Ghost mode turned on</string>
   <string name="GhostModeDisabled">Ghost mode turned off</string>
   <string name="EditsHistoryTitle">Edits history</string>
