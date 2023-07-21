@@ -43,7 +43,7 @@ public class AyuConfig {
 
     public static boolean markReadAfterSend;
     public static boolean keepAliveService;
-    public static boolean enableAds;
+    public static boolean disableAds;
     public static boolean localPremium;
     public static boolean regexFiltersEnabled;
     public static boolean regexFiltersInChats;
@@ -73,10 +73,9 @@ public class AyuConfig {
             sendReadPackets = preferences.getBoolean("sendReadPackets", true);
             sendOnlinePackets = preferences.getBoolean("sendOnlinePackets", true);
             sendUploadProgress = preferences.getBoolean("sendUploadProgress", true);
-
             sendOfflinePacketAfterOnline = preferences.getBoolean("sendOfflinePacketAfterOnline", false);
-            markReadAfterSend = preferences.getBoolean("markReadAfterSend", true);
 
+            markReadAfterSend = preferences.getBoolean("markReadAfterSend", true);
             useScheduledMessages = preferences.getBoolean("useScheduledMessages", false);
 
             // ~ Message edits & deletion history
@@ -97,7 +96,7 @@ public class AyuConfig {
 
             // ~ Useful features
             keepAliveService = preferences.getBoolean("keepAliveService", true);
-            enableAds = preferences.getBoolean("enableAds", false);
+            disableAds = preferences.getBoolean("disableAds", true);
             localPremium = preferences.getBoolean("localPremium", false);
             regexFiltersEnabled = preferences.getBoolean("regexFiltersEnabled", false);
             regexFiltersInChats = preferences.getBoolean("regexFiltersInChats", false);

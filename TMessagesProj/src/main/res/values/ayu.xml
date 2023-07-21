@@ -24,9 +24,8 @@
   <string name="MessageSavingSaveReactions">Save reactions</string>
   <string name="MessageSavingSaveForBots">Save in bot dialogs</string>
   <string name="QoLTogglesHeader">Useful features</string>
-  <string name="ShowFromChannel">Show «channel» label</string>
   <string name="KeepAliveService">AyuGram Push Service</string>
-  <string name="EnableAds">Enable ads</string>
+  <string name="DisableAds">Disable ads</string>
   <string name="LocalPremium">Local Telegram Premium</string>
   <string name="CustomizationHeader">Customization</string>
   <string name="DeletedMarkText">Deleted mark</string>
