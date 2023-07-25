@@ -36,7 +36,6 @@ import android.text.Spannable;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
-import android.util.Pair;
 import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -53,6 +52,7 @@ import androidx.core.view.inputmethod.InputContentInfoCompat;
 
 import com.exteragram.messenger.ExteraConfig;
 import com.radolyn.ayugram.AyuConfig;
+import com.radolyn.ayugram.AyuForwarder;
 import com.radolyn.ayugram.utils.AyuState;
 
 import org.json.JSONObject;
@@ -2239,6 +2239,31 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             AyuState.setAutomaticallyScheduled(true, 1);
         }
         var scheduleDate = scheduleDateOrig;
+
+        var ayuForwardNeeded = AyuForwarder.isFullAyuForwardsNeeded(currentAccount, messages);
+        if (ayuForwardNeeded) {
+            new Thread(() -> {
+                try {
+                    AyuForwarder.forwardMessages(currentAccount, messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, replyToTopMsg);
+                } catch (Exception e) {
+                    Log.e("AyuGram", "Failed to forward messages", e);
+                }
+            }).start();
+            return 0;
+        }
+
+        var ayuIntelligentForwardNeeded = AyuForwarder.isAyuForwardNeeded(messages);
+        if (ayuIntelligentForwardNeeded) {
+            new Thread(() -> {
+                try {
+                    AyuForwarder.intelligentForward(currentAccount, messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, replyToTopMsg);
+                } catch (Exception e) {
+                    Log.e("AyuGram", "Failed to forward messages", e);
+                }
+            }).start();
+            return 0;
+        }
+
         // --- AyuGram hook
 
         int sendResult = 0;

@@ -25,7 +25,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.MessageObject;
-import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 
@@ -208,34 +207,6 @@ public class AyuUtils {
         return Integer.MAX_VALUE; // no questions
     }
 
-    public static TLRPC.Message copyMessage(TLRPC.Message oldMessage, long currentUserId) {
-        try {
-            NativeByteBuffer data = new NativeByteBuffer(oldMessage.getObjectSize());
-            oldMessage.serializeToStream(data);
-            data.rewind();
-
-            TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
-            message.send_state = oldMessage.send_state;
-            message.id = oldMessage.id;
-            if (message.id > 0 && message.send_state != 0 && message.send_state != 3) {
-                message.send_state = 0;
-            }
-            message.out = oldMessage.out;
-            message.unread = oldMessage.unread;
-            message.readAttachPath(data, currentUserId);
-            data.reuse();
-            message.date = oldMessage.date;
-            message.dialog_id = oldMessage.dialog_id;
-            message.ttl = oldMessage.ttl;
-
-            return message;
-        } catch (Exception e) {
-            Log.e("AyuGram", "failed to copy message", e);
-        }
-
-        return null;
-    }
-
     public static CharSequence htmlToString(String text) {
         Spannable htmlParsed;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -247,7 +218,7 @@ public class AyuUtils {
         return LocaleUtils.formatWithURLs(htmlParsed);
     }
 
-    public static boolean isMediaDownloadable(MessageObject message) {
+    public static boolean isMediaDownloadable(MessageObject message, boolean toGalleryOnly) {
         if (message == null || message.messageOwner == null || message.messageOwner.media == null) {
             return false;
         }
@@ -264,12 +235,18 @@ public class AyuUtils {
             return false;
         }
 
-        return message.isSecretMedia() ||
+        var res = message.isSecretMedia() ||
                 message.isGif() ||
                 message.isNewGif() ||
                 message.isRoundVideo() ||
                 message.isVideo() ||
-                message.isDocument() ||
+                message.isPhoto();
+
+        if (toGalleryOnly || res) {
+            return res;
+        }
+
+        return message.isDocument() ||
                 message.isMusic() ||
                 message.isVoice();
     }
