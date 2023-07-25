@@ -14,6 +14,7 @@
   <string name="MessageSavingBtn">Message Saving Preferences</string>
   <string name="MessageSavingMediaHeader">Media</string>
   <string name="MessageSavingSaveMedia">Save media</string>
+  <string name="MessageSavingSaveMediaHint">Click for more</string>
   <string name="MessageSavingSaveMediaInPrivateChats">…in private chats</string>
   <string name="MessageSavingSaveMediaInPublicChannels">…in public channels</string>
   <string name="MessageSavingSaveMediaInPrivateChannels">…in private channels</string>
