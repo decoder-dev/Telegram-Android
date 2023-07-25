@@ -9994,28 +9994,12 @@ public class MessageObject {
         return 0;
     }
 
-    public static long getChatId(TLRPC.Message message) {
-        if (message == null) {
-            return 0;
+    public static boolean shouldEncryptPhotoOrVideo(TLRPC.Message message) {
+        // AyuGram: disable encryption
+        if (true) {
+            return false;
         }
-        if (message.peer_id instanceof TLRPC.TL_peerChat) {
-            return message.peer_id.chat_id;
-        } else if (message.peer_id instanceof TLRPC.TL_peerChannel) {
-            return message.peer_id.channel_id;
-        }
-        return 0;
-    }
 
-    public static boolean shouldEncryptPhotoOrVideo(int currentAccount, TLRPC.Message message) {
-        if (message != null && message.media != null && (isVoiceDocument(getDocument(message)) || isRoundVideoMessage(message)) && message.media.ttl_seconds == 0x7FFFFFFF) {
-            return true;
-        }
-        if (getMedia(message) instanceof TLRPC.TL_messageMediaPaidMedia) {
-            return true;
-        }
-//        if (MessagesController.getInstance(currentAccount).isChatNoForwards(getChatId(message)) || message != null && message.noforwards) {
-//            return true;
-//        }
         if (message instanceof TLRPC.TL_message_secret) {
             return (getMedia(message) instanceof TLRPC.TL_messageMediaPhoto || isVideoMessage(message)) && message.ttl > 0 && message.ttl <= 60;
         } else {
