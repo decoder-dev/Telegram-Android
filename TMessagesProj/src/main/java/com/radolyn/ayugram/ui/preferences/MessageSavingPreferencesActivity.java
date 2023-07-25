@@ -216,7 +216,7 @@ public class MessageSavingPreferencesActivity extends BasePreferencesActivity {
                 case 18:
                     TextCheckCell2 checkCell = (TextCheckCell2) holder.itemView;
                     if (position == saveMediaRow) {
-                        checkCell.setTextAndCheck(LocaleController.getString(R.string.MessageSavingSaveMedia), AyuConfig.saveMedia, true, true);
+                        checkCell.setTextAndValueAndCheck(LocaleController.getString(R.string.MessageSavingSaveMedia), LocaleController.getString(R.string.MessageSavingSaveMediaHint), AyuConfig.saveMedia, false, true);
                     }
                     checkCell.getCheckBox().setColors(Theme.key_switchTrack, Theme.key_switchTrackChecked, Theme.key_windowBackgroundWhite, Theme.key_windowBackgroundWhite);
                     checkCell.getCheckBox().setDrawIconType(0);
