@@ -141,7 +141,10 @@ android {
     api project(":TMessagesProj_Modules:media3:media-lib-session")
     api project(':jlatexmath')
 
-//    implementation 'com.google.mlkit:translate:17.0.3'
+        // Obtain your own keys at: https://core.telegram.org/api/obtaining_api_id
+        buildConfigField 'int', 'APP_ID', localProperties.getProperty("APP_ID")
+        buildConfigField 'String', 'APP_HASH', localProperties.getProperty("APP_HASH")
+        buildConfigField 'String', 'AYU_VERSION', '"' + new Date().format("yyyyMMdd") + '"'
 
     implementation 'com.google.android.recaptcha:recaptcha:18.7.1'
 
