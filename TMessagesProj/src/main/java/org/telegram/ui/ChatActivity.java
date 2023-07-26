@@ -21403,9 +21403,6 @@ public class ChatActivity extends BaseFragment implements
                     startId = Math.min(msg1, msg2);
                     endId = Math.max(msg1, msg2);
 
-                    // - deleted messages between loaded part and unloaded part
-                    // IDK what should I do :(
-
                     var dialog = getMessagesController().getDialog(dialogId);
 
                     TLRPC.TL_forumTopic topic = null;
@@ -21413,19 +21410,26 @@ public class ChatActivity extends BaseFragment implements
                         topic = getMessagesController().getTopicsController().findTopic(getCurrentChatInfo().id, getTopicId());
                     }
 
+                    // todo: check if these's any messages between current loaded and newly loaded
+                    // like, we know their ids, so why not
+                    var minMaxRes = getMessagesStorage().getMinAndMaxForDialog(dialogId);
+
                     // allows loading messages that are under bottom messages
-                    // todo: get rid of `dialog.top_message`, because it's very unstable
-                    if (dialog != null && dialog.top_message == endId || topic != null && topic.top_message == endId) {
+                    if (dialog != null && (dialog.top_message == endId || (minMaxRes.second == endId && dialog.top_message <= minMaxRes.second)) || topic != null && topic.top_message == endId) {
                         // startId is the smallest in the current batch
                         endId = maxVal;
+                    } else if (messArr.size() == 1 && messArr.get(0).messageOwner instanceof TLRPC.TL_messageService) {
+                        startId = minVal;
+                        endId = AyuUtils.getMinRealId(messages);
                     }
-                    // allows loading messages that are uppermore than the dialog (make sure it's the up and not a cache)
+                    // allows loading messages that are uppermore than the dialog
                     else if (messArr.size() < count && !isCache && (load_type == 2 || load_type == 1) && !messArr.isEmpty()) {
                         startId = minVal;
                         endId = Math.min(msg1, msg2);
                     }
                 } else {
-                    if (!messages.isEmpty()) { // idk why I added this one but well if it's here then it should be here.
+                    if (!messages.isEmpty()) { // for loading uppermore
+                        startId = minVal;
                         endId = AyuUtils.getMinRealId(messages);
                     }
 
@@ -21471,7 +21475,16 @@ public class ChatActivity extends BaseFragment implements
                 endId = t;
             }
 
-            Log.d("AyuGram", "messArr: " + messArr.size() + " , startId: " + startId +  " , endId: " + endId + " , limit: " + limit + " , load_type: " + load_type + " , isCache: " + isCache);
+            Log.d("AyuGram",
+                    "messArr: " + messArr.size()
+                    + " , startId: " + startId
+                    + " , endId: " + endId
+                    + " , count: " + count
+                    + " , load_type: " + load_type
+                    + " , isCache: " + isCache
+                    + " , isEnd: " + isEnd
+                    + ", endReached[0]: " + endReached[0]
+            );
             if (!isInScheduleMode() && (startId != minVal || endId != minVal)) {
                 var needToReset = messArr.size() == count;
                 AyuHistoryHook.doHook(currentAccount, messArr, messagesDict, startId, endId, dialogId, limit, topicId, isSecretChat());
