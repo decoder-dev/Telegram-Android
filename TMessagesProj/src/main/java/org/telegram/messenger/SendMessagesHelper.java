@@ -53,6 +53,7 @@ import androidx.core.view.inputmethod.InputContentInfoCompat;
 import com.exteragram.messenger.ExteraConfig;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuForwarder;
+import com.radolyn.ayugram.AyuUtils;
 import com.radolyn.ayugram.utils.AyuState;
 
 import org.json.JSONObject;
@@ -4542,8 +4543,36 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
 
         // user can't reply to deleted messages
-        // todo: include some part of the message to the reply
         if (replyToMsg != null && replyToMsg.messageOwner != null && replyToMsg.messageOwner.ayuDeleted) {
+            if ((!TextUtils.isEmpty(message) || !TextUtils.isEmpty(caption) || photo != null) && !TextUtils.isEmpty(replyToMsg.messageText)) {
+                var fromPeer = replyToMsg.getFromPeerObject();
+                var name = "";
+
+                if (!DialogObject.isUserDialog(peer)) {
+                    if (fromPeer instanceof TLRPC.Chat) {
+                        var fromPeerChat = (TLRPC.Chat) fromPeer;
+                        name = fromPeerChat.title;
+                    } else if (fromPeer instanceof TLRPC.User) {
+                        var fromPeerUser = (TLRPC.User) fromPeer;
+                        name = ContactsController.formatName(fromPeerUser.first_name, fromPeerUser.last_name);
+                    }
+
+                    name += "\n";
+                }
+
+                var prefix = name + "> " + AyuUtils.shortify(replyToMsg.messageText, 20);
+
+                if (!TextUtils.isEmpty(message)) {
+                    message = prefix + "\n\n" + message;
+                } else if (!TextUtils.isEmpty(caption)) {
+                    caption = prefix + "\n\n" + caption;
+                } else if (photo != null) {
+                    caption = prefix;
+                }
+
+                AyuUtils.shiftEntities(entities, prefix.length());
+            }
+
             replyToMsg = null;
         }
         // --- AyuGram hook
