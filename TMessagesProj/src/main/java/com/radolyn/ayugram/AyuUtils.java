@@ -207,6 +207,24 @@ public class AyuUtils {
         return Integer.MAX_VALUE; // no questions
     }
 
+    public static void shiftEntities(ArrayList<TLRPC.MessageEntity> entities, int offset) {
+        if (entities == null || entities.isEmpty()) {
+            return;
+        }
+
+        for (var entity : entities) {
+            entity.offset += offset;
+        }
+    }
+
+    public static CharSequence shortify(CharSequence text, int maxLength) {
+        if (TextUtils.isEmpty(text) || text.length() <= maxLength) {
+            return text;
+        }
+
+        return text.subSequence(0, maxLength - 1) + "…";
+    }
+
     public static CharSequence htmlToString(String text) {
         Spannable htmlParsed;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
