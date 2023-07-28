@@ -60,6 +60,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.math.MathUtils;
 
+import com.radolyn.ayugram.AyuFilter;
+import com.radolyn.ayugram.AyuUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ChatObject;
@@ -3724,6 +3726,12 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 invalidate = true;
             }
         }
+
+        // --- AyuGram hook
+        if (AyuFilter.isFiltered(message, null)) {
+            AyuUtils.blurify(message);
+        }
+        // --- AyuGram hook
 
         if (!animated) {
             dialogMutedProgress = (dialogMuted || drawUnmute) ? 1f : 0f;

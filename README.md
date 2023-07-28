@@ -63,17 +63,17 @@ If you don't want to send crash reports, you can disable it in **exteraGram Pref
 
 ## Downloads?
 
-Follow our **[Telegram channel](https://t.me/ayugram1338)**.
+Follow our **[Telegram channel](https://t.me/ayugram1338)** and join our [chat](https://t.me/ayugramchat)!
 
-Alpha versions can be downloaded
-from **[GitHub Actions](https://github.com/AyuGram/AyuGram4A/actions/workflows/release.yml)**.
+Preview versions can be downloaded
+from the **[dedicated topic](https://t.me/ayugramchat/1238)**.
 
 ## Want to throw some money?
 
 Developing AyuGram is not such a simple task.
 **We'd be grateful for any donation <3**
 
-All available methods can be found **[here](https://ayusync.radolyn.com/ui/donate)**.
+All available methods can be found **[here](https://ayusync.cloud/ui/donate)**.
 
 ## AyuSync? What is it?
 
@@ -100,17 +100,17 @@ Well, just fork it.
 1. Clone source code using `git clone https://github.com/AyuGram/AyuGram4A.git`
 2. Open the project in Android Studio. It should be opened, **not imported**
 3. Implement the `AyuMessageUtils` & `AyuHistoryHook` classes. It's not that hard, but if you're
-   making your **very** own fork, then you should take some time to write this part of code
+   making your **very** own fork, then you should take some time to write this part of code. Or you can search for a reversed version :)
 4. Replace `google-services.json` (we don't want to see crash reports from your app...)
 5. Generate application certificate and fill API_KEYS:
    ```
    APP_ID = 6
    APP_HASH = "eb06d4abfb49dc3eeb1aeb98ae0f581e"
-   MAPS_V2_API = <...>
+   MAPS_V2_API = abcdef12345678
    
-   SIGNING_KEY_PASSWORD = <...>
-   SIGNING_KEY_ALIAS = <...>
-   SIGNING_KEY_STORE_PASSWORD = <...>
+   SIGNING_KEY_PASSWORD = password
+   SIGNING_KEY_ALIAS = alias
+   SIGNING_KEY_STORE_PASSWORD = password
    ```
 6. You are ready to compile `AyuGram`
 
