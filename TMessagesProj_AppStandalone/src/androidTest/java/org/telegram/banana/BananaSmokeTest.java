@@ -472,8 +472,68 @@ public class BananaSmokeTest {
         assertEquals("(?i)hello", store.rules().rules.get(0).text);
         assertFalse("Saving a shared rule must not silently enable it in private chats", store.sharedInChats());
         checkImportDialogs(instrumentation, screen[0], store, name);
+        checkSelectionDraft(instrumentation, activity, screen[0], store, name);
         instrumentation.runOnMainSync(() -> { store.setEnabled(false); store.save(FilterRules.empty()); screen[0].finishFragment(false); });
         await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == extras && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Filters must return to Extras");
+    }
+
+    private static void checkSelectionDraft(Instrumentation instrumentation, LaunchActivity activity, BananaFiltersActivity screen, FilterStore store, String name) throws Exception {
+        final String selected = ".*[sale]\\E Привет 👋";
+        FilterRules before = store.rules();
+        assertFalse("The selection flow starts with filtering disabled", store.enabled());
+        Runnable show = () -> screen.showDialog(org.telegram.ui.Components.SelectionFilterPrompt.create(
+                screen.getParentActivity(), screen.getResourceProvider(), 42, scope ->
+                        screen.presentFragment(BananaFilterEditActivity.fromSelection(0, scope, selected))));
+        instrumentation.runOnMainSync(show);
+        AlertDialog cancelled = waitDialog(instrumentation, screen, null);
+        capture(instrumentation, name + "-filter-selection-scope");
+        tapDialogButton(instrumentation, cancelled, AlertDialog.BUTTON_NEGATIVE);
+        assertSame("Cancel must not save or replace a rules snapshot", before, store.rules());
+        instrumentation.runOnMainSync(show);
+        tapDialogButton(instrumentation, waitDialog(instrumentation, screen, cancelled), AlertDialog.BUTTON_POSITIVE);
+        BananaFilterEditActivity[] draft = new BananaFilterEditActivity[1];
+        await(instrumentation, () -> {
+            if (!(activity.getActionBarLayout().getLastFragment() instanceof BananaFilterEditActivity) || activity.getActionBarLayout().isTransitionAnimationInProgress()) return false;
+            draft[0] = (BananaFilterEditActivity) activity.getActionBarLayout().getLastFragment();
+            return draft[0].listView != null && draft[0].listView.isLaidOut();
+        }, "Choosing this chat must open a reviewable native draft");
+        instrumentation.runOnMainSync(() -> {
+            for (int i = 0; i < draft[0].listView.adapter.getItemCount(); i++) {
+                org.telegram.ui.Components.UItem item = draft[0].listView.adapter.getItem(i);
+                if (item.id == 10) assertEquals(java.util.regex.Pattern.quote(selected), ((android.widget.EditText) item.view).getText().toString());
+                if (item.id == 11) assertEquals(selected, ((android.widget.EditText) item.view).getText().toString());
+            }
+        });
+        assertSame("Opening a draft must not save", before, store.rules());
+        capture(instrumentation, name + "-filter-selection-draft");
+        tapRow(instrumentation, draft[0], 4);
+        await(instrumentation, () -> {
+            for (int i = 0; i < draft[0].listView.adapter.getItemCount(); i++) if (LocaleController.getString(R.string.BananaFilterHidden)
+                    .contentEquals(draft[0].listView.adapter.getItem(i).text == null ? "" : draft[0].listView.adapter.getItem(i).text)) return true;
+            return false;
+        }, "Android's isolated evaluator must match the literal selection, including its quote terminator");
+        tapRow(instrumentation, draft[0], 5);
+        await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == screen && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Saving the selection draft must return to filters");
+        assertEquals(before.rules.size() + 1, store.rules().rules.size());
+        FilterRules.Rule saved = store.rules().rules.get(store.rules().rules.size() - 1);
+        assertEquals(42, saved.dialogId);
+        assertEquals(java.util.regex.Pattern.quote(selected), saved.text);
+        assertFalse("Saving must not enable filtering", store.enabled());
+        FilterRules after = store.rules();
+        instrumentation.runOnMainSync(show);
+        tapDialogButton(instrumentation, waitDialog(instrumentation, screen, null), AlertDialog.BUTTON_NEUTRAL);
+        await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() instanceof BananaFilterEditActivity && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Shared scope must also open a draft");
+        instrumentation.runOnMainSync(() -> {
+            BananaFilterEditActivity shared = (BananaFilterEditActivity) activity.getActionBarLayout().getLastFragment();
+            try {
+                java.lang.reflect.Field scope = BananaFilterEditActivity.class.getDeclaredField("dialogId"); scope.setAccessible(true);
+                assertEquals(0, scope.getLong(shared));
+            } catch (Exception exception) { throw new AssertionError(exception); }
+            shared.finishFragment(false);
+        });
+        await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == screen && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Cancelling a shared draft returns to filters");
+        assertSame("Leaving a draft unsaved must not change the rules", after, store.rules());
+        assertFalse(store.enabled());
     }
 
     private static AlertDialog waitDialog(Instrumentation instrumentation, UniversalFragment screen, AlertDialog previous) {

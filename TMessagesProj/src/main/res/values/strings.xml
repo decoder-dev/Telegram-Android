@@ -11721,4 +11721,7 @@
     <string name="BananaFiltersSourceError">Could not download the rules. Check the connection and use a raw HTTPS link from dpaste.com, gist.githubusercontent.com, pastebin.com or nekobin.com. Files must be UTF-8 and no larger than 256 KB.</string>
     <string name="BananaFiltersDownload">Download list</string>
     <string name="BananaFilterUnavailable">The rule checker is temporarily unavailable. Try again.</string>
+    <string name="BananaFilterSelectionInfo">Choose where this phrase should be filtered. Review and save the draft next. Your current filtering setting will stay the same.</string>
+    <string name="BananaFilterThisChat">This chat</string>
+    <string name="BananaFilterLimitReached">You have reached the limit of 64 rules. Remove an existing rule before adding another.</string>
 </resources>

@@ -643,6 +643,12 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
         return false;
     }
 
+    protected boolean canAddFilter() { return false; }
+    protected void onAddFilterText(CharSequence text) { }
+    private boolean canAddSelectionFilter() {
+        return canAddFilter() && canCopy() && org.telegram.messenger.banana.SelectionFilter.expression(getSelectedText()) != null;
+    }
+
     protected void onQuoteClick(MessageObject messageObject, int start, int end, CharSequence text) {
 
     }
@@ -1538,7 +1544,7 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
         }
     }
 
-    private static final int TRANSLATE = 3;
+    private static final int TRANSLATE = 3, BANANA_FILTER = 18002;
     private ActionMode.Callback createActionCallback() {
         final ActionMode.Callback callback = new ActionMode.Callback() {
             @Override
@@ -1546,6 +1552,7 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                 menu.add(Menu.NONE, android.R.id.copy, 0, android.R.string.copy);
                 menu.add(Menu.NONE, R.id.menu_quote, 1, LocaleController.getString(R.string.Quote));
                 menu.add(Menu.NONE, TRANSLATE, 2, LocaleController.getString(R.string.TranslateMessage));
+                menu.add(Menu.NONE, BANANA_FILTER, 6, LocaleController.getString(R.string.BananaFilterAdd));
                 menu.add(Menu.NONE, android.R.id.cut, 3, android.R.string.cut);
                 menu.add(Menu.NONE, android.R.id.paste, 4, android.R.string.paste);
                 menu.add(Menu.NONE, android.R.id.selectAll, 5, android.R.string.selectAll);
@@ -1554,6 +1561,8 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
 
             @Override
             public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                MenuItem filterItem = menu.findItem(BANANA_FILTER);
+                if (filterItem != null) filterItem.setVisible(canAddSelectionFilter());
                 MenuItem quoteItem = menu.findItem(R.id.menu_quote);
                 if (quoteItem != null) {
                     quoteItem.setVisible(canShowQuote());
@@ -1623,7 +1632,15 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                     return true;
                 }
                 int itemId = item.getItemId();
-                if (itemId == android.R.id.copy) {
+                if (itemId == BANANA_FILTER) {
+                    if (canAddSelectionFilter()) {
+                        String selection = getSelectedText().toString();
+                        hideActions();
+                        clear();
+                        onAddFilterText(selection);
+                    }
+                    return true;
+                } else if (itemId == android.R.id.copy) {
                     copyText();
                     return true;
                 } else if (itemId == android.R.id.selectAll) {

@@ -225,14 +225,14 @@
       "setting": "filtersEnabled",
       "source_default": "false",
       "status": "partial_verified_local_native_pending_full_parity",
-      "implementation": "Owner/backend scoped shared and per-chat Java rules, exceptions/reversed/case flags, isolated evaluator, native editor and sample check, reviewed local/HTTPS v2 import/export and tg://ayu/filters/import links. Native row/selection and EN/RU Blue/Night flows verified; blocked users, dialog previews and full autodownload gating still pending. Signed-in deep-link acceptance pending."
+      "implementation": "Owner/backend scoped shared and per-chat Java rules, exceptions/reversed/case flags, isolated evaluator, native editor, literal selected-text drafts with shared/perchat scope, sample check, reviewed local/HTTPS v2 import/export and tg://ayu/filters/import links. Native row/selection and EN/RU Blue/Night flows verified; blocked users, dialog previews and full autodownload gating still pending. Signed-in deep-link acceptance pending."
     },
     {
       "group": "general",
       "setting": "filtersEnabledInChats",
       "source_default": "false",
       "status": "partial_verified_local_native_pending_full_parity",
-      "implementation": "Owner/backend scoped shared and per-chat Java rules, exceptions/reversed/case flags, isolated evaluator, native editor and sample check, reviewed local/HTTPS v2 import/export and tg://ayu/filters/import links. Native row/selection and EN/RU Blue/Night flows verified; blocked users, dialog previews and full autodownload gating still pending. Signed-in deep-link acceptance pending."
+      "implementation": "Owner/backend scoped shared and per-chat Java rules, exceptions/reversed/case flags, isolated evaluator, native editor, literal selected-text drafts with shared/perchat scope, sample check, reviewed local/HTTPS v2 import/export and tg://ayu/filters/import links. Native row/selection and EN/RU Blue/Night flows verified; blocked users, dialog previews and full autodownload gating still pending. Signed-in deep-link acceptance pending."
     },
     {
       "group": "general",
@@ -815,17 +815,17 @@
     {
       "setting": "regexFiltersEnabled",
       "status": "partial_verified_local_native_pending_full_parity",
-      "implementation": "Owner/backend scoped shared and per-chat Java rules, exceptions/reversed/case flags, isolated evaluator, native editor and sample check, reviewed local/HTTPS v2 import/export and tg://ayu/filters/import links. Native row/selection and EN/RU Blue/Night flows verified; blocked users, dialog previews and full autodownload gating still pending. Signed-in deep-link acceptance pending."
+      "implementation": "Owner/backend scoped shared and per-chat Java rules, exceptions/reversed/case flags, isolated evaluator, native editor, literal selected-text drafts with shared/perchat scope, sample check, reviewed local/HTTPS v2 import/export and tg://ayu/filters/import links. Native row/selection and EN/RU Blue/Night flows verified; blocked users, dialog previews and full autodownload gating still pending. Signed-in deep-link acceptance pending."
     },
     {
       "setting": "regexFiltersInChats",
       "status": "partial_verified_local_native_pending_full_parity",
-      "implementation": "Owner/backend scoped shared and per-chat Java rules, exceptions/reversed/case flags, isolated evaluator, native editor and sample check, reviewed local/HTTPS v2 import/export and tg://ayu/filters/import links. Native row/selection and EN/RU Blue/Night flows verified; blocked users, dialog previews and full autodownload gating still pending. Signed-in deep-link acceptance pending."
+      "implementation": "Owner/backend scoped shared and per-chat Java rules, exceptions/reversed/case flags, isolated evaluator, native editor, literal selected-text drafts with shared/perchat scope, sample check, reviewed local/HTTPS v2 import/export and tg://ayu/filters/import links. Native row/selection and EN/RU Blue/Night flows verified; blocked users, dialog previews and full autodownload gating still pending. Signed-in deep-link acceptance pending."
     },
     {
       "setting": "regexFiltersCaseInsensitive",
       "status": "partial_verified_local_native_pending_full_parity",
-      "implementation": "Owner/backend scoped shared and per-chat Java rules, exceptions/reversed/case flags, isolated evaluator, native editor and sample check, reviewed local/HTTPS v2 import/export and tg://ayu/filters/import links. Native row/selection and EN/RU Blue/Night flows verified; blocked users, dialog previews and full autodownload gating still pending. Signed-in deep-link acceptance pending."
+      "implementation": "Owner/backend scoped shared and per-chat Java rules, exceptions/reversed/case flags, isolated evaluator, native editor, literal selected-text drafts with shared/perchat scope, sample check, reviewed local/HTTPS v2 import/export and tg://ayu/filters/import links. Native row/selection and EN/RU Blue/Night flows verified; blocked users, dialog previews and full autodownload gating still pending. Signed-in deep-link acceptance pending."
     },
     {
       "setting": "showGhostToggleInDrawer",
@@ -860,7 +860,7 @@
     {
       "feature": "Regex and blocked-user filters, previews, imports and per-chat exceptions",
       "status": "partial_verified_local_native_pending_full_parity",
-      "implementation": "Regex rules, perchat exceptions, reviewed local/allowlisted HTTPS v2 interchange and documented tg links implemented. Blocked users, dialog preview and full autodownload gating pending; signed-in deep-link QA pending."
+      "implementation": "Regex rules, perchat exceptions, literal selected-text drafts with scope review, reviewed local/allowlisted HTTPS v2 interchange and documented tg links implemented. Blocked users, dialog preview and full autodownload gating pending; signed-in deep-link QA pending."
     },
     {
       "feature": "Forward-as-copy, reupload and cancellation",
