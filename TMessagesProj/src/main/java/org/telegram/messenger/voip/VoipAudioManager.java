@@ -62,14 +62,18 @@ public class VoipAudioManager {
         if (device == null) {
             return false;
         }
-        int type = device.getType();
+        return isBluetoothDeviceType(device.getType(), Build.VERSION.SDK_INT);
+    }
+
+    /** Call-capable devices; an A2DP media route alone cannot carry a phone conversation. */
+    public static boolean isBluetoothDeviceType(int type, int apiLevel) {
         if (type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
             return true;
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && type == AudioDeviceInfo.TYPE_HEARING_AID) {
+        if (apiLevel >= Build.VERSION_CODES.P && type == AudioDeviceInfo.TYPE_HEARING_AID) {
             return true;
         }
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && (type == AudioDeviceInfo.TYPE_BLE_HEADSET || type == AudioDeviceInfo.TYPE_BLE_SPEAKER);
+        return apiLevel >= Build.VERSION_CODES.S && (type == AudioDeviceInfo.TYPE_BLE_HEADSET || type == AudioDeviceInfo.TYPE_BLE_SPEAKER);
     }
 
     public AudioDeviceInfo findBluetoothDevice() {

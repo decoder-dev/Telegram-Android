@@ -89,3 +89,16 @@ content. Drag selection and copy/forward selection cannot include hidden rows;
 a newly hidden selected message clears the current selection. Automatic download suppression, dialog preview masking, blocked-user
 filtering and remote deep-link imports are separate remaining parity work.
 Authenticated chat scrolling and group rendering still need live-account QA.
+
+
+Bluetooth call-device fixes adapt Forkgram changes by Eduard Tykhoniuk
+([detection](https://github.com/forkgram/TelegramAndroid/commit/0dccc03b93c41033527a74ca773319ce0d87334e),
+[stale output menu](https://github.com/forkgram/TelegramAndroid/commit/258e9b71bae598fb9f61fed79756b6166b8f18b9)).
+The adaptation checks permissions through the service context so a foreground
+Activity is unnecessary. Permission revocation falls back to call-capable audio
+devices, including hearing aids and LE Audio on their supported Android versions;
+an A2DP media route alone is not treated as a call headset. Radio-off and device
+removal clear stale state/name, profile-proxy cleanup is unconditional, and a
+queued SCO start cannot reconnect after the headset state was cleared. Device-name
+lookups remain retryable after failures. Emulator checks do not replace real
+headset, permission-revocation and live-call acceptance.

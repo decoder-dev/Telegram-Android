@@ -55,7 +55,6 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.media.MediaPlayer;
-import android.media.MediaRouter;
 import android.media.RingtoneManager;
 import android.media.SoundPool;
 import android.media.audiofx.AcousticEchoCanceler;
@@ -431,7 +430,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	private BluetoothProfile.ServiceListener serviceListener = new BluetoothProfile.ServiceListener() {
 		@Override
 		public void onServiceDisconnected(int profile) {
-
+			fetchingBluetoothDeviceName = false;
 		}
 
 		@Override
@@ -446,10 +445,14 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 						break;
 					}
 				}
-				BluetoothAdapter.getDefaultAdapter().closeProfileProxy(profile, proxy);
-				fetchingBluetoothDeviceName = false;
 			} catch (Throwable e) {
 				FileLog.e(e);
+			} finally {
+				fetchingBluetoothDeviceName = false;
+				try {
+					BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+					if (adapter != null) adapter.closeProfileProxy(profile, proxy);
+				} catch (Throwable error) { FileLog.e(error); }
 			}
 		}
 	};
@@ -497,7 +500,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 					FileLog.e("Bluetooth SCO state updated: " + state);
 				}
 				if (state == AudioManager.SCO_AUDIO_STATE_DISCONNECTED && isBtHeadsetConnected) {
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? VoipAudioManager.get().findBluetoothDevice() == null : (!btAdapter.isEnabled() || !PermissionRequest.hasPermission(Manifest.permission.BLUETOOTH_CONNECT) || btAdapter.getProfileConnectionState(BluetoothProfile.HEADSET) != BluetoothProfile.STATE_CONNECTED)) {
+					if (!isBluetoothHeadsetAvailable((AudioManager) getSystemService(AUDIO_SERVICE))) {
 						updateBluetoothHeadsetState(false);
 						return;
 					}
@@ -4737,41 +4740,40 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	}
 
 	private void checkUpdateBluetoothHeadset() {
-		if (!USE_CONNECTION_SERVICE && btAdapter != null && btAdapter.isEnabled()) {
+		if (USE_CONNECTION_SERVICE) return;
+		try {
+			boolean connected = isBluetoothHeadsetAvailable((AudioManager) getSystemService(AUDIO_SERVICE));
+			if (connected && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) fetchBluetoothDeviceName();
+			boolean changed = connected != isBtHeadsetConnected;
+			updateBluetoothHeadsetState(connected);
+			if (!changed) for (StateListener listener : stateListeners) listener.onAudioSettingsChanged();
+		} catch (Throwable error) { FileLog.e(error); }
+	}
+
+	/** Also works when a call is answered from a notification, without a foreground Activity. */
+	private boolean isBluetoothHeadsetAvailable(AudioManager audioManager) {
+		boolean canQueryAdapter = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+				checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
+		if (btAdapter != null && canQueryAdapter) {
 			try {
-				MediaRouter mr = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
-				AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-					AudioDeviceInfo device = VoipAudioManager.get().findBluetoothDevice();
-					if (device != null) {
-						currentBluetoothDeviceName = device.getProductName().toString();
-					}
-					updateBluetoothHeadsetState(device != null);
-					for (StateListener l : stateListeners) {
-						l.onAudioSettingsChanged();
-					}
-				} else if (Build.VERSION.SDK_INT < 24) {
-					int headsetState = btAdapter.getProfileConnectionState(BluetoothProfile.HEADSET);
-					updateBluetoothHeadsetState(headsetState == BluetoothProfile.STATE_CONNECTED);
-					for (StateListener l : stateListeners) {
-						l.onAudioSettingsChanged();
-					}
-				} else {
-					MediaRouter.RouteInfo ri = mr.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_AUDIO);
-					if (PermissionRequest.hasPermission(Manifest.permission.BLUETOOTH_CONNECT) && ri.getDeviceType() == MediaRouter.RouteInfo.DEVICE_TYPE_BLUETOOTH) {
-						int headsetState = btAdapter.getProfileConnectionState(BluetoothProfile.HEADSET);
-						updateBluetoothHeadsetState(headsetState == BluetoothProfile.STATE_CONNECTED);
-						for (StateListener l : stateListeners) {
-							l.onAudioSettingsChanged();
-						}
-					} else {
-						updateBluetoothHeadsetState(am.isBluetoothA2dpOn());
-					}
-				}
-			} catch (Throwable e) {
-				FileLog.e(e);
+				if (!btAdapter.isEnabled()) return false;
+				if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S &&
+						btAdapter.getProfileConnectionState(BluetoothProfile.HEADSET) == BluetoothProfile.STATE_CONNECTED) return true;
+			} catch (SecurityException ignored) {
+				// Permission can be revoked between the check and the query. Use audio devices.
+			} catch (Throwable error) {
+				FileLog.e(error);
 			}
 		}
+		try {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) return VoipAudioManager.get().findBluetoothDevice() != null;
+			if (audioManager != null) for (AudioDeviceInfo device : audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)) {
+				if (VoipAudioManager.isBluetoothDevice(device)) return true;
+			}
+		} catch (Throwable error) {
+			FileLog.e(error);
+		}
+		return false;
 	}
 
 	private void loadResources() {
@@ -4934,9 +4936,17 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 		}
 		try {
 			currentBluetoothDeviceName = null;
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+				AudioDeviceInfo device = VoipAudioManager.get().findBluetoothDevice();
+				if (device != null && device.getProductName() != null) currentBluetoothDeviceName = device.getProductName().toString();
+				return;
+			}
+			BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+			if (adapter == null || !adapter.isEnabled()) return;
 			fetchingBluetoothDeviceName = true;
-			BluetoothAdapter.getDefaultAdapter().getProfileProxy(this, serviceListener, BluetoothProfile.HEADSET);
+			if (!adapter.getProfileProxy(this, serviceListener, BluetoothProfile.HEADSET)) fetchingBluetoothDeviceName = false;
 		} catch (Throwable e) {
+			fetchingBluetoothDeviceName = false;
 			FileLog.e(e);
 		}
 	}
@@ -5006,6 +5016,10 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	}
 
 	private void updateBluetoothHeadsetState(boolean connected) {
+		if (!connected) {
+			currentBluetoothDeviceName = null;
+			needSwitchToBluetoothAfterScoActivates = false;
+		}
 		if (connected == isBtHeadsetConnected) {
 			return;
 		}
@@ -5032,6 +5046,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 					needSwitchToBluetoothAfterScoActivates = true;
 					AndroidUtilities.runOnUIThread(() -> {
 						try {
+							if (!isBtHeadsetConnected) return;
 							vam.startBluetooth();
 						} catch (Throwable ignore) {
 
