@@ -249,6 +249,8 @@ public class AndroidUtilities {
     public final static int REPLACING_TAG_TYPE_LINK_NBSP = 3;
     public final static int REPLACING_TAG_TYPE_UNDERLINE = 4;
 
+    public final static String TYPEFACE_ROBOTO_REGULAR = "fonts/rmedium.ttf";
+    public final static String TYPEFACE_ROBOTO_ITALIC = "fonts/ritalic.ttf";
     public final static String TYPEFACE_ROBOTO_MEDIUM = "fonts/rmedium.ttf";
     public final static String TYPEFACE_ROBOTO_EXTRA_BOLD = "fonts/rextrabold.ttf";
     public final static String TYPEFACE_ROBOTO_MEDIUM_ITALIC = "fonts/rmediumitalic.ttf";
@@ -2388,6 +2390,8 @@ public class AndroidUtilities {
         }
         return result;
     }
+
+    public static void clearTypefaceCache() {}
 
     public static Typeface getTypeface(String assetPath) {
         synchronized (typefaceCache) {

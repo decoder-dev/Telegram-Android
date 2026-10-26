@@ -15,6 +15,10 @@ public final class TranslatorUtils {
     }
 
     public static void translate(String text, String language, Consumer<String> callback) {
+        translate(text, language, callback, null);
+    }
+
+    public static void translate(String text, String language, Consumer<String> callback, Runnable onError) {
         if (callback == null) {
             return;
         }

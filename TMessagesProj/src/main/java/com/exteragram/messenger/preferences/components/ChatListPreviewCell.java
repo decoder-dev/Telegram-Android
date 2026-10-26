@@ -12,4 +12,6 @@ public class ChatListPreviewCell extends FrameLayout {
     public void updateStatus(boolean animated) {}
 
     public void updateTitle(boolean animated) {}
+
+    public void updateCenteredTitle(boolean animated) {}
 }

@@ -32,48 +32,16 @@ public class AppUtils {
     }
 
     public static int[] getDrawerIconPack() {
-        switch (org.telegram.ui.ActionBar.Theme.getEventType()) {
-            case 0:
-                return new int[]{
-                        R.drawable.msg_groups_ny,
-                        R.drawable.msg_secret_ny,
-                        R.drawable.msg_channel_ny,
-                        R.drawable.msg_contacts_ny,
-                        R.drawable.msg_calls_ny,
-                        R.drawable.msg_saved_ny,
-                        R.drawable.msg_nearby_ny
-                };
-            case 1:
-                return new int[]{
-                        R.drawable.msg_groups_14,
-                        R.drawable.msg_secret_14,
-                        R.drawable.msg_channel_14,
-                        R.drawable.msg_contacts_14,
-                        R.drawable.msg_calls_14,
-                        R.drawable.msg_saved_14,
-                        R.drawable.msg_nearby_14
-                };
-            case 2:
-                return new int[]{
-                        R.drawable.msg_groups_hw,
-                        R.drawable.msg_secret_hw,
-                        R.drawable.msg_channel_hw,
-                        R.drawable.msg_contacts_hw,
-                        R.drawable.msg_calls_hw,
-                        R.drawable.msg_saved_hw,
-                        R.drawable.msg_nearby_hw
-                };
-            default:
-                return new int[]{
-                        R.drawable.msg_groups,
-                        R.drawable.msg_secret,
-                        R.drawable.msg_channel,
-                        R.drawable.msg_contacts,
-                        R.drawable.msg_calls,
-                        R.drawable.msg_saved,
-                        R.drawable.msg_nearby
-                };
-        }
+        // Event-themed packs were removed with assets; always use the default icons.
+        return new int[]{
+                R.drawable.msg_groups,
+                R.drawable.msg_secret,
+                R.drawable.msg_channel,
+                R.drawable.msg_contacts,
+                R.drawable.msg_calls,
+                R.drawable.msg_saved,
+                R.drawable.msg_location
+        };
     }
 
     public static boolean isWinter() {

@@ -11973,4 +11973,5 @@
     <string name="BananaVal_BackendSystem">System</string>
     <string name="BananaVal_BackendOnDevice">On-device</string>
 
+    <string name="appearance">Appearance</string>
 </resources>

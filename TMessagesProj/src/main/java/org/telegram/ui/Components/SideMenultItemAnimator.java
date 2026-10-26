@@ -624,4 +624,11 @@ public class SideMenultItemAnimator extends SimpleItemAnimator {
     public boolean canReuseUpdatedViewHolder(RecyclerView.ViewHolder viewHolder, List<Object> payloads) {
         return !payloads.isEmpty() || super.canReuseUpdatedViewHolder(viewHolder, payloads);
     }
+
+    private Runnable animationUpdatesListener;
+
+    @Override
+    public void listenToAnimationUpdates(Runnable listener) {
+        this.animationUpdatesListener = listener;
+    }
 }

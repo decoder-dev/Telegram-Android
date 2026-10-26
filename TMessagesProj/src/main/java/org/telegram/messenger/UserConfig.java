@@ -8,6 +8,8 @@
 
 package org.telegram.messenger;
 
+import org.telegram.tgnet.ConnectionsManager;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.SystemClock;

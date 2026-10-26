@@ -14,10 +14,6 @@ public class LauncherIconController {
     public static void tryFixLauncherIconIfNeeded() {
         for (LauncherIcon icon : LauncherIcon.values()) {
             if (isEnabled(icon)) {
-                if (icon == LauncherIcon.MONET) {
-                    setIcon(LauncherIcon.DEFAULT);
-                    setIcon(LauncherIcon.MONET);
-                }
                 return;
             }
         }

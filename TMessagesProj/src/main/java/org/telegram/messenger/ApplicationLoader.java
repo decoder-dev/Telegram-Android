@@ -8,6 +8,8 @@
 
 package org.telegram.messenger;
 
+import android.util.Log;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlarmManager;

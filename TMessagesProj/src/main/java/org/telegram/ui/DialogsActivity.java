@@ -8,6 +8,9 @@
 
 package org.telegram.ui;
 
+import com.exteragram.messenger.ExteraConfig;
+import com.exteragram.messenger.utils.LocaleUtils;
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.dpf2;
 import static org.telegram.messenger.AndroidUtilities.lerp;
@@ -506,6 +509,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     public ActionBarMenuItem searchItem;
     private ActionBarMenuItem optionsItem;
     private ActionBarMenuItem speedItem;
+    private boolean isSpeedItemCreated;
+    private String actionBarDefaultTitle;
     public static boolean switchingTheme;
     private ActionBarMenuItem doneItem;
     private ProxyDrawable proxyDrawable;
@@ -3309,31 +3314,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             updateProxyButton(false, false);
         }
 
-        fragmentSearchField = new FragmentSearchField(context, resourceProvider) {
-            @Override
-            public void onPreToggleSearch() {
-                if (!isSpeedItemCreated && false) {
-                    isSpeedItemCreated = true;
-                    FrameLayout searchContainer = (FrameLayout) searchItem.getSearchClearButton().getParent();
-                    speedItem = new ActionBarMenuItem(context, menu, Theme.getColor(Theme.key_actionBarActionModeDefaultSelector), Theme.getColor(Theme.key_actionBarActionModeDefaultIcon));
-                    speedItem.setIcon(R.drawable.avd_speed);
-                    speedItem.getIconView().setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.SRC_IN));
-                    speedItem.setTranslationX(AndroidUtilities.dp(32));
-                    speedItem.setAlpha(0f);
-                    speedItem.setOnClickListener(v -> showDialog(new PremiumFeatureBottomSheet(DialogsActivity.this, PremiumPreviewFragment.PREMIUM_FEATURE_DOWNLOAD_SPEED, true)));
-                    speedItem.setClickable(false);
-                    speedItem.setFixBackground(true);
-                    FrameLayout.LayoutParams speedParams = new FrameLayout.LayoutParams(AndroidUtilities.dp(42), ViewGroup.LayoutParams.MATCH_PARENT);
-                    speedParams.leftMargin = speedParams.rightMargin = AndroidUtilities.dp(14 + 24);
-                    speedParams.gravity = Gravity.RIGHT;
-                    searchContainer.addView(speedItem, speedParams);
-                    searchItem.setSearchAdditionalButton(speedItem);
-
-                    updateSpeedItem(searchViewPager.getCurrentPosition() == 2);
-                }
-                return super.dispatchTouchEvent(ev);
-            }
-        };
+        fragmentSearchField = new FragmentSearchField(context, resourceProvider);
         fragmentSearchField.setPadding(dp(4), dp(4), dp(4), dp(4));
         fragmentSearchField.setPivotX(0);
         fragmentSearchField.setPivotY(0);
@@ -3889,26 +3870,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     showDeleteAlert(getMessagesController().getDialogFilters().get(id));
                 }
 
-                private int lastTitleType = ExteraConfig.tabIcons;
-
-                @Override
-                public void onTabSelected(FilterTabsView.Tab tab, boolean forward, boolean animated) {
-                    if (ExteraConfig.tabIcons != 2) {
-                        if (lastTitleType == 2) {
-                            actionBar.setTitle(LocaleUtils.getActionBarTitle(), statusDrawable);
-                            lastTitleType = ExteraConfig.tabIcons;
-                        }
-                        return;
-                    }
-                    if (!selectedDialogs.isEmpty()) {
-                        return;
-                    }
-                    if (animated) {
-                        actionBar.setTitleAnimatedX(tab.isDefault ? actionBarDefaultTitle : tab.realTitle, tab.isDefault ? statusDrawable : null, forward, 350);
-                    } else {
-                        actionBar.setTitle(tab.isDefault ? actionBarDefaultTitle : tab.realTitle, tab.isDefault ? statusDrawable : null);
-                    }
-                }
             });
         }
 

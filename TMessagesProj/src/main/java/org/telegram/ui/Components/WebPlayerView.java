@@ -1958,7 +1958,7 @@ public class WebPlayerView extends ViewGroup implements VideoPlayer.VideoPlayerD
         if (inlineButton == null) {
             return;
         }
-        inlineButton.setImageResource(ExteraConfig.useSolarIcons ? R.drawable.header_goinline_solar : isInline ? R.drawable.ic_goinline : R.drawable.ic_outinline);
+        inlineButton.setImageResource(isInline ? R.drawable.ic_goinline : R.drawable.ic_outinline);
         inlineButton.setVisibility(videoPlayer.isPlayerPrepared() ? VISIBLE : GONE);
         if (isInline) {
             inlineButton.setLayoutParams(LayoutHelper.createFrame(40, 40, Gravity.RIGHT | Gravity.TOP));

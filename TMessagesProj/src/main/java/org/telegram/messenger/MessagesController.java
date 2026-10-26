@@ -8,6 +8,11 @@
 
 package org.telegram.messenger;
 
+import android.view.Gravity;
+import android.widget.FrameLayout;
+
+import me.vkryl.core.BitwiseUtils;
+
 import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.messenger.banana.BananaConfig.Option;
 import org.telegram.messenger.banana.GhostPolicy;
@@ -19924,10 +19929,11 @@ public class MessagesController extends BaseController implements NotificationCe
                 for (var dialogId : dialogIds) {
                     for (var msgId : messageIds) {
                         var msg = messagesStorage.getMessage(dialogId, msgId);
-                        var topicId = msg != null ? MessageObject.getTopicId(msg, isForum(dialogId)) : 0;
+                        long topicIdLong = msg != null ? MessageObject.getTopicId(currentAccount, msg, isForum(dialogId)) : 0;
+                        int topicId = (int) topicIdLong;
 
                         // TLRPC.Message msg, int accountId, long dialogId, int topicId, int messageId, int requestCatchTime
-                        var prefs = new AyuSavePreferences(msg, currentAccount, dialogId, topicId, msgId, currentTimeS);
+                        var prefs = new AyuSavePreferences(msg, currentAccount, dialogId, (int) topicId, msgId, currentTimeS);
                         ayuMessagesController.onMessageDeleted(prefs);
                     }
 
