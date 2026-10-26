@@ -138,6 +138,17 @@ public final class BananaHooks {
         return BananaConfig.get(account, BananaConfig.Option.DONT_READ_MESSAGES);
     }
 
+    public static boolean hideOnline(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_ONLINE);
+    }
+
+    /** Typing / upload progress suppression (ghost + dedicated toggles). */
+    public static boolean dontSendTyping(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.GHOST_DONT_SEND_TYPING)
+                || BananaConfig.get(account, BananaConfig.Option.HIDE_TYPING)
+                || BananaConfig.get(account, BananaConfig.Option.HIDE_UPLOAD);
+    }
+
     public static boolean shouldHideServiceMessage(int account, TLRPC.Message message) {
         if (!hideServiceMessages(account) || message == null || message.action == null) {
             return false;
