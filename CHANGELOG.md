@@ -12,6 +12,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 - Behavioral wiring for high-impact toggles: hide ads, local Premium sync, confirm before call, hide mention/pinned notifications, hide stories row, collapse archive, exact counters, hide selected service messages, Ghost read-on-interact sync with AyuGram.
 - Wired value prefs: deleted/edited marks in history and message labels, double-tap seek seconds in PhotoViewer, outgoing photo quality in `AndroidUtilities.getPhotoSize`.
 - Polish pass: Dynamic Island chip (`BananaIsland`), message shot / save-to-cloud / repeat menus, Ayu forward gate, screenshot overrides for secret/protected media, upload/download concurrency boosts, send-with-return, analytics drop when statistics off, link-confirm intercepts, message bookmarks, compact folder labels, Ghost silent send, Banana `SAVE_DELETED`/`SAVE_EDITS` bridged into AyuGram history gates.
+- Auto MTProxy fetches public lists (`tg://proxy`, `t.me/proxy`, `host:port:secret`) without replacing a manually selected proxy. VLESS links can be saved; the embedded Xray tunnel is not in this Android build, so SOCKS5 / MTProto / WEB stay the live transports.
 
 ### Planned adaptations
 

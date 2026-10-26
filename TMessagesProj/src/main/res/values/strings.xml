@@ -2697,6 +2697,13 @@
     <string name="UseProxyTelegramInfo">MTProto proxy settings.</string>
     <string name="UseProxyTelegramInfo2">This proxy may display a sponsored channel in your chat list. This doesn\'t reveal any of your Telegram traffic.</string>
     <string name="UseProxyWebInfo">WEB proxy uses an HTTPS page inside a private WebView. Enter a hostname without a scheme or path and a 16-byte MTProxy secret. This proof of concept requires a current Android System WebView and is intended for foreground testing.</string>
+    <string name="BananaAutomaticProxy">Auto MTProxy</string>
+    <string name="BananaAutomaticProxyInfo">Fetches public MTProto proxies (tg://proxy, t.me/proxy and host:port:secret). A proxy you added yourself stays selected.</string>
+    <string name="BananaVless">VLESS</string>
+    <string name="BananaVlessNone">Not set</string>
+    <string name="BananaVlessHint">Paste a vless:// link. SOCKS5, MTProto and WEB proxies stay available.</string>
+    <string name="BananaVlessRuntimeMissing">The link is saved. This Android build does not embed Xray, so VLESS does not replace the active SOCKS5, MTProto or WEB proxy. tg://proxy and t.me/proxy keep working.</string>
+    <string name="BananaVlessSaved">VLESS link saved</string>
     <string name="ConnectingToProxyEnable">Enable</string>
     <string name="LowDiskSpaceTitle">Attention</string>
     <string name="LowDiskSpaceMessage">Your device is almost out of disk space. To free some space, you can set up Telegram to cache only recent media.</string>
