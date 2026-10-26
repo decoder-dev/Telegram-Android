@@ -9,7 +9,8 @@ cleanup, Ghost Mode controls and playback speeds up to 4×. The next block adds
 a Ghost preset, silent sending and an optional return offline after activity.
 An opt-in local archive adds previous/deleted versions, downloaded attachments,
 search and clear. Native message filters add shared/per-chat rules, exceptions,
-an isolated Java regex evaluator, a sample preview, reviewed AyuGram v2 JSON
+an isolated Java regex evaluator, a sample preview, drafts from selected message
+text, reviewed AyuGram v2 JSON
 import/export and imports from supported HTTPS and `tg://ayu/filters/import/` links. English/Russian screens, local capture and native filter paths
 are tested on an emulator without signing in; live messages, real call hardware and
 server-side Ghost acceptance still need verification. See the

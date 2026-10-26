@@ -354,4 +354,7 @@
     <string name="BananaFiltersSourceError">Не удалось загрузить правила. Проверьте соединение и используйте прямую HTTPS-ссылку на файл с dpaste.com, gist.githubusercontent.com, pastebin.com или nekobin.com. Файл должен быть в UTF-8 и не больше 256 КБ.</string>
     <string name="BananaFiltersDownload">Загрузить список</string>
     <string name="BananaFilterUnavailable">Проверка правил временно недоступна. Повторите попытку.</string>
+    <string name="BananaFilterSelectionInfo">Выберите область действия. Откроется черновик с выделенной фразой: проверьте его и сохраните. Настройка включения фильтров не изменится.</string>
+    <string name="BananaFilterThisChat">Этот чат</string>
+    <string name="BananaFilterLimitReached">Достигнут предел в 64 правила. Удалите одно из существующих правил, прежде чем добавлять новое.</string>
 </resources>

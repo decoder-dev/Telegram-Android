@@ -129,3 +129,14 @@ Android's regex runtime before exposing its Binder; the 250 ms expression budget
 is unchanged. Native tests rebuild the editor before checking and saving a rule.
 A cold GitHub emulator previously rejected a valid expression; these changes are
 under renewed CI validation and must not be treated as confirmed live-account QA.
+
+
+Quick filter creation follows AyuGram's documented selected-text action. The
+native chat selection toolbar offers Add filter for ordinary message/caption
+selection, respects Telegram's copy restrictions and excludes secret chats,
+fact-checks and description text. The action clears selection and offers current
+chat or shared scope. Selected text is quoted as a literal (including embedded
+`\E` terminators), with the expanded expression checked against the normal size
+limit. It opens an editable draft with the original text as a sample; no rule is
+saved and no filter switch is enabled until the user explicitly saves. Leaving
+the scope dialog or draft cancels without altering current rules.

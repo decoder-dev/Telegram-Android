@@ -403,6 +403,21 @@ public class ChatActivity extends BaseFragment implements
         return message != null && message.contentType == 0 && org.telegram.messenger.banana.MessageFilters.verdict(currentAccount, message,
                 getValidGroupedMessage(message)) == org.telegram.messenger.banana.MessageFilters.Verdict.HIDDEN;
     }
+    private void addBananaFilterFromSelection(CharSequence selection) {
+        if (isFinished || getParentActivity() == null || dialog_id == 0 || DialogObject.isEncryptedDialog(dialog_id) ||
+                org.telegram.messenger.banana.SelectionFilter.expression(selection) == null) return;
+        final String text = selection.toString();
+        final org.telegram.messenger.banana.FilterStore store = org.telegram.messenger.banana.FilterStore.get(currentAccount);
+        if (store.rules().rules.size() >= org.telegram.messenger.banana.FilterRules.MAX_RULES) {
+            showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                    .setMessage(LocaleController.getString(R.string.BananaFilterLimitReached))
+                    .setPositiveButton(LocaleController.getString(R.string.OK), null).create());
+            return;
+        }
+        showDialog(org.telegram.ui.Components.SelectionFilterPrompt.create(getParentActivity(), getResourceProvider(), dialog_id, scope -> {
+            if (!isFinished && store.isCurrent()) presentFragment(BananaFilterEditActivity.fromSelection(currentAccount, scope, text));
+        }));
+    }
     public static final int ACTION_BAR_BLUR_ALPHA = 178;
 
     private static int SKELETON_LIGHT_OVERLAY_ALPHA = 22;
@@ -3586,6 +3601,18 @@ public class ChatActivity extends BaseFragment implements
                 !DialogObject.isEncryptedDialog(chatActivity.getDialogId()) && chatActivity.isPeerNoForwards() ||
                 selectedView != null && selectedView.getMessageObject() != null && (selectedView.getMessageObject().messageOwner != null && selectedView.getMessageObject().messageOwner.noforwards)
             );
+        }
+
+        @Override
+        protected boolean canAddFilter() {
+            return chatActivity != null && chatActivity.dialog_id != 0 &&
+                !DialogObject.isEncryptedDialog(chatActivity.dialog_id) && !isFactCheck && !isDescription &&
+                selectedView != null && selectedView.getMessageObject() != null;
+        }
+
+        @Override
+        protected void onAddFilterText(CharSequence text) {
+            if (chatActivity != null) chatActivity.addBananaFilterFromSelection(text);
         }
 
         @Override

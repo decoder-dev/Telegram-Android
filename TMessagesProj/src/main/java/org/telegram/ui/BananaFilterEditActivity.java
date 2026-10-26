@@ -29,6 +29,7 @@ import org.telegram.ui.Components.UniversalFragment;
 public final class BananaFilterEditActivity extends UniversalFragment {
     private final long dialogId;
     private final String id, initial;
+    private String initialSample = "";
     private boolean reversed, insensitive, enabled, busy, destroyed;
     private int testStatus;
     private int evaluationGeneration, viewGeneration, lastResultStatus;
@@ -42,11 +43,19 @@ public final class BananaFilterEditActivity extends UniversalFragment {
         reversed = rule != null && rule.reversed; insensitive = rule == null || rule.caseInsensitive;
         enabled = rule == null || rule.enabled;
     }
+    public static BananaFilterEditActivity fromSelection(int account, long dialogId, CharSequence selection) {
+        String pattern = org.telegram.messenger.banana.SelectionFilter.expression(selection);
+        if (pattern == null) throw new IllegalArgumentException("Invalid filter selection");
+        BananaFilterEditActivity editor = new BananaFilterEditActivity(account, dialogId,
+                new FilterRules.Rule(UUID.randomUUID().toString(), dialogId, pattern, false, true, true));
+        editor.initialSample = selection.toString();
+        return editor;
+    }
     @Override public Theme.ResourcesProvider getResourceProvider() { return BananaTheme.COLORS; }
     @Override protected CharSequence getTitle() { return text(R.string.BananaFilterEdit); }
     @Override public View createView(Context context) {
         String pattern = expression == null ? initial : expression.getText().toString();
-        String example = sample == null ? "" : sample.getText().toString();
+        String example = sample == null ? initialSample : sample.getText().toString();
         evaluationGeneration++; viewGeneration++;
         if (engine != null) engine.close();
         busy = false;
