@@ -12,11 +12,16 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Base64;
 
+import androidx.annotation.Keep;
+
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.sync.AyuSyncController;
 import com.radolyn.ayugram.utils.AyuGhostUtils;
 import com.radolyn.ayugram.utils.AyuState;
+
+import org.telegram.messenger.banana.BananaHooks;
+import org.telegram.tgnet.tl.TL_account;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -73,6 +78,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLException;
+import java.net.SocketTimeoutException;
+import com.google.android.play.core.integrity.IntegrityTokenResponse;
+import com.google.android.play.core.integrity.IntegrityTokenRequest;
+import com.google.android.play.core.integrity.IntegrityManagerFactory;
+import com.google.android.play.core.integrity.IntegrityManager;
+import com.google.android.gms.tasks.Task;
+import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter;
 public class ConnectionsManager extends BaseController {
 
     public final static int ConnectionTypeGeneric = 1;
@@ -126,6 +138,8 @@ public class ConnectionsManager extends BaseController {
     private static AsyncTask currentTask;
 
     private static HashMap<String, ResolveHostByNameTask> resolvingHostnameTasks = new HashMap<>();
+
+    public static long lastPremiumFloodWaitShown = 0;
 
     public static final Executor DNS_THREAD_POOL_EXECUTOR;
     public static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
@@ -388,10 +402,10 @@ public class ConnectionsManager extends BaseController {
             FileLog.d("send request " + object + " with token = " + requestToken);
         }
 
-        // --- AyuGram request hook
+        // --- AyuGram / BananaGram request hook
         {
-            // don't send upload & typing status
-            if (!AyuConfig.sendUploadProgress &&
+            // don't send upload & typing status (Ayu prefs or Banana GHOST_DONT_SEND_TYPING)
+            if ((!AyuConfig.sendUploadProgress || BananaHooks.dontSendTyping(currentAccount)) &&
                     (
                             object instanceof TLRPC.TL_messages_setTyping ||
                             object instanceof TLRPC.TL_messages_setEncryptedTyping
@@ -401,15 +415,15 @@ public class ConnectionsManager extends BaseController {
                 return;
             }
 
-            // don't send online status
-            if (!AyuConfig.sendOnlinePackets && object instanceof TLRPC.TL_account_updateStatus) {
-                var obj = ((TLRPC.TL_account_updateStatus) object);
+            // don't send online status (Ayu prefs or Banana HIDE_ONLINE)
+            if ((!AyuConfig.sendOnlinePackets || BananaHooks.hideOnline(currentAccount)) && object instanceof TL_account.updateStatus) {
+                var obj = ((TL_account.updateStatus) object);
                 obj.offline = true;
             }
 
-            // don't send read status
+            // don't send read status (Ayu prefs or Banana DONT_READ_MESSAGES)
             if (
-                    !AyuConfig.sendReadPackets &&
+                    (!AyuConfig.sendReadPackets || BananaHooks.dontReadMessages(currentAccount)) &&
                             (
                                     object instanceof TLRPC.TL_messages_readHistory ||
                                     object instanceof TLRPC.TL_messages_readEncryptedHistory ||
@@ -443,7 +457,7 @@ public class ConnectionsManager extends BaseController {
             }
 
             // mark messages as read after sending a message
-            if (AyuConfig.markReadAfterSend && !AyuConfig.sendReadPackets) {
+            if (AyuConfig.markReadAfterSend && (!AyuConfig.sendReadPackets || BananaHooks.dontReadMessages(currentAccount))) {
                 TLRPC.InputPeer peer = null;
                 if (object instanceof TLRPC.TL_messages_sendMessage) {
                     var obj = ((TLRPC.TL_messages_sendMessage) object);
@@ -1557,7 +1571,136 @@ public class ConnectionsManager extends BaseController {
         }
     }
 
-    private static class FirebaseTask extends AsyncTask<Void, Void, NativeByteBuffer> {
+private static class DnsTxtLoadTask extends AsyncTask<Void, Void, NativeByteBuffer> {
+
+        private int currentAccount;
+        private int responseDate;
+
+        public DnsTxtLoadTask(int instance) {
+            super();
+            currentAccount = instance;
+        }
+
+        protected NativeByteBuffer doInBackground(Void... voids) {
+            ByteArrayOutputStream outbuf = null;
+            InputStream httpConnectionStream = null;
+            for (int i = 0; i < 3; i++) {
+                try {
+                    String googleDomain;
+                    if (i == 0) {
+                        googleDomain = "www.google.com";
+                    } else if (i == 1) {
+                        googleDomain = "www.google.ru";
+                    } else {
+                        googleDomain = "google.com";
+                    }
+                    String domain = native_isTestBackend(currentAccount) != 0 ? "tapv3.stel.com" : AccountInstance.getInstance(currentAccount).getMessagesController().dcDomainName;
+                    int len = Utilities.random.nextInt(116) + 13;
+                    final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+                    StringBuilder padding = new StringBuilder(len);
+                    for (int a = 0; a < len; a++) {
+                        padding.append(characters.charAt(Utilities.random.nextInt(characters.length())));
+                    }
+                    URL downloadUrl = new URL("https://" + googleDomain + "/resolve?name=" + domain + "&type=ANY&random_padding=" + padding);
+                    URLConnection httpConnection = downloadUrl.openConnection();
+                    httpConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0 like Mac OS X) AppleWebKit/602.1.38 (KHTML, like Gecko) Version/10.0 Mobile/14A5297c Safari/602.1");
+                    httpConnection.addRequestProperty("Host", "dns.google.com");
+                    httpConnection.setConnectTimeout(5000);
+                    httpConnection.setReadTimeout(5000);
+                    httpConnection.connect();
+                    httpConnectionStream = httpConnection.getInputStream();
+                    responseDate = (int) (httpConnection.getDate() / 1000);
+
+                    outbuf = new ByteArrayOutputStream();
+
+                    byte[] data = new byte[1024 * 32];
+                    while (true) {
+                        if (isCancelled()) {
+                            break;
+                        }
+                        int read = httpConnectionStream.read(data);
+                        if (read > 0) {
+                            outbuf.write(data, 0, read);
+                        } else if (read == -1) {
+                            break;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    JSONObject jsonObject = new JSONObject(new String(outbuf.toByteArray()));
+                    JSONArray array = jsonObject.getJSONArray("Answer");
+                    len = array.length();
+                    ArrayList<String> arrayList = new ArrayList<>(len);
+                    for (int a = 0; a < len; a++) {
+                        JSONObject object = array.getJSONObject(a);
+                        int type = object.getInt("type");
+                        if (type != 16) {
+                            continue;
+                        }
+                        arrayList.add(object.getString("data"));
+                    }
+                    Collections.sort(arrayList, (o1, o2) -> {
+                        int l1 = o1.length();
+                        int l2 = o2.length();
+                        if (l1 > l2) {
+                            return -1;
+                        } else if (l1 < l2) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+                    StringBuilder builder = new StringBuilder();
+                    for (int a = 0; a < arrayList.size(); a++) {
+                        builder.append(arrayList.get(a).replace("\"", ""));
+                    }
+                    byte[] bytes = Base64.decode(builder.toString(), Base64.DEFAULT);
+                    NativeByteBuffer buffer = new NativeByteBuffer(bytes.length);
+                    buffer.writeBytes(bytes);
+                    return buffer;
+                } catch (Throwable e) {
+                    FileLog.e(e, false);
+                } finally {
+                    try {
+                        if (httpConnectionStream != null) {
+                            httpConnectionStream.close();
+                        }
+                    } catch (Throwable e) {
+                        FileLog.e(e, false);
+                    }
+                    try {
+                        if (outbuf != null) {
+                            outbuf.close();
+                        }
+                    } catch (Exception ignore) {
+
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(final NativeByteBuffer result) {
+            Utilities.stageQueue.postRunnable(() -> {
+                currentTask = null;
+                if (result != null) {
+                    native_applyDnsConfig(currentAccount, result.address, AccountInstance.getInstance(currentAccount).getUserConfig().getClientPhone(), responseDate);
+                } else {
+                    if (BuildVars.LOGS_ENABLED) {
+                        FileLog.d("failed to get dns txt result");
+                        FileLog.d("start google task");
+                    }
+                    GoogleDnsLoadTask task = new GoogleDnsLoadTask(currentAccount);
+                    task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null, null, null);
+                    currentTask = task;
+                }
+            });
+        }
+    }
+
+        private static class FirebaseTask extends AsyncTask<Void, Void, NativeByteBuffer> {
 
         private int currentAccount;
 

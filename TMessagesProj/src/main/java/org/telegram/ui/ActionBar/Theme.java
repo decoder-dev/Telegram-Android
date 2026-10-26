@@ -1530,6 +1530,10 @@ public class Theme {
                 return getString(R.string.ThemeDay);
             } else if ("Night".equals(name)) {
                 return getString(R.string.ThemeNight);
+            } else if ("Banana Cream".equals(name)) {
+                return getString(R.string.BananaThemeCream);
+            } else if ("Banana Graphite".equals(name)) {
+                return getString(R.string.BananaThemeGraphite);
             }
             return info != null ? info.title : name;
         }
@@ -1646,9 +1650,9 @@ public class Theme {
             if (isDark != UNKNOWN) {
                 return isDark == DARK;
             }
-            if ("Dark Blue".equals(name) || "Night".equals(name)) {
+            if ("Dark Blue".equals(name) || "Night".equals(name) || "Banana Graphite".equals(name)) {
                 isDark = DARK;
-            } else if ("Blue".equals(name) || "Arctic Blue".equals(name) || "Day".equals(name)) {
+            } else if ("Blue".equals(name) || "Arctic Blue".equals(name) || "Day".equals(name) || "Banana Cream".equals(name)) {
                 isDark = LIGHT;
             }
             if (isDark == UNKNOWN) {
@@ -1657,6 +1661,11 @@ public class Theme {
                 checkIsDark(colors, this);
             }
             return isDark == DARK;
+        }
+
+        /** Exteragram Monet theme hook; stubbed false for Banana open builds. */
+        public boolean isMonet() {
+            return false;
         }
 
         public boolean isLight() {
@@ -4016,6 +4025,8 @@ public class Theme {
         themes.add(themeInfo);
         themesDict.put("Night", themeInfo);
 
+        registerBananaBuiltInThemes();
+
         String themesString = themeConfig.getString("themes2", null);
 
         int remoteVersion = themeConfig.getInt("remote_version", 0);
@@ -5614,6 +5625,53 @@ public class Theme {
 
     public static ThemeInfo getTheme(String key) {
         return themesDict.get(key);
+    }
+
+    /** BananaGram Cream (day) and Graphite (night) ThemeInfo accents. */
+    private static void registerBananaBuiltInThemes() {
+        if (!themesDict.containsKey("Banana Cream")) {
+            ThemeInfo cream = new ThemeInfo();
+            cream.name = "Banana Cream";
+            cream.assetName = "day.attheme";
+            cream.setPreviewBackgroundColor(0xFFEFE6D5);
+            cream.setPreviewInColor(0xFFFFFFFF);
+            cream.setPreviewOutColor(0xFFF3D56B);
+            cream.sortIndex = 6;
+            cream.firstAccentIsDefault = true;
+            cream.currentAccentId = DEFALT_THEME_ACCENT_ID;
+            int[] creamAccents = new int[]{0xFFE0A800, 0xFFC48E00, 0xFFD4A017, 0xFF8B7355};
+            registerBananaThemeAccents(cream, creamAccents);
+            themes.add(cream);
+            themesDict.put("Banana Cream", cream);
+        }
+        if (!themesDict.containsKey("Banana Graphite")) {
+            ThemeInfo graphite = new ThemeInfo();
+            graphite.name = "Banana Graphite";
+            graphite.assetName = "night.attheme";
+            graphite.setPreviewBackgroundColor(0xFF2F333A);
+            graphite.setPreviewInColor(0xFF32363D);
+            graphite.setPreviewOutColor(0xFF4A3F1F);
+            graphite.sortIndex = 7;
+            int[] graphiteAccents = new int[]{0xFFE0A800, 0xFFB88900, 0xFFC9A227, 0xFF8A8478};
+            registerBananaThemeAccents(graphite, graphiteAccents);
+            themes.add(graphite);
+            themesDict.put("Banana Graphite", graphite);
+        }
+    }
+
+    private static void registerBananaThemeAccents(ThemeInfo themeInfo, int[] accents) {
+        int[] ids = new int[accents.length];
+        String[] slugs = new String[accents.length];
+        int[] rotations = new int[accents.length];
+        int[] intensities = new int[accents.length];
+        for (int i = 0; i < accents.length; i++) {
+            ids[i] = i == 0 && themeInfo.firstAccentIsDefault ? DEFALT_THEME_ACCENT_ID : i;
+            slugs[i] = "";
+            rotations[i] = 0;
+            intensities[i] = 0;
+        }
+        themeInfo.setAccentColorOptions(accents, accents, null, null, null, null, null, ids, slugs, rotations, intensities);
+        sortAccents(themeInfo);
     }
 
     public static void applyTheme(ThemeInfo themeInfo) {
@@ -9018,7 +9076,7 @@ public class Theme {
                 } else if (key == key_chat_serviceBackgroundSelected) {
                     return serviceSelectedMessageColor;
                 }
-                return getDefaultColor(key);
+                return bananaMaybeGlassBubble(key, getDefaultColor(key));
             }
         }
         int index = currentColors.indexOfKey(key);
@@ -9028,7 +9086,7 @@ public class Theme {
             if (fallbackKey != -1) {
                 int fallbackIndex = currentColors.indexOfKey(fallbackKey);
                 if (fallbackIndex >= 0) {
-                    return currentColors.valueAt(fallbackIndex);
+                    return bananaMaybeGlassBubble(key, currentColors.valueAt(fallbackIndex));
                 }
             }
 
@@ -9040,12 +9098,20 @@ public class Theme {
             } else if (key == key_chat_serviceBackgroundSelected) {
                 return serviceSelectedMessageColor;
             }
-            return getDefaultColor(key);
+            return bananaMaybeGlassBubble(key, getDefaultColor(key));
         } else {
             color = currentColors.valueAt(index);
         }
         if (key_windowBackgroundWhite == key || key_windowBackgroundGray == key || key_actionBarDefault == key || key_actionBarDefaultArchived == key) {
             color |= 0xff000000;
+        }
+        return bananaMaybeGlassBubble(key, color);
+    }
+
+    private static int bananaMaybeGlassBubble(int key, int color) {
+        if (org.telegram.messenger.banana.BananaHooks.isGlassBubbleColorKey(key)) {
+            return org.telegram.messenger.banana.BananaHooks.applyGlassBubbleColor(
+                    org.telegram.messenger.UserConfig.selectedAccount, color);
         }
         return color;
     }

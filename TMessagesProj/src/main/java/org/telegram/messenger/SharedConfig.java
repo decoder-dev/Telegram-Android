@@ -140,7 +140,15 @@ public class SharedConfig {
         return allowPreparingHevcPlayers;
     }
 
-    public static void togglePaymentByInvoice() {
+        public static void toggleUseSystemEmoji() {
+        useSystemEmoji = !useSystemEmoji;
+        SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("useSystemEmoji", useSystemEmoji);
+        editor.commit();
+    }
+
+public static void togglePaymentByInvoice() {
         payByInvoice = !payByInvoice;
         ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE)
                 .edit()

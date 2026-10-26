@@ -50,6 +50,7 @@ public class AyuConfig {
     public static boolean regexFiltersCaseInsensitive;
     public static boolean showGhostToggleInDrawer;
     public static boolean showKillButtonInDrawer;
+    public static boolean showFromChannel;
     public static boolean syncEnabled;
     public static boolean useSecureConnection;
     public static boolean WALMode;
@@ -170,11 +171,23 @@ public class AyuConfig {
     }
 
     public static String getDeletedMark() {
+        String banana = org.telegram.messenger.banana.BananaConfig.deletedMessageMark(UserConfig.selectedAccount);
+        if (banana != null && !banana.isEmpty()) {
+            return banana;
+        }
         return AyuConfig.preferences.getString("deletedMarkText", AyuConstants.DEFAULT_DELETED_MARK);
     }
 
     public static String getEditedMark() {
-        return AyuConfig.preferences.getString("editedMarkText", LocaleController.getString("EditedMessage", R.string.EditedMessage));
+        String banana = org.telegram.messenger.banana.BananaConfig.editedMessageMark(UserConfig.selectedAccount);
+        if (banana != null && !banana.isEmpty()) {
+            return banana;
+        }
+        String stored = AyuConfig.preferences.getString("editedMarkText", null);
+        if (stored != null && !stored.isEmpty()) {
+            return stored;
+        }
+        return LocaleController.getString("EditedMessage", R.string.EditedMessage);
     }
 
     public static String getWALMode() {

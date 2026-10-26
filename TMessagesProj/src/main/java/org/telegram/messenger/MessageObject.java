@@ -21,6 +21,7 @@ import static org.telegram.messenger.LocaleController.getString;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.view.View;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.RectF;
@@ -46,6 +47,7 @@ import android.util.Base64;
 
 import androidx.annotation.NonNull;
 import androidx.collection.LongSparseArray;
+import androidx.core.graphics.ColorUtils;
 
 import com.exteragram.messenger.boost.encryption.BaseEncryptor;
 import com.radolyn.ayugram.AyuConfig;
@@ -707,6 +709,13 @@ public class MessageObject {
 
     public boolean shouldDrawReactions() {
         if (isRepostPreview) {
+            return false;
+        }
+        if (org.telegram.messenger.banana.BananaHooks.hideReactionsBar(currentAccount)) {
+            return false;
+        }
+        if (org.telegram.messenger.banana.BananaHooks.hideChannelPostReactions(currentAccount)
+                && messageOwner != null && messageOwner.post) {
             return false;
         }
         return true;
@@ -6830,6 +6839,10 @@ public class MessageObject {
                 contentType = 1;
                 type = TYPE_DATE;
             }
+            if (org.telegram.messenger.banana.BananaHooks.shouldHideServiceMessage(currentAccount, messageOwner)) {
+                messageText = "";
+                messageOwner.message = "";
+            }
         }
         if (oldType != 1000 && oldType != type && type != TYPE_EMOJIS) {
             updateMessageText(MessagesController.getInstance(currentAccount).getUsers(), MessagesController.getInstance(currentAccount).getChats(), null, null);
@@ -8407,6 +8420,9 @@ public class MessageObject {
     }
 
     public boolean needDrawShareButton() {
+        if (org.telegram.messenger.banana.BananaHooks.hideShareButton(currentAccount)) {
+            return false;
+        }
         if (isRepostPreview) {
             return false;
         }
@@ -9129,6 +9145,10 @@ public class MessageObject {
             linesOffset += currentBlockLinesCount;
 
             block.spoilers.clear();
+            if (org.telegram.messenger.banana.BananaHooks.autoRevealSpoilers(currentAccount)) {
+                isSpoilersRevealed = true;
+                isMediaSpoilersRevealed = true;
+            }
             if (!isSpoilersRevealed && !spoiledLoginCode) {
                 int right = linesMaxWidthWithLeft;
                 if (block.quote) {
@@ -9578,6 +9598,10 @@ public class MessageObject {
                 }
 
                 linesOffset += currentBlockLinesCount;
+                if (messageObject != null && org.telegram.messenger.banana.BananaHooks.autoRevealSpoilers(messageObject.currentAccount)) {
+                    messageObject.isSpoilersRevealed = true;
+                    messageObject.isMediaSpoilersRevealed = true;
+                }
                 if (messageObject != null && !messageObject.isSpoilersRevealed && !messageObject.spoiledLoginCode) {
                     int right = linesMaxWidthWithLeft;
                     if (block.quote) {
@@ -10005,6 +10029,16 @@ public class MessageObject {
         } else {
             return (getMedia(message) instanceof TLRPC.TL_messageMediaPhoto || getMedia(message) instanceof TLRPC.TL_messageMediaDocument) && getMedia(message).ttl_seconds != 0;
         }
+    }
+
+    public static boolean shouldEncryptPhotoOrVideo(int currentAccount, TLRPC.Message message) {
+        if (message != null && message.media != null && (isVoiceDocument(getDocument(message)) || isRoundVideoMessage(message)) && message.media.ttl_seconds == 0x7FFFFFFF) {
+            return true;
+        }
+        if (getMedia(message) instanceof TLRPC.TL_messageMediaPaidMedia) {
+            return true;
+        }
+        return shouldEncryptPhotoOrVideo(message);
     }
 
     public boolean shouldEncryptPhotoOrVideo() {
@@ -10961,12 +10995,13 @@ public class MessageObject {
         } else if (type == TYPE_EMOJIS) {
             return (fast ? textHeightCached() : textHeight()) + dp(30);
         } else if (type == TYPE_STICKER || type == TYPE_ANIMATED_STICKER) {
-            float maxHeight = AndroidUtilities.displaySize.y * 0.4f;
+            float bananaStickerScale = org.telegram.messenger.banana.BananaHooks.stickerSizeScale(currentAccount);
+            float maxHeight = AndroidUtilities.displaySize.y * 0.4f * bananaStickerScale;
             float maxWidth;
             if (AndroidUtilities.isTablet()) {
-                maxWidth = AndroidUtilities.getMinTabletSide() * 0.5f;
+                maxWidth = AndroidUtilities.getMinTabletSide() * 0.5f * bananaStickerScale;
             } else {
-                maxWidth = AndroidUtilities.displaySize.x * 0.5f;
+                maxWidth = AndroidUtilities.displaySize.x * 0.5f * bananaStickerScale;
             }
             int photoHeight = 0;
             int photoWidth = 0;

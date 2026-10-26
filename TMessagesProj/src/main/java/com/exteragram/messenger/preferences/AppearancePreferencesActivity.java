@@ -289,8 +289,8 @@ public class AppearancePreferencesActivity extends BasePreferencesActivity {
             }
             PopupUtils.showDialog(events, new int[]{
                     R.drawable.msg_calendar2, R.drawable.msg_block,
-                    R.drawable.msg_settings_ny, R.drawable.msg_saved_14, R.drawable.msg_contacts_hw
-            }, LocaleController.getString("DrawerIconSet", R.string.DrawerIconSet), ExteraConfig.eventType, getContext(), which -> {
+                    R.drawable.msg_settings, R.drawable.msg_saved, R.drawable.msg_contacts
+            }, LocaleController.getString("DrawerIconSet", R.string.DrawerIconSet), ExteraConfig.eventType, getContext(), (dialog, which) -> {
                 ExteraConfig.editor.putInt("eventType", ExteraConfig.eventType = which).apply();
                 listAdapter.notifyItemChanged(eventChooserRow, payload);
                 listAdapter.notifyItemRangeChanged(statusRow, 10);
@@ -305,7 +305,7 @@ public class AppearancePreferencesActivity extends BasePreferencesActivity {
             if (getParentActivity() == null) {
                 return;
             }
-            PopupUtils.showDialog(titles, LocaleController.getString("ActionBarTitle", R.string.ActionBarTitle), ExteraConfig.titleText, getContext(), i -> {
+            PopupUtils.showDialog(titles, LocaleController.getString("ActionBarTitle", R.string.ActionBarTitle), ExteraConfig.titleText, getContext(), (dialog, i) -> {
                 ExteraConfig.editor.putInt("titleText", ExteraConfig.titleText = i).apply();
                 chatListPreviewCell.updateTitle(true);
                 listAdapter.notifyItemChanged(actionBarTitleRow, payload);
@@ -315,7 +315,7 @@ public class AppearancePreferencesActivity extends BasePreferencesActivity {
             if (getParentActivity() == null) {
                 return;
             }
-            PopupUtils.showDialog(tabIcons, LocaleController.getString("TabTitleStyle", R.string.TabTitleStyle), ExteraConfig.tabIcons, getContext(), i -> {
+            PopupUtils.showDialog(tabIcons, LocaleController.getString("TabTitleStyle", R.string.TabTitleStyle), ExteraConfig.tabIcons, getContext(), (dialog, i) -> {
                 ExteraConfig.editor.putInt("tabIcons", ExteraConfig.tabIcons = i).apply();
                 foldersPreviewCell.updateTabIcons(true);
                 foldersPreviewCell.updateTabTitle(true);
@@ -326,7 +326,7 @@ public class AppearancePreferencesActivity extends BasePreferencesActivity {
             if (getParentActivity() == null) {
                 return;
             }
-            PopupUtils.showDialog(styles, LocaleController.getString("TabStyle", R.string.TabStyle), ExteraConfig.tabStyle, getContext(), i -> {
+            PopupUtils.showDialog(styles, LocaleController.getString("TabStyle", R.string.TabStyle), ExteraConfig.tabStyle, getContext(), (dialog, i) -> {
                 ExteraConfig.editor.putInt("tabStyle", ExteraConfig.tabStyle = i).apply();
                 foldersPreviewCell.updateTabStyle(true);
                 listAdapter.notifyItemChanged(tabStyleRow, payload);
@@ -340,7 +340,7 @@ public class AppearancePreferencesActivity extends BasePreferencesActivity {
 
     @Override
     protected String getTitle() {
-        return LocaleController.getString("Appearance", R.string.Appearance);
+        return LocaleController.getString("Appearance", R.string.appearance);
     }
 
     @Override
@@ -409,7 +409,7 @@ public class AppearancePreferencesActivity extends BasePreferencesActivity {
                 case 3:
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
                     if (position == appearanceHeaderRow) {
-                        headerCell.setText(LocaleController.getString("Appearance", R.string.Appearance));
+                        headerCell.setText(LocaleController.getString("Appearance", R.string.appearance));
                     } else if (position == drawerHeaderRow) {
                         headerCell.setText(LocaleController.getString("DrawerElements", R.string.DrawerElements));
                     } else if (position == drawerOptionsHeaderRow) {
@@ -458,7 +458,7 @@ public class AppearancePreferencesActivity extends BasePreferencesActivity {
                     textCell.setEnabled(true);
                     int[] icons = AppUtils.getDrawerIconPack();
                     if (position == statusRow) {
-                        textCell.setTextAndCheckAndIcon(LocaleController.getString("ChangeEmojiStatus", R.string.ChangeEmojiStatus), ExteraConfig.changeStatus, R.drawable.msg_status_set, true);
+                        textCell.setTextAndCheckAndIcon(LocaleController.getString("ChangeEmojiStatus", R.string.ChangeEmojiStatus), ExteraConfig.changeStatus, R.drawable.msg_smile_status, true);
                     } else if (position == newGroupRow) {
                         textCell.setTextAndCheckAndIcon(LocaleController.getString("NewGroup", R.string.NewGroup), ExteraConfig.newGroup, icons[0], true);
                     } else if (position == newSecretChatRow) {
@@ -470,7 +470,7 @@ public class AppearancePreferencesActivity extends BasePreferencesActivity {
                     } else if (position == callsRow) {
                         textCell.setTextAndCheckAndIcon(LocaleController.getString("Calls", R.string.Calls), ExteraConfig.calls, icons[4], true);
                     } else if (position == peopleNearbyRow) {
-                        textCell.setTextAndCheckAndIcon(LocaleController.getString("PeopleNearby", R.string.PeopleNearby), ExteraConfig.peopleNearby, icons[6], true);
+                        textCell.setTextAndCheckAndIcon(LocaleController.getString("PeopleNearby", R.string.NearbyVenue), ExteraConfig.peopleNearby, icons[6], true);
                     } else if (position == archivedChatsRow) {
                         textCell.setTextAndCheckAndIcon(LocaleController.getString("ArchivedChats", R.string.ArchivedChats), ExteraConfig.archivedChats, R.drawable.msg_archive, true);
                     } else if (position == savedMessagesRow) {

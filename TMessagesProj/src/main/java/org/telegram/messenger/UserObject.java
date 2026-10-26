@@ -83,6 +83,23 @@ public class UserObject {
         return name.length() != 0 || TextUtils.isEmpty(user.phone) ? name : PhoneFormat.getInstance().format("+" + user.phone);
     }
 
+    /** Display phone; respects BananaGram streamer mode masking. */
+    public static String getPhoneForDisplay(int account, TLRPC.User user) {
+        if (user == null || TextUtils.isEmpty(user.phone)) {
+            return null;
+        }
+        String masked = org.telegram.messenger.banana.BananaHooks.maybeMaskPhone(account, user.phone);
+        if (masked == null || masked.equals("•••••") || masked.indexOf('•') >= 0) {
+            return masked;
+        }
+        return PhoneFormat.getInstance().format("+" + masked);
+    }
+
+    /** Display username without @; respects BananaGram streamer mode masking. */
+    public static String getUsernameForDisplay(int account, TLRPC.User user) {
+        return org.telegram.messenger.banana.BananaHooks.maybeMaskUsername(account, getPublicUsername(user));
+    }
+
     public static String getPublicUsername(TLRPC.User user, boolean editable) {
         if (user == null) {
             return null;

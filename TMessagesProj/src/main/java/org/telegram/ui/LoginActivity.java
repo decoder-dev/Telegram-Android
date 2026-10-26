@@ -2488,7 +2488,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                     testBackend = !testBackend;
                     cell.setChecked(testBackend, true);
 
-                    boolean testBackend = allowTestBackend && getConnectionsManager().isTestBackend();
+                    boolean testBackend = getConnectionsManager().isTestBackend();
                     if (testBackend != LoginActivity.this.testBackend) {
                         getConnectionsManager().switchBackend(false);
                     }

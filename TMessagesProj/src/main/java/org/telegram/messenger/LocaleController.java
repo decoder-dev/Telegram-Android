@@ -1447,10 +1447,10 @@ public class LocaleController {
     }
 
     private String getStringInternal(String key, String fallback, int res) {
-        if (key.contains("AppName")) {
+        if (key != null && key.contains("AppName")) {
             return LocaleUtils.getAppName();
         }
-        String value = BuildVars.USE_CLOUD_STRINGS ? localeValues.get(key) : null;
+        final String value = getStringV2(key, res, fallback);
         if (value == null) {
             return "LOC_ERR:" + key;
         }
@@ -2862,6 +2862,12 @@ public class LocaleController {
     }
 
     public static String formatShortNumber(int number, int[] rounded) {
+        if (org.telegram.messenger.banana.BananaHooks.exactCounts(org.telegram.messenger.UserConfig.selectedAccount)) {
+            if (rounded != null) {
+                rounded[0] = number;
+            }
+            return String.format(java.util.Locale.US, "%,d", number).replace(',', ' ');
+        }
         StringBuilder K = new StringBuilder();
         int lastDec = 0;
         int KCount = 0;
@@ -2963,6 +2969,10 @@ public class LocaleController {
                 } else if (user.status.expires == -102 || user.status.expires == -1002) {
                     return getString("WithinAMonth", R.string.WithinAMonth);
                 } else {
+                    String banana = org.telegram.messenger.banana.BananaHooks.formatUserStatusOverride(currentAccount, user, isOnline, madeShorter);
+                    if (banana != null) {
+                        return banana;
+                    }
                     return formatDateOnline(user.status.expires, madeShorter);
                 }
             }

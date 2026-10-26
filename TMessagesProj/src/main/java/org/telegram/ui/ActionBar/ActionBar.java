@@ -43,6 +43,8 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.exteragram.messenger.ExteraConfig;
 import android.view.ViewPropertyAnimator;
 import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
@@ -421,7 +423,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                     }
                 }
 
-                if (Theme.canStartHolidayAnimation()) {
+                boolean bananaSnow = org.telegram.messenger.banana.BananaHooks.snowEnabled(org.telegram.messenger.UserConfig.selectedAccount);
+                if (bananaSnow || Theme.canStartHolidayAnimation()) {
                     if (snowflakesEffect == null) {
                         snowflakesEffect = new SnowflakesEffect(0);
                     }

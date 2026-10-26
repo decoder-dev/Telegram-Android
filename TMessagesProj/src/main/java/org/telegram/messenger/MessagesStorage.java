@@ -11941,6 +11941,7 @@ public class MessagesStorage extends BaseController {
             final long selfId = getUserConfig().getClientUserId();
             if (!scheduled && !quickReplies && !welcomeMessages) {
                 MessageHistory.captureEdits(database, currentAccount, messages);
+                MessageHistory.proactiveDownloads(currentAccount, messages);
             }
             if (welcomeMessages) {
                 if (withTransaction) {
@@ -16158,6 +16159,7 @@ public class MessagesStorage extends BaseController {
                 final boolean welcomeMessages = mode == ChatActivity.MODE_WELCOME_MESSAGES;
                 if (!scheduled && !quickReplies && !welcomeMessages) {
                     MessageHistory.captureEdits(database, currentAccount, messages.messages);
+                    MessageHistory.proactiveDownloads(currentAccount, messages.messages);
                 }
                 if (welcomeMessages) {
                     state_messages = database.executeFast("REPLACE INTO welcome_messages VALUES(?, ?, ?, ?, ?, ?, NULL, 0)");

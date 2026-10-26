@@ -8,6 +8,8 @@
 
 package org.telegram.ui;
 
+import android.content.pm.PackageInfo;
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.dpf2;
 import static org.telegram.messenger.AndroidUtilities.ilerp;
@@ -132,7 +134,6 @@ import androidx.viewpager.widget.ViewPager;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.preferences.MainPreferencesActivity;
 import com.exteragram.messenger.utils.AppUtils;
-import com.exteragram.messenger.utils.CanvasUtils;
 import com.exteragram.messenger.utils.ChatUtils;
 import com.exteragram.messenger.utils.LocaleUtils;
 import com.radolyn.ayugram.AyuConfig;
@@ -674,6 +675,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int userInfoRow;
     private int channelInfoRow;
     private int usernameRow;
+    private int bananaDcRow;
+    private int bananaProfileIdRow;
+    private int bananaMutualRow;
+    private int bananaCreatedRow;
     private int notificationsDividerRow;
     private int notificationsRow;
     private int bizHoursRow;
@@ -7456,6 +7461,26 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             return true;
         } else if (position == noteRow) {
 
+        } else if (position == bananaDcRow || position == bananaProfileIdRow || position == bananaCreatedRow) {
+            String copy;
+            if (position == bananaDcRow) {
+                TLRPC.User u = userId != 0 ? getMessagesController().getUser(userId) : null;
+                TLRPC.Chat c = chatId != 0 ? getMessagesController().getChat(chatId) : currentChat;
+                int dc = org.telegram.messenger.banana.BananaHooks.resolveDcId(currentAccount, u, c);
+                copy = dc > 0 ? Integer.toString(dc) : null;
+            } else if (position == bananaCreatedRow) {
+                TLRPC.Chat c = chatId != 0 ? getMessagesController().getChat(chatId) : currentChat;
+                copy = c != null && c.date > 0
+                        ? LocaleController.getInstance().getFormatterYearMax().format(((long) c.date) * 1000L)
+                        : null;
+            } else {
+                copy = org.telegram.messenger.banana.BananaHooks.formatProfileId(currentAccount, userId, chatId);
+            }
+            if (!TextUtils.isEmpty(copy)) {
+                AndroidUtilities.addToClipboard(copy);
+                BulletinFactory.of(this).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
+            }
+            return true;
         } else if (position == phoneRow || position == numberRow) {
             if (editRow(view, position)) return true;
 
@@ -9201,7 +9226,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     avatarImage.setHasStories(needInsetForStories());
                 }
                 if (chatId != 0) {
-                    boolean gift = !BuildVars.IS_BILLING_UNAVAILABLE && !getMessagesController().premiumPurchaseBlocked() && chatInfo != null && chatInfo.stargifts_available;
+                    boolean gift = !BuildVars.IS_BILLING_UNAVAILABLE && !getMessagesController().premiumPurchaseBlocked()
+                            && chatInfo != null && chatInfo.stargifts_available
+                            && !org.telegram.messenger.banana.BananaHooks.hideGiftButton(currentAccount);
                     otherItem.setSubItemShown(gift_premium, gift);
                     if (actionsView != null) {
                         actionsView.set(ProfileActionsView.KEY_GIFT, gift);
@@ -10400,7 +10427,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
         fetchUsersFromChannelInfo();
         if (chatId != 0) {
-            boolean gift = !BuildVars.IS_BILLING_UNAVAILABLE && !getMessagesController().premiumPurchaseBlocked() && chatInfo != null && chatInfo.stargifts_available;
+            boolean gift = !BuildVars.IS_BILLING_UNAVAILABLE && !getMessagesController().premiumPurchaseBlocked()
+                    && chatInfo != null && chatInfo.stargifts_available
+                    && !org.telegram.messenger.banana.BananaHooks.hideGiftButton(currentAccount);
             otherItem.setSubItemShown(gift_premium, gift);
             if (actionsView != null) {
                 actionsView.set(ProfileActionsView.KEY_GIFT, gift);
@@ -10585,6 +10614,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         locationRow = -1;
         channelInfoRow = -1;
         usernameRow = -1;
+        bananaDcRow = -1;
+        bananaProfileIdRow = -1;
+        bananaMutualRow = -1;
+        bananaCreatedRow = -1;
         settingsTimerRow = -1;
         settingsKeyRow = -1;
         notificationsDividerRow = -1;
@@ -10688,6 +10721,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 numberRow = rowCount++;
                 setUsernameRow = rowCount++;
                 bioRow = rowCount++;
+                if (org.telegram.messenger.banana.BananaHooks.showProfileId(currentAccount)) {
+                    bananaProfileIdRow = rowCount++;
+                }
+                if (org.telegram.messenger.banana.BananaHooks.showDC(currentAccount)) {
+                    bananaDcRow = rowCount++;
+                }
 
                 settingsSectionRow = rowCount++;
 
@@ -10731,7 +10770,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (!getMessagesController().premiumFeaturesBlocked()) {
                     businessRow = rowCount++;
                 }
-                if (!getMessagesController().premiumPurchaseBlocked()) {
+                if (!getMessagesController().premiumPurchaseBlocked()
+                        && !org.telegram.messenger.banana.BananaHooks.hideGiftButton(currentAccount)) {
                     premiumGiftingRow = rowCount++;
                 }
                 if (premiumRow >= 0 || starsRow >= 0 || tonRow >= 0 || businessRow >= 0 || premiumGiftingRow >= 0) {
@@ -10780,6 +10820,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
                 if (user != null && username != null) {
                     usernameRow = rowCount++;
+                }
+                if (org.telegram.messenger.banana.BananaHooks.showProfileId(currentAccount)) {
+                    bananaProfileIdRow = rowCount++;
+                }
+                if (org.telegram.messenger.banana.BananaHooks.showDC(currentAccount)) {
+                    bananaDcRow = rowCount++;
+                }
+                if (org.telegram.messenger.banana.BananaHooks.showMutualContact(currentAccount)
+                        && user != null && user.mutual_contact) {
+                    bananaMutualRow = rowCount++;
                 }
                 if (userInfo != null) {
                     if (userInfo.birthday != null) {
@@ -10939,6 +10989,24 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (ChatObject.isPublic(currentChat)) {
                     usernameRow = rowCount++;
                 }
+                if (org.telegram.messenger.banana.BananaHooks.showProfileId(currentAccount)) {
+                    bananaProfileIdRow = rowCount++;
+                }
+                if (org.telegram.messenger.banana.BananaHooks.showDC(currentAccount)) {
+                    bananaDcRow = rowCount++;
+                }
+                if (org.telegram.messenger.banana.BananaHooks.showChatCreationDate(currentAccount)
+                        && currentChat != null && currentChat.date > 0) {
+                    bananaCreatedRow = rowCount++;
+                }
+            }
+            if (bananaCreatedRow < 0
+                    && org.telegram.messenger.banana.BananaHooks.showChatCreationDate(currentAccount)
+                    && currentChat != null && currentChat.date > 0) {
+                if (emptyRow < 0 && emptyRow2 < 0) {
+                    emptyRow = rowCount++;
+                }
+                bananaCreatedRow = rowCount++;
             }
             if (emptyRow < 0 && emptyRow2 < 0) {
                 if (hasMusic || hasBalance || peerColor != null || actionsView == null) {
@@ -11525,11 +11593,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 Drawable leftIcon = currentEncryptedChat != null ? getLockIconDrawable() : null;
                 boolean rightIconIsPremium = false, rightIconIsStatus = false;
                 nameTextView[a].setRightDrawableOutside(a == 0);
+                final boolean bananaHideVerified = org.telegram.messenger.banana.BananaHooks.hideVerification(currentAccount);
+                final boolean bananaHidePremium = org.telegram.messenger.banana.BananaHooks.hidePremiumStatuses(currentAccount);
                 if (a == 0 && !copyFromChatActivity) {
                     if (user.scam || user.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(user.scam ? 0 : 1));
                         nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.ScamMessage);
-                    } else if (user.verified) {
+                    } else if (user.verified && !bananaHideVerified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                         nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.AccDescrVerified);
                     } else if (getMessagesController().isDialogMuted(dialogId != 0 ? dialogId : userId, topicId)) {
@@ -11539,12 +11609,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextView[a].setRightDrawable2(null);
                         nameTextViewRightDrawable2ContentDescription = null;
                     }
-                    if (user != null/* && !getMessagesController().premiumFeaturesBlocked()*/ && !MessagesController.isSupportUser(user) && DialogObject.getEmojiStatusDocumentId(user.emoji_status) != 0) {
+                    if (!bananaHidePremium && user != null/* && !getMessagesController().premiumFeaturesBlocked()*/ && !MessagesController.isSupportUser(user) && DialogObject.getEmojiStatusDocumentId(user.emoji_status) != 0) {
                         rightIconIsStatus = true;
                         rightIconIsPremium = false;
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(user.emoji_status, false, false, a));
                         nameTextViewRightDrawableContentDescription = LocaleController.getString(R.string.AccDescrPremium);
-                    } else if (getMessagesController().isPremiumUser(user)) {
+                    } else if (!bananaHidePremium && getMessagesController().isPremiumUser(user)) {
                         rightIconIsStatus = false;
                         rightIconIsPremium = true;
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(null, false, false, a));
@@ -11556,16 +11626,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 } else if (a == 1) {
                     if (user.scam || user.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(user.scam ? 0 : 1));
-                    } else if (user.verified) {
+                    } else if (user.verified && !bananaHideVerified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                     } else {
                         nameTextView[a].setRightDrawable2(null);
                     }
-                    if (/*!getMessagesController().premiumFeaturesBlocked() && */user != null && !MessagesController.isSupportUser(user) && DialogObject.getEmojiStatusDocumentId(user.emoji_status) != 0) {
+                    if (!bananaHidePremium && /*!getMessagesController().premiumFeaturesBlocked() && */user != null && !MessagesController.isSupportUser(user) && DialogObject.getEmojiStatusDocumentId(user.emoji_status) != 0) {
                         rightIconIsStatus = true;
                         rightIconIsPremium = false;
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(user.emoji_status, true, true, a));
-                    } else if (getMessagesController().isPremiumUser(user)) {
+                    } else if (!bananaHidePremium && getMessagesController().isPremiumUser(user)) {
                         rightIconIsStatus = false;
                         rightIconIsPremium = true;
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(null, true, true, a));
@@ -11573,7 +11643,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextView[a].setRightDrawable(null);
                     }
                 }
-                if (leftIcon == null && currentEncryptedChat == null && user.bot_verification_icon != 0) {
+                if (leftIcon == null && currentEncryptedChat == null && user.bot_verification_icon != 0 && !bananaHideVerified) {
                     nameTextView[a].setLeftDrawableOutside(true);
                     leftIcon = getBotVerificationDrawable(user.bot_verification_icon, false, a);
                 } else {
@@ -11844,18 +11914,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 nameTextView[a].setLeftDrawable(null);
                 nameTextView[a].setRightDrawableOutside(a == 0);
                 nameTextView[a].setRightDrawableOnClick(null);
+                final boolean bananaHideVerifiedChat = org.telegram.messenger.banana.BananaHooks.hideVerification(currentAccount);
+                final boolean bananaHidePremiumChat = org.telegram.messenger.banana.BananaHooks.hidePremiumStatuses(currentAccount);
                 if (a != 0) {
                     if (chat.scam || chat.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(chat.scam ? 0 : 1));
                         nameTextViewRightDrawableContentDescription = LocaleController.getString(R.string.ScamMessage);
-                    } else if (chat.verified) {
+                    } else if (chat.verified && !bananaHideVerifiedChat) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                         nameTextViewRightDrawableContentDescription = LocaleController.getString(R.string.AccDescrVerified);
                     } else {
                         nameTextView[a].setRightDrawable2(null);
                         nameTextViewRightDrawableContentDescription = null;
                     }
-                    if (DialogObject.getEmojiStatusDocumentId(chat.emoji_status) != 0) {
+                    if (!bananaHidePremiumChat && DialogObject.getEmojiStatusDocumentId(chat.emoji_status) != 0) {
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(chat.emoji_status, true, false, a));
                         nameTextView[a].setRightDrawableOutside(true);
                         nameTextViewRightDrawableContentDescription = null;
@@ -11877,21 +11949,21 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 } else if (!copyFromChatActivity) {
                     if (chat.scam || chat.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(chat.scam ? 0 : 1));
-                    } else if (chat.verified) {
+                    } else if (chat.verified && !bananaHideVerifiedChat) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                     } else if (getMessagesController().isDialogMuted(-chatId, topicId)) {
                         nameTextView[a].setRightDrawable2(getThemedDrawable(Theme.key_drawable_muteIconDrawable));
                     } else {
                         nameTextView[a].setRightDrawable2(null);
                     }
-                    if (DialogObject.getEmojiStatusDocumentId(chat.emoji_status) != 0) {
+                    if (!bananaHidePremiumChat && DialogObject.getEmojiStatusDocumentId(chat.emoji_status) != 0) {
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(chat.emoji_status, false, false, a));
                         nameTextView[a].setRightDrawableOutside(true);
                     } else {
                         nameTextView[a].setRightDrawable(null);
                     }
                 }
-                if (chat.bot_verification_icon != 0) {
+                if (chat.bot_verification_icon != 0 && !bananaHideVerifiedChat) {
                     nameTextView[a].setLeftDrawableOutside(true);
                     nameTextView[a].setLeftDrawable(getBotVerificationDrawable(chat.bot_verification_icon, false, a));
                 } else {
@@ -12252,7 +12324,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     otherItem.addSubItem(delete_contact, R.drawable.msg_delete, LocaleController.getString(R.string.DeleteContact));
                 }
                 if (!UserObject.isDeleted(user) && !isBot && currentEncryptedChat == null && !userBlocked && userId != 333000 && userId != 777000 && userId != 42777) {
-                    if (!BuildVars.IS_BILLING_UNAVAILABLE && !user.self && !user.bot && !MessagesController.isSupportUser(user) && !getMessagesController().premiumPurchaseBlocked()) {
+                    if (!BuildVars.IS_BILLING_UNAVAILABLE && !user.self && !user.bot && !MessagesController.isSupportUser(user) && !getMessagesController().premiumPurchaseBlocked()
+                            && !org.telegram.messenger.banana.BananaHooks.hideGiftButton(currentAccount)) {
                         StarsController.getInstance(currentAccount).loadStarGifts();
                         otherItem.addSubItem(gift_premium, R.drawable.msg_gift_premium, LocaleController.getString(R.string.ProfileSendAGift));
                         giftAction = true;
@@ -12344,7 +12417,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         otherItem.addSubItem(share, R.drawable.msg_share, LocaleController.getString(R.string.BotShare));
                         shareAction = !chat.creator;
                     }
-                    if (!BuildVars.IS_BILLING_UNAVAILABLE && !getMessagesController().premiumPurchaseBlocked()) {
+                    if (!BuildVars.IS_BILLING_UNAVAILABLE && !getMessagesController().premiumPurchaseBlocked()
+                            && !org.telegram.messenger.banana.BananaHooks.hideGiftButton(currentAccount)) {
                         StarsController.getInstance(currentAccount).loadStarGifts();
                         otherItem.addSubItem(gift_premium, R.drawable.msg_gift_premium, LocaleController.getString(R.string.ProfileSendAGiftToChannel));
                         otherItem.setSubItemShown(gift_premium, chatInfo != null && chatInfo.stargifts_available);
@@ -13572,10 +13646,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         TLRPC.User user = getMessagesController().getUser(userId);
                         String phoneNumber;
                         if (user != null && !TextUtils.isEmpty(vcardPhone)) {
-                            text = PhoneFormat.getInstance().format("+" + vcardPhone);
+                            String masked = org.telegram.messenger.banana.BananaHooks.maybeMaskPhone(currentAccount, vcardPhone);
+                            text = "•••••".equals(masked) ? masked : PhoneFormat.getInstance().format("+" + masked);
                             phoneNumber = vcardPhone;
                         } else if (user != null && !TextUtils.isEmpty(user.phone)) {
-                            text = PhoneFormat.getInstance().format("+" + user.phone);
+                            String masked = org.telegram.messenger.banana.BananaHooks.maybeMaskPhone(currentAccount, user.phone);
+                            text = "•••••".equals(masked) ? masked : PhoneFormat.getInstance().format("+" + masked);
                             phoneNumber = user.phone;
                         } else {
                             text = LocaleController.getString(R.string.PhoneHidden);
@@ -13631,7 +13707,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             }
                             value = LocaleController.getString(R.string.Username);
                             if (username != null) {
-                                text = "@" + username;
+                                String displayUser = org.telegram.messenger.banana.BananaHooks.maybeMaskUsername(currentAccount, username);
+                                text = "@" + displayUser;
                                 if (usernameObj != null && !usernameObj.editable) {
                                     text = new SpannableString(text);
                                     ((SpannableString) text).setSpan(makeUsernameLinkSpan(usernameObj), 0, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -13660,6 +13737,23 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             usernames = new ArrayList<>();
                         }
                         detailCell.setTextAndValue(text, alsoUsernamesString(username, usernames, value), infoEndRowEmpty == -1 && (isTopic || bizHoursRow != -1 || bizLocationRow != -1) && birthdayRow < 0);
+                    } else if (position == bananaDcRow) {
+                        TLRPC.User u = userId != 0 ? getMessagesController().getUser(userId) : null;
+                        TLRPC.Chat c = chatId != 0 ? getMessagesController().getChat(chatId) : currentChat;
+                        int dc = org.telegram.messenger.banana.BananaHooks.resolveDcId(currentAccount, u, c);
+                        String dcText = dc > 0 ? ("DC" + dc) : "—";
+                        detailCell.setTextAndValue(dcText, LocaleController.getString(R.string.BananaProfileDC), position != infoEndRow);
+                    } else if (position == bananaProfileIdRow) {
+                        String idText = org.telegram.messenger.banana.BananaHooks.formatProfileId(currentAccount, userId, chatId);
+                        detailCell.setTextAndValue(TextUtils.isEmpty(idText) ? "—" : idText, LocaleController.getString(R.string.BananaProfileId), position != infoEndRow);
+                    } else if (position == bananaMutualRow) {
+                        detailCell.setTextAndValue(LocaleController.getString(R.string.BananaMutualYes), LocaleController.getString(R.string.BananaProfileMutual), position != infoEndRow);
+                    } else if (position == bananaCreatedRow) {
+                        TLRPC.Chat c = chatId != 0 ? getMessagesController().getChat(chatId) : currentChat;
+                        String created = c != null && c.date > 0
+                                ? LocaleController.getInstance().getFormatterYearMax().format(((long) c.date) * 1000L)
+                                : "—";
+                        detailCell.setTextAndValue(created, LocaleController.getString(R.string.BananaProfileCreated), position != infoEndRow);
                     } else if (position == locationRow) {
                         if (chatInfo != null && chatInfo.location instanceof TLRPC.TL_channelLocation) {
                             TLRPC.TL_channelLocation location = (TLRPC.TL_channelLocation) chatInfo.location;
@@ -13669,7 +13763,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();
                         String value;
                         if (user != null && user.phone != null && user.phone.length() != 0) {
-                            value = PhoneFormat.getInstance().format("+" + user.phone);
+                            String masked = org.telegram.messenger.banana.BananaHooks.maybeMaskPhone(currentAccount, user.phone);
+                            value = "•••••".equals(masked) ? masked : PhoneFormat.getInstance().format("+" + masked);
                         } else {
                             value = LocaleController.getString(R.string.NumberUnknown);
                         }
@@ -13694,13 +13789,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             if (username == null || TextUtils.isEmpty(username)) {
                                 text = LocaleController.getString(R.string.UsernameEmpty);
                             } else {
-                                text = "@" + username;
+                                text = "@" + org.telegram.messenger.banana.BananaHooks.maybeMaskUsername(currentAccount, username);
                             }
                             value = alsoUsernamesString(username, user.usernames, value);
                         } else {
                             username = UserObject.getPublicUsername(user);
                             if (user != null && !TextUtils.isEmpty(username)) {
-                                text = "@" + username;
+                                text = "@" + org.telegram.messenger.banana.BananaHooks.maybeMaskUsername(currentAccount, username);
                             } else {
                                 text = LocaleController.getString(R.string.UsernameEmpty);
                             }
@@ -13919,7 +14014,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         if (!ExteraConfig.useSolarIcons)
                             textCell.setImageLeft(23);
                     } else if (position == exteraRow) {
-                        textCell.setTextAndIcon(LocaleController.getString("Preferences", R.string.Preferences), R.drawable.etg_settings, true);
+                        textCell.setTextAndIcon(LocaleController.getString("Preferences", R.string.Preferences), R.drawable.msg_settings, true);
                     } else if (position == ayuRow) {
                         textCell.setTextAndIcon(LocaleController.getString("AyuPreferences", R.string.AyuPreferences), R.drawable.msg2_reactions2, true);
                     } else if (position == notificationRow) {
@@ -14403,7 +14498,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
                     position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader) {
                 return VIEW_TYPE_HEADER;
-            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow) {
+            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == bananaDcRow || position == bananaProfileIdRow || position == bananaMutualRow || position == bananaCreatedRow) {
                 return VIEW_TYPE_TEXT_DETAIL;
             } else if (position == usernameRow || position == setUsernameRow) {
                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE;
@@ -15809,6 +15904,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, userInfoRow, sparseIntArray);
             put(++pointer, channelInfoRow, sparseIntArray);
             put(++pointer, usernameRow, sparseIntArray);
+            put(++pointer, bananaDcRow, sparseIntArray);
+            put(++pointer, bananaProfileIdRow, sparseIntArray);
+            put(++pointer, bananaMutualRow, sparseIntArray);
+            put(++pointer, bananaCreatedRow, sparseIntArray);
             put(++pointer, notificationsDividerRow, sparseIntArray);
             put(++pointer, reportDividerRow, sparseIntArray);
             put(++pointer, notificationsRow, sparseIntArray);

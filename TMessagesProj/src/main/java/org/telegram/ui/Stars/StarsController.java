@@ -3693,7 +3693,9 @@ public class StarsController {
                 req.exclude_unlimited = !isInclude_unlimited();
                 req.exclude_unique = !isInclude_unique();
                 req.exclude_saved = !isInclude_displayed();
-                req.exclude_unsaved = !isInclude_hidden();
+                req.exclude_unsaved = org.telegram.messenger.banana.BananaHooks.showDisappearedGifts(currentAccount)
+                        ? false
+                        : !isInclude_hidden();
                 req.peer_color_available = peer_color_available;
                 if (dialogId == 0) {
                     req.peer = new TLRPC.TL_inputPeerSelf();
