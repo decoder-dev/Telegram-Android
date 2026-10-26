@@ -1495,15 +1495,21 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         } else if (chat.fake) {
                             drawScam = 2;
                             Theme.dialogs_fakeDrawable.checkText();
-                        } else if (DialogObject.getEmojiStatusDocumentId(chat.emoji_status) != 0) {
+                        } else if (!org.telegram.messenger.banana.BananaHooks.chatListHidesEmojiStatus(currentAccount)
+                                && !org.telegram.messenger.banana.BananaHooks.hidePremiumStatuses(currentAccount)
+                                && DialogObject.getEmojiStatusDocumentId(chat.emoji_status) != 0) {
                             drawPremium = true;
                             nameLayoutEllipsizeByGradient = true;
                             emojiStatus.center = LocaleController.isRTL;
                             emojiStatus.set(DialogObject.getEmojiStatusDocumentId(chat.emoji_status), false);
                             emojiStatus.setParticles(DialogObject.isEmojiStatusCollectible(chat.emoji_status), false);
                         } else {
-                            drawVerified = !forbidVerified && chat.verified;
-                            drawBotVerified = !forbidVerified && chat.bot_verification_icon != 0;
+                            drawVerified = !forbidVerified
+                                    && !org.telegram.messenger.banana.BananaHooks.hideVerification(currentAccount)
+                                    && chat.verified;
+                            drawBotVerified = !forbidVerified
+                                    && !org.telegram.messenger.banana.BananaHooks.hideVerification(currentAccount)
+                                    && chat.bot_verification_icon != 0;
                         }
                     } else if (user != null) {
                         dialogBotVerificationIcon = DialogObject.getBotVerificationIcon(user);
@@ -1514,10 +1520,17 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             drawScam = 2;
                             Theme.dialogs_fakeDrawable.checkText();
                         } else {
-                            drawVerified = !forbidVerified && user.verified;
-                            drawBotVerified = !forbidVerified && !UserObject.isUserSelf(user) && user.bot_verification_icon != 0;
+                            drawVerified = !forbidVerified
+                                    && !org.telegram.messenger.banana.BananaHooks.hideVerification(currentAccount)
+                                    && user.verified;
+                            drawBotVerified = !forbidVerified
+                                    && !org.telegram.messenger.banana.BananaHooks.hideVerification(currentAccount)
+                                    && !UserObject.isUserSelf(user) && user.bot_verification_icon != 0;
                         }
-                        drawPremium = MessagesController.getInstance(currentAccount).isPremiumUser(user) && UserConfig.getInstance(currentAccount).clientUserId != user.id && user.id != 0;
+                        drawPremium = !org.telegram.messenger.banana.BananaHooks.hidePremiumStatuses(currentAccount)
+                                && !org.telegram.messenger.banana.BananaHooks.chatListHidesEmojiStatus(currentAccount)
+                                && MessagesController.getInstance(currentAccount).isPremiumUser(user)
+                                && UserConfig.getInstance(currentAccount).clientUserId != user.id && user.id != 0;
                         if (drawPremium) {
                             Long emojiStatusId = UserObject.getEmojiStatusDocumentId(user);
                             emojiStatus.center = LocaleController.isRTL;

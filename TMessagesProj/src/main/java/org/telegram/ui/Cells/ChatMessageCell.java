@@ -9675,6 +9675,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     } else {
                         maxHeight = maxWidth = (int) (Math.min(getParentWidth(), AndroidUtilities.displaySize.y) * 0.5f);
                     }
+                    float bananaStickerScale = org.telegram.messenger.banana.BananaHooks.stickerSizeScale(currentAccount);
+                    if (bananaStickerScale != 1f && !messageObject.isAnimatedEmoji() && !messageObject.isDice()) {
+                        maxHeight *= bananaStickerScale;
+                        maxWidth = (int) (maxWidth * bananaStickerScale);
+                    }
                     String filter;
                     if (messageObject.isAnimatedEmoji() || messageObject.isDice()) {
                         float zoom = MessagesController.getInstance(currentAccount).animatedEmojisZoom;
@@ -9756,7 +9761,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     availableTimeWidth = photoWidth - dp(14);
                     backgroundWidth = photoWidth + dp(12);
 
-                    photoImage.setRoundRadius(0);
+                    int bananaStickerRadius = org.telegram.messenger.banana.BananaHooks.stickerRoundRadiusPx(currentAccount, Math.min(photoWidth, photoHeight));
+                    photoImage.setRoundRadius(bananaStickerRadius);
                     canChangeRadius = false;
                     if (!messageObject.isOutOwner() && MessageObject.isPremiumSticker(messageObject.getDocument())) {
                         flipImage = true;
@@ -18503,15 +18509,20 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             final String clock = org.telegram.messenger.banana.BananaHooks.showMessageSeconds(currentAccount)
                     ? LocaleController.getInstance().getFormatterDayWithSeconds().format(timeMs)
                     : LocaleController.getInstance().getFormatterDay().format(timeMs);
+            final String bananaEdited = org.telegram.messenger.banana.BananaHooks.editedMark(currentAccount);
+            final String bananaDeleted = org.telegram.messenger.banana.BananaHooks.deletedMark(currentAccount);
+            final String editedMark = !TextUtils.isEmpty(bananaEdited) ? bananaEdited : AyuConfig.getEditedMark();
+            final String deletedMark = !TextUtils.isEmpty(bananaDeleted) ? bananaDeleted : AyuConfig.getDeletedMark();
             if (edited && !ayuDeleted) {
-                timeString = AyuConfig.getEditedMark() + " " + clock;
+                timeString = editedMark + " " + clock;
             } else if (!edited && ayuDeleted) {
-                timeString = AyuConfig.getDeletedMark() + " " + clock;
+                timeString = deletedMark + " " + clock;
             } else if (edited && ayuDeleted) {
-                timeString = AyuConfig.getEditedMark() + " (" + AyuConfig.getDeletedMark() + ")" + " " + clock;
+                timeString = editedMark + " (" + deletedMark + ")" + " " + clock;
             } else {
                 timeString = clock;
             }
+            timeString = org.telegram.messenger.banana.BananaHooks.appendMessageId(currentAccount, timeString, messageObject.getId());
         }
         if (currentMessageObject.messageOwner.video_processing_pending) {
             timeString = formatString(R.string.ScheduledTimeApprox, timeString);
@@ -18880,22 +18891,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             boolean isAdmin = false, isOwner = false, isTag = false;
             SpannableStringBuilder adminString = null;
             String adminLabel;
-            if (isMegagroup && currentChat != null && messageObject.messageOwner.post_author != null && currentChat.id == -currentMessageObject.getFromChatId()) {
-                adminString = messageObject.messageOwner.post_author.replace("\n", "");
-                adminWidth = (int) Math.ceil(Theme.chat_adminPaint.measureText(adminString));
-                nameWidth -= adminWidth;
-            } else if (isMegagroup && currentChat != null && currentMessageObject.isForwardedChannelPost()) {
-                adminString = LocaleController.getString("DiscussChannel", R.string.DiscussChannel);
-                adminWidth = (int) Math.ceil(Theme.chat_adminPaint.measureText(adminString));
-                nameWidth -= adminWidth;
-            } else if ((currentUser != null || currentChat != null) && !currentMessageObject.isOutOwner() && !currentMessageObject.isAnyKindOfSticker() && currentMessageObject.type != MessageObject.TYPE_ROUND_VIDEO && delegate != null && (adminLabel = delegate.getAdminRank(currentUser != null ? currentUser.id : currentChat.id)) != null) {
-                if (adminLabel.length() == 0) {
-                    adminLabel = LocaleController.getString("ChatAdmin", R.string.ChatAdmin);
-                }
-                adminString = adminLabel;
-                adminWidth = (int) Math.ceil(Theme.chat_adminPaint.measureText(adminString));
-                nameWidth -= adminWidth;
-            } else {
+            if (messageObject.isWelcomeMessage()) {
                 adminString = null;
             } else if (isMegagroup && currentChat != null && messageObject.messageOwner.post_author != null && currentChat.id == -currentMessageObject.getFromChatId()) {
                 adminString = new SpannableStringBuilder(messageObject.messageOwner.post_author.replace("\n", ""));

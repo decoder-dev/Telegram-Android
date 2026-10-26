@@ -14580,6 +14580,42 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             if (!newMessageObject.isQuickReply() && !newMessageObject.isSponsored() && newMessageObject.messageOwner != null) {
                 subtitle = LocaleController.formatDateAudio(newMessageObject.messageOwner.date, false);
             }
+            if (org.telegram.messenger.banana.BananaHooks.showMediaInfo(currentAccount)) {
+                int w = 0, h = 0, duration = 0;
+                long size = 0;
+                try {
+                    if (newMessageObject.photoThumbs != null && !newMessageObject.photoThumbs.isEmpty()) {
+                        TLRPC.PhotoSize largest = FileLoader.getClosestPhotoSizeWithSize(newMessageObject.photoThumbs, Integer.MAX_VALUE);
+                        if (largest != null) {
+                            w = largest.w;
+                            h = largest.h;
+                            size = largest.size;
+                        }
+                    }
+                    TLRPC.Document doc = newMessageObject.getDocument();
+                    if (doc != null) {
+                        if (size <= 0) {
+                            size = doc.size;
+                        }
+                        duration = (int) newMessageObject.getDuration();
+                        for (int a = 0; a < doc.attributes.size(); a++) {
+                            TLRPC.DocumentAttribute attr = doc.attributes.get(a);
+                            if (attr instanceof TLRPC.TL_documentAttributeImageSize || attr instanceof TLRPC.TL_documentAttributeVideo) {
+                                if (attr.w > 0 && attr.h > 0) {
+                                    w = attr.w;
+                                    h = attr.h;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                } catch (Exception ignore) {
+                }
+                String mediaInfo = org.telegram.messenger.banana.BananaHooks.formatMediaInfo(currentAccount, w, h, size, duration);
+                if (mediaInfo != null) {
+                    subtitle = TextUtils.isEmpty(subtitle) ? mediaInfo : TextUtils.concat(subtitle, " · ", mediaInfo);
+                }
+            }
             actionBarContainer.setSubtitle(subtitle, animated);
 
             boolean isInvoice = newMessageObject.isInvoice();

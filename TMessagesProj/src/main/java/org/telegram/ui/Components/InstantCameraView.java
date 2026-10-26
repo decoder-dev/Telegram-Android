@@ -3066,38 +3066,23 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                     generateKeyframeThumbsQueue = null;
                 }
             }
-            if (send != 0) {
-                AndroidUtilities.runOnUIThread(() -> {
-                    videoEditedInfo = new VideoEditedInfo();
-                    videoEditedInfo.roundVideo = true;
-                    videoEditedInfo.startTime = -1;
-                    videoEditedInfo.endTime = -1;
-                    videoEditedInfo.file = file;
-                    videoEditedInfo.encryptedFile = encryptedFile;
-                    videoEditedInfo.key = key;
-                    videoEditedInfo.iv = iv;
-                    videoEditedInfo.estimatedSize = Math.max(1, size);
-                    videoEditedInfo.framerate = 25;
-                    videoEditedInfo.resultWidth = videoEditedInfo.originalWidth = 360;
-                    videoEditedInfo.resultHeight = videoEditedInfo.originalHeight = 360;
-                    videoEditedInfo.originalPath = videoFile.getAbsolutePath();
-                    if (send == 1) {
-                        if (baseFragment.isInScheduleMode()) {
-                            AlertsCreator.createScheduleDatePickerDialog(baseFragment.getParentActivity(), baseFragment.getDialogId(), (notify, scheduleDate) -> {
-                                baseFragment.sendMedia(new MediaController.PhotoEntry(0, 0, 0, videoFile.getAbsolutePath(), 0, true, 0, 0, 0), videoEditedInfo, notify, scheduleDate, false);
-                                startAnimation(false);
-                            }, () -> {
-                                startAnimation(false);
-                            }, resourcesProvider);
-                        } else {
-                            baseFragment.sendMedia(new MediaController.PhotoEntry(0, 0, 0, videoFile.getAbsolutePath(), 0, true, 0, 0, 0), videoEditedInfo, true, 0, false);
-
-                            // --- AyuGram scheduled hook
-                            if (AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount)) {
-                                // hack to close instant camera view
-                                startAnimation(false);
-                            }
-                            // --- AyuGram hook
+            FileLog.d("InstantCamera handleStopRecording send " + send);
+            if (send == ENCODER_SEND_CANCEL) {
+                FileLoader.getInstance(currentAccount).cancelFileUpload(videoFile.getAbsolutePath(), false);
+                try {
+                    fileToWrite.delete();
+                } catch (Throwable ignore) {}
+                try {
+                    videoFile.delete();
+                } catch (Throwable ignore) {}
+            } else {
+                if (runDone && (send != ENCODER_SEND_SEND || !sentMedia)) {
+                    sentMedia = true;
+                    AndroidUtilities.runOnUIThread(() -> {
+                        if (videoEditedInfo == null) {
+                            videoEditedInfo = new VideoEditedInfo();
+                            videoEditedInfo.startTime = -1;
+                            videoEditedInfo.endTime = -1;
                         }
                         if (videoEditedInfo.needConvert()) {
                             file = null;
@@ -3150,6 +3135,11 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                                     entry.effectId = sendOptions.effectId;
                                 }
                                 delegate.sendMedia(entry, info, sendOptions == null || sendOptions.notify, sendOptions != null ? sendOptions.scheduleDate : 0, sendOptions != null ? sendOptions.scheduleRepeatPeriod : 0, false, sendOptions != null ? sendOptions.stars : 0);
+                                // --- AyuGram / BananaGram scheduled hook
+                                if (AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount)) {
+                                    startAnimation(false, false);
+                                }
+                                // --- AyuGram hook
                             }
                             videoEditedInfo = null;
                         } else {

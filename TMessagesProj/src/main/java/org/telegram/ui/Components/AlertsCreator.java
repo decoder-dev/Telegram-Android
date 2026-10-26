@@ -8280,7 +8280,7 @@ public class AlertsCreator {
             if (onDelete != null) {
                 onDelete.run();
             }
-        };
+        });
 
         if (isSavedMessages) {
             if (count == 1) {
