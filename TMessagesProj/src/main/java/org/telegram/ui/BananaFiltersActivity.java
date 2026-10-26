@@ -37,7 +37,7 @@ public final class BananaFiltersActivity extends UniversalFragment {
     public BananaFiltersActivity(int account, long dialogId, String sourceLink) {
         setCurrentAccount(account); this.dialogId = dialogId; this.sourceLink = sourceLink;
     }
-    @Override public Theme.ResourcesProvider getResourceProvider() { return BananaTheme.COLORS; }
+    @Override public Theme.ResourcesProvider getResourceProvider() { return BananaTheme.forExtras(); }
     @Override protected CharSequence getTitle() { return text(R.string.BananaFilters); }
     @Override public View createView(Context context) {
         if (store == null) store = FilterStore.get(currentAccount);

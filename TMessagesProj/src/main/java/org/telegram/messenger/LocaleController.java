@@ -2969,6 +2969,10 @@ public class LocaleController {
                 } else if (user.status.expires == -102 || user.status.expires == -1002) {
                     return getString("WithinAMonth", R.string.WithinAMonth);
                 } else {
+                    String banana = org.telegram.messenger.banana.BananaHooks.formatUserStatusOverride(currentAccount, user, isOnline, madeShorter);
+                    if (banana != null) {
+                        return banana;
+                    }
                     return formatDateOnline(user.status.expires, madeShorter);
                 }
             }

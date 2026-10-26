@@ -25,6 +25,7 @@ import java.util.ArrayList;
 public final class BananaSettingsActivity extends UniversalFragment {
     private static final int GHOST_PRESET = 1000;
     private static final int SILENT_SENDING = 1001;
+    private static final int THEME_PALETTE = 1002;
     private static final int VALUES = 1003;
     private static final int AYU_SETTINGS = 1004;
     private static final int SECTION_BASE = 2000;
@@ -35,7 +36,7 @@ public final class BananaSettingsActivity extends UniversalFragment {
 
     @Override
     public Theme.ResourcesProvider getResourceProvider() {
-        return BananaTheme.COLORS;
+        return BananaTheme.forExtras();
     }
 
     @Override
@@ -50,6 +51,8 @@ public final class BananaSettingsActivity extends UniversalFragment {
                 BananaConfig.isGhostModeActive(currentAccount)));
         items.add(BananaValueCell.Factory.of(SILENT_SENDING, LocaleController.getString(R.string.BananaSilentSending),
                 silentLabels()[BananaConfig.silentSending(currentAccount).ordinal()]));
+        items.add(BananaValueCell.Factory.of(THEME_PALETTE, LocaleController.getString(R.string.BananaAppearanceTheme),
+                themeLabels()[BananaTheme.selectedPalette().ordinal()]));
         items.add(UItem.asShadow(LocaleController.getString(R.string.BananaHubFooter)));
 
         String[] order = BananaExtrasCatalog.HUB_ORDER;
@@ -93,6 +96,15 @@ public final class BananaSettingsActivity extends UniversalFragment {
                         BananaConfig.setSilentSending(currentAccount, BananaConfig.SilentSending.values()[which]);
                         listView.adapter.update(true);
                     }).create());
+            return;
+        }
+        if (item.id == THEME_PALETTE) {
+            showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                    .setTitle(LocaleController.getString(R.string.BananaAppearanceTheme))
+                    .setItems(themeLabels(), (dialog, which) -> {
+                        BananaTheme.setPalette(currentAccount, BananaTheme.Palette.values()[which]);
+                        listView.adapter.update(true);
+                    }).create());
         }
     }
 
@@ -101,6 +113,14 @@ public final class BananaSettingsActivity extends UniversalFragment {
                 LocaleController.getString(R.string.BananaSilentNormal),
                 LocaleController.getString(R.string.BananaSilentGhost),
                 LocaleController.getString(R.string.BananaSilentAlways)
+        };
+    }
+
+    private CharSequence[] themeLabels() {
+        return new CharSequence[]{
+                LocaleController.getString(R.string.BananaThemeSystem),
+                LocaleController.getString(R.string.BananaThemeCream),
+                LocaleController.getString(R.string.BananaThemeGraphite)
         };
     }
 
