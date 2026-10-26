@@ -195,6 +195,22 @@ public final class BananaConfig {
         editor.putBoolean(Option.GHOST_DONT_SEND_TYPING.key, enabled);
         editor.putBoolean(Option.OFFLINE_AFTER_ACTIVITY.key, enabled);
         editor.apply();
+        // Keep overlapping AyuGram ghost prefs aligned with Banana as source of truth.
+        try {
+            com.radolyn.ayugram.AyuConfig.sendReadPackets = !enabled;
+            com.radolyn.ayugram.AyuConfig.sendOnlinePackets = !enabled;
+            com.radolyn.ayugram.AyuConfig.sendUploadProgress = !enabled;
+            com.radolyn.ayugram.AyuConfig.sendOfflinePacketAfterOnline = enabled;
+            if (com.radolyn.ayugram.AyuConfig.editor != null) {
+                com.radolyn.ayugram.AyuConfig.editor
+                        .putBoolean("sendReadPackets", !enabled)
+                        .putBoolean("sendOnlinePackets", !enabled)
+                        .putBoolean("sendUploadProgress", !enabled)
+                        .putBoolean("sendOfflinePacketAfterOnline", enabled)
+                        .apply();
+            }
+        } catch (Throwable ignored) {
+        }
     }
 
     public static SilentSending silentSending(int account) {

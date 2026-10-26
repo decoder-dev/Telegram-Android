@@ -8859,7 +8859,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     maxWidth = dp(10);
                 }
 
-                String time = LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
+                String time = org.telegram.messenger.banana.BananaHooks.showMessageSeconds(currentAccount)
+                    ? LocaleController.getInstance().getFormatterDayWithSeconds().format((long) (messageObject.messageOwner.date) * 1000)
+                    : LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
                 final boolean isMissed, isBusy, video;
                 final int duration;
                 final ArrayList<TLRPC.Peer> other_participants;
@@ -18492,15 +18494,20 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             timeString = "";
         } else if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE) {
             timeString = "";
-        } else if (edited && !ayuDeleted) {
-            timeString = AyuConfig.getEditedMark() + " " + LocaleController.getInstance().formatterDay.format((long) (messageObject.messageOwner.date) * 1000);
-        } else if (!edited && ayuDeleted) {
-            timeString = AyuConfig.getDeletedMark() + " " + LocaleController.getInstance().formatterDay.format((long) (messageObject.messageOwner.date) * 1000);
-        } else if (edited && ayuDeleted) {
-            // it's both edited and deleted
-            timeString = AyuConfig.getEditedMark() + " (" + AyuConfig.getDeletedMark() + ")" + " " + LocaleController.getInstance().formatterDay.format((long) (messageObject.messageOwner.date) * 1000);
         } else {
-            timeString = LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
+            final long timeMs = (long) (messageObject.messageOwner.date) * 1000;
+            final String clock = org.telegram.messenger.banana.BananaHooks.showMessageSeconds(currentAccount)
+                    ? LocaleController.getInstance().getFormatterDayWithSeconds().format(timeMs)
+                    : LocaleController.getInstance().getFormatterDay().format(timeMs);
+            if (edited && !ayuDeleted) {
+                timeString = AyuConfig.getEditedMark() + " " + clock;
+            } else if (!edited && ayuDeleted) {
+                timeString = AyuConfig.getDeletedMark() + " " + clock;
+            } else if (edited && ayuDeleted) {
+                timeString = AyuConfig.getEditedMark() + " (" + AyuConfig.getDeletedMark() + ")" + " " + clock;
+            } else {
+                timeString = clock;
+            }
         }
         if (currentMessageObject.messageOwner.video_processing_pending) {
             timeString = formatString(R.string.ScheduledTimeApprox, timeString);
