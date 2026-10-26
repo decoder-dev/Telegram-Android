@@ -94,6 +94,10 @@ public final class BananaExtrasSectionActivity extends UniversalFragment {
                 com.radolyn.ayugram.AyuConfig.sendOnlinePackets = !next;
                 com.radolyn.ayugram.AyuConfig.editor.putBoolean("sendOnlinePackets", !next).apply();
             }
+            if (option == Option.GHOST_SCHEDULE_MESSAGES) {
+                com.radolyn.ayugram.AyuConfig.useScheduledMessages = next;
+                com.radolyn.ayugram.AyuConfig.editor.putBoolean("useScheduledMessages", next).apply();
+            }
             if (option == Option.HIDE_ONLINE || option == Option.OFFLINE_AFTER_ACTIVITY) {
                 Utilities.stageQueue.postRunnable(() -> getMessagesController().updateTimerProc());
             }
