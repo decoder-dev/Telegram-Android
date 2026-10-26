@@ -1,3 +1,13 @@
 [submodule "TMessagesProj/src/main/java/com/radolyn/ayugram/proprietary"]
 	path = TMessagesProj/src/main/java/com/radolyn/ayugram/proprietary
 	url = https://github.com/AyuGram/AyuGram4A_proprietary.git
+[submodule "TMessagesProj_Modules/media"]
+	path = TMessagesProj_Modules/media
+	url = https://github.com/Arseny271/media.git
+[submodule "TMessagesProj/jni/td"]
+	path = TMessagesProj/jni/td
+	url = https://github.com/tdlib/td.git
+[submodule "TMessagesProj/jni/tgcalls"]
+	path = TMessagesProj/jni/tgcalls
+	url = https://github.com/TelegramMessenger/tgcalls.git
+	branch = dev/android
