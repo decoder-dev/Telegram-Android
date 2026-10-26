@@ -7303,6 +7303,23 @@ public class ChatActivityEnterView extends FrameLayout implements
             })) {
                 return;
             }
+            if (allowConfirmFinal
+                    && org.telegram.messenger.banana.BananaHooks.confirmVoiceSend(currentAccount)
+                    && (audioToSend != null || videoToSendMessageObject != null)
+                    && parentActivity != null) {
+                try {
+                    new org.telegram.ui.ActionBar.AlertDialog.Builder(parentActivity, resourcesProvider)
+                            .setTitle(LocaleController.getString(R.string.BananaOpt_CONFIRM_VOICE_SEND))
+                            .setPositiveButton(LocaleController.getString(R.string.Send), (d, w) ->
+                                    sendMessageInternal(notify, scheduleDate, scheduleRepeatPeriod, payStars, false))
+                            .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+                            .show();
+                } catch (Exception e) {
+                    FileLog.e(e);
+                    sendMessageInternal(notify, scheduleDate, scheduleRepeatPeriod, payStars, false);
+                }
+                return;
+            }
             dismissSendPreviewSent = true;
             if (videoToSendMessageObject != null) {
                 delegate.needStartRecordVideo(4, notify, scheduleDate, 0, voiceOnce ? 0x7FFFFFFF : 0, effectId, payStars);

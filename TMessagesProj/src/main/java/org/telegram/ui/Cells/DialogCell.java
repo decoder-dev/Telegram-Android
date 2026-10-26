@@ -998,7 +998,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             );
         }
         if (isTopic) {
-            setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec), dp((useForceThreeLines || SharedConfig.useThreeLinesLayout ? heightThreeLines : heightDefault) + (hasTags() && (!(useForceThreeLines || SharedConfig.useThreeLinesLayout) || isForumCell()) ? (isForumCell() ? addForumHeightForTags : addHeightForTags) : 0)) + (useSeparator ? 1 : 0));
+            final boolean threeLines = useForceThreeLines || SharedConfig.useThreeLinesLayout;
+            final int rowH = org.telegram.messenger.banana.BananaHooks.dialogCellHeightDp(currentAccount, threeLines);
+            setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec), dp(rowH + (hasTags() && (!threeLines || isForumCell()) ? (isForumCell() ? addForumHeightForTags : addHeightForTags) : 0)) + (useSeparator ? 1 : 0));
             checkTwoLinesForName();
         }
 
@@ -1010,7 +1012,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     private int computeHeight() {
         int height;
         if (isForumCell() && !isTransitionSupport && !collapsed) {
-            height = dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 86 : 91);
+            final boolean threeLines = useForceThreeLines || SharedConfig.useThreeLinesLayout;
+            height = dp(org.telegram.messenger.banana.BananaHooks.forumDialogCellHeightDp(currentAccount, threeLines));
             if (useSeparator) {
                 height += 1;
             }
@@ -1024,17 +1027,22 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     }
 
     private int getCollapsedHeight() {
-        int height = dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? heightThreeLines : heightDefault);
+        final boolean threeLines = useForceThreeLines || SharedConfig.useThreeLinesLayout;
+        int height = dp(org.telegram.messenger.banana.BananaHooks.dialogCellHeightDp(currentAccount, threeLines));
         if (useSeparator || true) {
             height += 1;
         }
         if (twoLinesForName) {
             height += dp(20);
         }
-        if (hasTags() && (!(useForceThreeLines || SharedConfig.useThreeLinesLayout) || isForumCell())) {
+        if (hasTags() && (!threeLines || isForumCell())) {
             height += dp(isForumCell() ? addForumHeightForTags : addHeightForTags);
         }
         return height;
+    }
+
+    private boolean bananaCompactMessagePreview() {
+        return org.telegram.messenger.banana.BananaHooks.compactMessagePreview(currentAccount);
     }
 
     private void checkTwoLinesForName() {
@@ -2776,7 +2784,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 messageStringFinal = messageNameString;
                 messageNameString = null;
                 currentMessagePaint = Theme.dialogs_messagePaint[paintIndex];
-            } else if (!useForceThreeLines && !SharedConfig.useThreeLinesLayout || hasTags() || messageNameString != null || ChatObject.isMonoForum(chat) && ChatObject.canManageMonoForum(currentAccount, chat)) {
+            } else if (bananaCompactMessagePreview() || !useForceThreeLines && !SharedConfig.useThreeLinesLayout || hasTags() || messageNameString != null || ChatObject.isMonoForum(chat) && ChatObject.canManageMonoForum(currentAccount, chat)) {
                 if (!isForumCell() && messageString instanceof Spanned && ((Spanned) messageString).getSpans(0, messageString.length(), FixedWidthSpan.class).length <= 0) {
                     messageStringFinal = TextUtils.ellipsize(messageString, currentMessagePaint, messageWidth - dp(12 + (thumbsCount * (thumbSize + 2) - 2) + 5), TextUtils.TruncateAt.END);
                 } else {
@@ -2787,7 +2795,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             }
 
             Layout.Alignment align = isForum && LocaleController.isRTL ? Layout.Alignment.ALIGN_OPPOSITE : Layout.Alignment.ALIGN_NORMAL;
-            if ((useForceThreeLines || SharedConfig.useThreeLinesLayout) && !hasTags()) {
+            if ((useForceThreeLines || SharedConfig.useThreeLinesLayout) && !hasTags() && !bananaCompactMessagePreview()) {
                 if (thumbsCount > 0 && messageNameString != null) {
                     messageWidth += dp(5);
                 }
@@ -3727,11 +3735,12 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             }
         }
 
-        // --- AyuGram hook
-        if (AyuFilter.isFiltered(message, null)) {
+        // --- AyuGram / BananaGram hook
+        if (AyuFilter.isFiltered(message, null)
+                || (message != null && org.telegram.messenger.banana.BananaHooks.shouldHideBlockedSender(currentAccount, message.getFromChatId()))) {
             AyuUtils.blurify(message);
         }
-        // --- AyuGram hook
+        // --- AyuGram / BananaGram hook
 
         if (!animated) {
             dialogMutedProgress = (dialogMuted || drawUnmute) ? 1f : 0f;
@@ -5123,8 +5132,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             }
             if (user != null && !MessagesController.isSupportUser(user) && !user.bot) {
                 boolean isOnline = isOnline();
+                boolean showOfflineDot = !isOnline && org.telegram.messenger.banana.BananaHooks.showsOfflineDot(currentAccount);
                 wasDrawnOnline = isOnline;
-                if (isOnline || onlineProgress != 0) {
+                if (isOnline || onlineProgress != 0 || showOfflineDot) {
                     int top = (int) (storyParams.originalAvatarRect.bottom - dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 6 : 8));
                     int left;
                     if (LocaleController.isRTL) {
@@ -5133,10 +5143,13 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         left = (int) (storyParams.originalAvatarRect.right - dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 10 : 6));
                     }
 
+                    float progress = showOfflineDot && !isOnline ? 1f : onlineProgress;
                     Theme.dialogs_onlineCirclePaint.setColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
-                    canvas.drawCircle(left, top, dp(7) * onlineProgress, Theme.dialogs_onlineCirclePaint);
-                    Theme.dialogs_onlineCirclePaint.setColor(Theme.getColor(Theme.key_chats_onlineCircle, resourcesProvider));
-                    canvas.drawCircle(left, top, dp(5) * onlineProgress, Theme.dialogs_onlineCirclePaint);
+                    canvas.drawCircle(left, top, dp(7) * progress, Theme.dialogs_onlineCirclePaint);
+                    Theme.dialogs_onlineCirclePaint.setColor(showOfflineDot && !isOnline
+                            ? Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider)
+                            : Theme.getColor(Theme.key_chats_onlineCircle, resourcesProvider));
+                    canvas.drawCircle(left, top, dp(5) * progress, Theme.dialogs_onlineCirclePaint);
                     if (isOnline) {
                         if (onlineProgress < 1.0f) {
                             onlineProgress += 16f / 150.0f;

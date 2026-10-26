@@ -406,7 +406,13 @@ public class ChatActivity extends BaseFragment implements
         if (position >= 0 && anchor != null) chatLayoutManager.scrollToPositionWithOffset(position, top);
     }
     private boolean isBananaFiltered(MessageObject message) {
-        return message != null && message.contentType == 0 && org.telegram.messenger.banana.MessageFilters.verdict(currentAccount, message,
+        if (message == null) {
+            return false;
+        }
+        if (org.telegram.messenger.banana.BananaHooks.shouldHideBlockedSender(currentAccount, message.getFromChatId())) {
+            return true;
+        }
+        return message.contentType == 0 && org.telegram.messenger.banana.MessageFilters.verdict(currentAccount, message,
                 getValidGroupedMessage(message)) == org.telegram.messenger.banana.MessageFilters.Verdict.HIDDEN;
     }
     private void addBananaFilterFromSelection(CharSequence selection) {
@@ -37062,6 +37068,9 @@ public class ChatActivity extends BaseFragment implements
         } catch (Exception e) {
             FileLog.e(e);
         }
+        if (!forceAlert && org.telegram.messenger.banana.BananaHooks.shouldConfirmLink(currentAccount, url)) {
+            forceAlert = true;
+        }
         if (forceAlert || AndroidUtilities.shouldShowUrlInAlert(url)) {
             if (type == 0 || type == 2) {
                 boolean forceNotInternalForApps = false;
@@ -38601,13 +38610,16 @@ public class ChatActivity extends BaseFragment implements
                 ArrayList<MessageObject> messages = isFrozen ? frozenMessages : ChatActivity.this.messages;
                 var msg = messages.get(position - messagesStartRow);
 
+                if (isBananaFiltered(msg)) {
+                    return BANANA_FILTERED_ROW;
+                }
                 // --- AyuGram hook
                 if (AyuConfig.regexFiltersEnabled && (AyuConfig.regexFiltersInChats || ChatObject.isChannel(currentChat))) {
                     var group = getGroup(msg.getGroupId());
                     var msgToCheck = group == null ? msg : group.findPrimaryMessageObject();
 
                     if (AyuFilter.isFiltered(msgToCheck, group)) {
-                        return -1000;
+                        return BANANA_FILTERED_ROW;
                     }
                 }
                 // --- AyuGram hook

@@ -2579,6 +2579,14 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 NotificationsController.audioManager.abandonAudioFocus(this);
                 hasAudioFocus = 0;
                 int index = -1;
+                if (byVoiceEnd && lastFile != null) {
+                    final int bananaAccount = lastFile.currentAccount;
+                    if ((lastFile.isVoice() && org.telegram.messenger.banana.BananaHooks.stopAfterVoice(bananaAccount))
+                            || (lastFile.isRoundVideo() && org.telegram.messenger.banana.BananaHooks.stopAfterRoundVideo(bananaAccount))) {
+                        voiceMessagesPlaylist = null;
+                        voiceMessagesPlaylistMap = null;
+                    }
+                }
                 if (voiceMessagesPlaylist != null) {
                     if (byVoiceEnd && (index = voiceMessagesPlaylist.indexOf(lastFile)) >= 0) {
                         voiceMessagesPlaylist.remove(index);
