@@ -7,10 +7,63 @@ import org.telegram.messenger.banana.HistoryDatabase;
 import java.io.File;
 import java.util.List;
 import java.util.UUID;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.FileOutputStream;
+import androidx.core.content.FileProvider;
+import org.telegram.messenger.banana.SavedAttachments;
 import static org.junit.Assert.*;
 
 /** Synthetic local databases only: never opens a user account, network or Telegram cache. */
 public class HistoryDatabaseTest {
+    @Test
+    public void schemaOneMigratesWithoutLosingTextAndMediaOnlyRowsAreSupported() throws Exception {
+        File dir = directory();
+        assertTrue(dir.mkdirs());
+        File oldFile = new File(dir, "1-production.sqlite");
+        try {
+            try (android.database.sqlite.SQLiteDatabase old = android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(oldFile, null)) {
+                old.execSQL("CREATE TABLE records (id INTEGER PRIMARY KEY AUTOINCREMENT,dialog_id INTEGER NOT NULL,message_id INTEGER NOT NULL," +
+                        "author_id INTEGER NOT NULL,topic_id INTEGER NOT NULL,message_date INTEGER NOT NULL,deleted INTEGER NOT NULL," +
+                        "text TEXT NOT NULL,formatting BLOB NOT NULL,saved_at INTEGER NOT NULL,byte_size INTEGER NOT NULL,search_text TEXT NOT NULL)");
+                old.execSQL("CREATE INDEX message_revisions ON records(dialog_id,message_id,deleted,id)");
+                old.execSQL("INSERT INTO records VALUES(1,42,7,50,0,1000,1,'before upgrade',X'',1000,28,'before upgrade')");
+                old.setVersion(1);
+            }
+            try (HistoryDatabase db = new HistoryDatabase(context(), dir, 1, false)) {
+                assertEquals(1, db.count());
+                assertEquals("before upgrade", db.recent("", 0, 1).get(0).text);
+                assertNull(db.recent("", 0, 1).get(0).attachment);
+                assertTrue(db.append(new HistoryDatabase.Record(42, 8, 50, 0, 1000, true, "", null,
+                        new HistoryDatabase.Attachment("document:123", 4, "text/plain", "Отчёт.txt"))));
+                HistoryDatabase.Record media = db.recent("ОТЧЁТ", 0, 1).get(0);
+                assertEquals("", media.text);
+                assertEquals("Отчёт.txt", media.attachment.displayName);
+                assertEquals("text/plain", media.attachment.mimeType);
+                assertNull(media.attachment.storedName);
+            }
+        } finally { remove(dir); }
+    }
+
+    @Test
+    public void fileProviderCanShareOnlyArchiveMediaAndNotSiblingDatabases() throws Exception {
+        File root = new File(context().getNoBackupFilesDir(), "banana-history/attachments/fixture-" + UUID.randomUUID());
+        File privateDb = new File(context().getNoBackupFilesDir(), "banana-history/private-fixture-" + UUID.randomUUID() + ".sqlite");
+        try {
+            File file = new SavedAttachments(root).save(new ByteArrayInputStream(new byte[]{1, 2, 3}), "bin", 3);
+            android.net.Uri uri = FileProvider.getUriForFile(context(), context().getPackageName() + ".provider", file);
+            try (InputStream stream = context().getContentResolver().openInputStream(uri)) {
+                assertNotNull(stream);
+                assertEquals(1, stream.read());
+                assertEquals(2, stream.read());
+                assertEquals(3, stream.read());
+                assertEquals(-1, stream.read());
+            }
+            try (FileOutputStream output = new FileOutputStream(privateDb)) { output.write(42); }
+            try { FileProvider.getUriForFile(context(), context().getPackageName() + ".provider", privateDb); fail("History databases must not be shareable"); }
+            catch (IllegalArgumentException expected) { }
+        } finally { remove(root); remove(privateDb); }
+    }
     private Context context() { return InstrumentationRegistry.getInstrumentation().getTargetContext(); }
     private File directory() { return new File(context().getCacheDir(), "history-test-" + UUID.randomUUID()); }
     private HistoryDatabase.Record record(int mid, boolean deleted, String text) {

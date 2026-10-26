@@ -17,7 +17,8 @@ public final class BananaConfig {
         OFFLINE_AFTER_ACTIVITY("bananaOfflineAfterActivity"),
         SAVE_DELETED("bananaSaveDeleted"),
         SAVE_EDITS("bananaSaveEdits"),
-        SAVE_BOT_HISTORY("bananaSaveBotHistory");
+        SAVE_BOT_HISTORY("bananaSaveBotHistory"),
+        SAVE_MEDIA_HISTORY("bananaSaveMediaHistory");
 
         private final String key;
         Option(String key) { this.key = key; }

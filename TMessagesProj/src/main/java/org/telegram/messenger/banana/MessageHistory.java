@@ -7,6 +7,8 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.DispatchQueue;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.FileLoader;
+import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.banana.BananaConfig.Option;
@@ -15,11 +17,15 @@ import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLRPC;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicLong;
 
 /** Capture previous text before cache writes/deletes, then archive on a separate IO queue. */
 public final class MessageHistory {
@@ -28,6 +34,7 @@ public final class MessageHistory {
         // Only touched by QUEUE; bounded even when account slots are reused.
         static final LinkedHashMap<String, HistoryDatabase> DATABASES = new LinkedHashMap<>(8, .75f, true);
     }
+    private static final Semaphore pendingCopies = new Semaphore(64);
 
     private MessageHistory() {}
 
@@ -43,7 +50,9 @@ public final class MessageHistory {
                 if (!cursor.next()) continue;
                 TLRPC.Message previous = decode(cursor.byteArrayValue(0));
                 if (previous == null || java.util.Objects.equals(previous.message, updated.message) &&
-                        Arrays.equals(formatting(previous), formatting(updated))) continue;
+                        Arrays.equals(formatting(previous), formatting(updated)) &&
+                        (!BananaConfig.get(account, Option.SAVE_MEDIA_HISTORY) ||
+                                java.util.Objects.equals(mediaKey(previous), mediaKey(updated)))) continue;
                 capture(source, account, dialog, previous, false);
             } catch (Exception error) {
                 FileLog.e(error);
@@ -115,7 +124,10 @@ public final class MessageHistory {
         if (owner <= 0 || message == null || message.id <= 0 || dialog == 0 || DialogObject.isEncryptedDialog(dialog) ||
                 message.action != null || message.ttl > 0 || message.ttl_period > 0 ||
                 message.media != null && message.media.ttl_seconds > 0 ||
-                message.message == null || message.message.isEmpty() || message.message.length() > 65536) return;
+                message.message != null && message.message.length() > 65536) return;
+        boolean saveMedia = BananaConfig.get(account, Option.SAVE_MEDIA_HISTORY);
+        HistoryDatabase.Attachment media = saveMedia ? describeMedia(message) : null;
+        if ((message.message == null || message.message.isEmpty()) && media == null) return;
         long author = message.from_id == null ? 0 : DialogObject.getPeerDialogId(message.from_id);
         if (!BananaConfig.get(account, Option.SAVE_BOT_HISTORY)) {
             for (long userId : new long[]{author, dialog}) {
@@ -126,12 +138,77 @@ public final class MessageHistory {
         long topic = message.reply_to != null && message.reply_to.forum_topic ?
                 (message.reply_to.reply_to_top_id != 0 ? message.reply_to.reply_to_top_id : message.reply_to.reply_to_msg_id) : 0;
         HistoryDatabase.Record record = new HistoryDatabase.Record(dialog, message.id, author, topic, message.date,
-                deleted, message.message, formatting(message));
+                deleted, message.message, formatting(message), media);
         boolean test = ConnectionsManager.getInstance(account).isTestBackend();
+        AtomicLong rowId = new AtomicLong();
         Worker.QUEUE.postRunnable(() -> {
-            try { database(owner, test).append(record); }
+            try {
+                HistoryDatabase db = database(owner, test);
+                rowId.set(Math.abs(db.appendWithId(record)));
+                File directory = attachmentDirectory(owner, test);
+                if (rowId.get() != 0 && media != null && directory.isDirectory()) {
+                    HistoryDatabase.Attachment retained = db.storedMedia(media.mediaKey);
+                    if (retained != null) {
+                        File existing = new SavedAttachments(directory).resolve(retained.storedName);
+                        if (existing != null && existing.length() == retained.bytes) {
+                            db.linkAttachment(rowId.get(), retained.storedName, retained.bytes);
+                        }
+                    }
+                }
+                if (directory.isDirectory()) new SavedAttachments(directory).prune(db.referencedAttachments(), System.currentTimeMillis() - 3600000);
+            }
             catch (Exception error) { FileLog.e(error); }
         });
+        if (media == null || !pendingCopies.tryAcquire()) return;
+        // FileLoader.deleteFiles uses this same queue. Open before its later unlink;
+        // copy on our IO queue so large files do not stall Telegram's download queue.
+        FileLoader loader = FileLoader.getInstance(account);
+        loader.getFileLoaderQueue().postRunnable(() -> {
+            FileInputStream opened;
+            long size;
+            try {
+                File file = loader.getPathToMessage(message);
+                size = file.length();
+                if (!file.isFile() || size > SavedAttachments.MAX_FILE_BYTES) { pendingCopies.release(); return; }
+                opened = new FileInputStream(file);
+            } catch (Exception error) { pendingCopies.release(); FileLog.e(error); return; }
+            final long expectedSize = size;
+            Worker.QUEUE.postRunnable(() -> {
+                try (InputStream input = opened) {
+                    if (rowId.get() == 0 || UserConfig.getInstance(account).getClientUserId() != owner ||
+                            !BananaConfig.get(account, Option.SAVE_MEDIA_HISTORY) ||
+                            !database(owner, test).canLinkAttachment(rowId.get())) return;
+                    SavedAttachments attachments = new SavedAttachments(attachmentDirectory(owner, test));
+                    String extension = media.displayName.contains(".") ? media.displayName.substring(media.displayName.lastIndexOf('.') + 1) : "bin";
+                    File saved = attachments.save(input, extension, expectedSize);
+                    if (!database(owner, test).linkAttachment(rowId.get(), saved.getName(), saved.length())) attachments.delete(saved.getName());
+                } catch (Exception error) { FileLog.e(error); }
+                finally { pendingCopies.release(); }
+            });
+        });
+    }
+
+    private static String mediaKey(TLRPC.Message message) {
+        HistoryDatabase.Attachment media = describeMedia(message);
+        return media == null ? null : media.mediaKey;
+    }
+
+    private static HistoryDatabase.Attachment describeMedia(TLRPC.Message message) {
+        if (message.media instanceof TLRPC.TL_messageMediaPhoto && message.media.photo != null) {
+            return new HistoryDatabase.Attachment("photo:" + message.media.photo.id, 1, "image/jpeg", "photo.jpg");
+        }
+        if (message.media instanceof TLRPC.TL_messageMediaDocument && message.media.document != null) {
+            TLRPC.Document document = message.media.document;
+            int kind = MessageObject.isVideoDocument(document) ? 2 :
+                    MessageObject.isVoiceDocument(document) || MessageObject.isMusicDocument(document) ? 3 : 4;
+            return new HistoryDatabase.Attachment("document:" + document.id, kind, document.mime_type, FileLoader.getDocumentFileName(document));
+        }
+        return null;
+    }
+
+    private static File attachmentDirectory(long owner, boolean test) {
+        return new File(new File(ApplicationLoader.applicationContext.getNoBackupFilesDir(), "banana-history/attachments"),
+                owner + (test ? "-test" : "-production"));
     }
 
     private static boolean isKnownHuman(SQLiteDatabase source, int account, long userId) throws Exception {
@@ -189,9 +266,34 @@ public final class MessageHistory {
         boolean test = ConnectionsManager.getInstance(account).isTestBackend();
         Worker.QUEUE.postRunnable(() -> {
             boolean success;
-            try { if (owner > 0) database(owner, test).clearArchive(); success = true; }
+            try {
+                if (owner > 0) {
+                    database(owner, test).clearArchive();
+                    File directory = attachmentDirectory(owner, test);
+                    if (directory.isDirectory()) new SavedAttachments(directory).prune(java.util.Collections.emptySet(), Long.MAX_VALUE);
+                }
+                success = true;
+            }
             catch (Exception error) { FileLog.e(error); success = false; }
             boolean answer = success;
+            AndroidUtilities.runOnUIThread(() -> {
+                if (owner == UserConfig.getInstance(account).getClientUserId() &&
+                        test == ConnectionsManager.getInstance(account).isTestBackend()) callback.accept(answer);
+            });
+        });
+    }
+
+    public static void attachment(int account, HistoryDatabase.Record record, Consumer<File> callback) {
+        long owner = UserConfig.getInstance(account).getClientUserId();
+        boolean test = ConnectionsManager.getInstance(account).isTestBackend();
+        Worker.QUEUE.postRunnable(() -> {
+            File result = null;
+            try {
+                if (owner > 0 && record.attachment != null && record.attachment.storedName != null) {
+                    result = new SavedAttachments(attachmentDirectory(owner, test)).resolve(record.attachment.storedName);
+                }
+            } catch (Exception error) { FileLog.e(error); }
+            File answer = result;
             AndroidUtilities.runOnUIThread(() -> {
                 if (owner == UserConfig.getInstance(account).getClientUserId() &&
                         test == ConnectionsManager.getInstance(account).isTestBackend()) callback.accept(answer);

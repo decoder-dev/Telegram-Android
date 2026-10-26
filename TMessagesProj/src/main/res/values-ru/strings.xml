@@ -290,7 +290,7 @@
     <string name="BananaSaveEdits">Сохранять предыдущий текст сообщений</string>
     <string name="BananaSaveBotHistory">Сохранять сообщения ботов</string>
     <string name="BananaHistoryOpen">Открыть локальную историю</string>
-    <string name="BananaHistoryInfo">Локальный архив текста включается отдельно и не зависит от кэша Telegram. До 5000 записей, 32 версий сообщения и 32 МБ содержимого. Поиск показывает 100 последних совпадений. Можно сохранить только уже полученные этим устройством сообщения. Вложения, секретные чаты и исчезающие сообщения пока не архивируются.</string>
+    <string name="BananaHistoryInfo">Локальный архив включается отдельно и не зависит от кэша Telegram. До 5000 записей, 32 версий сообщения и 32 МБ текста. Можно сохранить только уже полученные этим устройством сообщения. Секретные чаты и исчезающие сообщения пока не архивируются.</string>
     <string name="BananaHistoryError">Не удалось прочитать или изменить локальную историю. Попробуйте снова.</string>
     <string name="BananaHistoryEmpty">Локальная история пуста. Включите сохранение текста в возможностях BananaGram, чтобы собирать будущие изменения.</string>
     <string name="BananaHistoryDeleted">Удалено</string>
@@ -300,4 +300,13 @@
     <string name="BananaHistoryPeer">Чат %1$d · сообщение %2$d</string>
     <string name="BananaHistoryIntro">Сохранённый текст остаётся на этом устройстве. Поиск показывает 100 последних совпадений.</string>
     <string name="BananaHistoryNoMatches">Сохранённых сообщений по этому запросу нет.</string>
+    <string name="BananaSaveMediaHistory">Сохранять скачанные вложения</string>
+    <string name="BananaHistoryOpenAttachment">Открыть вложение</string>
+    <string name="BananaHistoryAttachmentUnavailable">Вложение недоступно. Возможно, оно ещё не было скачано при сохранении этой версии или его размер превысил лимит архива.</string>
+    <string name="BananaHistoryPhoto">Фото</string>
+    <string name="BananaHistoryVideo">Видео</string>
+    <string name="BananaHistoryAudio">Аудио</string>
+    <string name="BananaHistoryFile">Файл</string>
+    <string name="BananaHistoryMediaNotSaved">файл не сохранён</string>
+    <string name="BananaHistoryMediaInfo">При изменении или удалении сообщения копирует доступное скачанное вложение до очистки кэша. До 64 МБ на файл и 512 МБ вложений на аккаунт. Не скачивает недостающие файлы.</string>
 </resources>

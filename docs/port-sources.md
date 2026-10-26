@@ -43,7 +43,14 @@ The local text archive follows the behavior of BananaGram iOS
 `MessageSavingBridge.swift` / `MessageSavingStore.swift` and AyuGram message
 saving. Its Android database and capture hooks are new implementations. The
 archive defaults off, is keyed by owning user and test/production backend, and
-is stored outside Telegram cache and Android automatic backups. Current scope
-is previous/deleted text plus formatting metadata, a 32-version/5,000-record/
-32-MB content budget, search and clear. Attachments, inline retained messages
-and import/export remain pending.
+is stored outside Telegram cache and Android automatic backups. It stores
+previous/deleted text and formatting, with a 32-version/5,000-record/32-MB text
+budget, search and clear. Optional downloaded attachments use a separate
+64-MiB/file and 512-MiB/account budget. Files are opened before Telegram unlinks
+its cache and copied on a separate worker; immutable media is reused across
+versions. Schema 1 migrates to schema 2 without dropping records.
+
+Only the dedicated attachment subdirectory is added to FileProvider, and sharing
+happens after an explicit Open action; sibling databases stay outside its roots.
+Private archive cleanup never deletes source paths. Proactive downloads, TTL or
+secret retention, inline retained messages and import/export remain pending.

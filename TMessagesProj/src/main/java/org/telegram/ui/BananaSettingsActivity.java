@@ -60,6 +60,8 @@ public final class BananaSettingsActivity extends UniversalFragment {
         addOption(items, Option.SAVE_DELETED, R.string.BananaSaveDeleted);
         addOption(items, Option.SAVE_EDITS, R.string.BananaSaveEdits);
         addOption(items, Option.SAVE_BOT_HISTORY, R.string.BananaSaveBotHistory);
+        addOption(items, Option.SAVE_MEDIA_HISTORY, R.string.BananaSaveMediaHistory);
+        items.add(UItem.asShadow(LocaleController.getString(R.string.BananaHistoryMediaInfo)));
         items.add(UItem.asButton(MESSAGE_HISTORY, LocaleController.getString(R.string.BananaHistoryOpen)));
         items.add(UItem.asShadow(LocaleController.getString(R.string.BananaHistoryInfo)));
     }

@@ -11657,7 +11657,7 @@
     <string name="BananaSaveEdits">Save previous message text</string>
     <string name="BananaSaveBotHistory">Include messages from bots</string>
     <string name="BananaHistoryOpen">View local history</string>
-    <string name="BananaHistoryInfo">Optional local text archive, separate from Telegram cache. Keeps up to 5,000 records and 32 versions per message, with a 32 MB content limit. Search shows the latest 100 matching records. Only messages already received by this device can be saved. Attachments, secret chats and expiring messages are not archived yet.</string>
+    <string name="BananaHistoryInfo">Optional local archive, separate from Telegram cache. Keeps up to 5,000 records and 32 versions per message, with a 32 MB text budget. Only messages already received by this device can be saved. Secret chats and expiring messages are not archived yet.</string>
     <string name="BananaHistoryError">Could not read or update local history. Try again.</string>
     <string name="BananaHistoryEmpty">Your local history is empty. Enable text saving in BananaGram Extras to collect future changes.</string>
     <string name="BananaHistoryDeleted">Deleted</string>
@@ -11667,4 +11667,13 @@
     <string name="BananaHistoryPeer">Chat %1$d · message %2$d</string>
     <string name="BananaHistoryIntro">Saved text stays on this device. Search shows the latest 100 matching records.</string>
     <string name="BananaHistoryNoMatches">No saved messages match this search.</string>
+    <string name="BananaSaveMediaHistory">Keep downloaded attachments</string>
+    <string name="BananaHistoryOpenAttachment">Open attachment</string>
+    <string name="BananaHistoryAttachmentUnavailable">The attachment is unavailable. It may not have been downloaded when this version was saved, or its size exceeded the archive limit.</string>
+    <string name="BananaHistoryPhoto">Photo</string>
+    <string name="BananaHistoryVideo">Video</string>
+    <string name="BananaHistoryAudio">Audio</string>
+    <string name="BananaHistoryFile">File</string>
+    <string name="BananaHistoryMediaNotSaved">file not saved</string>
+    <string name="BananaHistoryMediaInfo">When a message is edited or deleted, copies its already-downloaded attachment before cache cleanup. Up to 64 MB per file and 512 MB of attachments per account. Does not download missing files.</string>
 </resources>
