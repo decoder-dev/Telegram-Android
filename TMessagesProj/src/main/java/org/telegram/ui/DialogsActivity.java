@@ -2068,15 +2068,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 t += dp(DialogStoriesCell.HEIGHT_IN_DP);
             }
             if (!actionModeFullyShowed) {
-                t += dp(SEARCH_FIELD_HEIGHT);
+                t += dp(bananaSearchFieldHeightDp());
             }
             additionalPadding = 0;
 
             final float filterTabsVisibility = getFilterTabsVisibilityFactor(false);
             final float topPanelsVisibility = topPanelLayout != null ? topPanelLayout.getMetadata().getTotalVisibility() : 0f;
 
-            t += (int) (dp(36 + 14) * filterTabsVisibility);
-            additionalPadding += (int) (dp(36 + 14) * filterTabsVisibility);
+            if (!bananaFoldersAtBottom()) {
+                t += (int) (dp(36 + 14) * filterTabsVisibility);
+                additionalPadding += (int) (dp(36 + 14) * filterTabsVisibility);
+            }
 
             if (topPanelLayout != null) {
                 final int h = (int) topPanelLayout.getAnimatedHeightWithPadding(lerp((float) dp(14), dp(7), filterTabsVisibility));
@@ -3188,6 +3190,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public void setTitleOverlayText(String title, int titleId, Runnable action) {
+        if (org.telegram.messenger.banana.BananaHooks.chatListHidesConnectionStatus(currentAccount)
+                && title != null
+                && (titleId == R.string.WaitingForNetwork
+                || titleId == R.string.Updating
+                || titleId == R.string.Connecting
+                || titleId == R.string.ConnectingToProxyWithDots)) {
+            title = null;
+            titleId = 0;
+            action = null;
+        }
         super.setTitleOverlayText(title, titleId, action);
         if (actionBar != null && selectAnimatedEmojiDialog != null && selectAnimatedEmojiDialog.getContentView() instanceof SelectAnimatedEmojiDialog) {
             SimpleTextView textView = actionBar.getTitleTextView();
@@ -3196,6 +3208,22 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (dialogStoriesCell != null) {
             dialogStoriesCell.setTitleOverlayText(title, titleId);
         }
+    }
+
+    private boolean bananaFoldersAtBottom() {
+        return folderId == 0 && communityId == 0 && !onlySelect
+                && org.telegram.messenger.banana.BananaHooks.bottomChatFoldersEnabled(currentAccount);
+    }
+
+    private void bananaPersistLastFolder() {
+        if (filterTabsView == null || !org.telegram.messenger.banana.BananaHooks.rememberLastFolder(currentAccount)) {
+            return;
+        }
+        org.telegram.messenger.banana.BananaConfig.setLastFolderStableId(currentAccount, filterTabsView.getCurrentTabStableId());
+    }
+
+    private int bananaSearchFieldHeightDp() {
+        return isSupportSearch() ? SEARCH_FIELD_HEIGHT : 0;
     }
 
     @Override
@@ -3644,6 +3672,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     showScrollbars(false);
                     switchToCurrentSelectedMode(true);
                     animatingForward = forward;
+                    bananaPersistLastFolder();
                 }
 
                 @Override
@@ -3674,12 +3703,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         checkListLoad(viewPages[0]);
                         viewPages[0].dialogsAdapter.resume();
                         viewPages[1].dialogsAdapter.pause();
+                        bananaPersistLastFolder();
                     }
                 }
 
                 @Override
                 public int getTabCounter(int tabId) {
                     if (initialDialogsType == DIALOGS_TYPE_FORWARD) {
+                        return 0;
+                    }
+                    if (org.telegram.messenger.banana.BananaHooks.hideFolderUnreadCount(currentAccount)) {
                         return 0;
                     }
                     if (tabId == filterTabsView.getDefaultTabId()) {
@@ -5188,7 +5221,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             filterTabsViewBackground.setPadding(dp(6.666f));
             filterTabsView.setPadding(0, dp(7), 0, dp(7));
             filterTabsView.setBlurredBackground(filterTabsViewBackground);
-            contentView.addView(filterTabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36 + 7 + 7, Gravity.TOP, 4, 0, 4, 0));
+            final int foldersGravity = bananaFoldersAtBottom() ? Gravity.BOTTOM : Gravity.TOP;
+            contentView.addView(filterTabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36 + 7 + 7, foldersGravity, 4, 0, 4, 0));
         }
 
         if (fragmentSearchField != null) {
@@ -5784,10 +5818,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private int getMaxScrollYOffset() {
+        final int searchH = bananaSearchFieldHeightDp();
         if (hasStories) {
-            return dp(DialogStoriesCell.HEIGHT_IN_DP) + dp(SEARCH_FIELD_HEIGHT);
+            return dp(DialogStoriesCell.HEIGHT_IN_DP) + dp(searchH);
         } else {
-            return dp(SEARCH_FIELD_HEIGHT);
+            return dp(searchH);
         }
     }
 
@@ -6627,10 +6662,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         float fadeViewT = totalOffset;
 
         if (filterTabsView != null) {
-            filterTabsView.setTranslationY(totalOffset - searchOffset);
             filtersTabVisibility = filterTabsView.getAlpha();
             filtersTabHeight = dp(36 + 7) * filtersTabVisibility;
-            totalOffset += filtersTabHeight;
+            if (bananaFoldersAtBottom()) {
+                filterTabsView.setTranslationY(-(navigationBarHeight + additionNavigationBarHeight));
+            } else {
+                filterTabsView.setTranslationY(totalOffset - searchOffset);
+                totalOffset += filtersTabHeight;
+            }
         }
 
         if (topPanelLayout != null) {
@@ -6907,12 +6946,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     selectWithStableId = true;
                 }
                 filterTabsView.removeTabs();
+                final boolean hideAllChats = org.telegram.messenger.banana.BananaHooks.hideAllChats(currentAccount) && filters.size() > 1;
                 for (int a = 0, N = filters.size(); a < N; a++) {
                     if (filters.get(a).isDefault()) {
-                        filterTabsView.addTab(a, 0, LocaleController.getString(R.string.FilterAllChats), null, false, true, filters.get(a).locked);
+                        if (!hideAllChats) {
+                            filterTabsView.addTab(a, 0, LocaleController.getString(R.string.FilterAllChats), null, false, true, filters.get(a).locked);
+                        }
                     } else {
                         final MessagesController.DialogFilter filter = filters.get(a);
                         filterTabsView.addTab(a, filter.localId, filter.name, filter.entities, filter.title_noanimate, false, filters.get(a).locked);
+                    }
+                }
+                if (updateCurrentTab && org.telegram.messenger.banana.BananaHooks.rememberLastFolder(currentAccount)) {
+                    int remembered = org.telegram.messenger.banana.BananaConfig.getLastFolderStableId(currentAccount);
+                    if (remembered >= 0 && filterTabsView.selectTabWithStableId(remembered)) {
+                        viewPages[0].selectedType = filterTabsView.getCurrentTabId();
+                        stableId = remembered;
+                        selectWithStableId = false;
                     }
                 }
                 if (stableId >= 0) {
@@ -6931,6 +6981,24 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         viewPages[0].selectedType = id;
                     }
                 }
+                if (hideAllChats && filterTabsView.getTabsCount() > 0) {
+                    boolean selectedStillPresent = false;
+                    for (int i = 0; i < filterTabsView.getTabsCount(); i++) {
+                        FilterTabsView.Tab tab = filterTabsView.getTab(i);
+                        if (tab != null && tab.id == viewPages[0].selectedType) {
+                            selectedStillPresent = filterTabsView.selectTabWithStableId(filterTabsView.getStableId(i));
+                            break;
+                        }
+                    }
+                    if (!selectedStillPresent) {
+                        FilterTabsView.Tab first = filterTabsView.getTab(0);
+                        if (first != null) {
+                            filterTabsView.selectTabWithStableId(filterTabsView.getStableId(0));
+                            viewPages[0].selectedType = first.id;
+                            updateCurrentTab = true;
+                        }
+                    }
+                }
                 for (int a = 0; a < viewPages.length; a++) {
                     if (viewPages[a].selectedType >= filters.size()) {
                         viewPages[a].selectedType = filters.size() - 1;
@@ -6944,6 +7012,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 if (filterTabsView.isLocked(filterTabsView.getCurrentTabId())) {
                     filterTabsView.selectFirstTab();
                 }
+                bananaPersistLastFolder();
             }
         } else {
             if (filterTabsView.getVisibility() != View.GONE) {
@@ -14216,7 +14285,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private boolean isSupportSearch() {
-        return initialDialogsType != DIALOGS_TYPE_ADD_USERS_TO;
+        return initialDialogsType != DIALOGS_TYPE_ADD_USERS_TO
+                && !org.telegram.messenger.banana.BananaHooks.chatListHidesSearch(currentAccount);
     }
 
     public long getCommunityId() {
@@ -14298,13 +14368,18 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private int calculateListViewPaddingBottom() {
+        int padding;
         if (commentView != null) {
-            return (int) (windowInsetsStateHolder.getAnimatedMaxBottomInset() + dp(9) + chatInputViewsContainer.getInputBubbleHeight() + dp(7) + dp(2));
+            padding = (int) (windowInsetsStateHolder.getAnimatedMaxBottomInset() + dp(9) + chatInputViewsContainer.getInputBubbleHeight() + dp(7) + dp(2));
         } else if (communityId != 0) {
-            return navigationBarHeight + dp(12 + 48 + 12);
+            padding = navigationBarHeight + dp(12 + 48 + 12);
         } else {
-            return navigationBarHeight + additionNavigationBarHeight;
+            padding = navigationBarHeight + additionNavigationBarHeight;
         }
+        if (bananaFoldersAtBottom() && canShowFilterTabsView) {
+            padding += (int) (dp(36 + 14) * getFilterTabsVisibilityFactor(false));
+        }
+        return padding;
     }
 
     @Override

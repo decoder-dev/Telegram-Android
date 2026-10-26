@@ -251,6 +251,17 @@ public final class BananaConfig {
         MessagesController.getMainSettings(account).edit().putBoolean(option.key, enabled).apply();
     }
 
+    private static final String LAST_FOLDER_STABLE_ID = "bananaLastFolderStableId";
+
+    /** Stable id of the last selected folder tab; -1 means unset / All chats. */
+    public static int getLastFolderStableId(int account) {
+        return MessagesController.getMainSettings(account).getInt(LAST_FOLDER_STABLE_ID, -1);
+    }
+
+    public static void setLastFolderStableId(int account, int stableId) {
+        MessagesController.getMainSettings(account).edit().putInt(LAST_FOLDER_STABLE_ID, stableId).apply();
+    }
+
     public static boolean suppressActivity(int account, int action) {
         boolean hideTyping = get(account, Option.HIDE_TYPING) || get(account, Option.GHOST_DONT_SEND_TYPING);
         boolean hideRecording = get(account, Option.HIDE_RECORDING) || get(account, Option.GHOST_DONT_SEND_TYPING);
