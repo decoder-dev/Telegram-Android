@@ -25,6 +25,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.ui.ActionBar.DrawerLayoutContainer;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.DividerCell;
@@ -310,9 +311,9 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
             peopleNearbyIcon = R.drawable.msg_nearby;
         }
 
-        // --- AyuGram hook
+        // --- AyuGram / BananaGram ghost toggle (BananaConfig is source of truth)
         if (AyuConfig.showGhostToggleInDrawer) {
-            var msg = AyuConfig.isGhostModeActive()
+            var msg = BananaConfig.isGhostModeActive(UserConfig.selectedAccount)
                     ? LocaleController.getString("DisableGhostMode", R.string.DisableGhostMode)
                     : LocaleController.getString("EnableGhostMode", R.string.EnableGhostMode);
             items.add(new Item(AyuConstants.DRAWER_TOGGLE_GHOST, msg, R.drawable.ayu_ghost));

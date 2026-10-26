@@ -18,6 +18,8 @@ import com.radolyn.ayugram.sync.AyuSyncController;
 import com.radolyn.ayugram.utils.AyuGhostUtils;
 import com.radolyn.ayugram.utils.AyuState;
 
+import org.telegram.messenger.banana.BananaHooks;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.telegram.messenger.AccountInstance;
@@ -388,10 +390,10 @@ public class ConnectionsManager extends BaseController {
             FileLog.d("send request " + object + " with token = " + requestToken);
         }
 
-        // --- AyuGram request hook
+        // --- AyuGram / BananaGram request hook
         {
-            // don't send upload & typing status
-            if (!AyuConfig.sendUploadProgress &&
+            // don't send upload & typing status (Ayu prefs or Banana GHOST_DONT_SEND_TYPING)
+            if ((!AyuConfig.sendUploadProgress || BananaHooks.dontSendTyping(currentAccount)) &&
                     (
                             object instanceof TLRPC.TL_messages_setTyping ||
                             object instanceof TLRPC.TL_messages_setEncryptedTyping
@@ -401,15 +403,15 @@ public class ConnectionsManager extends BaseController {
                 return;
             }
 
-            // don't send online status
-            if (!AyuConfig.sendOnlinePackets && object instanceof TLRPC.TL_account_updateStatus) {
+            // don't send online status (Ayu prefs or Banana HIDE_ONLINE)
+            if ((!AyuConfig.sendOnlinePackets || BananaHooks.hideOnline(currentAccount)) && object instanceof TLRPC.TL_account_updateStatus) {
                 var obj = ((TLRPC.TL_account_updateStatus) object);
                 obj.offline = true;
             }
 
-            // don't send read status
+            // don't send read status (Ayu prefs or Banana DONT_READ_MESSAGES)
             if (
-                    !AyuConfig.sendReadPackets &&
+                    (!AyuConfig.sendReadPackets || BananaHooks.dontReadMessages(currentAccount)) &&
                             (
                                     object instanceof TLRPC.TL_messages_readHistory ||
                                     object instanceof TLRPC.TL_messages_readEncryptedHistory ||
@@ -443,7 +445,7 @@ public class ConnectionsManager extends BaseController {
             }
 
             // mark messages as read after sending a message
-            if (AyuConfig.markReadAfterSend && !AyuConfig.sendReadPackets) {
+            if (AyuConfig.markReadAfterSend && (!AyuConfig.sendReadPackets || BananaHooks.dontReadMessages(currentAccount))) {
                 TLRPC.InputPeer peer = null;
                 if (object instanceof TLRPC.TL_messages_sendMessage) {
                     var obj = ((TLRPC.TL_messages_sendMessage) object);

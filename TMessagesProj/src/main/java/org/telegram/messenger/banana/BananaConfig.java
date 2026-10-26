@@ -2,6 +2,8 @@ package org.telegram.messenger.banana;
 
 import android.content.SharedPreferences;
 
+import com.radolyn.ayugram.AyuConfig;
+
 import org.telegram.messenger.MessagesController;
 
 /** Account-scoped BananaGram Extras. Preference keys follow ForkExtrasSettings where possible. */
@@ -197,16 +199,18 @@ public final class BananaConfig {
         editor.apply();
         // Keep overlapping AyuGram ghost prefs aligned with Banana as source of truth.
         try {
-            com.radolyn.ayugram.AyuConfig.sendReadPackets = !enabled;
-            com.radolyn.ayugram.AyuConfig.sendOnlinePackets = !enabled;
-            com.radolyn.ayugram.AyuConfig.sendUploadProgress = !enabled;
-            com.radolyn.ayugram.AyuConfig.sendOfflinePacketAfterOnline = enabled;
-            if (com.radolyn.ayugram.AyuConfig.editor != null) {
-                com.radolyn.ayugram.AyuConfig.editor
-                        .putBoolean("sendReadPackets", !enabled)
-                        .putBoolean("sendOnlinePackets", !enabled)
-                        .putBoolean("sendUploadProgress", !enabled)
-                        .putBoolean("sendOfflinePacketAfterOnline", enabled)
+            AyuConfig.sendReadPackets = !enabled;
+            AyuConfig.sendOnlinePackets = !enabled;
+            AyuConfig.sendUploadProgress = !enabled;
+            AyuConfig.sendOfflinePacketAfterOnline = enabled;
+            AyuConfig.useScheduledMessages = enabled && get(account, Option.GHOST_SCHEDULE_MESSAGES);
+            if (AyuConfig.editor != null) {
+                AyuConfig.editor
+                        .putBoolean("sendReadPackets", AyuConfig.sendReadPackets)
+                        .putBoolean("sendOnlinePackets", AyuConfig.sendOnlinePackets)
+                        .putBoolean("sendUploadProgress", AyuConfig.sendUploadProgress)
+                        .putBoolean("sendOfflinePacketAfterOnline", AyuConfig.sendOfflinePacketAfterOnline)
+                        .putBoolean("useScheduledMessages", AyuConfig.useScheduledMessages)
                         .apply();
             }
         } catch (Throwable ignored) {
@@ -229,6 +233,14 @@ public final class BananaConfig {
 
     public static boolean cleanTrackingLinks(int account) {
         return get(account, Option.CLEAN_TRACKING_LINKS);
+    }
+
+    public static int getThemePalette(int account) {
+        return MessagesController.getMainSettings(account).getInt("bananaThemePalette", 0);
+    }
+
+    public static void setThemePalette(int account, int palette) {
+        MessagesController.getMainSettings(account).edit().putInt("bananaThemePalette", palette).apply();
     }
 
     public static boolean get(int account, Option option) {
