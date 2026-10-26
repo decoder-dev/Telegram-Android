@@ -10939,6 +10939,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (ChatObject.isPublic(currentChat)) {
                     usernameRow = rowCount++;
                 }
+                if (org.telegram.messenger.banana.BananaHooks.showProfileId(currentAccount)) {
+                    bananaProfileIdRow = rowCount++;
+                }
+                if (org.telegram.messenger.banana.BananaHooks.showDC(currentAccount)) {
+                    bananaDcRow = rowCount++;
+                }
             }
             if (emptyRow < 0 && emptyRow2 < 0) {
                 if (hasMusic || hasBalance || peerColor != null || actionsView == null) {
@@ -13572,10 +13578,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         TLRPC.User user = getMessagesController().getUser(userId);
                         String phoneNumber;
                         if (user != null && !TextUtils.isEmpty(vcardPhone)) {
-                            text = PhoneFormat.getInstance().format("+" + vcardPhone);
+                            String masked = org.telegram.messenger.banana.BananaHooks.maybeMaskPhone(currentAccount, vcardPhone);
+                            text = "•••••".equals(masked) ? masked : PhoneFormat.getInstance().format("+" + masked);
                             phoneNumber = vcardPhone;
                         } else if (user != null && !TextUtils.isEmpty(user.phone)) {
-                            text = PhoneFormat.getInstance().format("+" + user.phone);
+                            String masked = org.telegram.messenger.banana.BananaHooks.maybeMaskPhone(currentAccount, user.phone);
+                            text = "•••••".equals(masked) ? masked : PhoneFormat.getInstance().format("+" + masked);
                             phoneNumber = user.phone;
                         } else {
                             text = LocaleController.getString(R.string.PhoneHidden);
@@ -13631,7 +13639,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             }
                             value = LocaleController.getString(R.string.Username);
                             if (username != null) {
-                                text = "@" + username;
+                                String displayUser = org.telegram.messenger.banana.BananaHooks.maybeMaskUsername(currentAccount, username);
+                                text = "@" + displayUser;
                                 if (usernameObj != null && !usernameObj.editable) {
                                     text = new SpannableString(text);
                                     ((SpannableString) text).setSpan(makeUsernameLinkSpan(usernameObj), 0, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -13660,6 +13669,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             usernames = new ArrayList<>();
                         }
                         detailCell.setTextAndValue(text, alsoUsernamesString(username, usernames, value), infoEndRowEmpty == -1 && (isTopic || bizHoursRow != -1 || bizLocationRow != -1) && birthdayRow < 0);
+                    } else if (position == bananaDcRow) {
+                        TLRPC.User u = userId != 0 ? getMessagesController().getUser(userId) : null;
+                        TLRPC.Chat c = chatId != 0 ? getMessagesController().getChat(chatId) : currentChat;
+                        int dc = org.telegram.messenger.banana.BananaHooks.resolveDcId(currentAccount, u, c);
+                        String dcText = dc > 0 ? ("DC" + dc) : "—";
+                        detailCell.setTextAndValue(dcText, LocaleController.getString(R.string.BananaProfileDC), position != infoEndRow);
+                    } else if (position == bananaProfileIdRow) {
+                        String idText = org.telegram.messenger.banana.BananaHooks.formatProfileId(currentAccount, userId, chatId);
+                        detailCell.setTextAndValue(TextUtils.isEmpty(idText) ? "—" : idText, LocaleController.getString(R.string.BananaProfileId), position != infoEndRow);
                     } else if (position == locationRow) {
                         if (chatInfo != null && chatInfo.location instanceof TLRPC.TL_channelLocation) {
                             TLRPC.TL_channelLocation location = (TLRPC.TL_channelLocation) chatInfo.location;
@@ -13669,7 +13687,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();
                         String value;
                         if (user != null && user.phone != null && user.phone.length() != 0) {
-                            value = PhoneFormat.getInstance().format("+" + user.phone);
+                            String masked = org.telegram.messenger.banana.BananaHooks.maybeMaskPhone(currentAccount, user.phone);
+                            value = "•••••".equals(masked) ? masked : PhoneFormat.getInstance().format("+" + masked);
                         } else {
                             value = LocaleController.getString(R.string.NumberUnknown);
                         }
@@ -14403,7 +14422,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
                     position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader) {
                 return VIEW_TYPE_HEADER;
-            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow) {
+            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == bananaDcRow || position == bananaProfileIdRow) {
                 return VIEW_TYPE_TEXT_DETAIL;
             } else if (position == usernameRow || position == setUsernameRow) {
                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE;
@@ -15809,6 +15828,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, userInfoRow, sparseIntArray);
             put(++pointer, channelInfoRow, sparseIntArray);
             put(++pointer, usernameRow, sparseIntArray);
+            put(++pointer, bananaDcRow, sparseIntArray);
+            put(++pointer, bananaProfileIdRow, sparseIntArray);
             put(++pointer, notificationsDividerRow, sparseIntArray);
             put(++pointer, reportDividerRow, sparseIntArray);
             put(++pointer, notificationsRow, sparseIntArray);
