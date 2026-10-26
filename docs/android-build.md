@@ -39,3 +39,16 @@ signed-in accounts. Screenshots and the test log go to `build/banana-smoke`.
 The workflow does not publish an APK. Telegram API credentials are separate from APK signing
 keys, Firebase configuration and store distribution credentials. The upstream
 sample signing key must be replaced before distributing a BananaGram release.
+
+## Optional test-server capability probe
+
+`BananaTestServerProbe` is excluded from the normal smoke class list. It requires
+`banana_test_server=YES`, a debug emulator, an empty account slot and a native
+test-backend check before every RPC. It uses a single reserved test phone, never
+initializes a user account, never sends messages, and resets its local auth key
+and backend afterwards. Do not use real phone numbers or OTPs in this probe.
+
+The local 2026-10-26 probe reached `auth.sendCode`, but its deterministic
+`auth.signIn` was rejected with `PHONE_CODE_INVALID`. This is an external
+capability result, not successful Ghost/history protocol acceptance. A dedicated
+working test-server account is still needed for those integration checks.
