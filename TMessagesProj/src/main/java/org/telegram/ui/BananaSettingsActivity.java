@@ -1,9 +1,6 @@
 package org.telegram.ui;
 
 import android.view.View;
-import android.graphics.Color;
-
-import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -13,6 +10,7 @@ import org.telegram.messenger.banana.BananaConfig.Option;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalFragment;
+import org.telegram.ui.Components.BananaTheme;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Cells.BananaSwitchCell;
@@ -23,20 +21,7 @@ import java.util.ArrayList;
 public final class BananaSettingsActivity extends UniversalFragment {
     private static final int GHOST_PRESET = 1000;
     private static final int SILENT_SENDING = 1001;
-    private final Theme.ResourcesProvider colors = key -> {
-        int color = Theme.getColor(key);
-        if (key != Theme.key_windowBackgroundWhiteGrayText4 && key != Theme.key_windowBackgroundWhiteGrayText2) return color;
-        int background = ColorUtils.setAlphaComponent(Theme.getColor(key == Theme.key_windowBackgroundWhiteGrayText2 ?
-                Theme.key_windowBackgroundWhite : Theme.key_windowBackgroundGray), 255);
-        int foreground = ColorUtils.setAlphaComponent(color, 255);
-        int text = ColorUtils.setAlphaComponent(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText), 255);
-        for (int step = 0; step <= 20; step++) {
-            int readable = ColorUtils.blendARGB(foreground, text, step / 20f);
-            if (ColorUtils.calculateContrast(readable, background) >= 4.5) return readable;
-        }
-        return ColorUtils.calculateContrast(Color.BLACK, background) > ColorUtils.calculateContrast(Color.WHITE, background) ?
-                Color.BLACK : Color.WHITE;
-    };
+    private static final int MESSAGE_HISTORY = 1002;
 
     public BananaSettingsActivity(int account) {
         setCurrentAccount(account);
@@ -44,7 +29,7 @@ public final class BananaSettingsActivity extends UniversalFragment {
 
     @Override
     public Theme.ResourcesProvider getResourceProvider() {
-        return colors;
+        return BananaTheme.COLORS;
     }
 
     @Override
@@ -57,6 +42,9 @@ public final class BananaSettingsActivity extends UniversalFragment {
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaSending)));
         addOption(items, Option.CLEAN_TRACKING_LINKS, R.string.BananaCleanTrackingLinks);
         items.add(UItem.asShadow(LocaleController.getString(R.string.BananaCleanTrackingLinksInfo)));
+        items.add(BananaValueCell.Factory.of(SILENT_SENDING, LocaleController.getString(R.string.BananaSilentSending),
+                silentLabels()[BananaConfig.silentSending(currentAccount).ordinal()]));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.BananaSilentSendingInfo)));
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaGhostMode)));
         items.add(BananaSwitchCell.Factory.of(GHOST_PRESET, LocaleController.getString(R.string.BananaGhostPreset),
                 BananaConfig.isGhostModeActive(currentAccount)));
@@ -68,10 +56,12 @@ public final class BananaSettingsActivity extends UniversalFragment {
         addOption(items, Option.DONT_READ_STORIES, R.string.BananaDontReadStories);
         addOption(items, Option.OFFLINE_AFTER_ACTIVITY, R.string.BananaOfflineAfterActivity);
         items.add(UItem.asShadow(LocaleController.getString(R.string.BananaGhostModeInfo)));
-        items.add(UItem.asHeader(LocaleController.getString(R.string.BananaSending)));
-        items.add(BananaValueCell.Factory.of(SILENT_SENDING, LocaleController.getString(R.string.BananaSilentSending),
-                silentLabels()[BananaConfig.silentSending(currentAccount).ordinal()]));
-        items.add(UItem.asShadow(LocaleController.getString(R.string.BananaSilentSendingInfo)));
+        items.add(UItem.asHeader(LocaleController.getString(R.string.BananaHistory)));
+        addOption(items, Option.SAVE_DELETED, R.string.BananaSaveDeleted);
+        addOption(items, Option.SAVE_EDITS, R.string.BananaSaveEdits);
+        addOption(items, Option.SAVE_BOT_HISTORY, R.string.BananaSaveBotHistory);
+        items.add(UItem.asButton(MESSAGE_HISTORY, LocaleController.getString(R.string.BananaHistoryOpen)));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.BananaHistoryInfo)));
     }
 
     private void addOption(ArrayList<UItem> items, Option option, int label) {
@@ -81,6 +71,10 @@ public final class BananaSettingsActivity extends UniversalFragment {
 
     @Override
     protected void onClick(UItem item, View view, int position, float x, float y) {
+        if (item.id == MESSAGE_HISTORY) {
+            presentFragment(new BananaHistoryActivity(currentAccount));
+            return;
+        }
         if (item.id == GHOST_PRESET) {
             BananaConfig.setGhostMode(currentAccount, !BananaConfig.isGhostModeActive(currentAccount));
             Utilities.stageQueue.postRunnable(() -> getMessagesController().updateTimerProc());

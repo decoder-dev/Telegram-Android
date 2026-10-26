@@ -19,6 +19,7 @@ import org.telegram.messenger.banana.BananaConfig.Option;
 import org.telegram.messenger.banana.TrackingLinks;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.BananaSettingsActivity;
+import org.telegram.ui.BananaHistoryActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Components.VideoPlayer;
 import org.telegram.ui.Cells.BananaSwitchCell;
@@ -206,6 +207,40 @@ public class BananaSmokeTest {
                     instrumentation.runOnMainSync(() -> assertVisibleLabelsFit(screen[0]));
                     SystemClock.sleep(400);
                     capture(instrumentation, language + "-" + theme + "-bottom");
+                    instrumentation.runOnMainSync(() -> {
+                        for (int i = 0; i < screen[0].listView.adapter.getItemCount(); i++) {
+                            if (screen[0].listView.adapter.getItem(i).id == 1002) {
+                                screen[0].listView.scrollToPosition(i);
+                                break;
+                            }
+                        }
+                    });
+                    int[] historyButton = new int[2];
+                    await(instrumentation, () -> {
+                        for (int i = 0; i < screen[0].listView.adapter.getItemCount(); i++) {
+                            if (screen[0].listView.adapter.getItem(i).id != 1002) continue;
+                            View row = screen[0].listView.findViewByPosition(i);
+                            if (row == null || !row.getGlobalVisibleRect(new Rect())) return false;
+                            row.getLocationOnScreen(historyButton);
+                            historyButton[0] += row.getWidth() / 2;
+                            historyButton[1] += row.getHeight() / 2;
+                            return true;
+                        }
+                        return false;
+                    }, "History must have a reachable entry from Extras");
+                    SystemClock.sleep(300);
+                    tap(instrumentation, historyButton[0], historyButton[1]);
+                    BananaHistoryActivity[] history = new BananaHistoryActivity[1];
+                    await(instrumentation, () -> {
+                        if (!(activity.getActionBarLayout().getLastFragment() instanceof BananaHistoryActivity) ||
+                                activity.getActionBarLayout().isTransitionAnimationInProgress()) return false;
+                        history[0] = (BananaHistoryActivity) activity.getActionBarLayout().getLastFragment();
+                        return history[0].listView != null && history[0].listView.adapter.getItemCount() > 1 &&
+                                LocaleController.getString(R.string.BananaHistoryEmpty).contentEquals(history[0].listView.adapter.getItem(1).text);
+                    }, "The real history screen must show its localized empty state without an account");
+                    SystemClock.sleep(400);
+                    capture(instrumentation, language + "-" + theme + "-history");
+                    instrumentation.runOnMainSync(() -> history[0].finishFragment(false));
                     instrumentation.runOnMainSync(() -> screen[0].finishFragment(false));
                 }
             }
@@ -220,6 +255,16 @@ public class BananaSmokeTest {
                 activity.finish();
             });
         }
+    }
+    private static void tap(Instrumentation instrumentation, float x, float y) {
+        long now = SystemClock.uptimeMillis();
+        MotionEvent down = MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, x, y, 0);
+        instrumentation.sendPointerSync(down);
+        SystemClock.sleep(80);
+        MotionEvent up = MotionEvent.obtain(now, SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, x, y, 0);
+        instrumentation.sendPointerSync(up);
+        down.recycle();
+        up.recycle();
     }
     private static void assertVisibleLabelsFit(BananaSettingsActivity screen) {
         for (int i = 0; i < screen.listView.getChildCount(); i++) {

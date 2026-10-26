@@ -38,3 +38,12 @@ reference. Its TDLib architecture is not merged into this MTProto client.
 
 The AyuGram inventory distinguishes implemented controls from pending scope.
 No feature is claimed merely because its setting appears in the inventory.
+
+The local text archive follows the behavior of BananaGram iOS
+`MessageSavingBridge.swift` / `MessageSavingStore.swift` and AyuGram message
+saving. Its Android database and capture hooks are new implementations. The
+archive defaults off, is keyed by owning user and test/production backend, and
+is stored outside Telegram cache and Android automatic backups. Current scope
+is previous/deleted text plus formatting metadata, a 32-version/5,000-record/
+32-MB content budget, search and clear. Attachments, inline retained messages
+and import/export remain pending.

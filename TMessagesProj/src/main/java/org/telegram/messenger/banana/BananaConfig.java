@@ -14,7 +14,10 @@ public final class BananaConfig {
         HIDE_UPLOAD("bananaHideUpload"),
         DONT_READ_MESSAGES("bananaDontReadMessages"),
         DONT_READ_STORIES("bananaDontReadStories"),
-        OFFLINE_AFTER_ACTIVITY("bananaOfflineAfterActivity");
+        OFFLINE_AFTER_ACTIVITY("bananaOfflineAfterActivity"),
+        SAVE_DELETED("bananaSaveDeleted"),
+        SAVE_EDITS("bananaSaveEdits"),
+        SAVE_BOT_HISTORY("bananaSaveBotHistory");
 
         private final String key;
         Option(String key) { this.key = key; }

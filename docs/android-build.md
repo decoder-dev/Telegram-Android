@@ -26,8 +26,10 @@ unit tests, a complete x86_64 development APK and smoke tests on Android 16.
 The smoke suite uses an emulator without a signed-in account and checks the platform URL detector,
 the Extras screen in English/Russian and light/dark themes, real switch taps and
 account preference isolation, Ghost preset scope and silent-send mode selection.
-The current suite has 18 JVM policy tests, 7 credential-loader tests and 4 Android
-smoke tests. It does not claim live-server Ghost Mode acceptance.
+The current suite has 18 JVM policy tests, 7 credential-loader tests and 8 Android
+smoke tests. Archive tests use synthetic private databases and verify persistence, duplicate
+handling, limits, search, deletion and account/backend isolation. They do not yet
+claim live-message capture or live-server Ghost Mode acceptance.
 
 For a local smoke run, build the standalone debug APK and its AndroidTest APK with
 `-Pandroid.injected.build.abi=x86_64`, then run `scripts/run-android-smoke.py` with
