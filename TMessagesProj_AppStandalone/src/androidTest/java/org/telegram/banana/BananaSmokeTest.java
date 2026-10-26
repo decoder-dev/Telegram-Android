@@ -21,6 +21,11 @@ import org.telegram.messenger.banana.TrackingLinks;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.BananaSettingsActivity;
 import org.telegram.ui.BananaHistoryActivity;
+import org.telegram.ui.BananaFiltersActivity;
+import org.telegram.ui.BananaFilterEditActivity;
+import org.telegram.ui.Components.UniversalFragment;
+import org.telegram.messenger.banana.FilterStore;
+import org.telegram.messenger.banana.FilterRules;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Components.VideoPlayer;
 import org.telegram.ui.Components.StoryPrivacyPrompt;
@@ -165,7 +170,9 @@ public class BananaSmokeTest {
                         LocaleController.getInstance().applyLanguage(LocaleController.getInstance().languagesDict.get(language), true, true, 0);
                         Theme.applyTheme(Theme.getTheme(theme));
                         screen[0] = new BananaSettingsActivity(0);
-                        activity.presentFragment(screen[0]);
+                        // This is test-only injection over the unsigned Intro screen, not a user
+                        // navigation route. Keep actual nested-screen transitions enabled below.
+                        activity.getActionBarLayout().presentFragment(new org.telegram.ui.ActionBar.INavigationLayout.NavigationParams(screen[0]).setNoAnimation(true));
                     });
                     await(instrumentation, () -> screen[0].listView != null && screen[0].listView.isLaidOut() &&
                             screen[0].listView.findViewByPosition(1) != null && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Extras rows must be laid out");
@@ -254,6 +261,7 @@ public class BananaSmokeTest {
                     await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == screen[0] &&
                             !activity.getActionBarLayout().isTransitionAnimationInProgress(), "History must finish returning to Extras");
                     checkStoryPromptChoices(instrumentation, activity, language + "-" + theme);
+                    checkFilters(instrumentation, activity, screen[0], language + "-" + theme);
                     instrumentation.runOnMainSync(() -> screen[0].finishFragment(false));
                     await(instrumentation, () -> activity.getActionBarLayout().getFragmentStack().size() == initialDepth.get() &&
                             !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Extras must finish returning to the original host");
@@ -331,7 +339,7 @@ public class BananaSmokeTest {
         down.recycle();
         up.recycle();
     }
-    private static void assertVisibleLabelsFit(BananaSettingsActivity screen) {
+    private static void assertVisibleLabelsFit(UniversalFragment screen) {
         for (int i = 0; i < screen.listView.getChildCount(); i++) {
             View child = screen.listView.getChildAt(i);
             if (child instanceof BananaValueCell) {
@@ -356,7 +364,82 @@ public class BananaSmokeTest {
         }
     }
 
+    private static void tapRow(Instrumentation instrumentation, UniversalFragment screen, int id) {
+        instrumentation.runOnMainSync(() -> {
+            for (int i = 0; i < screen.listView.adapter.getItemCount(); i++) if (screen.listView.adapter.getItem(i).id == id) {
+                screen.listView.scrollToPosition(i); return;
+            }
+            fail("Missing row " + id);
+        });
+        int[] xy = new int[2];
+        await(instrumentation, () -> {
+            for (int i = 0; i < screen.listView.adapter.getItemCount(); i++) if (screen.listView.adapter.getItem(i).id == id) {
+                View view = screen.listView.findViewByPosition(i);
+                Rect visible = new Rect();
+                if (view == null || !view.getGlobalVisibleRect(visible) || visible.height() < view.getHeight()) return false;
+                xy[0] = visible.centerX(); xy[1] = visible.centerY(); return true;
+            }
+            return false;
+        }, "Row " + id + " must be completely reachable");
+        SystemClock.sleep(150);
+        tap(instrumentation, xy[0], xy[1]);
+    }
+    private static void checkFilters(Instrumentation instrumentation, LaunchActivity activity, BananaSettingsActivity extras, String name) throws Exception {
+        FilterStore store = FilterStore.get(0);
+        instrumentation.runOnMainSync(() -> { store.save(FilterRules.empty()); store.setEnabled(false); store.setSharedInChats(false); });
+        tapRow(instrumentation, extras, 1003);
+        BananaFiltersActivity[] screen = new BananaFiltersActivity[1];
+        await(instrumentation, () -> {
+            if (!(activity.getActionBarLayout().getLastFragment() instanceof BananaFiltersActivity) || activity.getActionBarLayout().isTransitionAnimationInProgress()) return false;
+            screen[0] = (BananaFiltersActivity) activity.getActionBarLayout().getLastFragment();
+            return screen[0].listView != null && screen[0].listView.isLaidOut();
+        }, "Filters must open from Extras");
+        instrumentation.runOnMainSync(() -> assertVisibleLabelsFit(screen[0]));
+        capture(instrumentation, name + "-filters");
+        tapRow(instrumentation, screen[0], 1);
+        await(instrumentation, store::enabled, "The physical filter switch must update its account setting");
+        assertFalse("Enabling filters must not change their scope", store.sharedInChats());
+        assertFalse("Filtering is account-scoped", FilterStore.get(1).enabled());
+        tapRow(instrumentation, screen[0], 3);
+        BananaFilterEditActivity[] editor = new BananaFilterEditActivity[1];
+        await(instrumentation, () -> {
+            if (!(activity.getActionBarLayout().getLastFragment() instanceof BananaFilterEditActivity) || activity.getActionBarLayout().isTransitionAnimationInProgress()) return false;
+            editor[0] = (BananaFilterEditActivity) activity.getActionBarLayout().getLastFragment();
+            return editor[0].listView != null && editor[0].listView.isLaidOut();
+        }, "The native rule editor must open");
+        instrumentation.runOnMainSync(() -> {
+            for (int i = 0; i < editor[0].listView.adapter.getItemCount(); i++) {
+                org.telegram.ui.Components.UItem item = editor[0].listView.adapter.getItem(i);
+                if (item.id == 10) ((android.widget.EditText) item.view).setText("(?i)hello");
+                if (item.id == 11) ((android.widget.EditText) item.view).setText("HELLO");
+            }
+            assertVisibleLabelsFit(editor[0]);
+            for (int key : new int[]{Theme.key_windowBackgroundWhiteHintText, Theme.key_windowBackgroundWhiteBlueHeader}) {
+                assertTrue("Editor hints and headers must remain readable", androidx.core.graphics.ColorUtils.calculateContrast(
+                        editor[0].getThemedColor(key), editor[0].getThemedColor(Theme.key_windowBackgroundWhite)) >= 4.5);
+            }
+        });
+        capture(instrumentation, name + "-filter-editor");
+        tapRow(instrumentation, editor[0], 4);
+        await(instrumentation, () -> {
+            for (int i = 0; i < editor[0].listView.adapter.getItemCount(); i++) if (LocaleController.getString(R.string.BananaFilterHidden)
+                    .contentEquals(editor[0].listView.adapter.getItem(i).text == null ? "" : editor[0].listView.adapter.getItem(i).text)) return true;
+            return false;
+        }, "The real isolated rule check must update its native preview");
+        capture(instrumentation, name + "-filter-preview");
+        tapRow(instrumentation, editor[0], 5);
+        await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == screen[0] && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Saving must return to the rule list");
+        assertEquals(1, store.rules().rules.size());
+        assertEquals("(?i)hello", store.rules().rules.get(0).text);
+        assertFalse("Saving a shared rule must not silently enable it in private chats", store.sharedInChats());
+        instrumentation.runOnMainSync(() -> { store.setEnabled(false); store.save(FilterRules.empty()); screen[0].finishFragment(false); });
+        await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == extras && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Filters must return to Extras");
+    }
+
     private static void capture(Instrumentation instrumentation, String name) throws Exception {
+        instrumentation.waitForIdleSync();
+        // Capture a rendered frame after native list/text changes, not the previous buffer.
+        SystemClock.sleep(150);
         File directory = instrumentation.getTargetContext().getExternalFilesDir("banana-smoke");
         assertNotNull(directory);
         assertTrue(directory.isDirectory() || directory.mkdirs());

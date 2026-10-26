@@ -61,3 +61,31 @@ is checked again after choosing; a cancelled prompt does not open a viewer.
 Existing parent-story playback is paused through its native dialog state and
 restored on dismissal. Authenticated story playback and server receipts still
 require a working test-server account for acceptance.
+
+
+Message filtering follows [AyuGram4A AyuFilter (Radolyn, 2023)](https://github.com/AyuGram/AyuGram4A/blob/7013145676d36d82ee13c02a89f72097b7490dcd/TMessagesProj/src/main/java/com/radolyn/ayugram/AyuFilter.java)
+and the [AyuGram v2 interchange documentation](https://github.com/AyuGram/AyuGramDocs/blob/42f5f32c6b05aab4a69a5f8d0bf7652e1cb11a9b/android/filters/dev.md).
+The Android 13.1.1 integration, scoped storage, immutable v2 model, native editor
+and asynchronous evaluator are new adaptations. Original source notices remain
+in the upstream files; no claim of AyuGram authorship or complete parity is made.
+
+Java regex syntax, including lookaround and backreferences, is evaluated in a
+private permissionless Android service rather than during UI drawing. A 250-ms
+watchdog stops a pathological worker; malformed, unavailable and slow rules
+leave messages visible. Android 10+ uses separate service instances per engine;
+older Android versions share the private isolated service. App initialization
+and configuration-change handling skip Telegram setup in that process,
+including Android 16 service-name suffixes. Idle bindings are released after
+30 seconds so inactive filters do not keep an extra process resident.
+See [Android isolated service binding](https://developer.android.com/reference/android/content/Context#bindIsolatedService(android.content.Intent,int,java.lang.String,java.util.concurrent.Executor,android.content.ServiceConnection)).
+
+The bounded cache includes exact text/button/type content, dialog/message or
+album identity, owning user/backend and configuration generation. Rules default
+off. Local v2 imports preview the resulting list and require an explicit Apply;
+peer URLs are not opened. Rule/exclusion counts, UTF-8 payload sizes and JSON nesting depth are bounded
+before the platform parser is called.
+Filtered chat rows retain message positions at 1 px and exclude accessibility
+content. Drag selection and copy/forward selection cannot include hidden rows;
+a newly hidden selected message clears the current selection. Automatic download suppression, dialog preview masking, blocked-user
+filtering and remote deep-link imports are separate remaining parity work.
+Authenticated chat scrolling and group rendering still need live-account QA.

@@ -22,6 +22,7 @@ public final class BananaSettingsActivity extends UniversalFragment {
     private static final int GHOST_PRESET = 1000;
     private static final int SILENT_SENDING = 1001;
     private static final int MESSAGE_HISTORY = 1002;
+    private static final int MESSAGE_FILTERS = 1003;
 
     public BananaSettingsActivity(int account) {
         setCurrentAccount(account);
@@ -65,6 +66,7 @@ public final class BananaSettingsActivity extends UniversalFragment {
         items.add(UItem.asShadow(LocaleController.getString(R.string.BananaHistoryMediaInfo)));
         items.add(UItem.asButton(MESSAGE_HISTORY, LocaleController.getString(R.string.BananaHistoryOpen)));
         items.add(UItem.asShadow(LocaleController.getString(R.string.BananaHistoryInfo)));
+        items.add(UItem.asButton(MESSAGE_FILTERS, LocaleController.getString(R.string.BananaFilters)));
     }
 
     private void addOption(ArrayList<UItem> items, Option option, int label) {
@@ -74,6 +76,10 @@ public final class BananaSettingsActivity extends UniversalFragment {
 
     @Override
     protected void onClick(UItem item, View view, int position, float x, float y) {
+        if (item.id == MESSAGE_FILTERS) {
+            presentFragment(new BananaFiltersActivity(currentAccount, 0));
+            return;
+        }
         if (item.id == MESSAGE_HISTORY) {
             presentFragment(new BananaHistoryActivity(currentAccount));
             return;

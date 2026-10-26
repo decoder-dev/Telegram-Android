@@ -382,6 +382,27 @@ public class ChatActivity extends BaseFragment implements
     private final static boolean PULL_DOWN_BACK_FRAGMENT = false;
     private final static boolean DISABLE_PROGRESS_VIEW = true;
     private final static int SKELETON_DISAPPEAR_MS = 200;
+    private static final int BANANA_FILTERS_MENU = 18001, BANANA_FILTERED_ROW = -1000;
+    private final Runnable bananaFiltersChanged = this::refreshBananaFilters;
+    private void refreshBananaFilters() {
+        if (chatListView == null || chatAdapter == null || chatLayoutManager == null || isFinished) return;
+        if (actionBar != null && actionBar.isActionModeShowed()) {
+            boolean hiddenSelection = false;
+            for (int i = 0; i < selectedMessagesIds.length && !hiddenSelection; i++) {
+                for (int j = 0; j < selectedMessagesIds[i].size(); j++) if (isBananaFiltered(selectedMessagesIds[i].valueAt(j))) { hiddenSelection = true; break; }
+            }
+            if (hiddenSelection) clearSelectionMode();
+        }
+        int position = chatLayoutManager.findFirstVisibleItemPosition();
+        View anchor = chatLayoutManager.findViewByPosition(position);
+        int top = anchor == null ? 0 : getScrollingOffsetForView(anchor);
+        chatAdapter.notifyDataSetChanged(false);
+        if (position >= 0 && anchor != null) chatLayoutManager.scrollToPositionWithOffset(position, top);
+    }
+    private boolean isBananaFiltered(MessageObject message) {
+        return message != null && message.contentType == 0 && org.telegram.messenger.banana.MessageFilters.verdict(currentAccount, message,
+                getValidGroupedMessage(message)) == org.telegram.messenger.banana.MessageFilters.Verdict.HIDDEN;
+    }
     public static final int ACTION_BAR_BLUR_ALPHA = 178;
 
     private static int SKELETON_LIGHT_OVERLAY_ALPHA = 22;
@@ -1790,6 +1811,7 @@ public class ChatActivity extends BaseFragment implements
                 }
                 if (i >= 0 && i < messages.size()) {
                     MessageObject messageObject = messages.get(i);
+                    if (isBananaFiltered(messageObject)) return;
                     if (selected && (selectedMessagesIds[0].indexOfKey(messageObject.getId()) >= 0 || selectedMessagesIds[1].indexOfKey(messageObject.getId()) >= 0)) {
                         return;
                     }
@@ -1819,6 +1841,7 @@ public class ChatActivity extends BaseFragment implements
                 int i = position - chatAdapter.messagesStartRow;
                 if (i >= 0 && i < messages.size()) {
                     MessageObject messageObject = messages.get(i);
+                    if (isBananaFiltered(messageObject)) return false;
                     if (messageObject.contentType == 0) {
                         if (!unselect && alreadySelectedMessagesIds.get(messageObject.getId(), null) == null) {
                             return true;
@@ -3403,6 +3426,7 @@ public class ChatActivity extends BaseFragment implements
 
     @Override
     public void onFragmentDestroy() {
+        org.telegram.messenger.banana.MessageFilters.removeListener(currentAccount, bananaFiltersChanged);
         super.onFragmentDestroy();
         if (messageMetricsView != null) {
             messageMetricsView.finish();
@@ -3759,6 +3783,8 @@ public class ChatActivity extends BaseFragment implements
                             finishFragment();
                         }
                     }
+                } else if (id == BANANA_FILTERS_MENU) {
+                    presentFragment(new BananaFiltersActivity(currentAccount, dialog_id));
                 } else if (id == view_as_topics) {
                     if (getUserConfig().getClientUserId() == dialog_id) {
                         getMessagesController().setSavedViewAs(true);
@@ -4561,6 +4587,9 @@ public class ChatActivity extends BaseFragment implements
         if (currentChat != null && forumTopic != null && chatMode == 0) {
             closeTopicItem = headerItem.lazilyAddSubItem(topic_close, R.drawable.msg_topic_close, LocaleController.getString(R.string.CloseTopic));
             closeTopicItem.setVisibility(currentChat != null && ChatObject.canManageTopic(currentAccount, currentChat, forumTopic) && forumTopic != null && !forumTopic.closed ? View.VISIBLE : View.GONE);
+        }
+        if (headerItem != null && chatMode == MODE_DEFAULT && currentEncryptedChat == null) {
+            headerItem.lazilyAddSubItem(BANANA_FILTERS_MENU, R.drawable.msg_search, LocaleController.getString(R.string.BananaFilters));
         }
         menu.setVisibility(inMenuMode ? View.GONE : View.VISIBLE);
 
@@ -19373,6 +19402,7 @@ public class ChatActivity extends BaseFragment implements
                     }
                 }
             } else {
+                if (isBananaFiltered(messageObject)) return;
                 if (selectedMessagesIds[0].size() + selectedMessagesIds[1].size() >= 100) {
                     AndroidUtilities.shakeView(selectedMessagesCountTextView);
                     Vibrator vibrator = (Vibrator) ApplicationLoader.applicationContext.getSystemService(Context.VIBRATOR_SERVICE);
@@ -30057,6 +30087,8 @@ public class ChatActivity extends BaseFragment implements
     @Override
     public void onResume() {
         super.onResume();
+        org.telegram.messenger.banana.MessageFilters.addListener(currentAccount, bananaFiltersChanged);
+        bananaFiltersChanged.run();
         checkShowBlur(false);
         activityResumeTime = System.currentTimeMillis();
         if (openImport && getSendMessagesHelper().getImportingHistory(dialog_id) != null) {
@@ -37352,7 +37384,9 @@ public class ChatActivity extends BaseFragment implements
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = null;
-            if (viewType == 0) {
+            if (viewType == BANANA_FILTERED_ROW) {
+                view = new org.telegram.ui.Cells.FilteredMessageCell(mContext);
+            } else if (viewType == 0) {
                 view = new ChatMessageCell(mContext, currentAccount, true, sharedResources, themeDelegate);
                 ChatMessageCell chatMessageCell = (ChatMessageCell) view;
                 chatMessageCell.setResourcesProvider(themeDelegate);
@@ -37745,6 +37779,7 @@ public class ChatActivity extends BaseFragment implements
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            if (holder.itemView instanceof org.telegram.ui.Cells.FilteredMessageCell) return;
             if (position == botInfoRow || position == botInfoEmptyRow) {
                 BotHelpCell helpView = (BotHelpCell) holder.itemView;
                 if (UserObject.isReplyUser(currentUser)) {
@@ -38369,7 +38404,9 @@ public class ChatActivity extends BaseFragment implements
                 } else {
                     messages = ChatActivity.this.messages;
                 }
-                return messages.get(position - messagesStartRow).contentType;
+                MessageObject message = messages.get(position - messagesStartRow);
+                if (isBananaFiltered(message)) return BANANA_FILTERED_ROW;
+                return message.contentType;
             } else if (position == botInfoRow) {
                 return 3;
             } else if (position == userInfoRow) {

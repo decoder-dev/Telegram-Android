@@ -10,9 +10,10 @@ public final class BananaTheme {
 
     public static final Theme.ResourcesProvider COLORS = key -> {
         int color = Theme.getColor(key);
-        if (key != Theme.key_windowBackgroundWhiteGrayText4 && key != Theme.key_windowBackgroundWhiteGrayText2) return color;
-        int background = ColorUtils.setAlphaComponent(Theme.getColor(key == Theme.key_windowBackgroundWhiteGrayText2 ?
-                Theme.key_windowBackgroundWhite : Theme.key_windowBackgroundGray), 255);
+        if (key != Theme.key_windowBackgroundWhiteGrayText4 && key != Theme.key_windowBackgroundWhiteGrayText2 &&
+                key != Theme.key_windowBackgroundWhiteHintText && key != Theme.key_windowBackgroundWhiteBlueHeader) return color;
+        int background = ColorUtils.setAlphaComponent(Theme.getColor(key == Theme.key_windowBackgroundWhiteGrayText4 ?
+                Theme.key_windowBackgroundGray : Theme.key_windowBackgroundWhite), 255);
         int foreground = ColorUtils.setAlphaComponent(color, 255);
         int text = ColorUtils.setAlphaComponent(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText), 255);
         for (int step = 0; step <= 20; step++) {

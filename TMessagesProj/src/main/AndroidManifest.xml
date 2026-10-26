@@ -617,6 +617,13 @@
                 android:resource="@xml/provider_paths"/>
         </provider>
 
+        <service
+            android:name="org.telegram.messenger.banana.IsolatedRegexService"
+            android:exported="false"
+            android:isolatedProcess="true"
+            android:process=":banana_regex"
+            android:stopWithTask="true" />
+
         <provider
             android:authorities="${applicationId}.notification_image_provider"
             android:name=".NotificationImageProvider"
