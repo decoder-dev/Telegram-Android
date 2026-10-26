@@ -32117,7 +32117,7 @@ public class TLRPC {
             return TLdeserialize(MessageEntity.class, fromConstructor(constructor), stream, constructor, exception);
         }
 
-        private static MessageEntity fromConstructor(int constructor) {
+        public static MessageEntity fromConstructor(int constructor) {
             switch (constructor) {
                 case 0x76a6d327:
                     return new TL_messageEntityTextUrl();

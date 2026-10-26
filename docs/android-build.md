@@ -21,7 +21,17 @@ Use JDK 17, Android SDK/build tools 36 and NDK 27.2.12479018. Initialize the
 repository's pinned submodules recursively before building. Gradle options such
 as `-Dorg.gradle.workers.max=2` go after `--`.
 
-The current workflow checks the credential loader and Java compilation. It does
-not publish an APK. Telegram API credentials are separate from APK signing
+The current workflow checks the credential loader, Java compilation, policy
+unit tests, a complete x86_64 development APK and smoke tests on Android 16.
+The smoke suite uses an emulator without a signed-in account and checks the platform URL detector,
+the Extras screen in English/Russian and light/dark themes, real switch taps and
+account preference isolation. It does not claim live-server Ghost Mode acceptance.
+
+For a local smoke run, build the standalone debug APK and its AndroidTest APK with
+`-Pandroid.injected.build.abi=x86_64`, then run `scripts/run-android-smoke.py` with
+`--serial emulator-PORT`. The script refuses physical devices, and the test refuses
+signed-in accounts. Screenshots and the test log go to `build/banana-smoke`.
+
+The workflow does not publish an APK. Telegram API credentials are separate from APK signing
 keys, Firebase configuration and store distribution credentials. The upstream
 sample signing key must be replaced before distributing a BananaGram release.

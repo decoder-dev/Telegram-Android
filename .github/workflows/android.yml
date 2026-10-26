@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   java:
-    name: Android Java compilation
+    name: Android compilation and policy tests
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -36,8 +36,40 @@ jobs:
           TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
           TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
         run: python3 scripts/build-android.py -- -Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.workers.max=2 :TMessagesProj:verifyBananaReleaseCredentials
-      - name: Compile Android application code
+      - name: Compile and test Android application code
         env:
           TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
           TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
-        run: python3 scripts/build-android.py -- -Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.workers.max=2 :TMessagesProj:compileDebugJavaWithJavac
+        run: python3 scripts/build-android.py -- -Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.workers.max=2 :TMessagesProj:compileDebugJavaWithJavac :TMessagesProj:testDebugUnitTest
+
+  smoke:
+    name: Android 16 APK and UI checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Enable emulator acceleration for this runner
+        run: sudo setfacl -m "u:$(id -un):rw" /dev/kvm
+      - name: Build development APK and instrumentation
+        env:
+          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
+          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
+          CMAKE_BUILD_PARALLEL_LEVEL: '2'
+        run: python3 scripts/build-android.py -- -Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.workers.max=2 -Pandroid.injected.build.abi=x86_64 :TMessagesProj_AppStandalone:assembleAfatDebug :TMessagesProj_AppStandalone:assembleAfatDebugAndroidTest
+      - name: Check a fresh emulator without signing in
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: Nexus 6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: python3 scripts/run-android-smoke.py --serial emulator-5554

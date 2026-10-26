@@ -166,7 +166,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
     private SpeedIconDrawable speedIcon;
     private ActionBarMenuSlider.SpeedSlider speedSlider;
     private boolean slidingSpeed;
-    private ActionBarMenuSubItem[] speedItems = new ActionBarMenuSubItem[6];
+    private ActionBarMenuSubItem[] speedItems = new ActionBarMenuSubItem[8];
     private TextView durationTextView;
     private ActionBarMenuItem repeatButton;
     private ActionBarMenuSubItem repeatSongItem;
@@ -230,7 +230,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
     private boolean wasLight;
 
     private final static float[] speeds = new float[] {
-            .5f, 1f, 1.2f, 1.5f, 1.7f, 2f
+            .5f, 1f, 1.2f, 1.5f, 1.7f, 2f, 3f, 4f
     };
 
     private final Runnable forwardSeek = new Runnable() {
@@ -715,6 +715,12 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
         speedItems[3] = playbackSpeedButton.addSubItem(3, R.drawable.msg_speed_fast, LocaleController.getString(R.string.SpeedFast));
         speedItems[4] = playbackSpeedButton.addSubItem(4, R.drawable.msg_speed_veryfast, LocaleController.getString(R.string.SpeedVeryFast));
         speedItems[5] = playbackSpeedButton.addSubItem(5, R.drawable.msg_speed_superfast, LocaleController.getString(R.string.SpeedSuperFast));
+        for (int i = 6; i < speeds.length; i++) {
+            SpeedIconDrawable icon = new SpeedIconDrawable(true);
+            icon.setValue(speeds[i], false);
+            icon.setColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
+            speedItems[i] = playbackSpeedButton.addSubItem(i, 0, icon, SpeedIconDrawable.formatNumber(speeds[i]) + "×", true, false);
+        }
         if (AndroidUtilities.density >= 3.0f) {
             playbackSpeedButton.setPadding(0, 1, 0, 0);
         }
@@ -1658,8 +1664,10 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
         for (int a = 0; a < speedItems.length; a++) {
             if (isFinal && equals(currentPlaybackSpeed, speeds[a])) {
                 speedItems[a].setColors(getThemedColor(Theme.key_featuredStickers_addButtonPressed), getThemedColor(Theme.key_featuredStickers_addButtonPressed));
+                if (a >= 6) ((SpeedIconDrawable) speedItems[a].getImageView().getDrawable()).setColor(getThemedColor(Theme.key_featuredStickers_addButtonPressed));
             } else {
                 speedItems[a].setColors(getThemedColor(Theme.key_actionBarDefaultSubmenuItem), getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
+                if (a >= 6) ((SpeedIconDrawable) speedItems[a].getImageView().getDrawable()).setColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
             }
         }
     }

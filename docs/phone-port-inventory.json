@@ -1,0 +1,1064 @@
+{
+  "source_repo": "decoder-dev/Telegram-iOS",
+  "source_commit": "4fe480d8f395b6d3cb1d099508145d5225cc9d9e",
+  "source_file": "submodules/TelegramUIPreferences/Sources/ForkExtrasSettings.swift",
+  "meaning": "Stored iOS Extras settings inventory. Pending includes native Android equivalents that still need explicit verification. This is not a list of shipped Android features. Settings alone do not cover fixed styling, playback limits, protocol backends or message-menu actions.",
+  "settings": [
+    {
+      "setting": "removePings",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "sendTelegramStatistics",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "bananaIslandEnabled",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "bananaIslandShowsName",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "bananaIslandFollowsIcon",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "wideTabBar",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "integratedTabSearch",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "tabSearchOnLeft",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "bottomChatFoldersEnabled",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "avatarGlowEnabled",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "snowEnabled",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showChannelForwardCount",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "reactionGlowEnabled",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showContactsTab",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "ghostDontReadMessages",
+      "type": "Bool",
+      "status": "implemented_pending_full_integration",
+      "android": "Option.DONT_READ_MESSAGES"
+    },
+    {
+      "setting": "ghostDontReadStories",
+      "type": "Bool",
+      "status": "implemented_pending_full_integration",
+      "android": "Option.DONT_READ_STORIES"
+    },
+    {
+      "setting": "ghostDontSendOnline",
+      "type": "Bool",
+      "status": "implemented_pending_full_integration",
+      "android": "Option.HIDE_ONLINE"
+    },
+    {
+      "setting": "ghostDontSendTyping",
+      "type": "Bool",
+      "status": "implemented_pending_full_integration",
+      "android": "Option.HIDE_TYPING, Option.HIDE_RECORDING, Option.HIDE_UPLOAD"
+    },
+    {
+      "setting": "ghostGoOfflineAutomatically",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "ghostReadOnInteract",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "ghostAlertBeforeOpeningStory",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "instantPasscodeLock",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideMentionNotifications",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hidePinnedNotifications",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "sessionKeychainBackup",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "compactChatList",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "compactMessagePreview",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "compactFolderNames",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideReactionsBar",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "useRecentEmojiInReactions",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showDC",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showProfileId",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "accentColorSaturation",
+      "type": "Int32",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "confirmBeforeCall",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "sendWithReturnKey",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "forceBuiltInMic",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "keepAliveInBackground",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "translationBackend",
+      "type": "ForkTranslationBackend",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "transcriptionBackend",
+      "type": "ForkTranscriptionBackend",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "scrollToNextChatDisabled",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "saveDeletedMessages",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "saveMessagesHistory",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "saveForBots",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "saveMedia",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "proactiveSaveMedia",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "deletedMessageMark",
+      "type": "String",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "editedMessageMark",
+      "type": "String",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "ayuForward",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "bypassDownloadRestrictions",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "localPremium",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideAds",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideBlockedMessages",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "allowSecretScreenshots",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "expireTtlButton",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "keepBannedChats",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "regexMessageFiltersEnabled",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "regexMessageFiltersCaseInsensitive",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "regexMessageFilterPatterns",
+      "type": "[String]",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "ghostScheduleMessages",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideAllChats",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "rememberLastFolder",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideTabBar",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showMessageSeconds",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "stripTrackingParameters",
+      "type": "Bool",
+      "status": "implemented_pending_full_integration",
+      "android": "Option.CLEAN_TRACKING_LINKS"
+    },
+    {
+      "setting": "wideChannelPosts",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "stickerSizePercent",
+      "type": "Int32",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "doubleTapToEdit",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "quickTranslateButton",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "saveToCloudMenu",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "selectFromAuthor",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "downloadSpeedBoost",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "outgoingPhotoQuality",
+      "type": "Int32",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "streamerMode",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideStickerStatus",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideStickerReplyColors",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "chooseFolderAfterJoin",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "recentChatsMenu",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "messageBookmarks",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "localGroupAlias",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "disableStoryCameraSwipe",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "jumpToStartInChatMenu",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideServiceMessages",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "confirmReactionsInUnjoinedChats",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "confirmTelegramLinks",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "confirmShareLinks",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "confirmChatPreviewEntry",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "disableGiftStarsRedirect",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "visualLabels",
+      "type": "[Int64: Int32]",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideStickerReplyEmoji",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideStickerReplyBackground",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hidePremiumReplyEmoji",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showChatCreationDate",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "profileIdBotApiFormat",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showMutualContact",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hidePremiumStatuses",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideVerification",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideGiftButton",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "visualPhoneEnabled",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "visualPhoneNumber",
+      "type": "String",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "ghostSendWithoutSound",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "ghostSuggestForStories",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideStories",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideArchive",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "allowProtectedScreenshots",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "accelerateUpload",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "infiniteRecentStickers",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "onlyAddedStickers",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "autoPauseMediaInBackground",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "doubleTapSeekSeconds",
+      "type": "Int32",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showMessageId",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "autoRevealSpoilers",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "doubleTapAction",
+      "type": "Int32",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "repeatMessageMenu",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "staticRoundVideoZoom",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "stickerShape",
+      "type": "Int32",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "commaAfterMention",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "disableColoredReplies",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideStickerChecks",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "mentionAvatars",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "relativeLastSeen",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "disableCustomBackgrounds",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "channelBottomDiscuss",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideChannelBottomButton",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideShareButton",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "glassBubbles",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "glassBubbleTint",
+      "type": "Int32",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "glassBubbleRimTop",
+      "type": "Int32",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "glassBubbleRimSides",
+      "type": "Int32",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "glassBubbleRimBottom",
+      "type": "Int32",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showDisappearedGifts",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "roundVideoStartsWithRear",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "roundVideoRemembersCamera",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "chatListHidesConnectionStatus",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "chatListHidesEmojiStatus",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "chatListCentersTitle",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "chatListHidesSearch",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "pollResultsBeforeVoting",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "exactLastSeen",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "downloadTikTok",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "downloadYouTubeShorts",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "signDownloadedMedia",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "quoteRepliesToDeleted",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "exactCounts",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "confirmVoiceSend",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideTypingText",
+      "type": "Bool",
+      "status": "implemented_pending_full_integration",
+      "android": "Option.HIDE_TYPING"
+    },
+    {
+      "setting": "hideTypingVoice",
+      "type": "Bool",
+      "status": "implemented_pending_full_integration",
+      "android": "Option.HIDE_RECORDING"
+    },
+    {
+      "setting": "hideTypingFiles",
+      "type": "Bool",
+      "status": "implemented_pending_full_integration",
+      "android": "Option.HIDE_UPLOAD"
+    },
+    {
+      "setting": "messageShot",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "powerSaving",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showsOfflineDot",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hidePaidReactions",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideViaBot",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "removeLinkPreviews",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideBirthdayNotifications",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideBotAutomation",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showPinnedWithBot",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "stopAfterVoice",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "stopAfterRoundVideo",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideGreetingSticker",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hashtagsPreferCurrentChat",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showOriginalForwardDate",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "sendBannedGifsAsVideo",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showSensitiveContent",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "disableStoryCreation",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideChannelPostReactions",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "defaultSendFormatting",
+      "type": "Int32",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "avatarLongPressMention",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "fixLinkPreviews",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "saveStickerToPhotos",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "showMediaInfo",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "inviteLinksBulkRevoke",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hideFolderUnreadCount",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "confirmUnpin",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "hidePrivateChatActivities",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "stayAtLatestMessageAfterRefresh",
+      "type": "Bool",
+      "status": "pending",
+      "android": null
+    },
+    {
+      "setting": "defaultVideoQuality",
+      "type": "Int32",
+      "status": "pending",
+      "android": null
+    }
+  ]
+}

@@ -4472,6 +4472,18 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         PollSendParams pollSendParams = sendMessageParams.pollSendParams;
         TL_iv.RichMessage richMessage = sendMessageParams.richMessage;
 
+        final boolean cleanTrackingLinks = message != null && richMessage == null && retryMessageObject == null &&
+                sendMessageChatArguments.welcomeMessageChatId == 0 && quick_reply_shortcut == null && quick_reply_shortcut_id == 0 &&
+                photo == null && document == null && videoEditedInfo == null && location == null &&
+                user == null && game == null && poll == null && todo == null && invoice == null && sendingStory == null &&
+                org.telegram.messenger.banana.BananaConfig.cleanTrackingLinks(currentAccount);
+        if (cleanTrackingLinks) {
+            org.telegram.messenger.banana.TrackingLinks.Result cleaned =
+                    org.telegram.messenger.banana.TrackingLinks.clean(message, entities);
+            message = cleaned.text;
+            entities = cleaned.entities;
+        }
+
         if (sendMessageChatArguments.welcomeMessageChatId != 0) {
             peer = -sendMessageChatArguments.welcomeMessageChatId;
             user = null;
@@ -5386,7 +5398,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             reqSend.allow_paid_stars = payStars;
                         }
                         TLRPC.TL_inputMediaWebPage inputWebPage = new TLRPC.TL_inputMediaWebPage();
-                        inputWebPage.url = mediaWebPage.webpage.url;
+                        inputWebPage.url = cleanTrackingLinks ? org.telegram.messenger.banana.TrackingUrl.clean(mediaWebPage.webpage.url) : mediaWebPage.webpage.url;
                         inputWebPage.force_large_media = mediaWebPage.force_large_media;
                         inputWebPage.force_small_media = mediaWebPage.force_small_media;
                         inputWebPage.optional = true;
@@ -5523,7 +5535,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     reqSend.message = message;
                     if (webPage != null && webPage.url != null) {
                         reqSend.media = new TLRPC.TL_decryptedMessageMediaWebPage();
-                        reqSend.media.url = webPage.url;
+                        reqSend.media.url = cleanTrackingLinks ? org.telegram.messenger.banana.TrackingUrl.clean(webPage.url) : webPage.url;
                         reqSend.flags |= TLRPC.MESSAGE_FLAG_HAS_MEDIA;
                     } else {
                         reqSend.media = new TLRPC.TL_decryptedMessageMediaEmpty();

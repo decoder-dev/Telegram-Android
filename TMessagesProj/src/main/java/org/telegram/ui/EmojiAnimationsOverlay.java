@@ -1,5 +1,8 @@
 package org.telegram.ui;
 
+import org.telegram.messenger.banana.BananaConfig;
+import org.telegram.messenger.banana.BananaConfig.Option;
+
 import android.graphics.Canvas;
 import android.text.TextUtils;
 import android.view.HapticFeedbackConstants;
@@ -880,6 +883,10 @@ public class EmojiAnimationsOverlay implements NotificationCenter.NotificationCe
     }
 
     private void sendCurrentTaps() {
+        if (BananaConfig.get(currentAccount, Option.HIDE_TYPING) || BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) {
+            clearSendingInfo();
+            return;
+        }
         if (lastTappedMsgId == 0) {
             return;
         }
