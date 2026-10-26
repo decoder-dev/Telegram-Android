@@ -18,7 +18,8 @@ public final class BananaConfig {
         SAVE_DELETED("bananaSaveDeleted"),
         SAVE_EDITS("bananaSaveEdits"),
         SAVE_BOT_HISTORY("bananaSaveBotHistory"),
-        SAVE_MEDIA_HISTORY("bananaSaveMediaHistory");
+        SAVE_MEDIA_HISTORY("bananaSaveMediaHistory"),
+        WARN_BEFORE_STORIES("bananaWarnBeforeStories");
 
         private final String key;
         Option(String key) { this.key = key; }

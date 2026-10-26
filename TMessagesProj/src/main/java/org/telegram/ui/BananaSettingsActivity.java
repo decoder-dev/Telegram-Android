@@ -55,6 +55,7 @@ public final class BananaSettingsActivity extends UniversalFragment {
         addOption(items, Option.DONT_READ_MESSAGES, R.string.BananaDontReadMessages);
         addOption(items, Option.DONT_READ_STORIES, R.string.BananaDontReadStories);
         addOption(items, Option.OFFLINE_AFTER_ACTIVITY, R.string.BananaOfflineAfterActivity);
+        addOption(items, Option.WARN_BEFORE_STORIES, R.string.BananaWarnBeforeStories);
         items.add(UItem.asShadow(LocaleController.getString(R.string.BananaGhostModeInfo)));
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaHistory)));
         addOption(items, Option.SAVE_DELETED, R.string.BananaSaveDeleted);

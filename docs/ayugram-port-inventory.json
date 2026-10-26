@@ -81,7 +81,8 @@
       "group": "ghost",
       "setting": "suggestGhostModeBeforeViewingStory",
       "source_default": "true",
-      "status": "pending"
+      "status": "implemented_prompt_and_policy_verified_pending_authenticated_story_flow",
+      "android": "Option.WARN_BEFORE_STORIES. Account-owned choice: enable Ghost, open normally or cancel; own-only stories and already-private views skip it. Native button/back/dismiss behavior and EN/RU Blue/Night layout verified, including fresh install with disabled system animations."
     },
     {
       "group": "ghost",

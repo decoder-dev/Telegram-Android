@@ -2,6 +2,7 @@ package org.telegram.banana;
 
 import android.app.Instrumentation;
 import android.content.Intent;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.net.Uri;
@@ -22,6 +23,8 @@ import org.telegram.ui.BananaSettingsActivity;
 import org.telegram.ui.BananaHistoryActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Components.VideoPlayer;
+import org.telegram.ui.Components.StoryPrivacyPrompt;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Cells.BananaSwitchCell;
 import org.telegram.ui.Cells.BananaValueCell;
 
@@ -143,8 +146,15 @@ public class BananaSmokeTest {
             return launched[0] != null && launched[0].getActionBarLayout() != null && launched[0].hasWindowFocus();
         }, "LaunchActivity must become visible");
         LaunchActivity activity = launched[0];
+        await(instrumentation, () -> {
+            org.telegram.ui.ActionBar.BaseFragment root = activity.getActionBarLayout().getLastFragment();
+            return root != null && root.getFragmentView() != null && root.getFragmentView().isLaidOut() &&
+                    !activity.getActionBarLayout().isTransitionAnimationInProgress();
+        }, "The initial host must finish its navigation before Extras is opened");
         assertFalse("Use a fresh emulator, never a signed-in account", org.telegram.messenger.UserConfig.getInstance(0).isClientActivated());
         assertFalse("Use a fresh emulator, never a signed-in account", org.telegram.messenger.UserConfig.getInstance(1).isClientActivated());
+        java.util.concurrent.atomic.AtomicInteger initialDepth = new java.util.concurrent.atomic.AtomicInteger();
+        instrumentation.runOnMainSync(() -> initialDepth.set(activity.getActionBarLayout().getFragmentStack().size()));
         try {
             for (String language : new String[]{"en", "ru"}) {
                 for (String theme : new String[]{"Blue", "Night"}) {
@@ -241,7 +251,12 @@ public class BananaSmokeTest {
                     SystemClock.sleep(400);
                     capture(instrumentation, language + "-" + theme + "-history");
                     instrumentation.runOnMainSync(() -> history[0].finishFragment(false));
+                    await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == screen[0] &&
+                            !activity.getActionBarLayout().isTransitionAnimationInProgress(), "History must finish returning to Extras");
+                    checkStoryPromptChoices(instrumentation, activity, language + "-" + theme);
                     instrumentation.runOnMainSync(() -> screen[0].finishFragment(false));
+                    await(instrumentation, () -> activity.getActionBarLayout().getFragmentStack().size() == initialDepth.get() &&
+                            !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Extras must finish returning to the original host");
                 }
             }
         } finally {
@@ -254,6 +269,56 @@ public class BananaSmokeTest {
                 BananaConfig.setSilentSending(1, BananaConfig.SilentSending.NORMAL);
                 activity.finish();
             });
+        }
+    }
+
+    private static void checkStoryPromptChoices(Instrumentation instrumentation, LaunchActivity activity, String name) throws Exception {
+        int[] buttons = {DialogInterface.BUTTON_POSITIVE, DialogInterface.BUTTON_NEUTRAL, DialogInterface.BUTTON_NEGATIVE, 0};
+        StoryPrivacyPrompt.Choice[] expected = {StoryPrivacyPrompt.Choice.ENABLE_GHOST, StoryPrivacyPrompt.Choice.OPEN_NORMALLY,
+                StoryPrivacyPrompt.Choice.CANCEL, StoryPrivacyPrompt.Choice.CANCEL};
+        for (int i = 0; i < buttons.length; i++) {
+            await(instrumentation, activity::hasWindowFocus, "The host must regain focus before the next dialog");
+            AtomicReference<StoryPrivacyPrompt.Choice> selected = new AtomicReference<>();
+            java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
+            AlertDialog[] dialog = new AlertDialog[1];
+            instrumentation.runOnMainSync(() -> {
+                dialog[0] = StoryPrivacyPrompt.create(activity, org.telegram.ui.Components.BananaTheme.COLORS, choice -> {
+                    calls.incrementAndGet(); selected.set(choice);
+                });
+                dialog[0].show();
+            });
+            await(instrumentation, () -> dialog[0].isShowing() && dialog[0].getButton(DialogInterface.BUTTON_POSITIVE).getWidth() > 0,
+                    "Story privacy choices must be visible");
+            int[] point = new int[2];
+            final int button = buttons[i];
+            instrumentation.runOnMainSync(() -> {
+                Rect[] bounds = new Rect[3];
+                for (int j = 0; j < 3; j++) {
+                    View view = dialog[0].getButton(buttons[j]);
+                    int[] xy = new int[2]; view.getLocationOnScreen(xy);
+                    bounds[j] = new Rect(xy[0], xy[1], xy[0] + view.getWidth(), xy[1] + view.getHeight());
+                    assertTrue(view.isShown());
+                    android.widget.TextView text = (android.widget.TextView) view;
+                    assertNotNull(text.getLayout());
+                    for (int line = 0; line < text.getLayout().getLineCount(); line++) {
+                        assertEquals("A privacy choice must not be truncated", 0, text.getLayout().getEllipsisCount(line));
+                    }
+                }
+                assertFalse("Privacy choices must not overlap", Rect.intersects(bounds[0], bounds[1]));
+                assertFalse("Privacy choices must not overlap", Rect.intersects(bounds[0], bounds[2]));
+                assertFalse("Privacy choices must not overlap", Rect.intersects(bounds[1], bounds[2]));
+                if (button != 0) {
+                    View view = dialog[0].getButton(button);
+                    view.getLocationOnScreen(point); point[0] += view.getWidth() / 2; point[1] += view.getHeight() / 2;
+                }
+            });
+            SystemClock.sleep(250);
+            if (i == 0) capture(instrumentation, name + "-story-prompt");
+            if (button == 0) instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK);
+            else tap(instrumentation, point[0], point[1]);
+            await(instrumentation, () -> selected.get() != null && !dialog[0].isShowing(), "The selected privacy choice must dismiss the dialog");
+            assertEquals(expected[i], selected.get());
+            assertEquals("Button plus dismissal must report only one choice", 1, calls.get());
         }
     }
     private static void tap(Instrumentation instrumentation, float x, float y) {
@@ -312,7 +377,19 @@ public class BananaSmokeTest {
             if (ready.get()) return;
             SystemClock.sleep(50);
         }
-        fail(message);
+        String[] state = {""};
+        instrumentation.runOnMainSync(() -> {
+            LaunchActivity activity = LaunchActivity.instance;
+            if (activity != null && activity.getActionBarLayout() != null) {
+                org.telegram.ui.ActionBar.BaseFragment last = activity.getActionBarLayout().getLastFragment();
+                state[0] = "; last=" + (last == null ? "none" : last.getClass().getSimpleName()) +
+                        "; depth=" + activity.getActionBarLayout().getFragmentStack().size() +
+                        "; transition=" + activity.getActionBarLayout().isTransitionAnimationInProgress();
+            }
+        });
+        try { capture(instrumentation, "failure-" + java.util.UUID.randomUUID()); }
+        catch (Exception ignored) { }
+        fail(message + state[0]);
     }
 
 }
