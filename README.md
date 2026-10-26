@@ -1,139 +1,78 @@
-# AyuGram for Android
+# 🍌 BananaGram for Android
 
-![AyuGram Logo](.github/AyuGram.png)
+**An unofficial Telegram client with more control over your conversations.**
 
-## What's this fork even about?
+BananaGram brings together our [iOS client](https://github.com/decoder-dev/Telegram-iOS), Telegram for Android and features from AyuGram: configurable Ghost Mode, message history, filters and extra sending tools.
 
-**Is it just exteraGram+Telegraher?**
+[Android source](https://github.com/decoder-dev/Telegram-Android) · [iOS source](https://github.com/decoder-dev/Telegram-iOS) · [Issues](https://github.com/decoder-dev/Telegram-Android/issues) · [Releases](https://github.com/decoder-dev/Telegram-Android/releases)
 
-**AyuGram4A** is a fork of [exteraGram](https://github.com/exteraSquad/exteraGram) with
-some patches from [Telegraher](https://github.com/nikitasius/Telegraher).
+> **Work in progress.** The Android port is undergoing integration after the AyuGram import. The current branch has not been built or tested after that import and is not a verified release. There is no published BananaGram Android release yet.
 
-But it's not just exteraGram with Telegraher's commits, **it's a fully reworked version**.
+## Feature scope
 
-The main difference between AyuGram and Telegraher is that AyuGram **saves** your messages history,
-while Telegraher just **caches** them.
-It means that you can clean your cache and still have all saved messages.
+The following features are present in the source and are being brought into a consistent Android experience:
 
-Also, AyuGram has **full ghost mode**.
-It allows you to hide your online status from other users, even if you send them
-a message.
+- **Ghost controls** — online status, typing and upload activity, message and story read receipts, silent sending and automatic return offline.
+- **Message history** — local records of edits and deletions, saved attachments, search and archive cleanup.
+- **Message filters** — shared and per-chat rules, exceptions, regular expressions, sample previews and reviewed rule imports.
+- **Sending tools** — optional tracking-link cleanup, forwarding controls and scheduled sending.
+- **Playback** — audio and video speed controls up to **4×**.
+- **Interface** — English and Russian Extras screens with light and dark themes.
 
-*And, well, it's not an Iranian Telegram fork with floating TV or something.*
+## Development setup
 
-## Features list
+The intended toolchain is **JDK 17**, **Android SDK / build tools 36**, **NDK 27.2.12479018** and the included **Gradle 8.13** wrapper. Some imported build settings and dependencies still need reconciliation.
 
-### Telegraher's patches:
-
-- Built with official keys
-- Screenshots in secret chats
-- No emulator detection
-- No ads
-
-### Reworked Telegraher's patches:
-
-- Save chats where you were banned/kicked
-- Expire button for TTL photos/videos
-- ...something else probably
-
-### Our features:
-
-- Full ghost mode (flexible)
-- Messages history (flexible)
-- Message filters (e.g. hide ads)
-- Customizable edited/deleted marks
-- Local Telegram Premium
-- Sync read states and message history with AyuSync
-- Up to stream Telegram version (*snidely*)
-
-Note that we use **Crashlytics**.
-If you don't want to send crash reports, you can disable it in **exteraGram Preferences**.
-
-**AyuGram4A** does **NOT** include proprietary **exteraGram** features.
-
-## Preview
-
-💖 **Made with extera's Monet theme.**
-
-<img src='.github/demos/demo1.png' width='210'> <img src='.github/demos/demo2.png' width='210'>
-
-<img src='.github/demos/demo3.png' width='210'> <img src='.github/demos/demo4.png' width='210'>
-
-<img src='.github/demos/demo5.png' width='210'> <img src='.github/demos/demo6.png' width='210'>
-
-## Downloads?
-
-Follow our **[Telegram channel](https://t.me/ayugram1338)** and join our [chat](https://t.me/ayugramchat)!
-
-Preview versions can be downloaded
-from the **[dedicated topic](https://t.me/ayugramchat/1238)**.
-
-## Want to throw some money?
-
-Developing AyuGram is not such a simple task.
-**We'd be grateful for any donation <3**
-
-All available methods can be found **[here](https://ayusync.cloud/ui/donate)**.
-
-## AyuSync? What is it?
-
-**AyuSync** is our synchronization service.
-You can either use official server or host your own.
-It can sync read states and message history.
-
-Server backend can be found **[here](https://github.com/AyuGram/AyuSyncBackend)**.
-
-## Want to contribute?
-
-I'd be grateful for any contribution, since I don't really like Java. :)
-
-**Work on any feature you want.**
-
-## Want to fork?
-
-Well, just fork it.
-
-**But please, don't forget to mention us in your README.**
-
-## How to build
-
-1. Clone source code using `git clone https://github.com/AyuGram/AyuGram4A.git`
-2. Open the project in Android Studio. It should be opened, **not imported**
-3. Implement the `AyuMessageUtils` & `AyuHistoryHook` classes. It's not that hard, but if you're
-   making your **very** own fork, then you should take some time to write this part of code. Or you can search for a reversed version :)
-4. Replace `google-services.json` (we don't want to see crash reports from your app...)
-5. Generate application certificate and fill API_KEYS:
-   ```
-   APP_ID = 6
-   APP_HASH = "eb06d4abfb49dc3eeb1aeb98ae0f581e"
-   MAPS_V2_API = abcdef12345678
-   
-   SIGNING_KEY_PASSWORD = password
-   SIGNING_KEY_ALIAS = alias
-   SIGNING_KEY_STORE_PASSWORD = password
-   ```
-6. You are ready to compile `AyuGram`
-
-- **AyuGram** can be built with **Android Studio** or from the command line with **Gradle**:
-
-```
-./gradlew assembleAfatRelease
+```sh
+git clone https://github.com/decoder-dev/Telegram-Android.git BananaGram
+cd BananaGram
 ```
 
-## AyuGram Localization
+Review [.gitmodules](.gitmodules) before initializing dependencies. Imported AyuGram code references a separate proprietary component; access to that component or a compatible implementation is required for the code that depends on it. The dependency layout is part of the ongoing integration.
 
-[![Crowdin](https://badges.crowdin.net/ayugram/localized.svg)](https://crowdin.com/project/ayugram)
-[![Crowdin](https://badges.crowdin.net/exteralocales/localized.svg)](https://crowdin.com/project/exteralocales)
+### Telegram API credentials
 
-We have our own **[Crowdin](https://crowdin.com/project/ayugram)**.
+Register your own application at [my.telegram.org](https://my.telegram.org). The build reads `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` from the environment or a private JSON file outside the checkout.
 
-But since **AyuGram** is based on **exteraGram**, also join their project
-at **[Crowdin](https://crowdin.com/project/exteralocales)**!
+With a private file containing those two fields:
 
-## Credits
+```sh
+chmod 600 /absolute/private/path/android-credentials.json
+python3 scripts/build-android.py \
+  --credentials-file /absolute/private/path/android-credentials.json \
+  -- :TMessagesProj_AppStandalone:assembleAfatDebug
+```
 
-- **[exteraGram](https://github.com/exteraSquad/exteraGram)**
-- [Telegraher](https://github.com/nikitasius/Telegraher)
-- [Cherrygram](https://github.com/arsLan4k1390/Cherrygram)
-- [Nagram](https://github.com/NextAlone/Nagram)
-- [Telegram FOSS](https://github.com/Telegram-FOSS-Team/Telegram-FOSS)
+API credentials are separate from APK signing keys and Firebase configuration. Configure your own application identity and signing before publishing a release; keep credentials and private keys out of Git.
+
+### Automated builds
+
+The repository contains Android checks and an inherited release workflow. The inherited release workflow is disabled on GitHub pending manual setup. Earlier check results describe the pre-import code, not the current integration snapshot.
+
+## Contributing
+
+Bug reports and focused pull requests are welcome. Include the device, Android version, reproduction steps and relevant logs with tokens and private conversation data removed.
+
+Use the [import record](docs/ayugram-upstream-import.json), [iOS feature inventory](docs/phone-port-inventory.json) and [AyuGram inventory](docs/ayugram-port-inventory.json) to follow porting progress.
+
+## Русский
+
+**BananaGram — неофициальный клиент Telegram с дополнительными настройками общения.**
+
+Переносим возможности нашего iOS-клиента и AyuGram: гибкий Ghost Mode, историю правок и удалений, фильтры сообщений, инструменты отправки и управление скоростью воспроизведения.
+
+Android-порт проходит интеграцию; готового релиза пока нет. Исходники, обсуждение ошибок и будущие сборки размещаются в этом репозитории.
+
+## Credits and license
+
+BananaGram is maintained by [decoder-dev](https://github.com/decoder-dev) and is not affiliated with Telegram.
+
+This project builds on the work of:
+
+- [Telegram for Android](https://github.com/DrKLO/Telegram) — the upstream client.
+- [BananaGram for iOS](https://github.com/decoder-dev/Telegram-iOS) — our phone feature reference.
+- [AyuGram / Radolyn](https://github.com/AyuGram/AyuGram4A) and [exteraGram](https://github.com/exteraSquad/exteraGram) — imported Android features and their foundations.
+- [Telegraher](https://github.com/nikitasius/Telegraher), [Cherrygram](https://github.com/arsLan4k1390/Cherrygram), [Nagram](https://github.com/NextAlone/Nagram) and [Telegram FOSS](https://github.com/Telegram-FOSS-Team/Telegram-FOSS) — contributions acknowledged by the imported sources.
+- [Nekogram](https://github.com/Nekogram/Nekogram) and [Forkgram](https://github.com/forkgram/TelegramAndroid) — adapted Android fixes.
+
+Original copyright notices and source credits are retained. See [LICENSE](LICENSE), [source notes](docs/port-sources.md) and the licenses of individual components.
