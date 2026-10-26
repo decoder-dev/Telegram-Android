@@ -100,8 +100,23 @@ public final class BananaExtrasSectionActivity extends UniversalFragment {
                 com.radolyn.ayugram.AyuConfig.editor.putBoolean("sendOnlinePackets", !next).apply();
             }
             if (option == Option.GHOST_SCHEDULE_MESSAGES) {
-                com.radolyn.ayugram.AyuConfig.useScheduledMessages = next;
-                com.radolyn.ayugram.AyuConfig.editor.putBoolean("useScheduledMessages", next).apply();
+                // Send path schedules only when ghost mode is active AND this option is on.
+                boolean schedule = next && BananaConfig.isGhostModeActive(currentAccount);
+                com.radolyn.ayugram.AyuConfig.useScheduledMessages = schedule;
+                com.radolyn.ayugram.AyuConfig.editor.putBoolean("useScheduledMessages", schedule).apply();
+            }
+            if (option == Option.REGEX_MESSAGE_FILTERS_ENABLED) {
+                org.telegram.messenger.banana.FilterStore.get(currentAccount).setEnabled(next);
+                com.radolyn.ayugram.AyuConfig.regexFiltersEnabled = next;
+                com.radolyn.ayugram.AyuConfig.editor.putBoolean("regexFiltersEnabled", next).apply();
+                com.radolyn.ayugram.AyuFilter.rebuildCache();
+                org.telegram.messenger.banana.MessageFilters.settingsChanged(currentAccount);
+            }
+            if (option == Option.REGEX_MESSAGE_FILTERS_CASE_INSENSITIVE) {
+                com.radolyn.ayugram.AyuConfig.regexFiltersCaseInsensitive = next;
+                com.radolyn.ayugram.AyuConfig.editor.putBoolean("regexFiltersCaseInsensitive", next).apply();
+                com.radolyn.ayugram.AyuFilter.rebuildCache();
+                org.telegram.messenger.banana.MessageFilters.settingsChanged(currentAccount);
             }
             if (option == Option.HIDE_ONLINE || option == Option.OFFLINE_AFTER_ACTIVITY) {
                 Utilities.stageQueue.postRunnable(() -> getMessagesController().updateTimerProc());

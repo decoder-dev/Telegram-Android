@@ -7270,7 +7270,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             }, resourcesProvider);
             return true;
         } else {
-            sendMessageInternal(true, 0);
+            return sendMessageInternal(true, 0, 0, 0, true);
         }
     }
 

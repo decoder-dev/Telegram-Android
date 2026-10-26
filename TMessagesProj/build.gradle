@@ -124,6 +124,16 @@ dependencies {
     implementation "dev.gustavoavila:java-android-websocket-client:2.0.2"
     implementation "com.squareup.okhttp3:okhttp:4.10.0"
 
+    // Markdown / Markwon (MarkdownParser) — commonmark group is com.atlassian for 0.13.x
+    implementation "io.noties.markwon:core:4.6.2"
+    implementation "io.noties.markwon:html:4.6.2"
+    implementation "io.noties.markwon:ext-strikethrough:4.6.2"
+    implementation "io.noties.markwon:ext-tables:4.6.2"
+    implementation "io.noties.markwon:inline-parser:4.6.2"
+    implementation "com.atlassian.commonmark:commonmark:0.13.0"
+    implementation "com.atlassian.commonmark:commonmark-ext-gfm-strikethrough:0.13.0"
+    implementation "com.atlassian.commonmark:commonmark-ext-gfm-tables:0.13.0"
+
     implementation files('libs/libgsaverification-client.aar')
 }
 
@@ -157,7 +167,7 @@ android {
     ndkVersion "21.4.7075529"
     namespace 'org.telegram.messenger'
 
-    defaultConfig.applicationId = APP_PACKAGE
+    // Library modules cannot set applicationId (AGP 8+).
     defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)
 }
 
@@ -198,8 +208,9 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // Java 11+: Ayu/Banana code uses local-variable type inference (`var`).
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
 
         coreLibraryDesugaringEnabled true
     }

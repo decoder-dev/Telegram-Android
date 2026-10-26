@@ -157,6 +157,7 @@ import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
 
 import com.radolyn.ayugram.AyuConfig;
+import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.ApplicationLoader;
@@ -5791,8 +5792,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         menu = actionBar.createMenu();
         menu.setOnLayoutListener(this::updateActionBarTitlePadding);
 
-        pipItem = menu.addItem(gallery_menu_pip, ExteraConfig.useSolarIcons ? R.drawable.header_goinline_solar : R.drawable.ic_goinline);
-        pipItem.setContentDescription(LocaleController.getString("AccDescrPipMode", R.string.AccDescrPipMode));
+        // PiP is a submenu item (ActionBarMenuSubItem), not a top-level ActionBarMenuItem.
+        pipItem = menuItem.addSubItem(gallery_menu_pip, R.drawable.ic_goinline, LocaleController.getString("AccDescrPipMode", R.string.AccDescrPipMode)).setColors(0xfffafafa, 0xfffafafa);
         masksItem = menu.addItem(gallery_menu_masks, R.drawable.msg_mask);
         masksItem.setContentDescription(getString(R.string.Masks));
         editItem = menu.addItem(gallery_menu_paint, R.drawable.msg_header_draw);
@@ -14581,7 +14582,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 subtitle = LocaleController.formatDateAudio(newMessageObject.messageOwner.date, false);
             }
             if (org.telegram.messenger.banana.BananaHooks.showMediaInfo(currentAccount)) {
-                int w = 0, h = 0, duration = 0;
+                int w = 0, h = 0, mediaDuration = 0;
                 long size = 0;
                 try {
                     if (newMessageObject.photoThumbs != null && !newMessageObject.photoThumbs.isEmpty()) {
@@ -14597,7 +14598,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                         if (size <= 0) {
                             size = doc.size;
                         }
-                        duration = (int) newMessageObject.getDuration();
+                        mediaDuration = (int) newMessageObject.getDuration();
                         for (int a = 0; a < doc.attributes.size(); a++) {
                             TLRPC.DocumentAttribute attr = doc.attributes.get(a);
                             if (attr instanceof TLRPC.TL_documentAttributeImageSize || attr instanceof TLRPC.TL_documentAttributeVideo) {
@@ -14611,7 +14612,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     }
                 } catch (Exception ignore) {
                 }
-                String mediaInfo = org.telegram.messenger.banana.BananaHooks.formatMediaInfo(currentAccount, w, h, size, duration);
+                String mediaInfo = org.telegram.messenger.banana.BananaHooks.formatMediaInfo(currentAccount, w, h, size, mediaDuration);
                 if (mediaInfo != null) {
                     subtitle = TextUtils.isEmpty(subtitle) ? mediaInfo : TextUtils.concat(subtitle, " · ", mediaInfo);
                 }

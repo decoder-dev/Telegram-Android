@@ -11,7 +11,7 @@ package com.radolyn.ayugram.messages;
 
 import android.os.Environment;
 import android.text.TextUtils;
-import com.google.android.exoplayer2.util.Log;
+import android.util.Log;
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.database.AyuData;

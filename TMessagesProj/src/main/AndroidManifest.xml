@@ -108,6 +108,7 @@
         android:largeHeap="true"
         android:theme="@style/Theme.TMessages.Start"
         android:usesCleartextTraffic="true"
+        android:supportsRtl="true"
         tools:replace="android:supportsRtl">
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"

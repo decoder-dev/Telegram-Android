@@ -20,7 +20,7 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 import androidx.core.util.Pair;
 import com.exteragram.messenger.utils.LocaleUtils;
-import com.google.android.exoplayer2.util.Log;
+import android.util.Log;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLoader;

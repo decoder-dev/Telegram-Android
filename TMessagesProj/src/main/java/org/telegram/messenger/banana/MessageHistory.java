@@ -38,6 +38,39 @@ public final class MessageHistory {
 
     private MessageHistory() {}
 
+    /**
+     * When PROACTIVE_SAVE_MEDIA + SAVE_MEDIA_HISTORY are on, start low-priority downloads
+     * so attachments exist locally before a later edit/delete capture.
+     */
+    public static void proactiveDownloads(int account, List<TLRPC.Message> messages) {
+        if (!BananaHooks.proactiveSaveMedia(account) || messages == null || messages.isEmpty()) return;
+        FileLoader loader = FileLoader.getInstance(account);
+        int started = 0;
+        for (TLRPC.Message message : messages) {
+            if (message == null || message.id <= 0 || message.media == null || message.ttl > 0 || message.ttl_period > 0) continue;
+            if (message.media.ttl_seconds > 0) continue;
+            try {
+                if (message.media instanceof TLRPC.TL_messageMediaDocument && message.media.document != null) {
+                    File existing = loader.getPathToMessage(message);
+                    if (existing != null && existing.isFile() && existing.length() > 0) continue;
+                    loader.loadFile(message.media.document, message, FileLoader.PRIORITY_LOW, 0);
+                    if (++started >= 8) return;
+                } else if (message.media instanceof TLRPC.TL_messageMediaPhoto && message.media.photo != null) {
+                    TLRPC.PhotoSize size = FileLoader.getClosestPhotoSizeWithSize(
+                            message.media.photo.sizes, org.telegram.messenger.AndroidUtilities.getPhotoSize());
+                    if (size == null) continue;
+                    File existing = loader.getPathToAttach(size, true);
+                    if (existing != null && existing.isFile() && existing.length() > 0) continue;
+                    loader.loadFile(org.telegram.messenger.ImageLocation.getForPhoto(size, message.media.photo),
+                            message, null, FileLoader.PRIORITY_LOW, 0);
+                    if (++started >= 8) return;
+                }
+            } catch (Exception error) {
+                FileLog.e(error);
+            }
+        }
+    }
+
     public static void captureEdits(SQLiteDatabase source, int account, List<TLRPC.Message> messages) {
         if (!BananaConfig.get(account, Option.SAVE_EDITS) || messages == null) return;
         for (TLRPC.Message updated : messages) {
@@ -159,7 +192,20 @@ public final class MessageHistory {
             }
             catch (Exception error) { FileLog.e(error); }
         });
-        if (media == null || !pendingCopies.tryAcquire()) return;
+        if (media == null) return;
+        if (BananaHooks.proactiveSaveMedia(account)) {
+            try {
+                File local = FileLoader.getInstance(account).getPathToMessage(message);
+                if (local == null || !local.isFile() || local.length() == 0) {
+                    if (message.media instanceof TLRPC.TL_messageMediaDocument && message.media.document != null) {
+                        FileLoader.getInstance(account).loadFile(message.media.document, message, FileLoader.PRIORITY_LOW, 0);
+                    }
+                }
+            } catch (Exception error) {
+                FileLog.e(error);
+            }
+        }
+        if (!pendingCopies.tryAcquire()) return;
         // FileLoader.deleteFiles uses this same queue. Open before its later unlink;
         // copy on our IO queue so large files do not stall Telegram's download queue.
         FileLoader loader = FileLoader.getInstance(account);

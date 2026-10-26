@@ -173,7 +173,9 @@ public class FilterTabsView extends FrameLayout {
         }
     }
 
-    private static final float TAB_PADDING_WIDTH = 24;
+    private static float tabPaddingWidth() {
+        return org.telegram.messenger.banana.BananaHooks.filterTabPaddingDp(UserConfig.selectedAccount);
+    }
     private static final float TAB_INTERNAL_PADDING = 12.5f;
     private static final float TAB_COUNTER_HEIGHT = 17.333f;
 
@@ -289,7 +291,7 @@ public class FilterTabsView extends FrameLayout {
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            int w = currentTab.getWidth(false) + dp(TAB_PADDING_WIDTH) + additionalTabWidth;
+            int w = currentTab.getWidth(false) + dp(tabPaddingWidth()) + additionalTabWidth;
             setMeasuredDimension(w, MeasureSpec.getSize(heightMeasureSpec));
         }
 
@@ -1098,7 +1100,7 @@ public class FilterTabsView extends FrameLayout {
         });
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new TouchHelperCallback());
         itemTouchHelper.attachToRecyclerView(listView);
-        listViewPaddingH = Math.max(0, dp(23.5f - TAB_PADDING_WIDTH / 2f));
+        listViewPaddingH = Math.max(0, dp(23.5f - tabPaddingWidth() / 2f));
         listView.setPadding(listViewPaddingH, 0, listViewPaddingH, 0);
         listView.setClipToPadding(false);
         listView.setDrawSelectorBehind(true);
@@ -1274,7 +1276,7 @@ public class FilterTabsView extends FrameLayout {
         Tab tab = new Tab(id, text(text, entities), noanimate);
         tab.isDefault = isDefault;
         tab.isLocked = isLocked;
-        allTabsWidth += tab.getWidth(true) + dp(TAB_PADDING_WIDTH);
+        allTabsWidth += tab.getWidth(true) + dp(tabPaddingWidth());
         tabs.add(tab);
     }
 
@@ -1293,7 +1295,7 @@ public class FilterTabsView extends FrameLayout {
         Tab tab = new Tab(id, text, noanimate);
         tab.isDefault = isDefault;
         tab.isLocked = isLocked;
-        allTabsWidth += tab.getWidth(true) + dp(TAB_PADDING_WIDTH);
+        allTabsWidth += tab.getWidth(true) + dp(tabPaddingWidth());
         tabs.add(tab);
     }
 
@@ -1382,7 +1384,7 @@ public class FilterTabsView extends FrameLayout {
             positionToWidth.put(a, tabWidth);
             positionToCount.put(a, tabs.get(a).counter);
             positionToX.put(a, xOffset + additionalTabWidth / 2);
-            xOffset += tabWidth + dp(TAB_PADDING_WIDTH) + additionalTabWidth;
+            xOffset += tabWidth + dp(tabPaddingWidth()) + additionalTabWidth;
         }
     }
 
@@ -1472,10 +1474,10 @@ public class FilterTabsView extends FrameLayout {
                     float prevH = positionToCount.get(idx1) != 0 ? 1 : 0;
                     float newH = positionToCount.get(idx2) != 0 ? 1 : 0;
                     if (additionalTabWidth != 0) {
-                        indicatorX = lerp(prevX, newX, animatingIndicatorProgress) + dp(TAB_PADDING_WIDTH / 2f);
+                        indicatorX = lerp(prevX, newX, animatingIndicatorProgress) + dp(tabPaddingWidth() / 2f);
                     } else {
                         int x = positionToX.get(position);
-                        indicatorX = lerp(prevX, newX, animatingIndicatorProgress) - (x - holder.itemView.getLeft()) + dp(TAB_PADDING_WIDTH / 2f);
+                        indicatorX = lerp(prevX, newX, animatingIndicatorProgress) - (x - holder.itemView.getLeft()) + dp(tabPaddingWidth() / 2f);
                     }
                     indicatorWidth = lerp(prevW, newW, animatingIndicatorProgress);
                     counterVisible = lerp(prevH, newH, animatingIndicatorProgress);
@@ -1721,7 +1723,7 @@ public class FilterTabsView extends FrameLayout {
                     defaultTab.setTitle(LocaleController.getString(R.string.FilterAllChats), null, false);
                 }
                 for (int b = 0; b < N; b++) {
-                    allTabsWidth += tabs.get(b).getWidth(true) + dp(TAB_PADDING_WIDTH);
+                    allTabsWidth += tabs.get(b).getWidth(true) + dp(tabPaddingWidth());
                 }
                 break;
             }
@@ -1757,7 +1759,7 @@ public class FilterTabsView extends FrameLayout {
                 defaultTab.setTitle(LocaleController.getString(R.string.FilterAllChats), null, false);
             }
             for (int b = 0, N = tabs.size(); b < N; b++) {
-                allTabsWidth += tabs.get(b).getWidth(true) + dp(TAB_PADDING_WIDTH);
+                allTabsWidth += tabs.get(b).getWidth(true) + dp(tabPaddingWidth());
             }
         }
     }

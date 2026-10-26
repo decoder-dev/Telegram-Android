@@ -1663,6 +1663,11 @@ public class Theme {
             return isDark == DARK;
         }
 
+        /** Exteragram Monet theme hook; stubbed false for Banana open builds. */
+        public boolean isMonet() {
+            return false;
+        }
+
         public boolean isLight() {
             return pathToFile == null && !isDark();
         }

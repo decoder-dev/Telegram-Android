@@ -612,7 +612,10 @@ public class DownloadController extends BaseController implements NotificationCe
             if (!SharedConfig.isAutoplayVideo()) return false;
             TLRPC.TL_messageMediaStory mediaStory = (TLRPC.TL_messageMediaStory) MessageObject.getMedia(messageObject);
             TL_stories.StoryItem storyItem = mediaStory.storyItem;
-            if (storyItem == null || storyItem.media == null || storyItem.media.document == null || !storyItem.isPublic) {
+            if (storyItem == null || storyItem.media == null || storyItem.media.document == null) {
+                return false;
+            }
+            if (!storyItem.isPublic && !org.telegram.messenger.banana.BananaHooks.bypassDownloadRestrictions(currentAccount)) {
                 return false;
             }
             return true;

@@ -349,7 +349,8 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             });
 
             tabsView.addView(tabs[index]);
-            tabsView.setViewVisible(view, true, false);
+            boolean showTab = index != INDEX_CONTACTS || org.telegram.messenger.banana.BananaHooks.showContactsTab(currentAccount);
+            tabsView.setViewVisible(view, showTab, false);
         }
         checkUi_callTabVisible(getUserConfig().showCallsTab, false);
         if (org.telegram.messenger.banana.BananaHooks.hideTabBar(currentAccount)) {

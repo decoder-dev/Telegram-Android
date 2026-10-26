@@ -50,6 +50,7 @@ public class AyuConfig {
     public static boolean regexFiltersCaseInsensitive;
     public static boolean showGhostToggleInDrawer;
     public static boolean showKillButtonInDrawer;
+    public static boolean showFromChannel;
     public static boolean syncEnabled;
     public static boolean useSecureConnection;
     public static boolean WALMode;
