@@ -146,7 +146,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     private ActionBarMenuItem playbackSpeedButton;
     private SpeedIconDrawable speedIcon;
     private ActionBarMenuSlider.SpeedSlider speedSlider;
-    private ActionBarMenuItem.Item[] speedItems = new ActionBarMenuItem.Item[6];
+    private ActionBarMenuItem.Item[] speedItems = new ActionBarMenuItem.Item[8];
     private FrameLayout silentButton;
     private ImageView silentButtonImage;
     private TextView joinButton;
@@ -235,7 +235,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     private boolean checkImportAfterAnimation;
 
     private final static float[] speeds = new float[] {
-        .5f, 1f, 1.2f, 1.5f, 1.7f, 2f
+        .5f, 1f, 1.2f, 1.5f, 1.7f, 2f, 3f, 4f
     };
 
     @Override
@@ -883,6 +883,12 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         speedItems[3] = playbackSpeedButton.lazilyAddSubItem(3, R.drawable.msg_speed_fast, getString(R.string.SpeedFast));
         speedItems[4] = playbackSpeedButton.lazilyAddSubItem(4, R.drawable.msg_speed_veryfast, getString(R.string.SpeedVeryFast));
         speedItems[5] = playbackSpeedButton.lazilyAddSubItem(5, R.drawable.msg_speed_superfast, getString(R.string.SpeedSuperFast));
+        for (int i = 6; i < speeds.length; i++) {
+            SpeedIconDrawable icon = new SpeedIconDrawable(true);
+            icon.setValue(speeds[i], false);
+            icon.setColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
+            speedItems[i] = playbackSpeedButton.lazilyAddSubItem(i, icon, SpeedIconDrawable.formatNumber(speeds[i]) + "×");
+        }
         if (AndroidUtilities.density >= 3.0f) {
             playbackSpeedButton.setPadding(0, 1, 0, 0);
         }
@@ -990,8 +996,10 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         for (int a = 0; a < speedItems.length; a++) {
             if (isFinal && Math.abs(currentPlaybackSpeed - speeds[a]) < 0.05f) {
                 speedItems[a].setColors(getThemedColor(Theme.key_featuredStickers_addButtonPressed), getThemedColor(Theme.key_featuredStickers_addButtonPressed));
+                if (a >= 6) ((SpeedIconDrawable) speedItems[a].iconDrawable).setColor(getThemedColor(Theme.key_featuredStickers_addButtonPressed));
             } else {
                 speedItems[a].setColors(getThemedColor(Theme.key_actionBarDefaultSubmenuItem), getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
+                if (a >= 6) ((SpeedIconDrawable) speedItems[a].iconDrawable).setColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
             }
         }
 

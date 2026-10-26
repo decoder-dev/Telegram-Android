@@ -1,0 +1,868 @@
+{
+  "meaning": "Union scope with phone-port-inventory.json. Source settings inventory, not a claim of implemented or shipped features. Desktop-only interactions require a native Android equivalent. Defaults are reference data, not BananaGram defaults.",
+  "sources": [
+    {
+      "repo": "AyuGram/AyuGramDesktop",
+      "commit": "0f2a31bb420de98f331990432265b131b8d836b5",
+      "file": "Telegram/SourceFiles/ayu/ayu_settings.h"
+    },
+    {
+      "repo": "AyuGram/AyuGram4A",
+      "commit": "7013145676d36d82ee13c02a89f72097b7490dcd",
+      "file": "TMessagesProj/src/main/java/com/radolyn/ayugram/AyuConfig.java"
+    },
+    {
+      "repo": "AyuGram/AyuGramDocs",
+      "commit": "42f5f32c6b05aab4a69a5f8d0bf7652e1cb11a9b"
+    }
+  ],
+  "desktop_settings": [
+    {
+      "group": "ghost",
+      "setting": "sendReadMessages",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "sendReadStories",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "sendOnlinePackets",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "sendUploadProgress",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "sendOfflinePacketAfterOnline",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "markReadAfterAction",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "useScheduledMessages",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "sendWithoutSound",
+      "source_default": "SendWithoutSoundOption::Never",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "suggestGhostModeBeforeViewingStory",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "ghostModeActive",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "sendReadMessagesLocked",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "sendReadStoriesLocked",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "sendOnlinePacketsLocked",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "sendUploadProgressLocked",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "ghost",
+      "setting": "sendOfflinePacketAfterOnlineLocked",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "showBackground",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "showDate",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "showReactions",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "showHeaderDecorations",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "showColorfulReplies",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "revealSpoilers",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "embeddedThemeType",
+      "source_default": "-1",
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "embeddedThemeAccentColor",
+      "source_default": "0",
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "cloudThemeId",
+      "source_default": "0",
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "cloudThemeAccessHash",
+      "source_default": "0",
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "cloudThemeDocumentId",
+      "source_default": "0",
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "cloudThemeTitle",
+      "source_default": null,
+      "status": "pending"
+    },
+    {
+      "group": "messageShot",
+      "setting": "cloudThemeAccountId",
+      "source_default": "0",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "saveDeletedMessages",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "saveMessagesHistory",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "saveForBots",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "filtersEnabled",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "filtersEnabledInChats",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "hideFromBlocked",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "semiTransparentDeletedMessages",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "disableAds",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "disableStories",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "disableCustomBackgrounds",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showOnlyAddedEmojisAndStickers",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "collapseSimilarChannels",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "hideSimilarChannels",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "messageBubbleRadius",
+      "source_default": "16",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "disableOpenLinkWarning",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "wideMultiplier",
+      "source_default": "1.0",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "spoofWebviewAsAndroid",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "increaseWebviewHeight",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "increaseWebviewWidth",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "materialSwitches",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "removeMessageTail",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "disableNotificationsDelay",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "localPremium",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showChannelReactions",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showGroupReactions",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showPrivateChatReactions",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "appIcon",
+      "source_default": null,
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "simpleQuotesAndReplies",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "hideFastShare",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "replaceBottomInfoWithIcons",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "deletedMark",
+      "source_default": "QString::fromUtf8(\"🧹\")",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "editedMark",
+      "source_default": null,
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "unlimitedRecentStickers",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showReactionsPanelInContextMenu",
+      "source_default": "ContextMenuVisibility::Visible",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showViewsPanelInContextMenu",
+      "source_default": "ContextMenuVisibility::Visible",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showHideMessageInContextMenu",
+      "source_default": "ContextMenuVisibility::Hidden",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showUserMessagesInContextMenu",
+      "source_default": "ContextMenuVisibility::VisibleWithModifier",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showMessageDetailsInContextMenu",
+      "source_default": "ContextMenuVisibility::VisibleWithModifier",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showRepeatMessageInContextMenu",
+      "source_default": "ContextMenuVisibility::Hidden",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showAddFilterInContextMenu",
+      "source_default": "ContextMenuVisibility::Visible",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showAttachButtonInMessageField",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showCommandsButtonInMessageField",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showEmojiButtonInMessageField",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showMicrophoneButtonInMessageField",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showAutoDeleteButtonInMessageField",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showGiftButtonInMessageField",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showAiEditorButtonInMessageField",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showAttachPopup",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showEmojiPopup",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showMyProfileInDrawer",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showBotsInDrawer",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showNewGroupInDrawer",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showNewChannelInDrawer",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showContactsInDrawer",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showCallsInDrawer",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showSavedMessagesInDrawer",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showLReadToggleInDrawer",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showSReadToggleInDrawer",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showNightModeToggleInDrawer",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showGhostToggleInDrawer",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showStreamerToggleInDrawer",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showGhostToggleInTray",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showStreamerToggleInTray",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "hidePremiumStatuses",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "monoFont",
+      "source_default": null,
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "hideNotificationCounters",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "hideNotificationBadge",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "hideAllChatsFolder",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "channelBottomButton",
+      "source_default": "ChannelBottomButton::DiscussWithFallback",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "quickAdminShortcuts",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "disableGreetingSticker",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showPeerId",
+      "source_default": "PeerIdDisplay::BotApi",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showMessageSeconds",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "showMessageShot",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "filterZalgo",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "stickerConfirmation",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "gifConfirmation",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "voiceConfirmation",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "roundConfirmation",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "translationProvider",
+      "source_default": "TranslationProvider::Telegram",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "adaptiveCoverColor",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "improveLinkPreviews",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "crashReporting",
+      "source_default": "true",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "avatarCorners",
+      "source_default": "23",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "singleCornerRadius",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "streamerMode",
+      "source_default": "false",
+      "status": "pending"
+    },
+    {
+      "group": "general",
+      "setting": "useGlobalGhostMode",
+      "source_default": "true",
+      "status": "pending"
+    }
+  ],
+  "android_settings": [
+    {
+      "setting": "sendReadPackets",
+      "status": "pending"
+    },
+    {
+      "setting": "sendOnlinePackets",
+      "status": "pending"
+    },
+    {
+      "setting": "sendOfflinePacketAfterOnline",
+      "status": "pending"
+    },
+    {
+      "setting": "sendUploadProgress",
+      "status": "pending"
+    },
+    {
+      "setting": "useScheduledMessages",
+      "status": "pending"
+    },
+    {
+      "setting": "saveDeletedMessages",
+      "status": "pending"
+    },
+    {
+      "setting": "saveMessagesHistory",
+      "status": "pending"
+    },
+    {
+      "setting": "saveMedia",
+      "status": "pending"
+    },
+    {
+      "setting": "saveMediaInPrivateChats",
+      "status": "pending"
+    },
+    {
+      "setting": "saveMediaInPublicChannels",
+      "status": "pending"
+    },
+    {
+      "setting": "saveMediaInPrivateChannels",
+      "status": "pending"
+    },
+    {
+      "setting": "saveMediaInPublicGroups",
+      "status": "pending"
+    },
+    {
+      "setting": "saveMediaInPrivateGroups",
+      "status": "pending"
+    },
+    {
+      "setting": "saveFormatting",
+      "status": "pending"
+    },
+    {
+      "setting": "saveReactions",
+      "status": "pending"
+    },
+    {
+      "setting": "saveForBots",
+      "status": "pending"
+    },
+    {
+      "setting": "markReadAfterSend",
+      "status": "pending"
+    },
+    {
+      "setting": "keepAliveService",
+      "status": "pending"
+    },
+    {
+      "setting": "disableAds",
+      "status": "pending"
+    },
+    {
+      "setting": "localPremium",
+      "status": "pending"
+    },
+    {
+      "setting": "regexFiltersEnabled",
+      "status": "pending"
+    },
+    {
+      "setting": "regexFiltersInChats",
+      "status": "pending"
+    },
+    {
+      "setting": "regexFiltersCaseInsensitive",
+      "status": "pending"
+    },
+    {
+      "setting": "showGhostToggleInDrawer",
+      "status": "pending"
+    },
+    {
+      "setting": "showKillButtonInDrawer",
+      "status": "pending"
+    },
+    {
+      "setting": "syncEnabled",
+      "status": "pending"
+    },
+    {
+      "setting": "useSecureConnection",
+      "status": "pending"
+    },
+    {
+      "setting": "WALMode",
+      "status": "pending"
+    }
+  ],
+  "additional_behaviors": [
+    {
+      "feature": "Local deleted and edited history with search, export/import and separate storage",
+      "status": "pending"
+    },
+    {
+      "feature": "Saved attachments with private/group/channel and bot rules",
+      "status": "pending"
+    },
+    {
+      "feature": "Regex and blocked-user filters, previews, imports and per-chat exceptions",
+      "status": "pending"
+    },
+    {
+      "feature": "Forward-as-copy, reupload and cancellation",
+      "status": "pending"
+    },
+    {
+      "feature": "Per-account advanced Ghost policy, read-on-interaction and scheduled sends",
+      "status": "pending"
+    },
+    {
+      "feature": "Online peek with privacy restoration",
+      "status": "pending"
+    },
+    {
+      "feature": "Profile lookup by ID without implicit external bot messages",
+      "status": "pending"
+    },
+    {
+      "feature": "Screenshot and expiring media controls",
+      "status": "pending"
+    },
+    {
+      "feature": "Push service and battery behavior using legitimate app credentials",
+      "status": "pending"
+    },
+    {
+      "feature": "Settings deep links and guarded import actions",
+      "status": "pending"
+    }
+  ],
+  "existing_overlap": "Basic per-account read/story/online/activity suppression exists; advanced behavior and live-server acceptance remain pending."
+}

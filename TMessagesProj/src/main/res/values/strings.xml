@@ -11630,4 +11630,19 @@
     <string name="NoPaidMessagesTokenUsed">un1 used your QR code and can message you for free</string>
     <string name="NoPaidMessagesTokenUsedOut">You used the QR code of un1 and can message them for free</string>
     <string name="NoPaidMessagesTokenImported">You can now message **%1$s** for free.</string>
+
+    <!-- BananaGram phone features -->
+    <string name="BananaExtras">BananaGram Extras</string>
+    <string name="BananaExtrasInfo">Additional features for this account</string>
+    <string name="BananaSending">Sending messages</string>
+    <string name="BananaCleanTrackingLinks">Remove link tracking</string>
+    <string name="BananaCleanTrackingLinksInfo">Remove advertising parameters from links in new text messages. Keeps formatting and playback timestamps. Signed links, code and existing messages stay unchanged.</string>
+    <string name="BananaGhostMode">Ghost Mode</string>
+    <string name="BananaHideOnline">Hide online status</string>
+    <string name="BananaHideTyping">Hide typing activity</string>
+    <string name="BananaHideRecording">Hide voice and video recording</string>
+    <string name="BananaHideUpload">Hide file upload activity</string>
+    <string name="BananaDontReadMessages">Keep message reads local</string>
+    <string name="BananaDontReadStories">Keep story views local</string>
+    <string name="BananaGhostModeInfo">Applies to this account. Read and viewed markers stay on this device. Sending messages and other explicit actions may still reveal activity.</string>
 </resources>

@@ -8,6 +8,9 @@
 
 package org.telegram.messenger;
 
+import org.telegram.messenger.banana.BananaConfig;
+import org.telegram.messenger.banana.BananaConfig.Option;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -902,6 +905,7 @@ public class LocationController extends BaseController implements NotificationCe
     }
 
     public void markLiveLoactionsAsRead(long dialogId) {
+        if (BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) return;
         if (DialogObject.isEncryptedDialog(dialogId)) {
             return;
         }

@@ -6,68 +6,24 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-import androidx.core.graphics.ColorUtils;
-import androidx.core.math.MathUtils;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.MediaController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
-import org.telegram.ui.ActionBar.ActionBarMenuSlider;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
-import org.telegram.ui.ActionBar.ActionBarPopupWindow;
-import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
-import org.telegram.ui.Components.PopupSwipeBackLayout;
 import org.telegram.ui.Components.SpeedIconDrawable;
 
 public class SpeedButtonsLayout extends LinearLayout {
 
-    ActionBarMenuSubItem[] speedItems = new ActionBarMenuSubItem[5];
+    static final float[] PRESET_SPEEDS = {0.2f, 0.5f, 1f, 1.5f, 2f, 3f, 4f};
+    private final ActionBarMenuSubItem[] speedItems;
+
     public SpeedButtonsLayout(Context context, Callback callback) {
         super(context);
         setOrientation(VERTICAL);
-
-        ActionBarMenuSubItem item = ActionBarMenuItem.addItem(this, R.drawable.msg_speed_0_2, LocaleController.getString(R.string.SpeedVerySlow), false, null);
-        item.setColors(0xfffafafa, 0xfffafafa);
-        item.setOnClickListener((view) -> {
-            callback.onSpeedSelected(0.2f, true, true);
-        });
-        item.setSelectorColor(0x0fffffff);
-        speedItems[0] = item;
-
-        item = ActionBarMenuItem.addItem(this, R.drawable.msg_speed_slow, LocaleController.getString(R.string.SpeedSlow), false, null);
-        item.setColors(0xfffafafa, 0xfffafafa);
-        item.setOnClickListener((view) -> {
-            callback.onSpeedSelected(0.5f, true, true);
-        });
-        item.setSelectorColor(0x0fffffff);
-        speedItems[1] = item;
-
-        item = ActionBarMenuItem.addItem(this, R.drawable.msg_speed_normal, LocaleController.getString(R.string.SpeedNormal), false, null);
-        item.setColors(0xfffafafa, 0xfffafafa);
-        item.setOnClickListener((view) -> {
-            callback.onSpeedSelected(1f, true, true);
-        });
-        item.setSelectorColor(0x0fffffff);
-        speedItems[2] = item;
-
-        item = ActionBarMenuItem.addItem(this, R.drawable.msg_speed_fast, LocaleController.getString(R.string.SpeedFast), false, null);
-        item.setColors(0xfffafafa, 0xfffafafa);
-        item.setOnClickListener((view) -> {
-            callback.onSpeedSelected(1.5f, true, true);
-        });
-        item.setSelectorColor(0x0fffffff);
-        speedItems[3] = item;
-
-        item = ActionBarMenuItem.addItem(this, R.drawable.msg_speed_superfast, LocaleController.getString(R.string.SpeedVeryFast), false, null);
-        item.setColors(0xfffafafa, 0xfffafafa);
-        item.setOnClickListener((view) -> {
-            callback.onSpeedSelected(2f, true, true);
-        });
-        item.setSelectorColor(0x0fffffff);
-        speedItems[4] = item;
+        speedItems = addSpeedItems(this, callback);
 
         FrameLayout gap = new FrameLayout(context) {
             @Override
@@ -87,20 +43,46 @@ public class SpeedButtonsLayout extends LinearLayout {
         gap.setLayoutParams(layoutParams);
     }
 
-    public void update(float currentVideoSpeed, boolean isFinal) {
-        for (int a = 0; a < speedItems.length; a++) {
-            if (isFinal && (
-                    a == 0 && Math.abs(currentVideoSpeed - 0.2f) < 0.01f ||
-                            a == 1 && Math.abs(currentVideoSpeed - 0.5f) < 0.1f ||
-                            a == 2 && Math.abs(currentVideoSpeed - 1.0f) < 0.1f ||
-                            a == 3 && Math.abs(currentVideoSpeed - 1.5f) < 0.1f ||
-                            a == 4 && Math.abs(currentVideoSpeed - 2.0f) < 0.1f
-            )) {
-                speedItems[a].setColors(0xff6BB6F9, 0xff6BB6F9);
-            } else {
-                speedItems[a].setColors(0xfffafafa, 0xfffafafa);
+    static ActionBarMenuSubItem[] addSpeedItems(android.view.ViewGroup parent, Callback callback) {
+        final int[] icons = {R.drawable.msg_speed_0_2, R.drawable.msg_speed_slow,
+                R.drawable.msg_speed_normal, R.drawable.msg_speed_fast, R.drawable.msg_speed_superfast};
+        final int[] labels = {R.string.SpeedVerySlow, R.string.SpeedSlow,
+                R.string.SpeedNormal, R.string.SpeedFast, R.string.SpeedVeryFast};
+        ActionBarMenuSubItem[] items = new ActionBarMenuSubItem[PRESET_SPEEDS.length];
+        for (int i = 0; i < items.length; i++) {
+            final float speed = PRESET_SPEEDS[i];
+            final CharSequence label = i < labels.length ? LocaleController.getString(labels[i]) :
+                    SpeedIconDrawable.formatNumber(speed) + "×";
+            ActionBarMenuSubItem item = ActionBarMenuItem.addItem(parent,
+                    i < icons.length ? icons[i] : 0, label, false, null);
+            if (i >= icons.length) {
+                SpeedIconDrawable icon = new SpeedIconDrawable();
+                icon.setValue(speed, false);
+                icon.setColor(0xfffafafa);
+                item.setIcon(icon);
+            }
+            item.setColors(0xfffafafa, 0xfffafafa);
+            item.setSelectorColor(0x0fffffff);
+            item.setOnClickListener(view -> callback.onSpeedSelected(speed, true, true));
+            items[i] = item;
+        }
+        return items;
+    }
+
+    static void updateSpeedItems(ActionBarMenuSubItem[] items, float speed, boolean isFinal) {
+        for (int i = 0; i < items.length; i++) {
+            final float tolerance = i == 0 ? 0.01f : 0.1f;
+            final int color = isFinal && Math.abs(speed - PRESET_SPEEDS[i]) < tolerance ?
+                    0xff6BB6F9 : 0xfffafafa;
+            items[i].setColors(color, color);
+            if (i >= 5) {
+                ((SpeedIconDrawable) items[i].getImageView().getDrawable()).setColor(color);
             }
         }
+    }
+
+    public void update(float currentVideoSpeed, boolean isFinal) {
+        updateSpeedItems(speedItems, currentVideoSpeed, isFinal);
     }
 
     public interface Callback {

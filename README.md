@@ -1,7 +1,23 @@
-## Telegram messenger for Android
+## BananaGram for Android
+
+An unofficial Telegram client being ported from our [BananaGram iOS fork](https://github.com/decoder-dev/Telegram-iOS).
+The port scope also includes [AyuGram](https://github.com/AyuGram) features.
+Full feature parity is still in progress; there is no BananaGram Android release yet.
+
+The first implementation block adds account-specific Extras, opt-in tracking-link
+cleanup, basic Ghost Mode controls and playback speeds up to 4×. See the
+[complete iOS feature reference](docs/phone-features-source.md),
+[iOS port inventory](docs/phone-port-inventory.json),
+[AyuGram inventory](docs/ayugram-port-inventory.json), [source credits](docs/port-sources.md)
+and [Android build checks](docs/android-build.md) for the current scope and limits.
+
+**Русский:** переносим все функции телефонного BananaGram. Перенос ещё не завершён;
+сборки для проверки не являются готовым релизом.
+
+### Telegram upstream
 
 [Telegram](https://telegram.org) is a messaging app with a focus on speed and security. It’s superfast, simple and free.
-This repo contains the official source code for [Telegram App for Android](https://play.google.com/store/apps/details?id=org.telegram.messenger).
+This fork is based on the official source code for [Telegram App for Android](https://play.google.com/store/apps/details?id=org.telegram.messenger).
 
 ## Creating your Telegram Application
 
@@ -38,7 +54,7 @@ You will require Android Studio 2025.1.4, Android NDK 27.2.12479018 and Android 
 3. Fill out RELEASE_KEY_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_STORE_PASSWORD in gradle.properties to access your  release.keystore
 4.  Go to https://console.firebase.google.com/, create two android apps with application IDs org.telegram.messenger and org.telegram.messenger.beta, turn on firebase messaging and download google-services.json, which should be copied to the same folder as TMessagesProj.
 5. Open the project in the Studio (note that it should be opened, NOT imported).
-6. Fill out values in TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java – there’s a link for each of the variables showing where and which data to obtain.
+6. For BananaGram, supply `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` through the build environment or the private local loader described in [Android build checks](docs/android-build.md). Do not put API credentials in `BuildVars.java`.
 7. You are ready to compile Telegram.
 
 ### Localization

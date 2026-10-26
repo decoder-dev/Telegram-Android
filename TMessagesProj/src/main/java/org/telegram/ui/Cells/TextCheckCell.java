@@ -144,6 +144,10 @@ public class TextCheckCell extends FrameLayout {
         return checkBox;
     }
 
+    public TextView getTextView() {
+        return textView;
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (isMultiline) {

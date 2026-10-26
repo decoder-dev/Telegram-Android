@@ -8,6 +8,9 @@
 
 package org.telegram.messenger;
 
+import org.telegram.messenger.banana.BananaConfig;
+import org.telegram.messenger.banana.BananaConfig.Option;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -163,6 +166,7 @@ public class SecretChatHelper extends BaseController {
     }
 
     public void sendMessagesReadMessage(TLRPC.EncryptedChat encryptedChat, ArrayList<Long> random_ids, TLRPC.Message resendMessage) {
+        if (BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) return;
         if (!(encryptedChat instanceof TLRPC.TL_encryptedChat)) {
             return;
         }

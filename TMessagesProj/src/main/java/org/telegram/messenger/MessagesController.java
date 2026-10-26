@@ -8,6 +8,9 @@
 
 package org.telegram.messenger;
 
+import org.telegram.messenger.banana.BananaConfig;
+import org.telegram.messenger.banana.BananaConfig.Option;
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 import static org.telegram.messenger.NotificationsController.TYPE_CHANNEL;
@@ -10516,7 +10519,7 @@ public class MessagesController extends BaseController implements NotificationCe
         checkReadTasks();
 
         if (getUserConfig().isClientActivated()) {
-            if (!ignoreSetOnline && getConnectionsManager().getPauseTime() == 0 && ApplicationLoader.isScreenOn && !ApplicationLoader.mainInterfacePausedStageQueue) {
+            if (!BananaConfig.get(currentAccount, Option.HIDE_ONLINE) && !ignoreSetOnline && getConnectionsManager().getPauseTime() == 0 && ApplicationLoader.isScreenOn && !ApplicationLoader.mainInterfacePausedStageQueue) {
                 if (ApplicationLoader.mainInterfacePausedStageQueueTime != 0 && Math.abs(ApplicationLoader.mainInterfacePausedStageQueueTime - System.currentTimeMillis()) > 1000) {
                     if (statusSettingState != 1 && (lastStatusUpdateTime == 0 || Math.abs(System.currentTimeMillis() - lastStatusUpdateTime) >= 55000 || offlineSent)) {
                         statusSettingState = 1;
@@ -11378,7 +11381,10 @@ public class MessagesController extends BaseController implements NotificationCe
         if (action < 0 || action >= sendingTypings.length || dialogId == 0) {
             return false;
         }
-        final long selfId = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
+        if (BananaConfig.suppressActivity(currentAccount, action)) {
+            return false;
+        }
+        final long selfId = getUserConfig().getClientUserId();
         if (dialogId == selfId) {
             return false;
         }
@@ -14401,6 +14407,9 @@ public class MessagesController extends BaseController implements NotificationCe
         long dialogId = messageObject.getDialogId();
         getMessagesStorage().markMessagesContentAsRead(dialogId, arrayList, 0, 0);
         getNotificationCenter().postNotificationName(NotificationCenter.messagesReadContent, dialogId, arrayList);
+        if (BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) {
+            return;
+        }
         if (messageObject.getId() < 0) {
             markMessageAsRead(messageObject.getDialogId(), messageObject.messageOwner.random_id, Integer.MIN_VALUE);
         } else {
@@ -14429,6 +14438,9 @@ public class MessagesController extends BaseController implements NotificationCe
 
     public void markMentionMessageAsRead(int mid, long channelId, long did) {
         getMessagesStorage().markMentionMessageAsRead(-channelId, mid, did);
+        if (BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) {
+            return;
+        }
         if (channelId != 0) {
             TLRPC.TL_channels_readMessageContents req = new TLRPC.TL_channels_readMessageContents();
             req.channel = getInputChannel(channelId);
@@ -14508,6 +14520,10 @@ public class MessagesController extends BaseController implements NotificationCe
         if (createDeleteTask) {
             getMessagesStorage().createTaskForMid(dialogId, mid, time, time, ttl, false);
         }
+        if (BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) {
+            if (newTaskId != 0) getMessagesStorage().removePendingTask(newTaskId);
+            return;
+        }
         if (inputChannel != null) {
             TLRPC.TL_channels_readMessageContents req = new TLRPC.TL_channels_readMessageContents();
             req.channel = inputChannel;
@@ -14553,6 +14569,8 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     private void completeReadTask(ReadTask task) {
+        // Re-check at dispatch time: a read may have been queued before Ghost was enabled.
+        if (BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) return;
         if (task.replyId != 0 && task.monoForumPeerId == 0) {
             TLRPC.TL_messages_readDiscussion req = new TLRPC.TL_messages_readDiscussion();
             req.msg_id = (int) task.replyId;
@@ -14659,6 +14677,7 @@ public class MessagesController extends BaseController implements NotificationCe
             return;
         }
         getMessagesStorage().resetMentionsCount(dialogId, topicId, 0);
+        if (BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) return;
         TLRPC.TL_messages_readMentions req = new TLRPC.TL_messages_readMentions();
         req.peer = getInputPeer(dialogId);
         if (topicId != 0) {
@@ -14785,13 +14804,13 @@ public class MessagesController extends BaseController implements NotificationCe
         }
 
         final long monoForumPeerId;
-        if (getMessagesStorage().isMonoForum(dialogId)) {
+        if (getMessagesController().isMonoForum(dialogId)) {
             monoForumPeerId = threadId;
         } else {
             monoForumPeerId = 0;
         }
 
-        if (createReadTask) {
+        if (createReadTask && !BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) {
             Utilities.stageQueue.postRunnable(() -> {
                 ReadTask currentReadTask;
                 if (threadId != 0) {
@@ -21619,6 +21638,10 @@ public class MessagesController extends BaseController implements NotificationCe
             topicsController.markAllReactionsAsRead(-dialogId, topicId);
         }
         getMessagesStorage().updateUnreadReactionsCount(dialogId, topicId, 0);
+        if (BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) {
+            getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, UPDATE_MASK_REACTIONS_READ);
+            return;
+        }
         TLRPC.TL_messages_readReactions req = new TLRPC.TL_messages_readReactions();
         req.peer = getInputPeer(dialogId);
 
@@ -21650,6 +21673,10 @@ public class MessagesController extends BaseController implements NotificationCe
             topicsController.markAllPollVotesAsRead(-dialogId, topicId);
         }
         getMessagesStorage().updateUnreadPollVotesCount(dialogId, topicId, 0);
+        if (BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) {
+            getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, UPDATE_MASK_REACTIONS_READ);
+            return;
+        }
         TLRPC.TL_messages_readPollVotes req = new TLRPC.TL_messages_readPollVotes();
         req.peer = getInputPeer(dialogId);
 

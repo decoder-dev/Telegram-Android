@@ -1,5 +1,8 @@
 package org.telegram.ui.Stories;
 
+import org.telegram.messenger.banana.BananaConfig;
+import org.telegram.messenger.banana.BananaConfig.Option;
+
 import static org.telegram.messenger.LocaleController.getString;
 
 import android.content.Intent;
@@ -1295,10 +1298,12 @@ public class StoriesController {
             if (!profile) {
                 storiesStorage.updateMaxReadId(dialogId, newReadId);
             }
-            TL_stories.TL_stories_readStories req = new TL_stories.TL_stories_readStories();
-            req.peer = MessagesController.getInstance(currentAccount).getInputPeer(dialogId);
-            req.max_id = storyItem.id;
-            ConnectionsManager.getInstance(currentAccount).sendRequest(req, null);
+            if (!BananaConfig.get(currentAccount, Option.DONT_READ_STORIES)) {
+                TL_stories.TL_stories_readStories req = new TL_stories.TL_stories_readStories();
+                req.peer = MessagesController.getInstance(currentAccount).getInputPeer(dialogId);
+                req.max_id = storyItem.id;
+                ConnectionsManager.getInstance(currentAccount).sendRequest(req, null);
+            }
             NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.storiesReadUpdated);
             return true;
         }
@@ -3723,10 +3728,12 @@ public class StoriesController {
             if (seenStories.contains(storyId)) return false;
             seenStories.add(storyId);
             saveCache();
-            TL_stories.TL_stories_incrementStoryViews req = new TL_stories.TL_stories_incrementStoryViews();
-            req.peer = MessagesController.getInstance(currentAccount).getInputPeer(dialogId);
-            req.id.add(storyId);
-            ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> {});
+            if (!BananaConfig.get(currentAccount, Option.DONT_READ_STORIES)) {
+                TL_stories.TL_stories_incrementStoryViews req = new TL_stories.TL_stories_incrementStoryViews();
+                req.peer = MessagesController.getInstance(currentAccount).getInputPeer(dialogId);
+                req.id.add(storyId);
+                ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> {});
+            }
             NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.storiesReadUpdated);
             return true;
         }

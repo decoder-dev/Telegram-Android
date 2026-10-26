@@ -527,7 +527,7 @@ public class ActionBarMenuSlider extends FrameLayout {
         private final SeekBarAccessibilityDelegate seekBarAccessibilityDelegate;
 
         public static final float MIN_SPEED = 0.2f;
-        public static final float MAX_SPEED = 3.0f;
+        public static final float MAX_SPEED = 4.0f;
 
         public SpeedSlider(Context context, Theme.ResourcesProvider resourcesProvider) {
             super(context, resourcesProvider);

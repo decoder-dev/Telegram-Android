@@ -263,4 +263,19 @@
     <string name="RemindTodayAt">\'Отправить сегодня в\' HH:mm</string>
     <string name="RemindDayAt">\'Отправить\' d MMM \'в\' HH:mm</string>
     <string name="RemindDayYearAt">\'Напомнить\' d MMM yyyy \'в\' HH:mm</string>
+
+    <!-- BananaGram phone features -->
+    <string name="BananaExtras">Возможности BananaGram</string>
+    <string name="BananaExtrasInfo">Дополнительные функции для этого аккаунта</string>
+    <string name="BananaSending">Отправка сообщений</string>
+    <string name="BananaCleanTrackingLinks">Убирать рекламные метки из ссылок</string>
+    <string name="BananaCleanTrackingLinksInfo">Убирает рекламные параметры из ссылок в новых текстовых сообщениях. Сохраняет форматирование и время начала воспроизведения. Подписанные ссылки, код и уже отправленные сообщения остаются без изменений.</string>
+    <string name="BananaGhostMode">Режим призрака</string>
+    <string name="BananaHideOnline">Скрывать статус «в сети»</string>
+    <string name="BananaHideTyping">Скрывать «печатает»</string>
+    <string name="BananaHideRecording">Скрывать запись голоса и кружков</string>
+    <string name="BananaHideUpload">Скрывать отправку файлов</string>
+    <string name="BananaDontReadMessages">Читать сообщения только локально</string>
+    <string name="BananaDontReadStories">Смотреть истории только локально</string>
+    <string name="BananaGhostModeInfo">Действует для этого аккаунта. Отметки о прочтении и просмотре сохраняются только на этом устройстве. Отправка сообщений и другие явные действия могут раскрывать активность.</string>
 </resources>
