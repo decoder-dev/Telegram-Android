@@ -411,6 +411,8 @@ public class MessagesController extends BaseController implements NotificationCe
     // Accessed on stageQueue. Coalesce status updates from other sessions.
     private Runnable bananaOfflineTask;
     private long bananaLastOfflineReset;
+    private long statusRetryAfter;
+    private int statusGeneration;
     private String uploadingAvatar;
     private final LongSparseArray<ArrayList<MessageObject>> welcomeMessages = new LongSparseArray<>();
 
@@ -6393,6 +6395,10 @@ public class MessagesController extends BaseController implements NotificationCe
             if (scheduled) {
                 return;
             }
+            if (GhostPolicy.shouldReturnOffline(BananaConfig.get(currentAccount, Option.HIDE_ONLINE),
+                    BananaConfig.get(currentAccount, Option.OFFLINE_AFTER_ACTIVITY), true)) {
+                bananaOwnOnlineObserved(getUserConfig().getClientUserId());
+            }
             Integer msgId = (Integer) args[0];
             Integer newMsgId = (Integer) args[1];
             Long did = (Long) args[3];
@@ -6674,6 +6680,8 @@ public class MessagesController extends BaseController implements NotificationCe
                 bananaOfflineTask = null;
             }
             bananaLastOfflineReset = 0;
+            statusRetryAfter = 0;
+            statusGeneration++;
             getConnectionsManager().setIsUpdating(false);
             updatesQueueChannels.clear();
             updatesStartWaitTimeChannels.clear();
@@ -10546,10 +10554,12 @@ public class MessagesController extends BaseController implements NotificationCe
         checkReadTasks();
 
         if (getUserConfig().isClientActivated()) {
+            final long statusOwnerId = getUserConfig().getClientUserId();
             if (!BananaConfig.get(currentAccount, Option.HIDE_ONLINE) && !ignoreSetOnline && getConnectionsManager().getPauseTime() == 0 && ApplicationLoader.isScreenOn && !ApplicationLoader.mainInterfacePausedStageQueue) {
                 if (ApplicationLoader.mainInterfacePausedStageQueueTime != 0 && Math.abs(ApplicationLoader.mainInterfacePausedStageQueueTime - System.currentTimeMillis()) > 1000) {
-                    if (statusSettingState != 1 && (lastStatusUpdateTime == 0 || Math.abs(System.currentTimeMillis() - lastStatusUpdateTime) >= 55000 || offlineSent)) {
+                    if (SystemClock.elapsedRealtime() >= statusRetryAfter && statusSettingState != 1 && (lastStatusUpdateTime == 0 || Math.abs(System.currentTimeMillis() - lastStatusUpdateTime) >= 55000 || offlineSent)) {
                         statusSettingState = 1;
+                        final int generation = ++statusGeneration;
 
                         if (statusRequest != 0) {
                             getConnectionsManager().cancelRequest(statusRequest, true);
@@ -10558,33 +10568,36 @@ public class MessagesController extends BaseController implements NotificationCe
                         TL_account.updateStatus req = new TL_account.updateStatus();
                         req.offline = false;
                         statusRequest = getConnectionsManager().sendRequest(req, (response, error) -> {
+                            if (generation != statusGeneration || statusOwnerId != getUserConfig().getClientUserId()) return;
                             if (error == null) {
                                 lastStatusUpdateTime = System.currentTimeMillis();
                                 offlineSent = false;
                                 statusSettingState = 0;
+                                statusRetryAfter = 0;
                             } else {
-                                if (lastStatusUpdateTime != 0) {
-                                    lastStatusUpdateTime += 5000;
-                                }
+                                statusSettingState = 0;
+                                statusRetryAfter = SystemClock.elapsedRealtime() + 5000;
                             }
                             statusRequest = 0;
                         });
                     }
                 }
-            } else if (statusSettingState != 2 && !offlineSent && Math.abs(System.currentTimeMillis() - getConnectionsManager().getPauseTime()) >= 2000) {
+            } else if (SystemClock.elapsedRealtime() >= statusRetryAfter && statusSettingState != 2 && !offlineSent && Math.abs(System.currentTimeMillis() - getConnectionsManager().getPauseTime()) >= 2000) {
                 statusSettingState = 2;
+                final int generation = ++statusGeneration;
                 if (statusRequest != 0) {
                     getConnectionsManager().cancelRequest(statusRequest, true);
                 }
                 TL_account.updateStatus req = new TL_account.updateStatus();
                 req.offline = true;
                 statusRequest = getConnectionsManager().sendRequest(req, (response, error) -> {
+                    if (generation != statusGeneration || statusOwnerId != getUserConfig().getClientUserId()) return;
                     if (error == null) {
                         offlineSent = true;
+                        statusRetryAfter = 0;
                     } else {
-                        if (lastStatusUpdateTime != 0) {
-                            lastStatusUpdateTime += 5000;
-                        }
+                        statusSettingState = 0;
+                        statusRetryAfter = SystemClock.elapsedRealtime() + 5000;
                     }
                     statusRequest = 0;
                 });
