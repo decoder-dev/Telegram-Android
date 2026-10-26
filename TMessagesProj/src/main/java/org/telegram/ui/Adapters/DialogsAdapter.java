@@ -244,9 +244,17 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
         return -1;
     }
 
+    private int bananaDialogCellHeight() {
+        return AndroidUtilities.dp(org.telegram.messenger.banana.BananaHooks.dialogCellHeightDp(currentAccount, SharedConfig.useThreeLinesLayout));
+    }
+
+    private int bananaForumDialogCellHeight() {
+        return AndroidUtilities.dp(org.telegram.messenger.banana.BananaHooks.forumDialogCellHeightDp(currentAccount, SharedConfig.useThreeLinesLayout));
+    }
+
     public int fixScrollGap(RecyclerListView animationSupportListView, int p, int offset, boolean hasHiddenArchive, boolean hasStories, boolean hasTabs, boolean oppened) {
 //        int itemsToEnd = getItemCount() - p;
-        int cellHeight = AndroidUtilities.dp(SharedConfig.useThreeLinesLayout ? 76 : 70);
+        int cellHeight = bananaDialogCellHeight();
 //        int bottom = offset + animationSupportListView.getPaddingTop() + itemsToEnd * cellHeight + itemsToEnd - 1;
         //fix height changed
         int top = offset + animationSupportListView.getPaddingTop() - p * cellHeight - p;
@@ -1498,12 +1506,12 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
                     height = AndroidUtilities.displaySize.y - ActionBar.getCurrentActionBarHeight() - AndroidUtilities.statusBarHeight;
                 }
                 height -= blurOffset;
-                int cellHeight = AndroidUtilities.dp(SharedConfig.useThreeLinesLayout ? 76 : 70);
+                int cellHeight = bananaDialogCellHeight();
                 int dialogsHeight = 0;
                 for (int i = 0; i < size; i++) {
                     if (itemInternals.get(i).viewType == VIEW_TYPE_DIALOG) {
                         if (itemInternals.get(i).isForumCell && !collapsedView) {
-                            dialogsHeight += AndroidUtilities.dp(SharedConfig.useThreeLinesLayout ? 86 : 91);
+                            dialogsHeight += bananaForumDialogCellHeight();
                         } else {
                             dialogsHeight += cellHeight;
                         }
@@ -1813,9 +1821,9 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
     public int getItemHeight(int position) {
         if (itemInternals.get(position).viewType == VIEW_TYPE_DIALOG) {
             if (itemInternals.get(position).isForumCell && !collapsedView) {
-                return AndroidUtilities.dp(SharedConfig.useThreeLinesLayout ? 86 : 91) + 1;
+                return bananaForumDialogCellHeight() + 1;
             } else {
-                return AndroidUtilities.dp(SharedConfig.useThreeLinesLayout ? 76 : 70) + 1;
+                return bananaDialogCellHeight() + 1;
             }
         }
         return 0;
