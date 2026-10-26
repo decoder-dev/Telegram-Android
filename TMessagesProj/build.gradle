@@ -130,6 +130,16 @@ dependencies {
 def isPmBuild = "false"
 def abis = [9: 'universal', 1: 'armeabi-v7a', 5: 'arm64-v8a', 2: 'x86', 6: 'x86_64']
 
+// Obtain your own keys at: https://core.telegram.org/api/obtaining_api_id
+// Prefer TELEGRAM_API_* env; fall back to API_KEYS for AyuGram-style local builds.
+Properties localApiKeys = new Properties()
+if (project.rootProject.file('API_KEYS').exists()) {
+    localApiKeys.load(project.rootProject.file('API_KEYS').newDataInputStream())
+}
+def resolvedAppId = bananaApiId != 0 ? bananaApiId.toString() : localApiKeys.getProperty("APP_ID", "0")
+def resolvedAppHash = !bananaApiHash.isEmpty() ? ("\"" + bananaApiHash + "\"") : localApiKeys.getProperty("APP_HASH", "\"\"")
+def resolvedAyuVersion = '"' + new Date().format("yyyyMMdd") + '"'
+
 android {
     compileSdkVersion 33
     buildToolsVersion '33.0.1'
@@ -138,18 +148,6 @@ android {
 
     defaultConfig.applicationId = APP_PACKAGE
     defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)
-
-    // Obtain your own keys at: https://core.telegram.org/api/obtaining_api_id
-    // Prefer TELEGRAM_API_* env; fall back to API_KEYS for AyuGram-style local builds.
-    Properties localProperties = new Properties()
-    if (project.rootProject.file('API_KEYS').exists()) {
-        localProperties.load(project.rootProject.file('API_KEYS').newDataInputStream())
-    }
-    def resolvedAppId = bananaApiId != 0 ? bananaApiId.toString() : localProperties.getProperty("APP_ID", "0")
-    def resolvedAppHash = !bananaApiHash.isEmpty() ? ("\"" + bananaApiHash + "\"") : localProperties.getProperty("APP_HASH", "\"\"")
-    buildConfigField 'int', 'APP_ID', resolvedAppId
-    buildConfigField 'String', 'APP_HASH', resolvedAppHash
-    buildConfigField 'String', 'AYU_VERSION', '"' + new Date().format("yyyyMMdd") + '"'
 }
 
 // Development builds can be inspected without credentials; distributable
@@ -202,6 +200,9 @@ android {
     defaultConfig {
         buildConfigField "int", "TELEGRAM_API_ID", bananaApiId.toString()
         buildConfigField "String", "TELEGRAM_API_HASH", groovy.json.JsonOutput.toJson(bananaApiHash)
+        buildConfigField 'int', 'APP_ID', resolvedAppId
+        buildConfigField 'String', 'APP_HASH', resolvedAppHash
+        buildConfigField 'String', 'AYU_VERSION', resolvedAyuVersion
         minSdkVersion 23
         targetSdkVersion 36
 

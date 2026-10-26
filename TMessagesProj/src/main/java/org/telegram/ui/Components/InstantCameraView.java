@@ -3093,7 +3093,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                             baseFragment.sendMedia(new MediaController.PhotoEntry(0, 0, 0, videoFile.getAbsolutePath(), 0, true, 0, 0, 0), videoEditedInfo, true, 0, false);
 
                             // --- AyuGram scheduled hook
-                            if (AyuConfig.useScheduledMessages) {
+                            if (AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount)) {
                                 // hack to close instant camera view
                                 startAnimation(false);
                             }
