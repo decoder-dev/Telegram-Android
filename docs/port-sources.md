@@ -15,8 +15,13 @@ Adapted fixes from other Android forks:
 - [Nekogram: use the owning account for file path lookup](https://github.com/Nekogram/Nekogram/commit/1a9dda22f6abd4ac8da5e9b83fe6af6a440d5bc9).
 - [Nekogram: avoid mono-forum database reads on UI paths](https://github.com/Nekogram/Nekogram/commit/a2fd001a9bae88072673cf8a6195c89251368839).
 
-Other researched fork changes are candidates, not included features until they
-are adapted and verified. Source credit is retained when a change is adopted.
+Researched candidates (not included features until adapted and verified). Source
+credit is retained when a change is adopted:
+
+- BananaGram: [forum-aware folder include/exclude pickers](https://github.com/decoder-dev/Telegram-iOS/commit/5b83d2df95b8f3c52654d1e0daae5d97f3ecd5ea) and [folder pinned-chat indexing](https://github.com/decoder-dev/Telegram-iOS/commit/a9e065064383e2331918a0a9f05a875f84ba52bc) — saving excluded chats without losing pins or forum structure.
+- BananaGram: [suspicious peers](https://github.com/decoder-dev/Telegram-iOS/commit/007fb3f1acddbb9484544e0f9d91e9d850c8c47d) — delay read receipts until the report/block panel is dismissed or the account sends a message.
+- AyuGram Desktop: [archive, link hardening and ghost read-state cleanup](https://github.com/AyuGram/AyuGramDesktop/commit/105b6c21a69703a5c103d1615e4fbba12b519c3b) ([archive mark-as-read copy](https://github.com/AyuGram/AyuGramDesktop/commit/d623608993885a3456fc4a118ebaa2030fd407c4)).
+- AyuGram Desktop: [expiring media and TTL timers](https://github.com/AyuGram/AyuGramDesktop/commit/d4b7546e77f93ac4c9bb53a3fcf7e9ffbbecf1b5).
 
 AyuGram research and planned adaptations:
 
