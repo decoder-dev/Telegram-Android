@@ -35,6 +35,7 @@ import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.support.LongSparseIntArray;
+import org.telegram.messenger.banana.MessageHistory;
 import org.telegram.messenger.utils.EphemeralMessagesHelper;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.RequestDelegate;
@@ -11929,6 +11930,9 @@ public class MessagesStorage extends BaseController {
             final boolean quickReplies = mode == ChatActivity.MODE_QUICK_REPLIES;
             final boolean welcomeMessages = mode == ChatActivity.MODE_WELCOME_MESSAGES;
             final long selfId = getUserConfig().getClientUserId();
+            if (!scheduled && !quickReplies && !welcomeMessages) {
+                MessageHistory.captureEdits(database, currentAccount, messages);
+            }
             if (welcomeMessages) {
                 if (withTransaction) {
                     database.beginTransaction();
@@ -14518,6 +14522,9 @@ public class MessagesStorage extends BaseController {
         SQLiteCursor cursor = null;
         SQLitePreparedStatement state = null;
         try {
+            if (mode != ChatActivity.MODE_SCHEDULED && mode != ChatActivity.MODE_QUICK_REPLIES && mode != ChatActivity.MODE_WELCOME_MESSAGES) {
+                MessageHistory.captureDeletes(database, currentAccount, dialogId, messages);
+            }
             if (getUserConfig().getClientUserId() == dialogId) {
                 database.executeFast(String.format(Locale.US, "DELETE FROM tag_message_id WHERE mid IN(%s)", TextUtils.join(",", messages))).stepThis().dispose();
             }
@@ -16093,6 +16100,9 @@ public class MessagesStorage extends BaseController {
                 final boolean scheduled = mode == ChatActivity.MODE_SCHEDULED;
                 final boolean quickReplies = mode == ChatActivity.MODE_QUICK_REPLIES;
                 final boolean welcomeMessages = mode == ChatActivity.MODE_WELCOME_MESSAGES;
+                if (!scheduled && !quickReplies && !welcomeMessages) {
+                    MessageHistory.captureEdits(database, currentAccount, messages.messages);
+                }
                 if (welcomeMessages) {
                     state_messages = database.executeFast("REPLACE INTO welcome_messages VALUES(?, ?, ?, ?, ?, ?, NULL, 0)");
                     int count = messages.messages.size();

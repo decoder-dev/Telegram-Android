@@ -247,20 +247,20 @@
     {
       "setting": "saveDeletedMessages",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_text_archive_pending_live_capture_acceptance",
+      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
     },
     {
       "setting": "saveMessagesHistory",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_text_archive_pending_live_capture_acceptance",
+      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
     },
     {
       "setting": "saveForBots",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_text_archive_pending_live_capture_acceptance",
+      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
     },
     {
       "setting": "saveMedia",

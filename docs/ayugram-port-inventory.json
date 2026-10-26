@@ -202,19 +202,22 @@
       "group": "general",
       "setting": "saveDeletedMessages",
       "source_default": "true",
-      "status": "pending"
+      "status": "implemented_text_archive_pending_live_capture_acceptance",
+      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
     },
     {
       "group": "general",
       "setting": "saveMessagesHistory",
       "source_default": "true",
-      "status": "pending"
+      "status": "implemented_text_archive_pending_live_capture_acceptance",
+      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
     },
     {
       "group": "general",
       "setting": "saveForBots",
       "source_default": "false",
-      "status": "pending"
+      "status": "implemented_text_archive_pending_live_capture_acceptance",
+      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
     },
     {
       "group": "general",
@@ -744,11 +747,13 @@
     },
     {
       "setting": "saveDeletedMessages",
-      "status": "pending"
+      "status": "implemented_text_archive_pending_live_capture_acceptance",
+      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
     },
     {
       "setting": "saveMessagesHistory",
-      "status": "pending"
+      "status": "implemented_text_archive_pending_live_capture_acceptance",
+      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
     },
     {
       "setting": "saveMedia",
@@ -784,7 +789,8 @@
     },
     {
       "setting": "saveForBots",
-      "status": "pending"
+      "status": "implemented_text_archive_pending_live_capture_acceptance",
+      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
     },
     {
       "setting": "markReadAfterSend",
