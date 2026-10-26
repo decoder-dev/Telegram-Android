@@ -21,6 +21,7 @@ import static org.telegram.messenger.LocaleController.getString;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.view.View;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.RectF;
@@ -46,6 +47,7 @@ import android.util.Base64;
 
 import androidx.annotation.NonNull;
 import androidx.collection.LongSparseArray;
+import androidx.core.graphics.ColorUtils;
 
 import com.exteragram.messenger.boost.encryption.BaseEncryptor;
 import com.radolyn.ayugram.AyuConfig;
@@ -710,6 +712,10 @@ public class MessageObject {
             return false;
         }
         if (org.telegram.messenger.banana.BananaHooks.hideReactionsBar(currentAccount)) {
+            return false;
+        }
+        if (org.telegram.messenger.banana.BananaHooks.hideChannelPostReactions(currentAccount)
+                && messageOwner != null && messageOwner.post) {
             return false;
         }
         return true;
@@ -10023,6 +10029,16 @@ public class MessageObject {
         } else {
             return (getMedia(message) instanceof TLRPC.TL_messageMediaPhoto || getMedia(message) instanceof TLRPC.TL_messageMediaDocument) && getMedia(message).ttl_seconds != 0;
         }
+    }
+
+    public static boolean shouldEncryptPhotoOrVideo(int currentAccount, TLRPC.Message message) {
+        if (message != null && message.media != null && (isVoiceDocument(getDocument(message)) || isRoundVideoMessage(message)) && message.media.ttl_seconds == 0x7FFFFFFF) {
+            return true;
+        }
+        if (getMedia(message) instanceof TLRPC.TL_messageMediaPaidMedia) {
+            return true;
+        }
+        return shouldEncryptPhotoOrVideo(message);
     }
 
     public boolean shouldEncryptPhotoOrVideo() {

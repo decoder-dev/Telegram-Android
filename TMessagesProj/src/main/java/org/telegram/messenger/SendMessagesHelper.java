@@ -2074,6 +2074,19 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         performSendMessageRequest(req, newMsgObj, null, null, null, null, false);
     }
 
+    public void sendSticker(TLRPC.Document document, String query, long peer, MessageObject replyToMsg, MessageObject replyToTopMsg, TL_stories.StoryItem storyItem, ChatActivity.ReplyQuote quote, MessageObject.SendAnimationData sendAnimationData, boolean notify, int scheduleDate, int scheduleRepeatPeriod, boolean updateStickersOrder, Object parentObject, SendMessageChatArguments sendMessageChatArguments, long stars, long monoForumPeerId, MessageSuggestionParams suggestionParams) {
+        sendSticker(document, query, peer, null, null, replyToMsg, replyToTopMsg, storyItem, quote, sendAnimationData, notify, scheduleDate, scheduleRepeatPeriod, updateStickersOrder, parentObject, sendMessageChatArguments, stars, monoForumPeerId, suggestionParams, false);
+    }
+
+    public void sendSticker(TLRPC.Document document, String query, long peer, CharSequence caption, VideoEditedInfo videoEditedInfo, MessageObject replyToMsg, MessageObject replyToTopMsg, TL_stories.StoryItem storyItem, ChatActivity.ReplyQuote quote, MessageObject.SendAnimationData sendAnimationData, boolean notify, int scheduleDate, int scheduleRepeatPeriod, boolean updateStickersOrder, Object parentObject, SendMessageChatArguments sendMessageChatArguments, long stars, long monoForumPeerId, MessageSuggestionParams suggestionParams) {
+        sendSticker(document, query, peer, caption, videoEditedInfo, replyToMsg, replyToTopMsg, storyItem, quote, sendAnimationData, notify, scheduleDate, scheduleRepeatPeriod, updateStickersOrder, parentObject, sendMessageChatArguments, stars, monoForumPeerId, suggestionParams, false);
+    }
+
+    public void sendSticker(TLRPC.Document document, String query, long peer, CharSequence caption, VideoEditedInfo videoEditedInfo, MessageObject replyToMsg, MessageObject replyToTopMsg, TL_stories.StoryItem storyItem, ChatActivity.ReplyQuote quote, MessageObject.SendAnimationData sendAnimationData, boolean notify, int scheduleDate, int scheduleRepeatPeriod, boolean updateStickersOrder, Object parentObject, SendMessageChatArguments sendMessageChatArguments, long stars, long monoForumPeerId, MessageSuggestionParams suggestionParams, boolean invertMedia) {
+        // Extra Telegram/Ayu params are accepted for call-site compatibility; core send uses legacy path.
+        sendSticker(document, query, peer, replyToMsg, replyToTopMsg, parentObject, sendAnimationData, notify, scheduleDate, updateStickersOrder);
+    }
+
     public void sendSticker(TLRPC.Document document, String query, long peer, MessageObject replyToMsg, MessageObject replyToTopMsg, Object parentObject, MessageObject.SendAnimationData sendAnimationData, boolean notify, int scheduleDate, boolean updateStickersOrder) {
         if (document == null) {
             return;
@@ -2221,6 +2234,15 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
     public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDate, long payStars) {
         return sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, null, -1, payStars);
+    }
+
+    public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDate, MessageObject replyToTopMsg, int video_timestamp, long payStars) {
+        return sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, 0, replyToTopMsg, video_timestamp, payStars, 0, null);
+    }
+
+    public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDate, int scheduleRepeatPeriod, MessageObject replyToTopMsg, int video_timestamp, long payStars, long monoForumPeerId, MessageSuggestionParams suggestionParams) {
+        // Extra Telegram schedule/mono-forum params accepted for call-site compatibility.
+        return sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, replyToTopMsg);
     }
 
     public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDateOrig, MessageObject replyToTopMsg) {

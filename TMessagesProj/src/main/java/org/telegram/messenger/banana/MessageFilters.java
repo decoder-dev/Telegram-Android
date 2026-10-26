@@ -56,11 +56,41 @@ public final class MessageFilters {
         MessageFilters value = instances[account];
         if (value != null) value.listeners.remove(listener);
     }
+    /**
+     * Best-effort sync hide for the notifications queue (fail-open). Display path uses
+     * {@link #verdict} + IsolatedRegexService; this only peeks short message text.
+     */
+    public static boolean shouldHideNotification(int account, MessageObject message) {
+        if (message == null || message.messageOwner == null || message.getId() <= 0 ||
+                message.messageOwner instanceof TLRPC.TL_messageService) return false;
+        if (!BananaHooks.regexFiltersEnabled(account)) return false;
+        FilterStore store = FilterStore.get(account);
+        if (store.rules().rules.isEmpty()) return false;
+        String body = message.messageOwner.message;
+        if (body == null || body.isEmpty() || body.length() > 2048) return false;
+        long dialog = message.getDialogId();
+        TLRPC.Chat chat = dialog < 0 ? MessagesController.getInstance(account).getChat(-dialog) : null;
+        boolean channel = ChatObject.isChannel(chat) && chat != null && !chat.megagroup;
+        boolean globalInsensitive = BananaHooks.regexFiltersCaseInsensitive(account);
+        for (FilterRules.Rule rule : store.rules().rules) {
+            if (!rule.enabled || !store.rules().applies(rule, dialog, channel, store.sharedInChats())) continue;
+            try {
+                boolean insensitive = rule.caseInsensitive || globalInsensitive;
+                int flags = Pattern.MULTILINE | (insensitive ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0);
+                boolean matched = Pattern.compile(rule.text, flags).matcher(body).find();
+                if (rule.reversed != matched) return true;
+            } catch (Throwable ignore) {
+                // Fail open: never drop a notification because a rule blew up.
+            }
+        }
+        return false;
+    }
+
     public static Verdict verdict(int account, MessageObject message, MessageObject.GroupedMessages group) {
         if (message == null || message.messageOwner == null || message.getId() <= 0 ||
                 message.messageOwner instanceof TLRPC.TL_messageService || Looper.myLooper() != Looper.getMainLooper()) return Verdict.VISIBLE;
         FilterStore store = FilterStore.get(account);
-        if (!store.enabled() || store.rules().rules.isEmpty()) return Verdict.VISIBLE;
+        if (!BananaHooks.regexFiltersEnabled(account) || store.rules().rules.isEmpty()) return Verdict.VISIBLE;
         MessageFilters filters = get(account);
         long dialog = message.getDialogId();
         TLRPC.Chat chat = dialog < 0 ? MessagesController.getInstance(account).getChat(-dialog) : null;
@@ -131,7 +161,8 @@ public final class MessageFilters {
         FilterRules.Rule rule = rules.get(index);
         String[] text = new String[batch.size()];
         for (int i = 0; i < text.length; i++) text[i] = batch.get(i).text;
-        int flags = Pattern.MULTILINE | (rule.caseInsensitive ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0);
+        boolean insensitive = rule.caseInsensitive || BananaHooks.regexFiltersCaseInsensitive(store.account);
+        int flags = Pattern.MULTILINE | (insensitive ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0);
         engine.match(rule.text, flags, text, result -> {
             if (revision != generation || !store.isCurrent()) { finishStale(); return; }
             if (result.status != RegexProtocol.OK) {

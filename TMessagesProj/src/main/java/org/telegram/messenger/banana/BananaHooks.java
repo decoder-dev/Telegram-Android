@@ -197,6 +197,54 @@ public final class BananaHooks {
         return BananaConfig.get(account, BananaConfig.Option.DONT_READ_MESSAGES);
     }
 
+    /** Master switch for Banana MessageFilters (Extras) plus FilterStore UI toggle. */
+    public static boolean regexFiltersEnabled(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.REGEX_MESSAGE_FILTERS_ENABLED)
+                || FilterStore.get(account).enabled();
+    }
+
+    public static boolean regexFiltersCaseInsensitive(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.REGEX_MESSAGE_FILTERS_CASE_INSENSITIVE);
+    }
+
+    public static boolean saveDeleted(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SAVE_DELETED);
+    }
+
+    public static boolean saveEdits(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SAVE_EDITS);
+    }
+
+    public static boolean saveMediaHistory(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SAVE_MEDIA_HISTORY);
+    }
+
+    public static boolean proactiveSaveMedia(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.PROACTIVE_SAVE_MEDIA)
+                && saveMediaHistory(account);
+    }
+
+    /**
+     * When DONT_READ_MESSAGES is on and GHOST_READ_ON_INTERACT is on, allow one read
+     * receipt for this message (tap / send interaction).
+     */
+    public static void maybeMarkReadOnInteract(int account, TLRPC.Message message) {
+        if (message == null || message.id <= 0 || message.peer_id == null) {
+            return;
+        }
+        if (!dontReadMessages(account) || !ghostReadOnInteract(account)) {
+            return;
+        }
+        try {
+            com.radolyn.ayugram.utils.AyuGhostUtils.markReadOnServer(
+                    account,
+                    message.id,
+                    MessagesController.getInstance(account).getInputPeer(message.peer_id));
+        } catch (Throwable e) {
+            FileLog.e(e);
+        }
+    }
+
     public static boolean hideOnline(int account) {
         return BananaConfig.get(account, BananaConfig.Option.HIDE_ONLINE);
     }
@@ -230,6 +278,77 @@ public final class BananaHooks {
 
     public static boolean hidePremiumStatuses(int account) {
         return BananaConfig.get(account, BananaConfig.Option.HIDE_PREMIUM_STATUSES);
+    }
+
+    public static boolean showMutualContact(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SHOW_MUTUAL_CONTACT);
+    }
+
+    public static boolean showChatCreationDate(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SHOW_CHAT_CREATION_DATE);
+    }
+
+    public static boolean showDisappearedGifts(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SHOW_DISAPPEARED_GIFTS);
+    }
+
+    public static boolean visualPhoneEnabled(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.VISUAL_PHONE_ENABLED);
+    }
+
+    public static String visualPhoneNumber(int account) {
+        return BananaConfig.visualPhoneNumber(account);
+    }
+
+    public static boolean autoPauseMediaInBackground(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.AUTO_PAUSE_MEDIA_IN_BACKGROUND);
+    }
+
+    public static boolean hidePaidReactions(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_PAID_REACTIONS);
+    }
+
+    public static boolean hideChannelPostReactions(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_CHANNEL_POST_REACTIONS);
+    }
+
+    public static boolean hideViaBot(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_VIA_BOT);
+    }
+
+    public static boolean hideGreetingSticker(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_GREETING_STICKER);
+    }
+
+    public static boolean hideStickerChecks(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_STICKER_CHECKS);
+    }
+
+    public static boolean wideTabBar(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.WIDE_TAB_BAR);
+    }
+
+    public static boolean showContactsTab(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SHOW_CONTACTS_TAB);
+    }
+
+    /** Folder-tab horizontal padding dp: wider when WIDE_TAB_BAR is on. */
+    public static float filterTabPaddingDp(int account) {
+        return wideTabBar(account) ? 36f : 24f;
+    }
+
+    /** Max side for outgoing photo compression (0→1280, 1→1920, 2→2560). */
+    public static int outgoingPhotoMaxSide(int account) {
+        return BananaConfig.outgoingPhotoMaxSide(account);
+    }
+
+    public static int doubleTapSeekSeconds(int account) {
+        return BananaConfig.doubleTapSeekSeconds(account);
+    }
+
+    /** 0 = auto, 1 = highest, 2 = lowest. */
+    public static int defaultVideoQuality(int account) {
+        return BananaConfig.defaultVideoQuality(account);
     }
 
     public static boolean showMessageId(int account) {
@@ -478,10 +597,19 @@ public final class BananaHooks {
     }
 
     public static String maybeMaskPhone(int account, String phone) {
-        if (!streamerMode(account) || phone == null || phone.length() == 0) {
+        if (phone == null || phone.length() == 0) {
             return phone;
         }
-        return "•••••";
+        if (streamerMode(account)) {
+            return "•••••";
+        }
+        if (visualPhoneEnabled(account)) {
+            String visual = visualPhoneNumber(account);
+            if (!TextUtils.isEmpty(visual)) {
+                return visual;
+            }
+        }
+        return phone;
     }
 
     public static String maybeMaskUsername(int account, String username) {

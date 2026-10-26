@@ -7171,6 +7171,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 4096);
         ApplicationLoader.mainInterfacePaused = true;
         int account = currentAccount;
+        if (org.telegram.messenger.banana.BananaHooks.autoPauseMediaInBackground(account)) {
+            MediaController mediaController = MediaController.getInstance();
+            MessageObject playing = mediaController.getPlayingMessageObject();
+            if (playing != null && mediaController.isPlayingMessage(playing) && !mediaController.isMessagePaused()) {
+                mediaController.pauseMessage(playing);
+            }
+        }
         Utilities.stageQueue.postRunnable(() -> {
             ApplicationLoader.mainInterfacePausedStageQueue = true;
             ApplicationLoader.mainInterfacePausedStageQueueTime = 0;

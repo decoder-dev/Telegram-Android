@@ -8759,8 +8759,23 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
                             if ((type != null && type.equals("video") || documentAttachType == DOCUMENT_ATTACH_TYPE_STORY) && duration != 0) {
                                 String str = AndroidUtilities.formatShortDuration(duration);
+                                String bananaInfo = org.telegram.messenger.banana.BananaHooks.formatMediaInfo(currentAccount, w, h,
+                                        documentAttach != null ? documentAttach.size : 0, duration);
+                                if (bananaInfo != null) {
+                                    str = bananaInfo;
+                                }
                                 durationWidth = (int) Math.ceil(Theme.chat_durationPaint.measureText(str));
                                 videoInfoLayout = new StaticLayout(str, Theme.chat_durationPaint, durationWidth, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+                            } else if (org.telegram.messenger.banana.BananaHooks.showMediaInfo(currentAccount)
+                                    && (documentAttachType == DOCUMENT_ATTACH_TYPE_VIDEO || documentAttachType == DOCUMENT_ATTACH_TYPE_GIF
+                                    || currentMessageObject.type == MessageObject.TYPE_PHOTO || currentMessageObject.type == MessageObject.TYPE_VIDEO)) {
+                                long sizeBytes = documentAttach != null ? documentAttach.size
+                                        : (currentPhotoObject != null ? currentPhotoObject.size : 0);
+                                String bananaInfo = org.telegram.messenger.banana.BananaHooks.formatMediaInfo(currentAccount, w, h, sizeBytes, duration);
+                                if (bananaInfo != null) {
+                                    durationWidth = (int) Math.ceil(Theme.chat_durationPaint.measureText(bananaInfo));
+                                    videoInfoLayout = new StaticLayout(bananaInfo, Theme.chat_durationPaint, durationWidth, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+                                }
                             } else if (hasGamePreview) {
                                 boolean showGameOverlay = true;
                                 try {
@@ -18847,28 +18862,30 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
         String viaUsername = null;
         CharSequence viaString = null;
-        if (messageObject.isWelcomeMessage() && !messageObject.isWelcomeAnchored() && delegate != null && delegate.getChatMode() == ChatActivity.MODE_DEFAULT && messageObject.messageOwner.from_id != null && messageObject.messageOwner.from_id.user_id != 0) {
-            final TLRPC.User botUser = MessagesController.getInstance(currentAccount).getUser(messageObject.messageOwner.from_id.user_id);
-            final String botUsername = UserObject.getPublicUsername(botUser);
-            if (botUser != null && !TextUtils.isEmpty(botUsername)) {
-                viaUsername = "@" + botUsername;
+        if (!org.telegram.messenger.banana.BananaHooks.hideViaBot(currentAccount)) {
+            if (messageObject.isWelcomeMessage() && !messageObject.isWelcomeAnchored() && delegate != null && delegate.getChatMode() == ChatActivity.MODE_DEFAULT && messageObject.messageOwner.from_id != null && messageObject.messageOwner.from_id.user_id != 0) {
+                final TLRPC.User botUser = MessagesController.getInstance(currentAccount).getUser(messageObject.messageOwner.from_id.user_id);
+                final String botUsername = UserObject.getPublicUsername(botUser);
+                if (botUser != null && !TextUtils.isEmpty(botUsername)) {
+                    viaUsername = "@" + botUsername;
+                    viaString = AndroidUtilities.replaceTags(String.format(" %s <b>%s</b>", getString("ViaBot", R.string.ViaBot), viaUsername));
+                    viaWidth = (int) Math.ceil(Theme.chat_replyNamePaint.measureText(viaString, 0, viaString.length()));
+                    currentViaBotUser = botUser;
+                }
+            } else if (messageObject.messageOwner.via_bot_id != 0) {
+                final TLRPC.User botUser = MessagesController.getInstance(currentAccount).getUser(messageObject.messageOwner.via_bot_id);
+                final String botUsername = UserObject.getPublicUsername(botUser);
+                if (botUser != null && !TextUtils.isEmpty(botUsername)) {
+                    viaUsername = "@" + botUsername;
+                    viaString = AndroidUtilities.replaceTags(String.format(" %s <b>%s</b>", getString("ViaBot", R.string.ViaBot), viaUsername));
+                    viaWidth = (int) Math.ceil(Theme.chat_replyNamePaint.measureText(viaString, 0, viaString.length()));
+                    currentViaBotUser = botUser;
+                }
+            } else if (!TextUtils.isEmpty(messageObject.messageOwner.via_bot_name)) {
+                viaUsername = "@" + messageObject.messageOwner.via_bot_name;
                 viaString = AndroidUtilities.replaceTags(String.format(" %s <b>%s</b>", getString("ViaBot", R.string.ViaBot), viaUsername));
                 viaWidth = (int) Math.ceil(Theme.chat_replyNamePaint.measureText(viaString, 0, viaString.length()));
-                currentViaBotUser = botUser;
             }
-        } else if (messageObject.messageOwner.via_bot_id != 0) {
-            final TLRPC.User botUser = MessagesController.getInstance(currentAccount).getUser(messageObject.messageOwner.via_bot_id);
-            final String botUsername = UserObject.getPublicUsername(botUser);
-            if (botUser != null && !TextUtils.isEmpty(botUsername)) {
-                viaUsername = "@" + botUsername;
-                viaString = AndroidUtilities.replaceTags(String.format(" %s <b>%s</b>", getString("ViaBot", R.string.ViaBot), viaUsername));
-                viaWidth = (int) Math.ceil(Theme.chat_replyNamePaint.measureText(viaString, 0, viaString.length()));
-                currentViaBotUser = botUser;
-            }
-        } else if (!TextUtils.isEmpty(messageObject.messageOwner.via_bot_name)) {
-            viaUsername = "@" + messageObject.messageOwner.via_bot_name;
-            viaString = AndroidUtilities.replaceTags(String.format(" %s <b>%s</b>", getString("ViaBot", R.string.ViaBot), viaUsername));
-            viaWidth = (int) Math.ceil(Theme.chat_replyNamePaint.measureText(viaString, 0, viaString.length()));
         }
 
         boolean needAuthorName = isNeedAuthorName();
@@ -24304,6 +24321,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             boolean drawCheck2 = (currentStatus & 2) != 0;
             boolean drawClock = (currentStatus & 4) != 0;
             boolean drawError = (currentStatus & 8) != 0;
+            if (org.telegram.messenger.banana.BananaHooks.hideStickerChecks(currentAccount)
+                    && currentMessageObject != null && currentMessageObject.isAnyKindOfSticker()) {
+                drawCheck1 = false;
+                drawCheck2 = false;
+            }
             boolean needRestore = false;
             if (transitionYOffsetForDrawables != 0) {
                 needRestore = true;
@@ -24315,6 +24337,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 boolean outDrawCheck2 = (animateFromStatusDrawableParams & 2) != 0;
                 boolean outDrawClock = (animateFromStatusDrawableParams & 4) != 0;
                 boolean outDrawError = (animateFromStatusDrawableParams & 8) != 0;
+                if (org.telegram.messenger.banana.BananaHooks.hideStickerChecks(currentAccount)
+                        && currentMessageObject != null && currentMessageObject.isAnyKindOfSticker()) {
+                    outDrawCheck1 = false;
+                    outDrawCheck2 = false;
+                }
                 if (!outDrawClock && outDrawCheck2 && drawCheck2 && !outDrawCheck1 && drawCheck1) {
                     drawStatusDrawable(canvas, drawCheck1, drawCheck2, drawClock, drawError, alpha, bigRadius, timeYOffset, layoutHeight, statusDrawableProgress, true, drawSelectionBackground);
                 } else {

@@ -18,6 +18,9 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.exteragram.messenger.ExteraConfig;
 import com.google.android.gms.vision.Frame;

@@ -52986,6 +52986,8 @@ public class TLRPC {
         public int video_timestamp;
         public long allow_paid_stars;
         public SuggestedPost suggested_post;
+        public boolean allow_paid_floodskip;
+        public boolean from_ephemeral;
 
         public Updates deserializeResponseT(InputSerializedData stream, int constructor, boolean exception) {
             return Updates.TLdeserialize(stream, constructor, exception);
@@ -58745,14 +58747,28 @@ public class TLRPC {
         public MessageFwdHeader fwd_from;
         public long via_bot_id;
         public long via_business_bot_id;
+        public Peer guestchat_via_from;
         public MessageReplyHeader reply_to;
         public String post_author;
+        public String from_rank;
         public long grouped_id;
         public TL_messageReactions reactions;
         public ArrayList<RestrictionReason> restriction_reason = new ArrayList<>();
         public int ttl_period;
         public int quick_reply_shortcut_id;
         public long effect;
+        public TL_factCheck factcheck;
+        public int report_delivery_until_date;
+        public long paid_message_stars;
+        public SuggestedPost suggested_post;
+        public int schedule_repeat_period;
+        public String summary_from_language;
+        public TL_iv.RichMessage rich_message;
+        public boolean invert_media;
+        public boolean offline;
+        public boolean video_processing_pending;
+        public boolean paid_suggested_post_stars;
+        public boolean paid_suggested_post_ton;
         public boolean noforwards;
         public boolean ayuNoforwards;
         public boolean topic_start;

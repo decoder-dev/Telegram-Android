@@ -12,6 +12,8 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Base64;
 
+import androidx.annotation.Keep;
+
 import com.radolyn.ayugram.AyuConfig;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.sync.AyuSyncController;

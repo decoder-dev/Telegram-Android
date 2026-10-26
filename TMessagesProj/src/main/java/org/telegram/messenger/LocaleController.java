@@ -1447,10 +1447,10 @@ public class LocaleController {
     }
 
     private String getStringInternal(String key, String fallback, int res) {
-        if (key.contains("AppName")) {
+        if (key != null && key.contains("AppName")) {
             return LocaleUtils.getAppName();
         }
-        String value = BuildVars.USE_CLOUD_STRINGS ? localeValues.get(key) : null;
+        final String value = getStringV2(key, res, fallback);
         if (value == null) {
             return "LOC_ERR:" + key;
         }

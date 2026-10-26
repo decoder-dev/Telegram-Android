@@ -11639,6 +11639,9 @@
     <string name="BananaAppearanceTheme">Banana theme</string>
     <string name="BananaProfileDC">Data center</string>
     <string name="BananaProfileId">Profile ID</string>
+    <string name="BananaProfileMutual">Mutual contact</string>
+    <string name="BananaProfileCreated">Created</string>
+    <string name="BananaMutualYes">Yes</string>
     <string name="BananaExtras">BananaGram Extras</string>
     <string name="BananaExtrasInfo">Additional features for this account</string>
     <string name="BananaSending">Sending messages</string>

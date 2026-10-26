@@ -460,6 +460,7 @@ public final class BananaConfig {
             case CONFIRM_SHARE_LINKS:
             case MESSAGE_SHOT:
             case AYU_FORWARD:
+            case SHOW_CONTACTS_TAB:
                 return true;
             default:
                 return false;

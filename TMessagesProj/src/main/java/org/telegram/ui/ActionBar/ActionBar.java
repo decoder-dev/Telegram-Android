@@ -43,6 +43,8 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.exteragram.messenger.ExteraConfig;
 import android.view.ViewPropertyAnimator;
 import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
