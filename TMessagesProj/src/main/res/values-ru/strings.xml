@@ -322,8 +322,8 @@
     <string name="BananaFilterAdd">Добавить правило</string>
     <string name="BananaFilterShared">Общее правило</string>
     <string name="BananaFilterPrivateChat">Чат недоступен</string>
-    <string name="BananaFilterOff">Не применяется</string>
-    <string name="BananaFilterOn">Применяется</string>
+    <string name="BananaFilterOff">Выключено</string>
+    <string name="BananaFilterOn">Включено</string>
     <string name="BananaFiltersFormatInfo">Регулярные выражения Java с построчным поиском. Импорт AyuGram v2 поддерживает правила для чатов, исключения общих правил и обновление списков. Импортированные правила проверяются при использовании; ошибочные и медленные правила не применяются.</string>
     <string name="BananaFiltersImport">Импорт правил</string>
     <string name="BananaFiltersExport">Экспорт правил</string>
@@ -348,4 +348,10 @@
     <string name="BananaFilterTooSlow">Проверка заняла слишком много времени. Упростите выражение и повторите попытку.</string>
     <string name="BananaFilterHidden">Этот пример будет скрыт.</string>
     <string name="BananaFilterVisible">Этот пример останется видимым.</string>
+    <string name="BananaFiltersFromLink">Импорт по ссылке</string>
+    <string name="BananaFiltersDownloading">Загружаем правила…</string>
+    <string name="BananaFiltersSourceInfo">Вставьте прямую HTTPS-ссылку на файл с dpaste.com, gist.githubusercontent.com, pastebin.com или nekobin.com. Изменения можно будет проверить до применения.</string>
+    <string name="BananaFiltersSourceError">Не удалось загрузить правила. Проверьте соединение и используйте прямую HTTPS-ссылку на файл с dpaste.com, gist.githubusercontent.com, pastebin.com или nekobin.com. Файл должен быть в UTF-8 и не больше 256 КБ.</string>
+    <string name="BananaFiltersDownload">Загрузить список</string>
+    <string name="BananaFilterUnavailable">Проверка правил временно недоступна. Повторите попытку.</string>
 </resources>

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -29,6 +31,7 @@ public final class BananaFilterEditActivity extends UniversalFragment {
     private final String id, initial;
     private boolean reversed, insensitive, enabled, busy, destroyed;
     private int testStatus;
+    private int evaluationGeneration, viewGeneration, lastResultStatus;
     private EditTextBoldCursor expression, sample;
     private RegexEngine engine;
     private FilterStore store;
@@ -42,13 +45,37 @@ public final class BananaFilterEditActivity extends UniversalFragment {
     @Override public Theme.ResourcesProvider getResourceProvider() { return BananaTheme.COLORS; }
     @Override protected CharSequence getTitle() { return text(R.string.BananaFilterEdit); }
     @Override public View createView(Context context) {
-        store = FilterStore.get(currentAccount); engine = new RegexEngine(context);
+        String pattern = expression == null ? initial : expression.getText().toString();
+        String example = sample == null ? "" : sample.getText().toString();
+        evaluationGeneration++; viewGeneration++;
+        if (engine != null) engine.close();
+        busy = false;
+        if (store == null) store = FilterStore.get(currentAccount);
+        engine = new RegexEngine(context);
         expression = field(context, text(R.string.BananaFilterExpression), 5, getResourceProvider());
         expression.setFilters(new InputFilter[]{new InputFilter.LengthFilter(RegexProtocol.MAX_PATTERN)});
-        expression.setText(initial);
+        expression.setText(pattern);
         sample = field(context, text(R.string.BananaFilterSample), 4, getResourceProvider());
         sample.setFilters(new InputFilter[]{new InputFilter.LengthFilter(16384)});
+        sample.setText(example);
+        final int currentView = viewGeneration;
+        TextWatcher edited = new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence text, int start, int before, int count) { }
+            @Override public void afterTextChanged(Editable text) {
+                if (destroyed || currentView != viewGeneration) return;
+                clearPreview();
+            }
+        };
+        expression.addTextChangedListener(edited); sample.addTextChangedListener(edited);
         return super.createView(context);
+    }
+    private void clearPreview() {
+        expression.setError(null);
+        if (testStatus != 0) {
+            testStatus = 0;
+            if (listView != null) listView.adapter.update(false);
+        }
     }
     static EditTextBoldCursor field(Context context, String hint, int lines, Theme.ResourcesProvider provider) {
         EditTextBoldCursor field = new EditTextBoldCursor(context);
@@ -79,9 +106,11 @@ public final class BananaFilterEditActivity extends UniversalFragment {
         items.add(UItem.asButton(4, text(busy ? R.string.Loading : R.string.BananaFilterTest)));
         if (testStatus != 0) items.add(UItem.asShadow(text(testStatus)));
         items.add(UItem.asButton(5, text(R.string.Save)));
+        if (busy) for (UItem item : items) if (item.id > 0) item.enabled = false;
     }
     @Override protected void onClick(UItem item, View view, int position, float x, float y) {
         if (busy || destroyed || !store.isCurrent()) return;
+        clearPreview();
         if (item.id == 1) insensitive = !insensitive;
         if (item.id == 2) reversed = !reversed;
         if (item.id == 3) enabled = !enabled;
@@ -92,15 +121,21 @@ public final class BananaFilterEditActivity extends UniversalFragment {
         String pattern = expression.getText().toString();
         if (pattern.isEmpty()) { expression.setError(text(R.string.BananaFilterInvalidExpression)); return; }
         busy = true;
+        final int revision = ++evaluationGeneration;
         expression.setEnabled(false); sample.setEnabled(false);
         int flags = Pattern.MULTILINE | (insensitive ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0);
         boolean invert = reversed, ignoreCase = insensitive, active = enabled;
         engine.match(pattern, flags, new String[]{sample.getText().toString()}, result -> {
-            if (destroyed || !store.isCurrent()) return;
+            if (destroyed || revision != evaluationGeneration || !store.isCurrent()) return;
+            lastResultStatus = result.status;
             busy = false;
             expression.setEnabled(true); sample.setEnabled(true);
-            if (result.status != RegexProtocol.OK) expression.setError(text(result.status == RegexProtocol.TIMEOUT ?
-                    R.string.BananaFilterTooSlow : R.string.BananaFilterInvalidExpression));
+            if (result.status != RegexProtocol.OK) {
+                testStatus = result.status == RegexProtocol.TIMEOUT ? R.string.BananaFilterTooSlow :
+                        result.status == RegexProtocol.BAD_PATTERN || result.status == RegexProtocol.INPUT_LIMIT ?
+                        R.string.BananaFilterInvalidExpression : R.string.BananaFilterUnavailable;
+                expression.setError(text(testStatus));
+            }
             else if (save) {
                 try {
                     store.save(store.rules().put(new FilterRules.Rule(id, dialogId, pattern, invert, ignoreCase, active)));
@@ -112,5 +147,12 @@ public final class BananaFilterEditActivity extends UniversalFragment {
     }
     private static String text(int id) { return LocaleController.getString(id); }
     @Override protected boolean onLongClick(UItem item, View view, int position, float x, float y) { return false; }
-    @Override public void onFragmentDestroy() { destroyed = true; if (engine != null) engine.close(); super.onFragmentDestroy(); }
+    @Override public void onResume() {
+        super.onResume();
+        if (store != null && !store.isCurrent()) finishFragment();
+    }
+    @Override public void onFragmentDestroy() {
+        destroyed = true; evaluationGeneration++; viewGeneration++;
+        if (engine != null) engine.close(); super.onFragmentDestroy();
+    }
 }

@@ -11689,8 +11689,8 @@
     <string name="BananaFilterAdd">Add rule</string>
     <string name="BananaFilterShared">Shared rule</string>
     <string name="BananaFilterPrivateChat">Chat unavailable</string>
-    <string name="BananaFilterOff">Inactive</string>
-    <string name="BananaFilterOn">Active</string>
+    <string name="BananaFilterOff">Disabled</string>
+    <string name="BananaFilterOn">Enabled</string>
     <string name="BananaFiltersFormatInfo">Java regular expressions with multiline matching. AyuGram v2 imports support per-chat rules, shared-rule exceptions and list updates. Imported rules are checked when used; invalid or slow rules stay inactive.</string>
     <string name="BananaFiltersImport">Import rules</string>
     <string name="BananaFiltersExport">Export rules</string>
@@ -11715,4 +11715,10 @@
     <string name="BananaFilterTooSlow">This expression took too long. Simplify it and try again.</string>
     <string name="BananaFilterHidden">This sample will be hidden.</string>
     <string name="BananaFilterVisible">This sample will stay visible.</string>
+    <string name="BananaFiltersFromLink">Import from link</string>
+    <string name="BananaFiltersDownloading">Downloading rules…</string>
+    <string name="BananaFiltersSourceInfo">Paste a raw HTTPS link from dpaste.com, gist.githubusercontent.com, pastebin.com or nekobin.com. You will review the changes before applying them.</string>
+    <string name="BananaFiltersSourceError">Could not download the rules. Check the connection and use a raw HTTPS link from dpaste.com, gist.githubusercontent.com, pastebin.com or nekobin.com. Files must be UTF-8 and no larger than 256 KB.</string>
+    <string name="BananaFiltersDownload">Download list</string>
+    <string name="BananaFilterUnavailable">The rule checker is temporarily unavailable. Try again.</string>
 </resources>

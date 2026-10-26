@@ -1929,6 +1929,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         String livestream = null;
                         String phoneHash = null;
                         String lang = null;
+                        String bananaFiltersLink = null;
                         String theme = null;
                         String code = null;
                         String contactToken = null;
@@ -2285,7 +2286,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                 }
                                 case "tg": {
                                     String url = data.toString();
-                                    if (url.startsWith("tg:premium_offer") || url.startsWith("tg://premium_offer")) {
+                                    if (org.telegram.messenger.banana.RemoteFilterSource.isDeepLink(url)) {
+                                        bananaFiltersLink = url;
+                                    } else if (url.startsWith("tg:premium_offer") || url.startsWith("tg://premium_offer")) {
                                         String finalUrl = url.replace("tg:premium_offer", "tg://premium_offer");
                                         AndroidUtilities.runOnUIThread(() -> {
                                         if (!actionBarLayout.getFragmentStack().isEmpty()) {
@@ -2822,7 +2825,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                             intent.removeExtra(EXTRA_ACTION_TOKEN);
                         }
                         if (code != null || UserConfig.getInstance(currentAccount).isClientActivated()) {
-                            if (phone != null || phoneHash != null) {
+                            if (bananaFiltersLink != null) {
+                                presentFragment(new BananaFiltersActivity(intentAccount[0], 0, bananaFiltersLink));
+                                pushOpened = true;
+                                if (progress != null) progress.end();
+                            } else if (phone != null || phoneHash != null) {
                                 AlertDialog cancelDeleteProgressDialog = new AlertDialog(LaunchActivity.this, AlertDialog.ALERT_TYPE_SPINNER);
                                 cancelDeleteProgressDialog.setCanCancel(false);
                                 cancelDeleteProgressDialog.show();

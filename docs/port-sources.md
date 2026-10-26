@@ -87,7 +87,7 @@ before the platform parser is called.
 Filtered chat rows retain message positions at 1 px and exclude accessibility
 content. Drag selection and copy/forward selection cannot include hidden rows;
 a newly hidden selected message clears the current selection. Automatic download suppression, dialog preview masking, blocked-user
-filtering and remote deep-link imports are separate remaining parity work.
+filtering are separate remaining parity work.
 Authenticated chat scrolling and group rendering still need live-account QA.
 
 
@@ -102,3 +102,30 @@ removal clear stale state/name, profile-proxy cleanup is unconditional, and a
 queued SCO start cannot reconnect after the headset state was cleared. Device-name
 lookups remain retryable after failures. Emulator checks do not replace real
 headset, permission-revocation and live-call acceptance.
+
+
+Remote rule imports support the documented `tg://ayu/filters/import/URL` syntax
+and raw HTTPS sources on dpaste.com, gist.githubusercontent.com, pastebin.com
+and nekobin.com. Every redirect is validated against the same allowlist; non-HTTPS,
+credentials in URLs, unsupported ports and fragments are rejected. Source reads
+run on a bounded worker pool, have a 20-second result deadline and can be cancelled
+without waiting for network cleanup on the UI. Raw and decompressed bodies are
+limited to 256 KiB and decoded as strict UTF-8. URLs and downloaded rule bodies
+are not written to application logs, and peer links are never resolved or joined.
+
+Both local and remote input use the same review-before-Apply path. Import does
+not enable the master filter switch. Native EN/RU Blue/Night tests cover preview,
+cancel, apply, export and rejection of an unsupported source; a separate opt-in
+emulator probe verified an actual public Gist HTTPS JSON transfer without applying
+it. Authenticated Telegram deep-link routing and a live external AyuGram list are
+still acceptance work; the documentation's old dpaste sample was unavailable.
+
+
+The editor preserves its draft expression and sample when Android rebuilds its
+view (including theme changes). Each view owns a separate evaluator and ignores
+callbacks from the previous view. Invalid syntax, a matching deadline and a
+service-start failure have distinct feedback. The isolated service initializes
+Android's regex runtime before exposing its Binder; the 250 ms expression budget
+is unchanged. Native tests rebuild the editor before checking and saving a rule.
+A cold GitHub emulator previously rejected a valid expression; these changes are
+under renewed CI validation and must not be treated as confirmed live-account QA.
