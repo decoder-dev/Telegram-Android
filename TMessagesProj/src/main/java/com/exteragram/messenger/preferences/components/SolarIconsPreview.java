@@ -10,4 +10,6 @@ public class SolarIconsPreview extends FrameLayout {
     }
 
     protected void reloadResources() {}
+
+    public void updateIcons(boolean animated) {}
 }

@@ -252,64 +252,18 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         if (!UserConfig.getInstance(UserConfig.selectedAccount).isClientActivated()) {
             return;
         }
-        int eventType = Theme.getEventType();
-        int newGroupIcon;
-        int newSecretIcon;
-        int newChannelIcon;
-        int contactsIcon;
-        int callsIcon;
+        int newGroupIcon = R.drawable.msg_groups;
+        int newSecretIcon = R.drawable.msg_secret;
+        int newChannelIcon = R.drawable.msg_channel;
+        int contactsIcon = R.drawable.msg_contacts;
+        int callsIcon = R.drawable.msg_calls;
         int archiveIcon = R.drawable.msg_archive;
-        int scanQrIcon = R.drawable.msg_qrcode;;
-        int savedIcon;
-        int settingsIcon;
-        int inviteIcon;
-        int helpIcon;
-        int peopleNearbyIcon;
-        if (eventType == 0) {
-            newGroupIcon = R.drawable.msg_groups_ny;
-            newSecretIcon = R.drawable.msg_secret_ny;
-            newChannelIcon = R.drawable.msg_channel_ny;
-            contactsIcon = R.drawable.msg_contacts_ny;
-            callsIcon = R.drawable.msg_calls_ny;
-            savedIcon = R.drawable.msg_saved_ny;
-            settingsIcon = R.drawable.msg_settings_ny;
-            inviteIcon = R.drawable.msg_invite_ny;
-            helpIcon = R.drawable.msg_help_ny;
-            peopleNearbyIcon = R.drawable.msg_nearby_ny;
-        } else if (eventType == 1) {
-            newGroupIcon = R.drawable.msg_groups_14;
-            newSecretIcon = R.drawable.msg_secret_14;
-            newChannelIcon = R.drawable.msg_channel_14;
-            contactsIcon = R.drawable.msg_contacts_14;
-            callsIcon = R.drawable.msg_calls_14;
-            savedIcon = R.drawable.msg_saved_14;
-            settingsIcon = R.drawable.msg_settings_14;
-            inviteIcon = R.drawable.msg_invite_14;
-            helpIcon = R.drawable.msg_help_14;
-            peopleNearbyIcon = R.drawable.msg_nearby_14;
-        } else if (eventType == 2) {
-            newGroupIcon = R.drawable.msg_groups_hw;
-            newSecretIcon = R.drawable.msg_secret_hw;
-            newChannelIcon = R.drawable.msg_channel_hw;
-            contactsIcon = R.drawable.msg_contacts_hw;
-            callsIcon = R.drawable.msg_calls_hw;
-            savedIcon = R.drawable.msg_saved_hw;
-            settingsIcon = R.drawable.msg_settings_hw;
-            inviteIcon = R.drawable.msg_invite_hw;
-            helpIcon = R.drawable.msg_help_hw;
-            peopleNearbyIcon = R.drawable.msg_nearby_hw;
-        } else {
-            newGroupIcon = R.drawable.msg_groups;
-            newSecretIcon = R.drawable.msg_secret;
-            newChannelIcon = R.drawable.msg_channel;
-            contactsIcon = R.drawable.msg_contacts;
-            callsIcon = R.drawable.msg_calls;
-            savedIcon = R.drawable.msg_saved;
-            settingsIcon = R.drawable.msg_settings_old;
-            inviteIcon = R.drawable.msg_invite;
-            helpIcon = R.drawable.msg_help;
-            peopleNearbyIcon = R.drawable.msg_nearby;
-        }
+        int scanQrIcon = R.drawable.msg_qrcode;
+        int savedIcon = R.drawable.msg_saved;
+        int settingsIcon = R.drawable.msg_settings_old;
+        int inviteIcon = R.drawable.msg_share;
+        int helpIcon = R.drawable.msg_help;
+        int peopleNearbyIcon = R.drawable.msg_location;
 
         // --- AyuGram / BananaGram ghost toggle (BananaConfig is source of truth)
         if (AyuConfig.showGhostToggleInDrawer) {
@@ -328,9 +282,9 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         UserConfig me = UserConfig.getInstance(UserConfig.selectedAccount);
         if (me != null && me.isPremium() && ExteraConfig.changeStatus) {
             if (me.getEmojiStatus() != null) {
-                items.add(new Item(15, LocaleController.getString("ChangeEmojiStatus", R.string.ChangeEmojiStatus), R.drawable.msg_status_edit));
+                items.add(new Item(15, LocaleController.getString("ChangeEmojiStatus", R.string.ChangeEmojiStatus), R.drawable.msg_edit));
             } else {
-                items.add(new Item(15, LocaleController.getString("SetEmojiStatus", R.string.SetEmojiStatus), R.drawable.msg_status_set));
+                items.add(new Item(15, LocaleController.getString("SetEmojiStatus", R.string.SetEmojiStatus), R.drawable.msg_smile_status));
             }
             items.add(null);
         }
@@ -343,7 +297,8 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         if (ExteraConfig.newChannel) items.add(new Item(4, LocaleController.getString("NewChannel", R.string.NewChannel), newChannelIcon));
         if (ExteraConfig.contacts) items.add(new Item(6, LocaleController.getString("Contacts", R.string.Contacts), contactsIcon));
         if (ExteraConfig.calls) items.add(new Item(10, LocaleController.getString("Calls", R.string.Calls), callsIcon));
-        if (ExteraConfig.peopleNearby && hasGps) items.add(new Item(12, LocaleController.getString("PeopleNearby", R.string.PeopleNearby), peopleNearbyIcon));
+        // People Nearby removed upstream; keep ExteraConfig flag but do not add the drawer row.
+        // if (ExteraConfig.peopleNearby && hasGps) items.add(new Item(12, ...));
         if (ExteraConfig.savedMessages) items.add(new Item(11, LocaleController.getString("SavedMessages", R.string.SavedMessages), savedIcon));
         items.add(new Item(8, LocaleController.getString("Settings", R.string.Settings), settingsIcon));
         if (ExteraConfig.scanQr) {

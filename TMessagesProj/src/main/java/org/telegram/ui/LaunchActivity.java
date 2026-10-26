@@ -8,6 +8,27 @@
 
 package org.telegram.ui;
 
+import static org.telegram.ui.Components.Premium.LimitReachedBottomSheet.TYPE_ACCOUNTS;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
+import android.animation.ObjectAnimator;
+
+import android.graphics.Point;
+
+import org.telegram.ui.Cells.DrawerAddCell;
+
+import org.telegram.ui.Cells.DrawerUserCell;
+
+import org.telegram.ui.Cells.DrawerActionCell;
+
+import org.telegram.ui.Cells.DrawerProfileCell;
+
+import androidx.recyclerview.widget.RecyclerView;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+
+import androidx.recyclerview.widget.ItemTouchHelper;
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.formatPluralString;
 import static org.telegram.messenger.LocaleController.formatString;
@@ -166,6 +187,9 @@ import org.telegram.tgnet.tl.TL_chatlists;
 import org.telegram.tgnet.tl.TL_forum;
 import org.telegram.tgnet.tl.TL_stars;
 import org.telegram.tgnet.tl.TL_stories;
+import org.telegram.ui.Adapters.DrawerLayoutAdapter;
+import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.Components.SideMenultItemAnimator;
 import org.telegram.ui.ActionBar.ActionBarLayout;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -320,6 +344,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     private FireworksOverlay fireworksOverlay;
     private BottomSheetTabsOverlay bottomSheetTabsOverlay;
     public DrawerLayoutContainer drawerLayoutContainer;
+    private boolean checkUpdates;
+    private FrameLayout sideMenuContainer;
+    private SideMenultItemAnimator itemAnimator;
+    private RecyclerListView sideMenu;
+    private DrawerLayoutAdapter drawerLayoutAdapter;
     private PasscodeViewDialog passcodeDialog;
     private List<PasscodeView> overlayPasscodeViews = new ArrayList<>();
     private TermsOfServiceView termsOfServiceView;
@@ -613,7 +642,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 } else if (!UserConfig.hasPremiumOnAccounts()) {
                     if (actionBarLayout.getFragmentStack().size() > 0) {
                         BaseFragment fragment = actionBarLayout.getFragmentStack().get(0);
-                        LimitReachedBottomSheet limitReachedBottomSheet = new LimitReachedBottomSheet(fragment, this, TYPE_ACCOUNTS, currentAccount);
+                        LimitReachedBottomSheet limitReachedBottomSheet = new LimitReachedBottomSheet(fragment, this, TYPE_ACCOUNTS, currentAccount, null);
                         fragment.showDialog(limitReachedBottomSheet);
                         limitReachedBottomSheet.onShowPremiumScreenRunnable = () -> drawerLayoutContainer.closeDrawer(false);
                     }
@@ -664,30 +693,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     presentFragment(new ChatActivity(args));
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 12) {
-                    if (Build.VERSION.SDK_INT >= 23) {
-                        if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                            presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_NEARBY_LOCATION_ACCESS));
-                            drawerLayoutContainer.closeDrawer(false);
-                            return;
-                        }
-                    }
-                    boolean enabled = true;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        LocationManager lm = (LocationManager) ApplicationLoader.applicationContext.getSystemService(Context.LOCATION_SERVICE);
-                        enabled = lm.isLocationEnabled();
-                    } else {
-                        try {
-                            int mode = Settings.Secure.getInt(ApplicationLoader.applicationContext.getContentResolver(), Settings.Secure.LOCATION_MODE, Settings.Secure.LOCATION_MODE_OFF);
-                            enabled = (mode != Settings.Secure.LOCATION_MODE_OFF);
-                        } catch (Throwable e) {
-                            FileLog.e(e);
-                        }
-                    }
-                    if (enabled) {
-                        presentFragment(new PeopleNearbyActivity());
-                    } else {
-                        presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_NEARBY_LOCATION_ENABLED));
-                    }
+                    // People Nearby was removed upstream; keep menu id for DrawerLayoutAdapter compatibility.
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 13) {
                     Browser.openUrl(LaunchActivity.this, LocaleController.getString("TelegramFeaturesUrl", R.string.TelegramFeaturesUrl));
@@ -701,10 +707,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     showSelectStatusDialog();
                 } else if (id == 16) {
                     if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                        requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
+                        requestPermissions(new String[]{Manifest.permission.CAMERA}, org.telegram.ui.ActionIntroActivity.CAMERA_PERMISSION_REQUEST_CODE);
                         return;
                     }
-                    openCameraScanActivity();
+                    org.telegram.ui.QrShare.QrShareActivity.openCameraScanActivity(actionBarLayout.getLastFragment());
                     if (AndroidUtilities.isTablet()) {
                         actionBarLayout.showLastFragment();
                         rightActionBarLayout.showLastFragment();
@@ -1522,6 +1528,159 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     }
 
     private boolean switchingAccount;
+    public void showSelectStatusDialog() {
+        if (selectAnimatedEmojiDialog != null || SharedConfig.appLocked) {
+            return;
+        }
+        BaseFragment fragment = actionBarLayout.getLastFragment();
+        if (fragment == null) {
+            return;
+        }
+        final View profileCell = sideMenu.getChildAt(0);
+        final SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow[] popup = new SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow[1];
+        TLRPC.User user = MessagesController.getInstance(UserConfig.selectedAccount).getUser(UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId());
+        int xoff = 0, yoff = 0;
+        boolean hasEmoji = false;
+        AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable scrimDrawable = null;
+        View scrimDrawableParent = null;
+        DrawerProfileCell profileCellCasted = null;
+        if (profileCell instanceof DrawerProfileCell) {
+            profileCellCasted = (DrawerProfileCell) profileCell;
+            scrimDrawable = profileCellCasted.getEmojiStatusDrawable();
+            if (scrimDrawable != null) {
+                scrimDrawable.play();
+            }
+            scrimDrawableParent = profileCellCasted.getEmojiStatusDrawableParent();
+            hasEmoji = scrimDrawable != null && scrimDrawable.getDrawable() instanceof AnimatedEmojiDrawable;
+            profileCellCasted.getEmojiStatusLocation(AndroidUtilities.rectTmp2);
+            yoff = -(profileCell.getHeight() - AndroidUtilities.rectTmp2.centerY()) - AndroidUtilities.dp(16);
+            xoff = AndroidUtilities.rectTmp2.centerX();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                    getWindow() != null &&
+                    getWindow().getDecorView() != null &&
+                    getWindow().getDecorView().getRootWindowInsets() != null
+            ) {
+                xoff -= getWindow().getDecorView().getRootWindowInsets().getStableInsetLeft();
+            }
+        }
+        SelectAnimatedEmojiDialog popupLayout = new SelectAnimatedEmojiDialog(fragment, this, true, xoff, SelectAnimatedEmojiDialog.TYPE_EMOJI_STATUS, null) {
+            @Override
+            public void onSettings() {
+                if (drawerLayoutContainer != null) {
+                    drawerLayoutContainer.closeDrawer();
+                }
+            }
+            @Override
+            protected boolean willApplyEmoji(View view, Long documentId, TLRPC.Document document, TL_stars.TL_starGiftUnique gift, Integer until) {
+                if (gift != null) {
+                    final TL_stars.SavedStarGift savedStarGift = StarsController.getInstance(currentAccount).findUserStarGift(gift.id);
+                    return savedStarGift == null || MessagesController.getGlobalMainSettings().getInt("statusgiftpage", 0) >= 2;
+                }
+                return true;
+            }
+
+            @Override
+            protected void onEmojiSelected(View emojiView, Long documentId, TLRPC.Document document, TL_stars.TL_starGiftUnique gift, Integer until) {
+                TLRPC.EmojiStatus emojiStatus;
+                if (documentId == null) {
+                    emojiStatus = new TLRPC.TL_emojiStatusEmpty();
+                } else if (gift != null) {
+                    final TL_stars.SavedStarGift savedStarGift = StarsController.getInstance(currentAccount).findUserStarGift(gift.id);
+                    if (savedStarGift != null && MessagesController.getGlobalMainSettings().getInt("statusgiftpage", 0) < 2) {
+                        MessagesController.getGlobalMainSettings().edit().putInt("statusgiftpage", MessagesController.getGlobalMainSettings().getInt("statusgiftpage", 0) + 1).apply();
+                        new StarGiftSheet(getContext(), currentAccount, UserConfig.getInstance(currentAccount).getClientUserId(), null)
+                            .set(savedStarGift, null)
+                            .setupWearPage()
+                            .show();
+                        if (popup[0] != null) {
+                            selectAnimatedEmojiDialog = null;
+                            popup[0].dismiss();
+                        }
+                        return;
+                    }
+                    final TLRPC.TL_inputEmojiStatusCollectible status = new TLRPC.TL_inputEmojiStatusCollectible();
+                    status.collectible_id = gift.id;
+                    if (until != null) {
+                        status.flags |= 1;
+                        status.until = until;
+                    }
+                    emojiStatus = status;
+                } else {
+                    final TLRPC.TL_emojiStatus status = new TLRPC.TL_emojiStatus();
+                    if (until != null) {
+                        status.flags |= 1;
+                        status.until = until;
+                    }
+                    status.document_id = documentId;
+                    emojiStatus = status;
+                }
+                MessagesController.getInstance(currentAccount).updateEmojiStatus(emojiStatus, gift);
+                TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();
+                if (user != null) {
+                    for (int i = 0; i < sideMenu.getChildCount(); ++i) {
+                        View child = sideMenu.getChildAt(i);
+                        if (child instanceof DrawerUserCell) {
+                            ((DrawerUserCell) child).setAccount(((DrawerUserCell) child).getAccountNumber());
+                        } else if (child instanceof DrawerProfileCell) {
+                            if (documentId != null) {
+                                ((DrawerProfileCell) child).animateStateChange(documentId);
+                            }
+                            ((DrawerProfileCell) child).setUser(user, drawerLayoutAdapter.isAccountsShown());
+                        } else if (child instanceof DrawerActionCell && drawerLayoutAdapter.getId(sideMenu.getChildAdapterPosition(child)) == 15) {
+                            boolean hasStatus = user != null && DialogObject.getEmojiStatusDocumentId(user.emoji_status) != 0;
+                            ((DrawerActionCell) child).updateTextAndIcon(
+                                getString(hasStatus ? R.string.ChangeEmojiStatus : R.string.SetEmojiStatus),
+                                hasStatus ?
+                                    R.drawable.msg_edit :
+                                    R.drawable.msg_smile_status
+                            );
+                        }
+                    }
+                }
+                if (popup[0] != null) {
+                    selectAnimatedEmojiDialog = null;
+                    popup[0].dismiss();
+                }
+            }
+        };
+        if (user != null) {
+            popupLayout.setExpireDateHint(DialogObject.getEmojiStatusUntil(user.emoji_status));
+        }
+        if (profileCellCasted != null && profileCellCasted.getEmojiStatusGiftId() != null) {
+            popupLayout.setSelected(profileCellCasted.getEmojiStatusGiftId());
+        } else {
+            popupLayout.setSelected(scrimDrawable != null && scrimDrawable.getDrawable() instanceof AnimatedEmojiDrawable ? ((AnimatedEmojiDrawable) scrimDrawable.getDrawable()).getDocumentId() : null);
+        }
+        popupLayout.setSaveState(2);
+        popupLayout.setScrimDrawable(scrimDrawable, scrimDrawableParent);
+        popup[0] = selectAnimatedEmojiDialog = new SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow(popupLayout, LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT) {
+            @Override
+            public void dismiss() {
+                super.dismiss();
+                selectAnimatedEmojiDialog = null;
+            }
+        };
+        popup[0].showAsDropDown(sideMenu.getChildAt(0), 0, yoff, Gravity.TOP);
+        popup[0].dimBehind();
+    }
+
+    public void reloadIcons() {
+        try {
+            if (drawerLayoutAdapter != null) drawerLayoutAdapter.notifyDataSetChanged();
+        } catch (Throwable ignore) {}
+    }
+
+    private void openSettings(boolean expanded) {
+        Bundle args = new Bundle();
+        args.putLong("user_id", UserConfig.getInstance(currentAccount).clientUserId);
+        if (expanded) {
+            args.putBoolean("expandPhoto", true);
+        }
+        ProfileActivity fragment = new ProfileActivity(args);
+        presentFragment(fragment);
+        drawerLayoutContainer.closeDrawer(false);
+    }
+
     public void switchToAccount(int account, boolean removeAll) {
         switchToAccount(account, removeAll, obj -> new MainTabsActivity());
     }

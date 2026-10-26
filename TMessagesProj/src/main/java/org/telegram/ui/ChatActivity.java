@@ -385,11 +385,6 @@ public class ChatActivity extends BaseFragment implements
         InstantCameraView.Delegate,
         FactorAnimator.Target
 {
-    @Override
-    public void onFactorChanged(int id, float factor, float fraction, FactorAnimator callee) {
-        // Banana/Ayu hooks may animate chat UI factors; default no-op.
-    }
-
     private final static boolean PULL_DOWN_BACK_FRAGMENT = false;
     private final static boolean DISABLE_PROGRESS_VIEW = true;
     private final static int SKELETON_DISAPPEAR_MS = 200;
@@ -4581,7 +4576,7 @@ public class ChatActivity extends BaseFragment implements
             if (currentChat != null && !currentChat.creator && !ChatObject.hasAdminRights(currentChat)) {
                 headerItem.lazilyAddSubItem(report, R.drawable.msg_report, LocaleController.getString(R.string.ReportChat));
             }
-            headerItem.lazilyAddSubItem(to_beginning, R.drawable.msg_to_beginning, LocaleController.getString("ToBeginning", R.string.ToBeginning));
+            headerItem.lazilyAddSubItem(to_beginning, R.drawable.msg_go_up, LocaleController.getString("ToBeginning", R.string.ToBeginning));
             if (currentChat != null && (ChatObject.canUserDoAction(currentChat, ChatObject.ACTION_PIN) || ChatObject.isChannel(currentChat)) || currentEncryptedChat == null && currentUser != null) {
                 headerItem.lazilyAddSubItem(show_pinned, R.drawable.msg_pin, LocaleController.getString("PinnedMessage", R.string.PinnedMessage));
             }
@@ -12369,10 +12364,10 @@ public class ChatActivity extends BaseFragment implements
 
     private boolean hasSelectedNoforwardsMessage() {
         try {
-            for (SparseArrayWithTouch<MessageObject> selectedMessagesId : selectedMessagesIds) {
-                for (int j = 0; j < selectedMessagesId.size(); ++j) {
-                    MessageObject msg = selectedMessagesId.valueAt(j);
-                    if (msg != null && msg.messageOwner != null && msg.messageOwner.noforwards) {
+            for (int i = 0; i < selectedMessagesIds.length; ++i) {
+                for (int j = 0; j < selectedMessagesIds[i].size(); ++j) {
+                    MessageObject msg = selectedMessagesIds[i].valueAt(j);
+                    if (msg != null && msg.messageOwner != null && (msg.messageOwner.noforwards || msg.messageOwner.ayuDeleted)) {
                         return true;
                     }
                 }
@@ -13157,6 +13152,10 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private void openScheduledMessages() {
+        openScheduledMessages(0, false);
+    }
+
+    private void openScheduledMessages(int fromMessageId, boolean showConvertToast) {
         if (AyuState.getAutomaticallyScheduled()) {
             return;
         }
@@ -20896,6 +20895,28 @@ public class ChatActivity extends BaseFragment implements
     public void didReceivedNotification(int id, int account, final Object... args) {
         if (id == NotificationCenter.messagesDidLoad) {
             didReceivedNotification_messagesDidLoad(id, account, args);
+        } else if (id == AyuConstants.MESSAGES_DELETED_NOTIFICATION) {
+            // --- AyuGram hook
+            long dialogId = (Long) args[0];
+            if (getDialogId() != dialogId && (ChatObject.isChannel(currentChat) || dialogId != 0)) {
+                return;
+            }
+            if (chatAdapter == null) {
+                return;
+            }
+            ArrayList<Integer> messageIds = (ArrayList<Integer>) args[1];
+            for (int a = 0, N = messageIds.size(); a < N; a++) {
+                int mid = messageIds.get(a);
+                MessageObject currentMessage = messagesDict[0].get(mid);
+                if (currentMessage != null) {
+                    currentMessage.messageOwner.ayuDeleted = true;
+                    chatAdapter.updateRowWithMessageObject(currentMessage, false, false);
+                }
+            }
+            if (AyuState.getHideSelection()) {
+                startMessageUnselect();
+            }
+            // --- AyuGram hook
         } else {
             didReceivedNotification2(id, account, args);
             didReceivedNotification3(id, account, args);
@@ -21392,6 +21413,120 @@ public class ChatActivity extends BaseFragment implements
                 dropPhotoAction = action;
             }
         }
+        // --- AyuGram hook main
+        long dialogId = getDialogId();
+        long topicId = getTopicId();
+
+        int minVal = isSecretChat() ? Integer.MAX_VALUE : 0;
+        int maxVal = isSecretChat() ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+
+        int startId = minVal; // top message (startId < endId)
+        // ...deleted messages
+        int endId = minVal; // bottom message
+
+        int limit = 500;
+
+        androidx.core.util.Pair<Integer, Integer> msgIds = AyuHistoryHook.getMinAndMaxIds(messArr);
+
+        if (!DialogObject.isEncryptedDialog(dialogId)) {
+            if (!messArr.isEmpty()) {
+                int msg1 = msgIds.first; // smaller
+                int msg2 = msgIds.second; // bigger
+
+                startId = Math.min(msg1, msg2);
+                endId = Math.max(msg1, msg2);
+
+                TLRPC.Dialog dialog = getMessagesController().getDialog(dialogId);
+
+                TLRPC.TL_forumTopic topic = null;
+                if (isTopic) {
+                    topic = getMessagesController().getTopicsController().findTopic(getCurrentChatInfo().id, getTopicId());
+                }
+
+                // todo: check if these's any messages between current loaded and newly loaded
+                // like, we know their ids, so why not
+                android.util.Pair<Integer, Integer> minMaxRes = getMessagesStorage().getMinAndMaxForDialog(dialogId);
+
+                // allows loading messages that are under bottom messages
+                if (dialog != null && (dialog.top_message == endId || (minMaxRes.second == endId && dialog.top_message <= minMaxRes.second)) || topic != null && topic.top_message == endId) {
+                    // startId is the smallest in the current batch
+                    endId = maxVal;
+                } else if (messArr.size() == 1 && messArr.get(0).messageOwner instanceof TLRPC.TL_messageService) {
+                    startId = minVal;
+                    endId = AyuUtils.getMinRealId(messages);
+                }
+                // allows loading messages that are uppermore than the dialog
+                else if (messArr.size() < count && !isCache && (load_type == 2 || load_type == 1) && !messArr.isEmpty()) {
+                    startId = minVal;
+                    endId = Math.min(msg1, msg2);
+                }
+            } else {
+                if (!messages.isEmpty()) { // for loading uppermore
+                    startId = minVal;
+                    endId = AyuUtils.getMinRealId(messages);
+                }
+
+                if (isCache) {
+                    startId = minVal;
+                    endId = minVal;
+                }
+            }
+        } else {
+            // works for secret chats only, because they're all cached
+            android.util.Pair<Integer, Integer> secretRes = getMessagesStorage().getMinAndMaxForDialog(dialogId);
+            int secretStartId = secretRes.second; // bigger
+            int secretEndId = secretRes.first; // smaller
+
+            int msg1 = msgIds.second; // bigger
+            int msg2 = msgIds.first; // smaller
+
+            if (Math.abs(secretStartId - secretEndId) == 1 || (secretStartId == msg1 && secretEndId == msg2)) { // empty dialog, so load as much as we can
+                startId = minVal;
+                endId = maxVal;
+                Log.d("AyuGram", "case 1");
+            } else if (secretStartId == msg1) { // loaded up to top
+                startId = minVal;
+                endId = msg2;
+                Log.d("AyuGram", "case 2");
+            } else if (secretEndId == msg2) { // loaded up to bottom
+                startId = msg1;
+                endId = maxVal;
+                Log.d("AyuGram", "case 3");
+            } else { // just between some messages
+                startId = msg1;
+                endId = msg2;
+                Log.d("AyuGram", "case 4");
+            }
+
+            Log.d("AyuGram", "omfg " + secretStartId + " " + secretEndId);
+            Log.d("AyuGram", "omfg2 " + msg1 + " " + msg2);
+        }
+
+        if (startId > endId) {
+            int t = startId;
+            startId = endId;
+            endId = t;
+        }
+
+        Log.d("AyuGram",
+                "messArr: " + messArr.size()
+                + " , startId: " + startId
+                + " , endId: " + endId
+                + " , count: " + count
+                + " , load_type: " + load_type
+                + " , isCache: " + isCache
+                + " , isEnd: " + isEnd
+                + ", endReached[0]: " + endReached[0]
+        );
+        if (!isInScheduleMode() && chatMode != MODE_PINNED && (startId != minVal || endId != minVal)) {
+            boolean needToReset = messArr.size() == count;
+            AyuHistoryHook.doHook(currentAccount, messArr, messagesDict, startId, endId, dialogId, limit, topicId, isSecretChat());
+            if (needToReset) {
+                count = messArr.size();
+            }
+        }
+        // --- AyuGram hook
+
         for (int a = 0; a < messArr.size(); a++) {
             MessageObject obj = messArr.get(a);
             if (obj.replyMessageObject != null) {
@@ -21402,134 +21537,6 @@ public class ChatActivity extends BaseFragment implements
             if (threadMessageId != 0) {
                 if (messageId <= (obj.isOut() ? threadMaxOutboxReadId : threadMaxInboxReadId)) {
                     obj.setIsRead();
-                }
-            }
-
-            // --- AyuGram hook main
-            var dialogId = getDialogId();
-            var topicId = getTopicId();
-
-            int minVal = isSecretChat() ? Integer.MAX_VALUE : 0;
-            int maxVal = isSecretChat() ? Integer.MIN_VALUE : Integer.MAX_VALUE;
-
-            int startId = minVal; // top message (startId < endId)
-            // ...deleted messages
-            int endId = minVal; // bottom message
-
-            var limit = 500;
-
-            var msgIds = AyuHistoryHook.getMinAndMaxIds(messArr);
-
-            if (!DialogObject.isEncryptedDialog(dialogId)) {
-                if (!messArr.isEmpty()) {
-                    int msg1 = msgIds.first; // smaller
-                    int msg2 = msgIds.second; // bigger
-
-                    startId = Math.min(msg1, msg2);
-                    endId = Math.max(msg1, msg2);
-
-                    var dialog = getMessagesController().getDialog(dialogId);
-
-                    TLRPC.TL_forumTopic topic = null;
-                    if (isTopic) {
-                        topic = getMessagesController().getTopicsController().findTopic(getCurrentChatInfo().id, getTopicId());
-                    }
-
-                    // todo: check if these's any messages between current loaded and newly loaded
-                    // like, we know their ids, so why not
-                    var minMaxRes = getMessagesStorage().getMinAndMaxForDialog(dialogId);
-
-                    // allows loading messages that are under bottom messages
-                    if (dialog != null && (dialog.top_message == endId || (minMaxRes.second == endId && dialog.top_message <= minMaxRes.second)) || topic != null && topic.top_message == endId) {
-                        // startId is the smallest in the current batch
-                        endId = maxVal;
-                    } else if (messArr.size() == 1 && messArr.get(0).messageOwner instanceof TLRPC.TL_messageService) {
-                        startId = minVal;
-                        endId = AyuUtils.getMinRealId(messages);
-                    }
-                    // allows loading messages that are uppermore than the dialog
-                    else if (messArr.size() < count && !isCache && (load_type == 2 || load_type == 1) && !messArr.isEmpty()) {
-                        startId = minVal;
-                        endId = Math.min(msg1, msg2);
-                    }
-                } else {
-                    if (!messages.isEmpty()) { // for loading uppermore
-                        startId = minVal;
-                        endId = AyuUtils.getMinRealId(messages);
-                    }
-
-                    if (isCache) {
-                        startId = minVal;
-                        endId = minVal;
-                    }
-                }
-            } else {
-                // works for secret chats only, because they're all cached
-                var secretRes = getMessagesStorage().getMinAndMaxForDialog(dialogId);
-                int secretStartId = secretRes.second; // bigger
-                int secretEndId = secretRes.first; // smaller
-
-                int msg1 = msgIds.second; // bigger
-                int msg2 = msgIds.first; // smaller
-
-                if (Math.abs(secretStartId - secretEndId) == 1 || (secretStartId == msg1 && secretEndId == msg2)) { // empty dialog, so load as much as we can
-                    startId = minVal;
-                    endId = maxVal;
-                    Log.d("AyuGram", "case 1");
-                } else if (secretStartId == msg1) { // loaded up to top
-                    startId = minVal;
-                    endId = msg2;
-                    Log.d("AyuGram", "case 2");
-                } else if (secretEndId == msg2) { // loaded up to bottom
-                    startId = msg1;
-                    endId = maxVal;
-                    Log.d("AyuGram", "case 3");
-                } else { // just between some messages
-                    startId = msg1;
-                    endId = msg2;
-                    Log.d("AyuGram", "case 4");
-                }
-
-                Log.d("AyuGram", "omfg " + secretStartId + " " + secretEndId);
-                Log.d("AyuGram", "omfg2 " + msg1 + " " + msg2);
-            }
-
-            if (startId > endId) {
-                var t = startId;
-                startId = endId;
-                endId = t;
-            }
-
-            Log.d("AyuGram",
-                    "messArr: " + messArr.size()
-                    + " , startId: " + startId
-                    + " , endId: " + endId
-                    + " , count: " + count
-                    + " , load_type: " + load_type
-                    + " , isCache: " + isCache
-                    + " , isEnd: " + isEnd
-                    + ", endReached[0]: " + endReached[0]
-            );
-            if (!isInScheduleMode() && chatMode != MODE_PINNED && (startId != minVal || endId != minVal)) {
-                var needToReset = messArr.size() == count;
-                AyuHistoryHook.doHook(currentAccount, messArr, messagesDict, startId, endId, dialogId, limit, topicId, isSecretChat());
-                if (needToReset) {
-                    count = messArr.size();
-                }
-            }
-            // --- AyuGram hook
-
-            for (int a = 0; a < messArr.size(); a++) {
-                MessageObject obj = messArr.get(a);
-                if (obj.replyMessageObject != null) {
-                    repliesMessagesDict.put(obj.replyMessageObject.getId(), obj.replyMessageObject);
-                    addReplyMessageOwner(obj, 0);
-                }
-                int messageId = obj.getId();
-                if (threadMessageId != 0) {
-                    if (messageId <= (obj.isOut() ? threadMaxOutboxReadId : threadMaxInboxReadId)) {
-                        obj.setIsRead();
-                    }
                 }
             }
             if (approximateHeightSum <= AndroidUtilities.displaySize.y / 2) {
@@ -22792,7 +22799,7 @@ public class ChatActivity extends BaseFragment implements
             }
             ArrayList<Integer> markAsDeletedMessages = (ArrayList<Integer>) args[0];
             long channelId = (Long) args[1];
-            processDeletedMessages(markAsDeletedMessages, channelId);
+            processDeletedMessages(markAsDeletedMessages, channelId, false);
         } else if (id == NotificationCenter.messageReceivedByServer) {
             Boolean scheduled = (Boolean) args[6];
             if (scheduled != (chatMode == MODE_SCHEDULED)) {
@@ -25149,34 +25156,6 @@ public class ChatActivity extends BaseFragment implements
         if (scrollByCell != null) {
             chatLayoutManager.scrollToPositionWithOffset(chatListView.getChildAdapterPosition(scrollByCell), scrollByCell.getTop() - (int) chatListViewPaddingTop, false);
         }
-
-        // --- AyuGram hook
-        if (id == AyuConstants.MESSAGES_DELETED_NOTIFICATION) {
-            long dialogId = (Long) args[0];
-            if (getDialogId() != dialogId && (ChatObject.isChannel(currentChat) || dialogId != 0)) {
-                return;
-            }
-            if (chatAdapter == null) {
-                return;
-            }
-            ArrayList<Integer> messageIds = (ArrayList<Integer>) args[1];
-            for (int a = 0, N = messageIds.size(); a < N; a++) {
-                int mid = messageIds.get(a);
-                MessageObject currentMessage = messagesDict[0].get(mid);
-                if (currentMessage != null) {
-                    currentMessage.messageOwner.ayuDeleted = true;
-                    chatAdapter.updateRowWithMessageObject(currentMessage, false);
-                }
-            }
-
-            if (AyuState.getHideSelection()) {
-                // thanks to the som fucking tg bug & poor design,
-                // I can't deselect messages rn
-                // neither they can deselect themselves
-                startMessageUnselect();
-            }
-        }
-        // --- AyuGram hook
     }
 
     private int getScrollingOffsetForView(View v) {
@@ -25405,9 +25384,15 @@ public class ChatActivity extends BaseFragment implements
         if (res == null || res.messages == null) {
             return;
         }
-        if (!com.radolyn.ayugram.AyuConfig.enableAds) {
+        if (com.radolyn.ayugram.AyuConfig.disableAds || org.telegram.messenger.banana.BananaHooks.hideAds(currentAccount)) {
             ArrayList<MessageObject> nonAds = new ArrayList<>();
-            for (MessageObject message : res.messages) if (!message.isSponsored()) nonAds.add(message);
+            for (MessageObject message : res.messages) {
+                if (!message.isSponsored()) {
+                    nonAds.add(message);
+                } else {
+                    markSponsoredAsRead(message);
+                }
+            }
             sponsoredMessagesAdded = true;
             botSponsoredMessage = null;
             if (UserObject.isBot(currentUser)) updateTopPanel(true);
@@ -25419,28 +25404,17 @@ public class ChatActivity extends BaseFragment implements
             messageObject.resetLayout();
             long dialogId = MessageObject.getPeerId(messageObject.messageOwner.from_id);
             int messageId = 0;
-            if (messageObject.sponsoredChannelPost != 0) {
-                messageId = messageObject.sponsoredChannelPost;
+            if (messageObject.messageOwner != null && messageObject.messageOwner.fwd_from != null) {
+                messageId = messageObject.messageOwner.fwd_from.channel_post;
             }
-            if (!org.telegram.messenger.banana.BananaHooks.hideAds(currentAccount)) {
-                getMessagesController().ensureMessagesLoaded(dialogId, messageId, null);
-            } else {
-                if (!messageObject.isSponsored()) {
-                    getMessagesController().ensureMessagesLoaded(dialogId, messageId, null);
-                    nonAds.add(messageObject);
-                } else {
-                    markSponsoredAsRead(messageObject);
-                }
-            }
+            getMessagesController().ensureMessagesLoaded(dialogId, messageId, null);
         }
         sponsoredMessagesAdded = true;
-        if (!org.telegram.messenger.banana.BananaHooks.hideAds(currentAccount)) {
-            sponsoredMessagesPostsBetween = res.posts_between != null ? res.posts_between : 0;
-            if (notPushedSponsoredMessages != null) {
-                notPushedSponsoredMessages.clear();
-            }
-            processNewMessages(res.messages, false);
+        sponsoredMessagesPostsBetween = res.posts_between != null ? res.posts_between : 0;
+        if (notPushedSponsoredMessages != null) {
+            notPushedSponsoredMessages.clear();
         }
+        processNewMessages(res.messages, false);
     }
 
     public void removeFromSponsored(MessageObject message) {
@@ -28844,9 +28818,10 @@ public class ChatActivity extends BaseFragment implements
             pinnedMessageObject = null;
             pinned_msg_id = 0;
         }
-        TLRPC.KeyboardButton botButton = pinnedButton(pinnedMessageObject);
+        TL_keyboard.KeyboardInlineButton botButton = pinnedButton(pinnedMessageObject);
+        final String callLink = callLink(pinnedMessageObject);
         pinnedMessageButtonShown = botButton != null;
-        if (threadMessageObject == null && (chatInfo == null && userInfo == null || pinned_msg_id == 0) || reportType >= 0 || actionBar != null && (actionBar.isActionModeShowed() || actionBar.isSearchFieldVisible())) {
+        if (threadMessageObject == null && (chatInfo == null && userInfo == null || pinned_msg_id == 0) || isReport() || actionBar != null && (actionBar.isActionModeShowed() || actionBar.isSearchFieldVisible())) {
             changed = hidePinnedMessageView(animated);
             if (headerItem != null) {
                 headerItem.hideSubItem(show_pinned);
@@ -31342,6 +31317,7 @@ public class ChatActivity extends BaseFragment implements
         }
         allowPin = allowPin && message.getId() > 0 && (message.messageOwner.action == null || message.messageOwner.action instanceof TLRPC.TL_messageActionEmpty);
         boolean noforwards = getMessagesController().isChatNoForwards(currentChat) || message.messageOwner.noforwards;
+        final boolean noforwardsOrPaidMedia = noforwards || message.type == MessageObject.TYPE_PAID_MEDIA;
         boolean allowUnpin = message.getDialogId() != mergeDialogId && allowPin && (pinnedMessageObjects.containsKey(message.getId()) || groupedMessages != null && !groupedMessages.messages.isEmpty() && pinnedMessageObjects.containsKey(groupedMessages.messages.get(0).getId()));
         boolean allowEdit = message.canEditMessage(currentChat) && !chatActivityEnterView.hasAudioToSend() && message.getDialogId() != mergeDialogId;
         if (allowEdit && groupedMessages != null) {
@@ -31501,11 +31477,7 @@ public class ChatActivity extends BaseFragment implements
                     && message.messageOwner.from_id.user_id != getAccountInstance().getUserConfig().getClientUserId()
                     && AyuMessagesController.getInstance().hasAnyRevisions(getAccountInstance().getUserConfig().getClientUserId(), dialog_id, message.messageOwner.id)
             ) {
-                var idx = options.size() - 1;
-
-                if (options.contains(OPTION_DETAILS)) {
-                    idx = options.indexOf(OPTION_DETAILS);
-                }
+                int idx = Math.max(0, options.size() - 1);
 
                 items.add(idx, LocaleController.getString("EditsHistoryMenuText", R.string.EditsHistoryMenuText));
                 options.add(idx, AyuConstants.OPTION_HISTORY);
@@ -31513,11 +31485,7 @@ public class ChatActivity extends BaseFragment implements
             }
 
             if (message != null && message.messageOwner.ttl > 0 && !isAyuDeleted) {
-                var idx = options.size() - 1;
-
-                if (options.contains(OPTION_DETAILS)) {
-                    idx = options.indexOf(OPTION_DETAILS);
-                }
+                int idx = Math.max(0, options.size() - 1);
 
                 items.add(idx, "TTL: " + LocaleController.formatTTLString(message.messageOwner.ttl));
                 options.add(idx, AyuConstants.OPTION_TTL);
@@ -31527,11 +31495,7 @@ public class ChatActivity extends BaseFragment implements
             if (!(options.contains(OPTION_SAVE_TO_GALLERY) || options.contains(OPTION_SAVE_TO_GALLERY2))
                     && AyuUtils.isMediaDownloadable(selectedObject, true)
             ) {
-                var idx = options.size() - 1;
-
-                if (options.contains(OPTION_DETAILS)) {
-                    idx = options.indexOf(OPTION_DETAILS);
-                }
+                int idx = Math.max(0, options.size() - 1);
 
                 items.add(idx, LocaleController.getString("SaveToGallery", R.string.SaveToGallery));
                 options.add(idx, OPTION_SAVE_TO_GALLERY);
@@ -31540,14 +31504,12 @@ public class ChatActivity extends BaseFragment implements
             if (!options.contains(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC)
                     && AyuUtils.isMediaDownloadable(selectedObject, false)
             ) {
-                var idx = options.size() - 1;
+                int idx = Math.max(0, options.size() - 1);
 
                 if (options.contains(OPTION_SAVE_TO_GALLERY)) {
                     idx = options.indexOf(OPTION_SAVE_TO_GALLERY) + 1;
                 } else if (options.contains(OPTION_SAVE_TO_GALLERY2)) {
                     idx = options.indexOf(OPTION_SAVE_TO_GALLERY2) + 1;
-                } else if (options.contains(OPTION_DETAILS)) {
-                    idx = options.indexOf(OPTION_DETAILS);
                 }
 
                 items.add(idx, LocaleController.getString("SaveToDownloads", R.string.SaveToDownloads));
@@ -44932,13 +44894,12 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private boolean isBottomOverlaysInvisible() {
-        if (bottomMessagesActionContainer == null)
-            createBottomMessagesActionButtons();
         if (searchContainer == null)
             createSearchContainer();
-        return bottomOverlayChat.getVisibility() == View.INVISIBLE && chatActivityEnterView.getVisibility() == View.INVISIBLE &&
-                bottomMessagesActionContainer.getVisibility() == View.INVISIBLE && searchContainer.getVisibility() == View.INVISIBLE &&
-                !isInPreviewMode() && !isInBubbleMode() && ExteraConfig.bottomButton == 0;
+        return (bottomChannelButtonsLayout == null || bottomChannelButtonsLayout.getVisibility() == View.INVISIBLE) &&
+                chatActivityEnterView.getVisibility() == View.INVISIBLE &&
+                searchContainer.getVisibility() == View.INVISIBLE &&
+                !isInPreviewMode() && !isInBubbleMode() && com.exteragram.messenger.ExteraConfig.bottomButton == 0;
     }
 
     private void updateVisibleWallpaperActions() {
@@ -45138,6 +45099,345 @@ public class ChatActivity extends BaseFragment implements
             }), boldN)
         ).setDuration(8000).show(true);
     }
+
+    public void didLongPressCard(ChatMessageCell cell, CharacterStyle link, String card) {
+        final Browser.Progress progress = makeProgressForLink(cell, link);
+        TLRPC.TL_payments_getBankCardData req = new TLRPC.TL_payments_getBankCardData();
+        req.number = card;
+        int reqId = getConnectionsManager().sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
+            progress.end();
+
+            final ItemOptions options = ItemOptions.makeOptions(ChatActivity.this, cell, true);
+            final ScrimOptions dialog = new ScrimOptions(getContext(), themeDelegate);
+            options.setOnDismiss(dialog::dismissFast);
+            options.add(R.drawable.msg_copy, getString(R.string.CopyCardNumber), () -> {
+                dialog.dismiss();
+                AndroidUtilities.addToClipboard(card);
+                BulletinFactory.of(ChatActivity.this).createCopyBulletin(getString(R.string.CardNumberCopied)).show();
+            });
+            if (res instanceof TLRPC.TL_payments_bankCardData) {
+                TLRPC.TL_payments_bankCardData i = (TLRPC.TL_payments_bankCardData) res;
+                for (TLRPC.TL_bankCardOpenUrl d : i.open_urls) {
+                    options.add(R.drawable.msg_payment_card, d.name, () -> {
+                        Browser.openUrl(getContext(), d.url, inlineReturn == 0, false);
+                    });
+                }
+                if (!TextUtils.isEmpty(i.title)) {
+                    options.addGap();
+                    options.addText(i.title, 13, dp(200));
+                }
+            }
+
+            dialog.setItemOptions(options);
+            dialog.setScrim(cell, link, null);
+            showDialog(dialog);
+        }), null, null, 0, getMessagesController().webFileDatacenterId, ConnectionsManager.ConnectionTypeGeneric, true);
+        progress.onCancel(() -> getConnectionsManager().cancelRequest(reqId, true));
+        progress.init();
+    }
+
+    public void didLongPressUsername(ChatMessageCell cell, CharacterStyle link, String username) {
+        final Browser.Progress progress = makeProgressForLink(cell, link);
+        TLObject cachedObject = getMessagesController().getUserOrChat(username);
+        Utilities.Callback2<TLObject, Boolean> open = (obj, selling) -> {
+            progress.end();
+
+            boolean isUser = false, isGroup = false, isChannel = false;
+            final long did;
+            if (obj instanceof TLRPC.User) {
+                did = ((TLRPC.User) obj).id;
+                isUser = true;
+            } else if (obj instanceof TLRPC.Chat) {
+                did = -((TLRPC.Chat) obj).id;
+                isChannel = ChatObject.isChannelAndNotMegaGroup((TLRPC.Chat) obj);
+                isGroup = !isChannel;
+            } else did = 0;
+
+            final ItemOptions options = ItemOptions.makeOptions(ChatActivity.this, cell, true);
+            final ScrimOptions dialog = new ScrimOptions(getContext(), themeDelegate);
+            options.setOnDismiss(dialog::dismissFast);
+
+            if (did != 0) {
+                options.add(isChannel ? R.drawable.msg_channel : R.drawable.msg_discussion, getString(isChannel ? R.string.ViewChannel : R.string.SendMessage), () -> {
+                    presentFragment(ChatActivity.of(did));
+                });
+            }
+            options.add(R.drawable.msg_copy, getString(R.string.ProfileCopyUsername), () -> {
+                dialog.dismiss();
+                AndroidUtilities.addToClipboard("@" + username);
+                BulletinFactory.of(ChatActivity.this).createCopyBulletin(getString(R.string.UsernameCopied)).show();
+            });
+            if (selling) {
+                options.add(R.drawable.fragment, getString(R.string.BuyUsernameOnFragment), () -> {
+                    Browser.openUrl(getContext(), "https://fragment.com/username/" + username);
+                });
+            }
+            options.addGap();
+            if (did != 0) {
+                options.addProfile(obj, getString(isUser ? R.string.ViewProfile : (isChannel ? R.string.ViewChannelProfile : R.string.ViewGroupProfile)), () -> {
+                    presentFragment(ProfileActivity.of(did));
+                });
+            } else {
+                options.addText(getString(R.string.NoUsernameFound2), 13, dp(200));
+            }
+
+            dialog.setItemOptions(options);
+            dialog.setScrim(cell, link, null);
+            showDialog(dialog);
+        };
+        if (true || BuildVars.DEBUG_PRIVATE_VERSION) {
+            TL_account.checkUsername req2 = new TL_account.checkUsername();
+            req2.username = username;
+            int reqId2 = getConnectionsManager().sendRequest(req2, (res2, err2) -> AndroidUtilities.runOnUIThread(() -> {
+                final boolean selling = err2 != null && "USERNAME_PURCHASE_AVAILABLE".equals(err2.text);
+                if (cachedObject != null || err2 == null && res2 instanceof TLRPC.TL_boolTrue) {
+                    open.run(cachedObject, selling);
+                } else {
+                    TLRPC.TL_contacts_resolveUsername req = new TLRPC.TL_contacts_resolveUsername();
+                    req.username = username;
+                    int reqId = getConnectionsManager().sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
+                        progress.end();
+
+                        TLObject obj = null;
+                        if (res instanceof TLRPC.TL_contacts_resolvedPeer) {
+                            TLRPC.TL_contacts_resolvedPeer r = (TLRPC.TL_contacts_resolvedPeer) res;
+                            getMessagesController().putUsers(r.users, false);
+                            getMessagesController().putChats(r.chats, false);
+
+                            long did = DialogObject.getPeerDialogId(r.peer);
+                            if (did >= 0) {
+                                obj = getMessagesController().getUser(did);
+                            } else if (did < 0) {
+                                obj = getMessagesController().getChat(-did);
+                            }
+                        }
+                        open.run(obj, selling);
+                    }));
+                    progress.onCancel(() -> getConnectionsManager().cancelRequest(reqId, true));
+                    progress.init();
+                }
+            }));
+            progress.onCancel(() -> getConnectionsManager().cancelRequest(reqId2, true));
+            progress.init();
+        } else {
+            if (cachedObject != null) {
+                open.run(cachedObject, false);
+            } else {
+                TLRPC.TL_contacts_resolveUsername req = new TLRPC.TL_contacts_resolveUsername();
+                req.username = username;
+                int reqId = getConnectionsManager().sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
+                    progress.end();
+
+                    TLObject obj = null;
+                    if (res instanceof TLRPC.TL_contacts_resolvedPeer) {
+                        TLRPC.TL_contacts_resolvedPeer r = (TLRPC.TL_contacts_resolvedPeer) res;
+                        getMessagesController().putUsers(r.users, false);
+                        getMessagesController().putChats(r.chats, false);
+
+                        long did = DialogObject.getPeerDialogId(r.peer);
+                        if (did >= 0) {
+                            obj = getMessagesController().getUser(did);
+                        } else if (did < 0) {
+                            obj = getMessagesController().getChat(-did);
+                        }
+                    }
+                    open.run(obj, false);
+                }));
+                progress.onCancel(() -> getConnectionsManager().cancelRequest(reqId, true));
+                progress.init();
+            }
+        }
+    }
+
+    public void didLongPressCopyButton(String text) {
+        BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity(), false, themeDelegate);
+        builder.setTitle(text);
+        builder.setTitleMultipleLines(true);
+        builder.setItems(new CharSequence[] { getString(R.string.Copy) }, (dialog, which) -> {
+            AndroidUtilities.addToClipboard(text);
+            BulletinFactory.of(ChatActivity.this).createCopyBulletin(formatString(R.string.ExactTextCopied, text)).show();
+        });
+        showDialog(builder.create());
+    }
+
+    public void didPressPhoneNumber(ChatMessageCell cell, CharacterStyle link, String phone) {
+        final Browser.Progress progress = makeProgressForLink(cell, link);
+        final TLRPC.TL_contact contact = getContactsController().contactsByPhone.get(PhoneFormat.stripExceptNumbers(phone));
+        Utilities.Callback<TLRPC.User> open = user -> {
+            TLRPC.UserFull userInfo = user != null ? getMessagesController().getUserFull(user.id) : null;
+
+            final ItemOptions options = ItemOptions.makeOptions(ChatActivity.this, cell, true);
+            final ScrimOptions dialog = new ScrimOptions(getContext(), themeDelegate);
+            options.setOnDismiss(dialog::dismiss);
+
+            Utilities.Callback<Boolean> addToContacts = asNew -> {
+                if (getParentActivity() == null) return;
+                Intent intent;
+                if (asNew) {
+                    intent = new Intent(ContactsContract.Intents.Insert.ACTION);
+                    intent.setType(ContactsContract.RawContacts.CONTENT_TYPE);
+                } else {
+                    intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
+                    intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
+                }
+                if (user != null) {
+                    intent.putExtra(ContactsContract.Intents.Insert.NAME, ContactsController.formatName(user.first_name, user.last_name));
+                }
+                ArrayList<ContentValues> data = new ArrayList<>();
+                ContentValues row = new ContentValues();
+                row.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
+                String thisPhone = phone;
+                if (!thisPhone.startsWith("+")) {
+                    TLRPC.User myself = getUserConfig().getCurrentUser();
+                    HashMap<String, List<CountrySelectActivity.Country>> codesMap = new HashMap<>();
+                    try {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(ApplicationLoader.applicationContext.getResources().getAssets().open("countries.txt")));
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            String[] args = line.split(";");
+                            CountrySelectActivity.Country countryWithCode = new CountrySelectActivity.Country();
+                            countryWithCode.name = args[2];
+                            countryWithCode.code = args[0];
+                            countryWithCode.shortname = args[1];
+                            List<CountrySelectActivity.Country> countryList = codesMap.get(args[0]);
+                            if (countryList == null) {
+                                codesMap.put(args[0], countryList = new ArrayList<>());
+                            }
+                            countryList.add(countryWithCode);
+                        }
+                        reader.close();
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                    }
+                    boolean foundCountry = false;
+                    String myphone = myself.phone;
+                    for (int a = 4; a >= 1; a--) {
+                        String sub = myphone.substring(0, a);
+                        List<CountrySelectActivity.Country> country = codesMap.get(sub);
+                        if (country != null && country.size() > 0) {
+                            final String regionCode = country.get(0).code;
+                            if (regionCode.endsWith("0") && thisPhone.startsWith("0")) {
+                                thisPhone = thisPhone.substring(1);
+                            }
+                            thisPhone = "+" + regionCode + thisPhone;
+                            foundCountry = true;
+                            break;
+                        }
+                    }
+                    if (!foundCountry && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        final Context ctx = ApplicationLoader.applicationContext;
+                        final String regionCode = (ctx != null) ? ctx.getSystemService(TelephonyManager.class).
+                                getSimCountryIso().toUpperCase(Locale.US) : Locale.getDefault().getCountry();
+                        if (regionCode.endsWith("0") && thisPhone.startsWith("0")) {
+                            thisPhone = thisPhone.substring(1);
+                        }
+                        thisPhone = "+" + regionCode + thisPhone;
+                    }
+                }
+                row.put(ContactsContract.CommonDataKinds.Phone.NUMBER, thisPhone);
+                row.put(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE);
+                data.add(row);
+                intent.putExtra("finishActivityOnSaveCompleted", true);
+                intent.putParcelableArrayListExtra(ContactsContract.Intents.Insert.DATA, data);
+                getParentActivity().startActivity(intent);
+            };
+            ItemOptions subOptions = options.makeSwipeback();
+            subOptions.add(R.drawable.ic_ab_back, getString(R.string.Back), options::closeSwipeback);
+            subOptions.addGap();
+            subOptions.add(R.drawable.msg_addbot, getString(R.string.CreateNewContact), () -> {
+                options.dismiss();
+                NewContactBottomSheet sheet = new NewContactBottomSheet(this, getContext()).setInitialPhoneNumber(phone, false);
+                sheet.show();
+            });
+            subOptions.add(R.drawable.menu_contact_existing, getString(R.string.AddToExistingContact), () -> addToContacts.run(false));
+
+            if (contact == null && (user == null || !getContactsController().contactsDict.containsKey(user.id))) {
+                options.add(R.drawable.msg_contact_add, getString(R.string.AddToContacts), () -> options.openSwipeback(subOptions));
+                options.addGap();
+            }
+            if (user == null) {
+                options.add(R.drawable.menu_invit_telegram, getString(R.string.InviteToTelegramShort), () -> {
+                    if (getParentActivity() == null) return;
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.fromParts("sms", phone, null));
+                        intent.putExtra("sms_body", ContactsController.getInstance(currentAccount).getInviteText(1));
+                        getParentActivity().startActivityForResult(intent, 500);
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                    }
+                });
+                options.add(R.drawable.msg_calls_regular, getString(R.string.VoiceCallViaCarrier), () -> {
+                    Browser.openUrl(getContext(), "tel:" + phone);
+                });
+                options.add(R.drawable.msg_copy, getString(R.string.CopyNumber), () -> {
+                    AndroidUtilities.addToClipboard(phone);
+                    BulletinFactory.of(this).createCopyBulletin(LocaleController.getString(R.string.PhoneCopied)).show();
+                });
+                options.addGap();
+                options.addText(getString(R.string.NumberNotOnTelegram), 13);
+            } else {
+                options.add(R.drawable.msg_discussion, getString(R.string.SendMessage), () -> presentFragment(ChatActivity.of(user.id)));
+                if (!UserObject.isUserSelf(user)) {
+                    options.add(R.drawable.msg_calls, getString(R.string.VoiceCallViaTelegram), () -> {
+                        VoIPHelper.startCall(user, false, userInfo != null && userInfo.video_calls_available, getParentActivity(), userInfo, getAccountInstance());
+                    });
+                    options.add(R.drawable.msg_videocall, getString(R.string.VideoCallViaTelegram), () -> {
+                        VoIPHelper.startCall(user, true, userInfo != null && userInfo.video_calls_available, getParentActivity(), userInfo, getAccountInstance());
+                    });
+                }
+                options.add(R.drawable.msg_calls_regular, getString(R.string.VoiceCallViaCarrier), () -> {
+                    Browser.openUrl(getContext(), "tel:" + phone);
+                });
+                options.add(R.drawable.msg_copy, getString(R.string.CopyNumber), () -> {
+                    AndroidUtilities.addToClipboard(phone);
+                    BulletinFactory.of(this).createCopyBulletin(LocaleController.getString(R.string.PhoneCopied)).show();
+                });
+                options.addGap();
+                options.addProfile(user, getString(R.string.ViewProfile), () -> {
+                    dialog.dismiss();
+                    presentFragment(ProfileActivity.of(user.id));
+                });
+            }
+
+            dialog.setItemOptions(options);
+            dialog.setScrim(cell, link, null);
+            showDialog(dialog);
+        };
+        if (contact != null) {
+            TLRPC.User user = getMessagesController().getUser(contact.user_id);
+            if (user != null) {
+                open.run(user);
+            } else {
+                getMessagesStorage().getStorageQueue().postRunnable(() -> {
+                    TLRPC.User user2 = getMessagesStorage().getUser(contact.user_id);
+                    AndroidUtilities.runOnUIThread(() -> open.run(user2));
+                });
+            }
+        } else {
+            TLRPC.TL_contacts_resolvePhone req = new TLRPC.TL_contacts_resolvePhone();
+            req.phone = PhoneFormat.stripExceptNumbers(phone);
+            int reqId = getConnectionsManager().sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
+                progress.end();
+
+                TLRPC.User user = null;
+                if (res instanceof TLRPC.TL_contacts_resolvedPeer) {
+                    TLRPC.TL_contacts_resolvedPeer r = (TLRPC.TL_contacts_resolvedPeer) res;
+                    getMessagesController().putUsers(r.users, false);
+                    getMessagesController().putChats(r.chats, false);
+
+                    long did = DialogObject.getPeerDialogId(r.peer);
+                    if (did >= 0) {
+                        user = getMessagesController().getUser(did);
+                    }
+                }
+                open.run(user);
+            }));
+            progress.onCancel(() -> getConnectionsManager().cancelRequest(reqId, true));
+            progress.init();
+        }
+    }
+
+
 
     public void didLongPressLink(ChatMessageCell cell, MessageObject messageObject, CharacterStyle span, String str) {
         final ItemOptions options = ItemOptions.makeOptions(ChatActivity.this, cell, true);

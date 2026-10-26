@@ -12,4 +12,10 @@ public class FoldersPreviewCell extends FrameLayout {
     public void updateTabIcons(boolean animated) {}
 
     public void updateTabTitle(boolean animated) {}
+
+    public void updateAllChatsTabName(boolean animated) {}
+
+    public void updateTabCounter(boolean animated) {}
+
+    public void updateTabStyle(boolean animated) {}
 }

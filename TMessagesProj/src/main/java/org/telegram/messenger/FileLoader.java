@@ -8,6 +8,8 @@
 
 package org.telegram.messenger;
 
+import org.telegram.tgnet.ConnectionsManager;
+
 import android.text.TextUtils;
 import android.util.SparseArray;
 

@@ -8,6 +8,8 @@
 
 package org.telegram.ui.Cells;
 
+import org.telegram.ui.Components.BulletinFactory;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -110,7 +112,7 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
         shadowView = new ImageView(context);
         shadowView.setVisibility(INVISIBLE);
         shadowView.setScaleType(ImageView.ScaleType.FIT_XY);
-        shadowView.setImageResource(R.drawable.bottom_shadow);
+        shadowView.setImageResource(R.drawable.header_shadow);
         addView(shadowView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 70, Gravity.LEFT | Gravity.BOTTOM));
 
         avatarImageView = new BackupImageView(context);
@@ -189,7 +191,7 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
 
         boolean playDrawable;
         if (playDrawable = sunDrawable == null) {
-            sunDrawable = new RLottieDrawable(R.raw.sun, "" + R.raw.sun, AndroidUtilities.dp(28), AndroidUtilities.dp(28), true, null);
+            sunDrawable = new RLottieDrawable(R.raw.sun, AndroidUtilities.dp(28), AndroidUtilities.dp(28), true, null);
             sunDrawable.setPlayInDirectionOfCustomEndFrame(true);
             if (Theme.isCurrentThemeDay()) {
                 sunDrawable.setCustomEndFrame(0);
@@ -262,12 +264,14 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
             darkThemeView.playAnimation();
             switchTheme(themeInfo, toDark);
 
-            if (drawerLayoutContainer != null ) {
+            if (drawerLayoutContainer != null) {
                 FrameLayout layout = drawerLayoutContainer.getParent() instanceof FrameLayout ? (FrameLayout) drawerLayoutContainer.getParent() : null;
-                Theme.turnOffAutoNight(layout, () -> {
-                    drawerLayoutContainer.closeDrawer(false);
-                    drawerLayoutContainer.presentFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_NIGHT));
-                });
+                if (layout != null) {
+                    Theme.turnOffAutoNight(BulletinFactory.of(layout, null), () -> {
+                        drawerLayoutContainer.closeDrawer(false);
+                        drawerLayoutContainer.presentFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_NIGHT));
+                    });
+                }
             }
         });
         darkThemeView.setOnLongClickListener(e -> {

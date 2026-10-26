@@ -170,31 +170,9 @@ public class MarkdownParser {
         );
         final io.noties.markwon.inlineparser.MarkwonInlineParserPlugin inlinePlugin =
             io.noties.markwon.inlineparser.MarkwonInlineParserPlugin.create();
-        final io.noties.markwon.ext.latex.JLatexMathPlugin latexPlugin =
-            io.noties.markwon.ext.latex.JLatexMathPlugin.create(
-                dp(18),
-                b -> b.inlinesEnabled(true)
-            );
-        latexPlugin.configure(new io.noties.markwon.MarkwonPlugin.Registry() {
-            @Override
-            public <P extends io.noties.markwon.MarkwonPlugin> P require(Class<P> plugin) {
-                if (plugin == io.noties.markwon.inlineparser.MarkwonInlineParserPlugin.class) {
-                    @SuppressWarnings("unchecked") final P p = (P) inlinePlugin;
-                    return p;
-                }
-                throw new IllegalStateException("plugin not registered: " + plugin);
-            }
-            @Override
-            public <P extends io.noties.markwon.MarkwonPlugin> void require(
-                    Class<P> plugin,
-                    io.noties.markwon.MarkwonPlugin.Action<? super P> action) {
-                action.apply(require(plugin));
-            }
-        });
-        inlinePlugin.factoryBuilder().addInlineProcessor(new SingleDollarLatexInlineProcessor());
+        // ext-latex intentionally omitted (large font assets); keep $...$ as plain text.
         final Parser.Builder parserBuilder = Parser.builder().extensions(extensions);
         inlinePlugin.configureParser(parserBuilder);
-        latexPlugin.configureParser(parserBuilder);
         final Parser parser = parserBuilder.build();
         final java.util.ArrayDeque<String> orderedMarkers = scanOrderedListMarkers(source);
         final BlockVisitor blockVisitor = new BlockVisitor(blocks, orderedMarkers);
@@ -216,20 +194,10 @@ public class MarkdownParser {
     }
 
     public static class SingleDollarLatexInlineProcessor extends io.noties.markwon.inlineparser.InlineProcessor {
-        private static final java.util.regex.Pattern RE =
-            java.util.regex.Pattern.compile("\\$([^\\s\\$][^\\$]*?)(?<!\\s)\\$(?![0-9])");
-
-        @Override public char specialCharacter() { return '$'; }
-
         @Override
-        protected org.commonmark.node.Node parse() {
-            final String m = match(RE);
-            if (m == null) return null;
-            final io.noties.markwon.ext.latex.JLatexMathNode node =
-                new io.noties.markwon.ext.latex.JLatexMathNode();
-            node.latex(m.substring(1, m.length() - 1));
-            return node;
-        }
+        public char specialCharacter() { return '$'; }
+        @Override
+        protected org.commonmark.node.Node parse() { return null; }
     }
 
     private static TL_iv.textMath makeLatex(String raw) {
@@ -1017,9 +985,9 @@ public class MarkdownParser {
         public void visit(CustomBlock customBlock) {
             if (customBlock instanceof TableBlock) {
                 emit(buildTable((TableBlock) customBlock));
-            } else if (customBlock instanceof io.noties.markwon.ext.latex.JLatexMathBlock) {
+            } else if (false) {
                 final TL_iv.pageBlockParagraph b = new TL_iv.pageBlockParagraph();
-                b.text = makeLatex(((io.noties.markwon.ext.latex.JLatexMathBlock) customBlock).latex());
+                b.text = makeLatex("");
                 emit(b);
             } else {
                 super.visit(customBlock);
@@ -1213,8 +1181,7 @@ public class MarkdownParser {
                 final TL_iv.textStrike s = new TL_iv.textStrike();
                 s.text = collectChildren(customNode);
                 append(s);
-            } else if (customNode instanceof io.noties.markwon.ext.latex.JLatexMathNode) {
-                append(makeLatex(((io.noties.markwon.ext.latex.JLatexMathNode) customNode).latex()));
+            } else if (false) {
             } else {
                 super.visit(customNode);
             }
@@ -1222,9 +1189,9 @@ public class MarkdownParser {
 
         @Override
         public void visit(CustomBlock customBlock) {
-            if (customBlock instanceof io.noties.markwon.ext.latex.JLatexMathBlock) {
+            if (false) {
                 if (!current.texts.isEmpty()) append(plain("\n"));
-                append(makeLatex(((io.noties.markwon.ext.latex.JLatexMathBlock) customBlock).latex()));
+                append(makeLatex(""));
                 append(plain("\n"));
             } else {
                 super.visit(customBlock);

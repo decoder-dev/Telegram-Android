@@ -8,6 +8,8 @@
 
 package org.telegram.messenger;
 
+import java.util.Random;
+
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -62,7 +64,7 @@ public class NotificationsService extends Service {
         if (AyuConfig.keepAliveService && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String CHANNEL_ID = "bananagram_push";
             NotificationChannelCompat channel = new NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
-                    .setName(LocaleController.getString(R.string.BananaKeepAliveTitle))
+                    .setName("BananaGram")
                     .setLightsEnabled(false)
                     .setVibrationEnabled(false)
                     .setSound(null, null)

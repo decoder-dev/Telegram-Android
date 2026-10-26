@@ -36,6 +36,7 @@ import android.text.Spannable;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Pair;
 import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -2083,11 +2084,6 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     public void sendSticker(TLRPC.Document document, String query, long peer, CharSequence caption, VideoEditedInfo videoEditedInfo, MessageObject replyToMsg, MessageObject replyToTopMsg, TL_stories.StoryItem storyItem, ChatActivity.ReplyQuote quote, MessageObject.SendAnimationData sendAnimationData, boolean notify, int scheduleDate, int scheduleRepeatPeriod, boolean updateStickersOrder, Object parentObject, SendMessageChatArguments sendMessageChatArguments, long stars, long monoForumPeerId, MessageSuggestionParams suggestionParams, boolean invertMedia) {
-        // Extra Telegram/Ayu params are accepted for call-site compatibility; core send uses legacy path.
-        sendSticker(document, query, peer, replyToMsg, replyToTopMsg, parentObject, sendAnimationData, notify, scheduleDate, updateStickersOrder);
-    }
-
-    public void sendSticker(TLRPC.Document document, String query, long peer, MessageObject replyToMsg, MessageObject replyToTopMsg, Object parentObject, MessageObject.SendAnimationData sendAnimationData, boolean notify, int scheduleDate, boolean updateStickersOrder) {
         if (document == null) {
             return;
         }
@@ -2232,6 +2228,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
     }
 
+    public void sendSticker(TLRPC.Document document, String query, long peer, MessageObject replyToMsg, MessageObject replyToTopMsg, Object parentObject, MessageObject.SendAnimationData sendAnimationData, boolean notify, int scheduleDate, boolean updateStickersOrder) {
+        sendSticker(document, query, peer, null, null, replyToMsg, replyToTopMsg, null, null, sendAnimationData, notify, scheduleDate, 0, updateStickersOrder, parentObject, null, 0, 0, null, false);
+    }
+
     public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDate, long payStars) {
         return sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, null, -1, payStars);
     }
@@ -2240,12 +2240,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         return sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, 0, replyToTopMsg, video_timestamp, payStars, 0, null);
     }
 
-    public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDate, int scheduleRepeatPeriod, MessageObject replyToTopMsg, int video_timestamp, long payStars, long monoForumPeerId, MessageSuggestionParams suggestionParams) {
-        // Extra Telegram schedule/mono-forum params accepted for call-site compatibility.
-        return sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, replyToTopMsg);
-    }
-
-    public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDateOrig, MessageObject replyToTopMsg) {
+    public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDateOrig, int scheduleRepeatPeriod, MessageObject replyToTopMsg, int video_timestamp, long payStars, long monoForumPeerId, MessageSuggestionParams suggestionParams) {
         if (messages == null || messages.isEmpty()) {
             return 0;
         }
@@ -3027,6 +3022,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             }
         }
         return sendResult;
+    }
+
+    public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDateOrig, MessageObject replyToTopMsg) {
+        return sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDateOrig, 0, replyToTopMsg, -1, 0, 0, null);
     }
 
     public static int canSendMessageToChat(TLRPC.Chat chat, MessageObject msgObj) {
@@ -4546,6 +4545,36 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         if (message == null && caption == null && richMessage == null) {
             caption = "";
         }
+
+        long _payStars = getMessagesController().getSendPaidMessagesStars(peer);
+        if (_payStars <= 0) {
+            _payStars = DialogObject.getMessagesStarsPrice(getMessagesController().isUserContactBlocked(peer));
+        }
+        final boolean isGroup = params != null && params.containsKey("groupId") && !"0".equalsIgnoreCase(params.get("groupId"));
+
+        final boolean isWelcomeMessageTemplate = sendMessageChatArguments.welcomeMessageChatId != 0;
+        final long ephemeralReceiverBotId;
+        if (isWelcomeMessageTemplate) {
+            ephemeralReceiverBotId = -1; // input user empty;
+        } else {
+            ephemeralReceiverBotId = isGroup ? 0 : replyToMsg != null && replyToMsg.isEphemeral() ?
+                DialogObject.getPeerDialogId(replyToMsg.getFromPeer()) :
+                (sendMessageParams.ephemeralReceiverBotId != 0 ?
+                    sendMessageParams.ephemeralReceiverBotId :
+                    EphemeralMessagesHelper.getInstance(currentAccount)
+                            .getEphemeralCommandBotId(!TextUtils.isEmpty(caption) ? caption : message, peer)
+                );
+        }
+
+        final long payStars = ephemeralReceiverBotId != 0 ? 0 : _payStars;
+        if (payStars != sendMessageParams.payStars && !isGroup && ephemeralReceiverBotId == 0) {
+            AlertsCreator.ensurePaidMessageConfirmation(currentAccount, peer, 1, newPayStars -> {
+                sendMessageParams.payStars = newPayStars;
+                sendMessage(sendMessageParams);
+            });
+            return;
+        }
+
 
         // --- Banana/AyuGram ghost scheduled send
         if ((AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount))
@@ -11746,7 +11775,19 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                     if (editingMessageObject != null || pollToAddOptionMessageObject != null) {
                                         accountInstance.getSendMessagesHelper().editMessage(editingMessageObject, pollToAddOptionMessageObject, photoFinal, null, null, null, null, params, false, info.hasMediaSpoilers, parentFinal);
                                     } else {
-                                        accountInstance.getSendMessagesHelper().sendMessage(photoFinal, null, dialogId, replyToMsg, replyToTopMsg, info.caption, info.entities, null, params, notify, scheduleDate, info.ttl, parentFinal, updateStikcersOrder, info.hasMediaSpoilers);
+                                        SendMessageParams sendMessageParams = SendMessageParams.of(photoFinal, null, dialogId, replyToMsg, replyToTopMsg, info.caption, info.entities, null, params, notify, scheduleDate, scheduleRepeatPeriod, info.ttl, parentFinal, updateStikcersOrder, info.hasMediaSpoilers);
+                                        sendMessageParams.replyToStoryItem = storyItem;
+                                        sendMessageParams.replyQuote = quote;
+                                        sendMessageParams.sendMessageChatArguments = sendMessageChatArguments;
+                                        sendMessageParams.effect_id = effectId;
+                                        sendMessageParams.invert_media = invertMedia;
+                                        sendMessageParams.payStars = payStars;
+                                        sendMessageParams.monoForumPeer = monoForumPeerId;
+                                        sendMessageParams.suggestionParams = suggestionParams;
+                                        sendMessageParams.pollIndex = info.pollIndex;
+                                        sendMessageParams.pollSendParams = pollSendParams;
+                                        sendMessageParams.sendingHighQuality = highQuality;
+                                        accountInstance.getSendMessagesHelper().sendMessage(sendMessageParams);
                                     }
                                 });
                             } else {

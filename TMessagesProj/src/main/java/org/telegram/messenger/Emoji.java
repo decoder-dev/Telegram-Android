@@ -33,6 +33,8 @@ import android.widget.TextView;
 import com.exteragram.messenger.boost.filter.ZalgoFilter;
 import com.exteragram.messenger.utils.FontUtils;
 
+import org.telegram.ui.Components.AnimatedEmojiDrawable;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Components.AnimatedEmojiSpan;
 import org.telegram.ui.Components.ColoredImageSpan;
 
@@ -52,6 +54,7 @@ public class Emoji {
     public static int bigImgSize;
     private static boolean inited = false;
     public static Paint placeholderPaint;
+    private static TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final static int[] emojiCounts = new int[]{
         EmojiData.data[0].length,
         EmojiData.data[1].length,

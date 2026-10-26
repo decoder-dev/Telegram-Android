@@ -179,14 +179,14 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         var newState = !AyuConfig.localPremium;
 
         AyuConfig.editor.putBoolean("localPremium", AyuConfig.localPremium = newState).apply();
-        listAdapter.notifyItemChanged(localPremiumRow, AyuConfig.localPremium);
+        listAdapter.notifyItemChanged(localPremiumRow, Boolean.valueOf(AyuConfig.localPremium));
 
         getMessagesController().updatePremium(AyuConfig.localPremium);
         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.premiumStatusChangedGlobal);
 
         getMediaDataController().loadPremiumPromo(false);
-        getMediaDataController().loadReactions(false, true);
+        getMediaDataController().loadReactions(false, null);
     }
 
     @Override
@@ -304,7 +304,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
             AyuMessagesController.getInstance().clean();
 
             // reset size
-            ((TextCell) view).setValue("…");
+            ((TextCell) view).setValue("…", false);
 
             BulletinFactory.of(this).createSimpleBulletin(R.raw.info, LocaleController.getString(R.string.ClearAyuDatabaseNotification)).show();
         } else if (position == eraseLocalDatabaseBtnRow) {
@@ -377,7 +377,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
                         var file = ApplicationLoader.applicationContext.getDatabasePath(AyuConstants.AYU_DATABASE);
                         var size = file.exists() ? file.length() : 0;
 
-                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.ClearAyuDatabase), AndroidUtilities.formatFileSize(size), R.drawable.msg_clear_solar, true);
+                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.ClearAyuDatabase), AndroidUtilities.formatFileSize(size), R.drawable.msg_delete, true);
                         textCell.setColors(Theme.key_text_RedBold, Theme.key_text_RedBold);
                     } else if (position == eraseLocalDatabaseBtnRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.EraseLocalDatabase), R.drawable.msg_archive, false);

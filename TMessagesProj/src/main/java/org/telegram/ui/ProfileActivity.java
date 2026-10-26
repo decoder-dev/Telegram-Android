@@ -8,6 +8,8 @@
 
 package org.telegram.ui;
 
+import android.content.pm.PackageInfo;
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.dpf2;
 import static org.telegram.messenger.AndroidUtilities.ilerp;
@@ -14012,7 +14014,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         if (!ExteraConfig.useSolarIcons)
                             textCell.setImageLeft(23);
                     } else if (position == exteraRow) {
-                        textCell.setTextAndIcon(LocaleController.getString("Preferences", R.string.Preferences), R.drawable.etg_settings, true);
+                        textCell.setTextAndIcon(LocaleController.getString("Preferences", R.string.Preferences), R.drawable.msg_settings, true);
                     } else if (position == ayuRow) {
                         textCell.setTextAndIcon(LocaleController.getString("AyuPreferences", R.string.AyuPreferences), R.drawable.msg2_reactions2, true);
                     } else if (position == notificationRow) {
