@@ -701,4 +701,172 @@ public final class BananaHooks {
             return null;
         }
     }
+
+    public static boolean ayuForward(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.AYU_FORWARD);
+    }
+
+    public static boolean messageShot(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.MESSAGE_SHOT);
+    }
+
+    public static boolean sendWithReturnKey(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SEND_WITH_RETURN_KEY);
+    }
+
+    public static boolean downloadSpeedBoost(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.DOWNLOAD_SPEED_BOOST);
+    }
+
+    public static boolean accelerateUpload(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.ACCELERATE_UPLOAD);
+    }
+
+    public static boolean allowSecretScreenshots(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.ALLOW_SECRET_SCREENSHOTS);
+    }
+
+    public static boolean allowProtectedScreenshots(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.ALLOW_PROTECTED_SCREENSHOTS);
+    }
+
+    /** When either screenshot Extra is on, FLAG_SECURE should not block captures. */
+    public static boolean allowScreenshotsOverride(int account) {
+        return allowSecretScreenshots(account) || allowProtectedScreenshots(account);
+    }
+
+    public static boolean instantPasscodeLock(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.INSTANT_PASSCODE_LOCK);
+    }
+
+    public static boolean showSensitiveContent(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SHOW_SENSITIVE_CONTENT);
+    }
+
+    public static boolean doubleTapToEdit(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.DOUBLE_TAP_TO_EDIT);
+    }
+
+    public static boolean quickTranslateButton(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.QUICK_TRANSLATE_BUTTON);
+    }
+
+    public static boolean repeatMessageMenu(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.REPEAT_MESSAGE_MENU);
+    }
+
+    public static boolean saveToCloudMenu(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SAVE_TO_CLOUD_MENU);
+    }
+
+    public static boolean selectFromAuthor(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SELECT_FROM_AUTHOR);
+    }
+
+    public static boolean keepAliveInBackground(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.KEEP_ALIVE_IN_BACKGROUND);
+    }
+
+    public static boolean powerSaving(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.POWER_SAVING);
+    }
+
+    public static boolean disableStoryCreation(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.DISABLE_STORY_CREATION);
+    }
+
+    public static boolean disableStoryCameraSwipe(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.DISABLE_STORY_CAMERA_SWIPE);
+    }
+
+    public static boolean confirmUnpin(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.CONFIRM_UNPIN);
+    }
+
+    public static boolean bananaIslandEnabled(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.BANANA_ISLAND_ENABLED);
+    }
+
+    public static boolean bananaIslandShowsName(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.BANANA_ISLAND_SHOWS_NAME);
+    }
+
+    public static boolean bananaIslandFollowsIcon(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.BANANA_ISLAND_FOLLOWS_ICON);
+    }
+
+    /** Concurrent large-file downloads when boost Extra is on. */
+    public static int downloadQueueMaxActive(int account, int base) {
+        if (!downloadSpeedBoost(account)) {
+            return Math.max(1, base);
+        }
+        return Math.max(base, Math.min(8, base * 2 + 2));
+    }
+
+    /** Use larger download chunks / more parallel requests (Telegraher-style). */
+    public static boolean downloadUseBoostedChunks(int account) {
+        return downloadSpeedBoost(account);
+    }
+
+    /** Concurrent uploads when accelerate Extra is on. */
+    public static int uploadMaxConcurrent(int account) {
+        return accelerateUpload(account) ? 3 : 1;
+    }
+
+    /** In-flight upload window in KiB when accelerate Extra is on. */
+    public static int uploadMaxKBytes(int account, boolean slowNetwork, int base) {
+        if (slowNetwork || !accelerateUpload(account)) {
+            return Math.max(1, base);
+        }
+        return Math.max(base, 1024 * 4);
+    }
+
+    /** Minimum upload part size in KiB when accelerate Extra is on. */
+    public static int uploadMinChunkKb(int account, boolean slowNetwork, int base) {
+        if (slowNetwork || !accelerateUpload(account)) {
+            return Math.max(1, base);
+        }
+        return Math.max(base, 256);
+    }
+
+    /**
+     * Renders a message cell to a PNG and opens a share sheet.
+     * Used by MESSAGE_SHOT (defaults on).
+     */
+    public static void shareMessageShot(android.app.Activity activity, android.view.View cell) {
+        if (activity == null || cell == null || cell.getWidth() <= 0 || cell.getHeight() <= 0) {
+            return;
+        }
+        try {
+            android.graphics.Bitmap bitmap = AndroidUtilities.snapshotView(cell);
+            if (bitmap == null) {
+                return;
+            }
+            java.io.File dir = new java.io.File(org.telegram.messenger.ApplicationLoader.applicationContext.getCacheDir(), "message_shots");
+            //noinspection ResultOfMethodCallIgnored
+            dir.mkdirs();
+            java.io.File out = new java.io.File(dir, "msg_" + System.currentTimeMillis() + ".png");
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(out);
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos);
+            fos.flush();
+            fos.close();
+            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_SEND);
+            intent.setType("image/png");
+            android.net.Uri uri;
+            if (android.os.Build.VERSION.SDK_INT >= 24) {
+                uri = androidx.core.content.FileProvider.getUriForFile(
+                        activity,
+                        org.telegram.messenger.ApplicationLoader.getApplicationId() + ".provider",
+                        out);
+                intent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } else {
+                uri = android.net.Uri.fromFile(out);
+            }
+            intent.putExtra(android.content.Intent.EXTRA_STREAM, uri);
+            activity.startActivity(android.content.Intent.createChooser(
+                    intent, LocaleController.getString(R.string.BananaMessageShot)));
+        } catch (Throwable e) {
+            FileLog.e(e);
+        }
+    }
 }

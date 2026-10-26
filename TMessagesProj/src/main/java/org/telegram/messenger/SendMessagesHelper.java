@@ -2259,7 +2259,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
         var scheduleDate = scheduleDateOrig;
 
-        var ayuForwardNeeded = AyuForwarder.isFullAyuForwardsNeeded(currentAccount, messages);
+        final boolean bananaAyuForward = org.telegram.messenger.banana.BananaHooks.ayuForward(currentAccount);
+        var ayuForwardNeeded = bananaAyuForward && AyuForwarder.isFullAyuForwardsNeeded(currentAccount, messages);
         if (ayuForwardNeeded) {
             new Thread(() -> {
                 try {
@@ -2271,7 +2272,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             return 0;
         }
 
-        var ayuIntelligentForwardNeeded = AyuForwarder.isAyuForwardNeeded(messages);
+        var ayuIntelligentForwardNeeded = bananaAyuForward && AyuForwarder.isAyuForwardNeeded(messages);
         if (ayuIntelligentForwardNeeded) {
             new Thread(() -> {
                 try {

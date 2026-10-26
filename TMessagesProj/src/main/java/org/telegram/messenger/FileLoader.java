@@ -457,7 +457,8 @@ public class FileLoader extends BaseController {
                             }
                         } else {
                             currentUploadOperationsCount--;
-                            if (currentUploadOperationsCount < 1) {
+                            final int uploadMaxDone = org.telegram.messenger.banana.BananaHooks.uploadMaxConcurrent(currentAccount);
+                            if (currentUploadOperationsCount < uploadMaxDone) {
                                 FileUploadOperation operation12 = uploadOperationQueue.poll();
                                 if (operation12 != null) {
                                     currentUploadOperationsCount++;
@@ -493,7 +494,8 @@ public class FileLoader extends BaseController {
                             }
                         } else {
                             currentUploadOperationsCount--;
-                            if (currentUploadOperationsCount < 1) {
+                            final int uploadMaxFail = org.telegram.messenger.banana.BananaHooks.uploadMaxConcurrent(currentAccount);
+                            if (currentUploadOperationsCount < uploadMaxFail) {
                                 FileUploadOperation operation1 = uploadOperationQueue.poll();
                                 if (operation1 != null) {
                                     currentUploadOperationsCount++;
@@ -519,7 +521,8 @@ public class FileLoader extends BaseController {
                     uploadSmallOperationQueue.add(operation);
                 }
             } else {
-                if (currentUploadOperationsCount < 1) {
+                final int uploadMax = org.telegram.messenger.banana.BananaHooks.uploadMaxConcurrent(currentAccount);
+                if (currentUploadOperationsCount < uploadMax) {
                     currentUploadOperationsCount++;
                     operation.start();
                 } else {

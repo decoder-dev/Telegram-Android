@@ -1312,6 +1312,9 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_VIEW_STATISTICS = 115;
     public final static int OPTION_WELCOME_REVERT = 116;
     public final static int OPTION_SEND_MONEY = 117;
+    public final static int OPTION_MESSAGE_SHOT = 118;
+    public final static int OPTION_SAVE_TO_CLOUD = 119;
+    public final static int OPTION_REPEAT_MESSAGE = 120;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             AyuConstants.MESSAGES_DELETED_NOTIFICATION,
@@ -30224,6 +30227,16 @@ public class ChatActivity extends BaseFragment implements
         super.onResume();
         org.telegram.messenger.banana.MessageFilters.addListener(currentAccount, bananaFiltersChanged);
         bananaFiltersChanged.run();
+        if (getParentActivity() != null) {
+            org.telegram.messenger.banana.BananaIsland.attach(getParentActivity());
+            CharSequence title = null;
+            if (currentUser != null) {
+                title = UserObject.getUserName(currentUser);
+            } else if (currentChat != null) {
+                title = currentChat.title;
+            }
+            org.telegram.messenger.banana.BananaIsland.show(getParentActivity(), title != null ? title.toString() : null);
+        }
         checkShowBlur(false);
         activityResumeTime = System.currentTimeMillis();
         if (openImport && getSendMessagesHelper().getImportingHistory(dialog_id) != null) {
@@ -30436,6 +30449,7 @@ public class ChatActivity extends BaseFragment implements
     @Override
     public void onPause() {
         super.onPause();
+        org.telegram.messenger.banana.BananaIsland.hide();
         scrolling = false;
         if (scrimPopupWindow != null) {
             scrimPopupWindow.setPauseNotifications(false);
@@ -34037,6 +34051,64 @@ public class ChatActivity extends BaseFragment implements
                         }
                     }
                 }
+                break;
+            }
+            case OPTION_MESSAGE_SHOT: {
+                try {
+                    ChatMessageCell cell = null;
+                    if (chatListView != null) {
+                        for (int i = 0; i < chatListView.getChildCount(); i++) {
+                            View child = chatListView.getChildAt(i);
+                            if (child instanceof ChatMessageCell) {
+                                ChatMessageCell c = (ChatMessageCell) child;
+                                if (c.getMessageObject() != null && c.getMessageObject().getId() == selectedObject.getId()) {
+                                    cell = c;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (cell != null) {
+                        cell.setDrawingCacheEnabled(true);
+                        android.graphics.Bitmap bmp = cell.getDrawingCache() != null
+                                ? android.graphics.Bitmap.createBitmap(cell.getDrawingCache())
+                                : null;
+                        cell.setDrawingCacheEnabled(false);
+                        if (bmp == null) {
+                            bmp = AndroidUtilities.createBitmap(Math.max(1, cell.getMeasuredWidth()), Math.max(1, cell.getMeasuredHeight()), android.graphics.Bitmap.Config.ARGB_8888);
+                            android.graphics.Canvas canvas = new android.graphics.Canvas(bmp);
+                            cell.draw(canvas);
+                        }
+                        File out = new File(ApplicationLoader.applicationContext.getCacheDir(), "banana_shot_" + selectedObject.getId() + ".png");
+                        java.io.FileOutputStream fos = new java.io.FileOutputStream(out);
+                        bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos);
+                        fos.close();
+                        Intent intent = new Intent(Intent.ACTION_SEND);
+                        intent.setType("image/png");
+                        if (Build.VERSION.SDK_INT >= 24) {
+                            intent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(getParentActivity(), ApplicationLoader.getApplicationId() + ".provider", out));
+                            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        } else {
+                            intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(out));
+                        }
+                        getParentActivity().startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.BananaMessageShot)), 500);
+                    }
+                } catch (Throwable e) {
+                    FileLog.e(e);
+                }
+                break;
+            }
+            case OPTION_SAVE_TO_CLOUD: {
+                ArrayList<MessageObject> messages = new ArrayList<>();
+                messages.add(selectedObject);
+                getSendMessagesHelper().sendMessage(messages, getUserConfig().getClientUserId(), true, false, true, 0, null);
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.forward, LocaleController.getString(R.string.BananaSavedToCloud)).show();
+                break;
+            }
+            case OPTION_REPEAT_MESSAGE: {
+                ArrayList<MessageObject> messages = new ArrayList<>();
+                messages.add(selectedObject);
+                getSendMessagesHelper().sendMessage(messages, dialog_id, true, false, true, 0, threadMessageObject);
                 break;
             }
             case OPTION_SHARE: {
@@ -42682,6 +42754,15 @@ public class ChatActivity extends BaseFragment implements
 
         @Override
         public void didPressRevealSensitiveContent(ChatMessageCell cell) {
+            if (org.telegram.messenger.banana.BananaHooks.showSensitiveContent(currentAccount)) {
+                if (cell != null) {
+                    if (cell.getMessageObject() != null) {
+                        cell.getMessageObject().isSensitiveCached = false;
+                    }
+                    cell.startRevealMedia();
+                }
+                return;
+            }
             if (!getMessagesController().showSensitiveContent()) {
                 final AlertDialog progressDialog = new AlertDialog(getContext(), AlertDialog.ALERT_TYPE_SPINNER);
                 progressDialog.showDelayed(200);
@@ -46507,6 +46588,25 @@ public class ChatActivity extends BaseFragment implements
                     items.add(LocaleController.getString(R.string.TranslateMessage));
                     options.add(OPTION_TRANSLATE);
                     icons.add(R.drawable.msg_translate);
+                } else if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.quickTranslateButton(currentAccount) && selectedObject.contentType == 0 && !TextUtils.isEmpty(selectedObject.messageText)) {
+                    items.add(LocaleController.getString(R.string.TranslateMessage));
+                    options.add(OPTION_TRANSLATE);
+                    icons.add(R.drawable.msg_translate);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.messageShot(currentAccount) && selectedObject.contentType == 0) {
+                    items.add(LocaleController.getString(R.string.BananaMessageShot));
+                    options.add(OPTION_MESSAGE_SHOT);
+                    icons.add(R.drawable.msg_share);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.saveToCloudMenu(currentAccount) && selectedObject.getId() > 0 && !selectedObject.isSponsored()) {
+                    items.add(LocaleController.getString(R.string.BananaSaveToCloud));
+                    options.add(OPTION_SAVE_TO_CLOUD);
+                    icons.add(R.drawable.msg_forward);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.repeatMessageMenu(currentAccount) && selectedObject.isOut() && selectedObject.getId() > 0 && chatMode == 0) {
+                    items.add(LocaleController.getString(R.string.BananaRepeatMessage));
+                    options.add(OPTION_REPEAT_MESSAGE);
+                    icons.add(R.drawable.msg_retry);
                 }
                 if (message.canEditMessage(currentChat) && message.type != MessageObject.TYPE_POLL || chatMode == MODE_WELCOME_MESSAGES) {
                     items.add(LocaleController.getString(R.string.Edit));

@@ -64,8 +64,13 @@ public class FlagSecureReason {
             return;
         }
 
-        // AyuGram: removed
-        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+        // BananaGram: screenshot Extras (and legacy Ayu clear) keep the window capturable.
+        if (org.telegram.messenger.banana.BananaHooks.allowScreenshotsOverride(org.telegram.messenger.UserConfig.selectedAccount)
+                || !isSecuredNow(window)) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            return;
+        }
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE);
     }
 
     public static boolean isSecuredNow(Window window) {

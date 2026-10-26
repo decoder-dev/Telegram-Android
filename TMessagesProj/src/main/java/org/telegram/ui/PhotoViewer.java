@@ -17542,7 +17542,11 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 (messageObject.messageOwner != null && messageObject.messageOwner.noforwards)) || messageObject != null && messageObject.hasRevealedExtendedMedia() ||
                 isPageBlocksNoForwards(pageBlocksAdapter)
             ) {
-                windowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SECURE;
+                if (org.telegram.messenger.banana.BananaHooks.allowScreenshotsOverride(currentAccount)) {
+                    windowLayoutParams.flags &= ~WindowManager.LayoutParams.FLAG_SECURE;
+                } else {
+                    windowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SECURE;
+                }
                 AndroidUtilities.logFlagSecure();
             } else {
                 windowLayoutParams.flags &=~ WindowManager.LayoutParams.FLAG_SECURE;

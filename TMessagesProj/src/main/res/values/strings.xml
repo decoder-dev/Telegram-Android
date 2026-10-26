@@ -11973,5 +11973,10 @@
     <string name="BananaVal_BackendSystem">System</string>
     <string name="BananaVal_BackendOnDevice">On-device</string>
 
+    <string name="BananaMessageShot">Message shot</string>
+    <string name="BananaSaveToCloud">Save to Saved Messages</string>
+    <string name="BananaSavedToCloud">Saved to Saved Messages</string>
+    <string name="BananaRepeatMessage">Repeat</string>
+
     <string name="appearance">Appearance</string>
 </resources>
