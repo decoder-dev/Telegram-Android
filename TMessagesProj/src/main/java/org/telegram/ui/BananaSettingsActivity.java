@@ -25,6 +25,7 @@ import java.util.ArrayList;
 public final class BananaSettingsActivity extends UniversalFragment {
     private static final int GHOST_PRESET = 1000;
     private static final int SILENT_SENDING = 1001;
+    private static final int VALUES = 1003;
     private static final int AYU_SETTINGS = 1004;
     private static final int SECTION_BASE = 2000;
 
@@ -57,6 +58,7 @@ public final class BananaSettingsActivity extends UniversalFragment {
             items.add(UItem.asButton(SECTION_BASE + i, hubTitle(section)));
         }
         items.add(UItem.asShadow(null));
+        items.add(UItem.asButton(VALUES, LocaleController.getString(R.string.BananaValues)));
         items.add(UItem.asButton(AYU_SETTINGS, LocaleController.getString(R.string.AyuPreferences)));
     }
 
@@ -67,6 +69,10 @@ public final class BananaSettingsActivity extends UniversalFragment {
                     new com.radolyn.ayugram.ui.preferences.AyuGramPreferencesActivity();
             preferences.setCurrentAccount(currentAccount);
             presentFragment(preferences);
+            return;
+        }
+        if (item.id == VALUES) {
+            presentFragment(new BananaExtrasValuesActivity(currentAccount));
             return;
         }
         if (item.id >= SECTION_BASE && item.id < SECTION_BASE + BananaExtrasCatalog.HUB_ORDER.length) {

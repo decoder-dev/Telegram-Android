@@ -22,7 +22,10 @@ BananaGram iOS Extras catalog (`ForkExtrasSettings`) is exposed on Android throu
 `BananaConfig` and the Extras hub in Settings. Boolean preferences are stored per
 account; high-impact behaviors (ads, Premium unlock, call confirmation, mention/pinned
 notification filters, stories/archive visibility, exact counters, Ghost↔AyuGram sync)
-are wired. Remaining toggles keep preferences for incremental call-site work.
+are wired. Non-boolean values (saturation, sticker size/shape, photo quality, seek,
+double-tap action, glass levels, marks, backends) live under Values and Marks with
+iOS defaults; deleted/edited marks, media seek and outgoing photo size are wired.
+Remaining toggles and value behaviors keep preferences for incremental call-site work.
 
 AyuGram research and planned adaptations:
 

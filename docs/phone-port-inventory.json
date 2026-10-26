@@ -199,8 +199,8 @@
     {
       "setting": "accentColorSaturation",
       "type": "Int32",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "confirmBeforeCall",
@@ -229,14 +229,14 @@
     {
       "setting": "translationBackend",
       "type": "ForkTranslationBackend",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "transcriptionBackend",
       "type": "ForkTranscriptionBackend",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "scrollToNextChatDisabled",
@@ -277,14 +277,14 @@
     {
       "setting": "deletedMessageMark",
       "type": "String",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_wired",
+      "android": "BananaConfig + history/UI labels via AyuConfig marks"
     },
     {
       "setting": "editedMessageMark",
       "type": "String",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_wired",
+      "android": "BananaConfig + history/UI labels via AyuConfig marks"
     },
     {
       "setting": "ayuForward",
@@ -397,8 +397,8 @@
     {
       "setting": "stickerSizePercent",
       "type": "Int32",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "doubleTapToEdit",
@@ -433,8 +433,8 @@
     {
       "setting": "outgoingPhotoQuality",
       "type": "Int32",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_wired",
+      "android": "BananaConfig + AndroidUtilities.getPhotoSize"
     },
     {
       "setting": "streamerMode",
@@ -595,8 +595,8 @@
     {
       "setting": "visualPhoneNumber",
       "type": "String",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig StringValue + Values UI (behavior pending)"
     },
     {
       "setting": "ghostSendWithoutSound",
@@ -655,8 +655,8 @@
     {
       "setting": "doubleTapSeekSeconds",
       "type": "Int32",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_wired",
+      "android": "BananaConfig + PhotoViewer double-tap seek"
     },
     {
       "setting": "showMessageId",
@@ -673,8 +673,8 @@
     {
       "setting": "doubleTapAction",
       "type": "Int32",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "repeatMessageMenu",
@@ -691,8 +691,8 @@
     {
       "setting": "stickerShape",
       "type": "Int32",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "commaAfterMention",
@@ -757,26 +757,26 @@
     {
       "setting": "glassBubbleTint",
       "type": "Int32",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "glassBubbleRimTop",
       "type": "Int32",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "glassBubbleRimSides",
       "type": "Int32",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "glassBubbleRimBottom",
       "type": "Int32",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "showDisappearedGifts",
@@ -997,8 +997,8 @@
     {
       "setting": "defaultSendFormatting",
       "type": "Int32",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "avatarLongPressMention",
@@ -1057,8 +1057,8 @@
     {
       "setting": "defaultVideoQuality",
       "type": "Int32",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     }
   ]
 }

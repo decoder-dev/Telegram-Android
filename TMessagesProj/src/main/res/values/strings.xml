@@ -11911,4 +11911,56 @@
     <string name="BananaOpt_HIDE_PRIVATE_CHAT_ACTIVITIES">Hide Private Chat Activities</string>
     <string name="BananaOpt_STAY_AT_LATEST_MESSAGE_AFTER_REFRESH">Stay At Latest Message After Refresh</string>
 
+    <!-- BananaGram Extras values -->
+    <string name="BananaValues">Values and marks</string>
+    <string name="BananaValuesInfo">Numeric and text Extras. Defaults match BananaGram iOS where known. Behavior for some options is still incremental.</string>
+    <string name="BananaValuesAppearance">Appearance</string>
+    <string name="BananaValuesGlass">Glass bubbles</string>
+    <string name="BananaValuesMedia">Media</string>
+    <string name="BananaValuesMessages">Messages</string>
+    <string name="BananaValuesBackends">Backends</string>
+    <string name="BananaValuesProfile">Profile</string>
+    <string name="BananaVal_AccentSaturation">Accent color saturation</string>
+    <string name="BananaVal_StickerSize">Sticker size</string>
+    <string name="BananaVal_StickerShape">Sticker shape</string>
+    <string name="BananaVal_GlassTint">Glass tint</string>
+    <string name="BananaVal_GlassRimTop">Glass rim top</string>
+    <string name="BananaVal_GlassRimSides">Glass rim sides</string>
+    <string name="BananaVal_GlassRimBottom">Glass rim bottom</string>
+    <string name="BananaVal_OutgoingPhotoQuality">Outgoing photo quality</string>
+    <string name="BananaVal_DoubleTapSeek">Double-tap seek</string>
+    <string name="BananaVal_DefaultVideoQuality">Default video quality</string>
+    <string name="BananaVal_DoubleTapAction">Double-tap action</string>
+    <string name="BananaVal_DefaultSendFormatting">Default send formatting</string>
+    <string name="BananaVal_DeletedMessageMark">Deleted message mark</string>
+    <string name="BananaVal_EditedMessageMark">Edited message mark</string>
+    <string name="BananaVal_TranslationBackend">Translation backend</string>
+    <string name="BananaVal_TranscriptionBackend">Transcription backend</string>
+    <string name="BananaVal_VisualPhoneNumber">Visual phone number</string>
+    <string name="BananaVal_PhotoQualityDefault">Default (1280)</string>
+    <string name="BananaVal_PhotoQualityBetter">Better (1920)</string>
+    <string name="BananaVal_PhotoQualityMax">Maximum (2560)</string>
+    <string name="BananaVal_SeekOff">Off</string>
+    <string name="BananaVal_TapOff">Off</string>
+    <string name="BananaVal_TapReact">React</string>
+    <string name="BananaVal_TapReply">Reply</string>
+    <string name="BananaVal_TapRepeat">Repeat</string>
+    <string name="BananaVal_TapTranslate">Translate</string>
+    <string name="BananaVal_TapEdit">Edit</string>
+    <string name="BananaVal_ShapeStock">Stock</string>
+    <string name="BananaVal_ShapeRounded">Rounded</string>
+    <string name="BananaVal_ShapeMoreRounded">More rounded</string>
+    <string name="BananaVal_FormatOff">Off</string>
+    <string name="BananaVal_FormatBold">Bold</string>
+    <string name="BananaVal_FormatItalic">Italic</string>
+    <string name="BananaVal_FormatUnderline">Underline</string>
+    <string name="BananaVal_FormatStrike">Strikethrough</string>
+    <string name="BananaVal_FormatSpoiler">Spoiler</string>
+    <string name="BananaVal_VideoAuto">Auto</string>
+    <string name="BananaVal_VideoHighest">Highest</string>
+    <string name="BananaVal_VideoLowest">Lowest</string>
+    <string name="BananaVal_BackendDefault">Telegram default</string>
+    <string name="BananaVal_BackendSystem">System</string>
+    <string name="BananaVal_BackendOnDevice">On-device</string>
+
 </resources>

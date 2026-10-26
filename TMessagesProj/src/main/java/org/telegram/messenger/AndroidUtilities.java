@@ -3026,16 +3026,14 @@ public class AndroidUtilities {
     }
 
     public static int getPhotoSize(boolean highQuality) {
+        int bananaSide = org.telegram.messenger.banana.BananaConfig.outgoingPhotoMaxSide(UserConfig.selectedAccount);
         if (highQuality) {
             if (highQualityPhotoSize == null) {
                 highQualityPhotoSize = 2560;
             }
-            return highQualityPhotoSize;
+            return Math.max(highQualityPhotoSize, bananaSide);
         } else {
-            if (photoSize == null) {
-                photoSize = 1280;
-            }
-            return photoSize;
+            return bananaSide;
         }
     }
 
