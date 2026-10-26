@@ -18,6 +18,12 @@ Adapted fixes from other Android forks:
 Other researched fork changes are candidates, not included features until they
 are adapted and verified. Source credit is retained when a change is adopted.
 
+BananaGram iOS Extras catalog (`ForkExtrasSettings`) is exposed on Android through
+`BananaConfig` and the Extras hub in Settings. Boolean preferences are stored per
+account; high-impact behaviors (ads, Premium unlock, call confirmation, mention/pinned
+notification filters, stories/archive visibility, exact counters, Ghost↔AyuGram sync)
+are wired. Remaining toggles keep preferences for incremental call-site work.
+
 AyuGram research and planned adaptations:
 
 - [AyuGram Desktop](https://github.com/AyuGram/AyuGramDesktop), reference commit

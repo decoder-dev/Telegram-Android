@@ -9754,7 +9754,8 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean hasHiddenArchive() {
-        return SharedConfig.archiveHidden && dialogs_dict.get(DialogObject.makeFolderDialogId(1)) != null;
+        boolean bananaHideArchive = org.telegram.messenger.banana.BananaHooks.hideArchive(currentAccount);
+        return (SharedConfig.archiveHidden || bananaHideArchive) && dialogs_dict.get(DialogObject.makeFolderDialogId(1)) != null;
     }
 
 

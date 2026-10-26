@@ -1252,7 +1252,18 @@ public class NotificationsController extends BaseController implements Notificat
                         }
                         continue;
                     }
+                    if (org.telegram.messenger.banana.BananaHooks.hideMentionNotifications(currentAccount)
+                            && !(messageObject.messageOwner.action instanceof TLRPC.TL_messageActionPinMessage)) {
+                        continue;
+                    }
+                    if (org.telegram.messenger.banana.BananaHooks.hidePinnedNotifications(currentAccount)
+                            && messageObject.messageOwner.action instanceof TLRPC.TL_messageActionPinMessage) {
+                        continue;
+                    }
                     dialogId = messageObject.getFromChatId();
+                } else if (messageObject.messageOwner.action instanceof TLRPC.TL_messageActionPinMessage
+                        && org.telegram.messenger.banana.BananaHooks.hidePinnedNotifications(currentAccount)) {
+                    continue;
                 }
                 if (isPersonalMessage(messageObject)) {
                     personalCount++;

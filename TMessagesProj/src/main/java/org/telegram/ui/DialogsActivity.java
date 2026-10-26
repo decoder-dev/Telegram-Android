@@ -12831,7 +12831,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         boolean onlySelfStories = !isArchive() && getStoriesController().hasOnlySelfStories();
         boolean newVisibility;
-        if (communityId != 0) {
+        if (communityId != 0 || org.telegram.messenger.banana.BananaHooks.hideStories(currentAccount)) {
             newVisibility = false;
         } else if (isArchive()) {
             newVisibility = !getStoriesController().getHiddenList().isEmpty();
