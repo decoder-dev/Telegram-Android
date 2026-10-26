@@ -8771,7 +8771,12 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     }
                 }
             };
-            if (SharedConfig.appLocked) {
+            if (org.telegram.messenger.banana.BananaHooks.instantPasscodeLock(UserConfig.selectedAccount)) {
+                AndroidUtilities.runOnUIThread(lockRunnable, 0);
+                if (BuildVars.LOGS_ENABLED) {
+                    FileLog.d("schedule instant banana app lock");
+                }
+            } else if (SharedConfig.appLocked) {
                 AndroidUtilities.runOnUIThread(lockRunnable, 1000);
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.d("schedule app lock in " + 1000);

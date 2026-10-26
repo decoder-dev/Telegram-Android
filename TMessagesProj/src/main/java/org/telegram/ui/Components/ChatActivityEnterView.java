@@ -2645,7 +2645,8 @@ public class ChatActivityEnterView extends FrameLayout implements
         viewParentForEmojiView = parent;
         sizeNotifierLayout.setDelegate(this);
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-        sendByEnter = preferences.getBoolean("send_by_enter", false);
+        sendByEnter = preferences.getBoolean("send_by_enter", false)
+                || org.telegram.messenger.banana.BananaHooks.sendWithReturnKey(UserConfig.selectedAccount);
 
         textFieldContainer = new FrameLayout(context) {
             @Override

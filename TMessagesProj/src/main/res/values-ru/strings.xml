@@ -603,4 +603,9 @@
     <string name="BananaVal_BackendSystem">Системный</string>
     <string name="BananaVal_BackendOnDevice">На устройстве</string>
 
+    <string name="BananaMessageShot">Снимок сообщения</string>
+    <string name="BananaSaveToCloud">В Избранное</string>
+    <string name="BananaSavedToCloud">Сохранено в Избранное</string>
+    <string name="BananaRepeatMessage">Повторить</string>
+
 </resources>

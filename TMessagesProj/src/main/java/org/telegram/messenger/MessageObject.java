@@ -694,6 +694,9 @@ public class MessageObject {
     }
 
     public boolean isHiddenSensitive() {
+        if (org.telegram.messenger.banana.BananaHooks.showSensitiveContent(currentAccount)) {
+            return false;
+        }
         return isSensitive() && !MessagesController.getInstance(currentAccount).showSensitiveContent();
     }
 
