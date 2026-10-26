@@ -25403,7 +25403,7 @@ public class ChatActivity extends BaseFragment implements
             if (messageObject.sponsoredChannelPost != 0) {
                 messageId = messageObject.sponsoredChannelPost;
             }
-            if (!AyuConfig.disableAds) {
+            if (!org.telegram.messenger.banana.BananaHooks.hideAds(currentAccount)) {
                 getMessagesController().ensureMessagesLoaded(dialogId, messageId, null);
             } else {
                 if (!messageObject.isSponsored()) {
@@ -25415,7 +25415,7 @@ public class ChatActivity extends BaseFragment implements
             }
         }
         sponsoredMessagesAdded = true;
-        if (!AyuConfig.disableAds) {
+        if (!org.telegram.messenger.banana.BananaHooks.hideAds(currentAccount)) {
             sponsoredMessagesPostsBetween = res.posts_between != null ? res.posts_between : 0;
             if (notPushedSponsoredMessages != null) {
                 notPushedSponsoredMessages.clear();
@@ -26711,18 +26711,17 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private int getSponsoredMessagesCount() {
-        if (!AyuConfig.disableAds) {
-            int sponsoredMessagesCount = 0;
-            while (sponsoredMessagesCount < messages.size()) {
-                if (!messages.get(sponsoredMessagesCount).isSponsored()) {
-                    break;
-                }
-                sponsoredMessagesCount++;
+        if (org.telegram.messenger.banana.BananaHooks.hideAds(currentAccount)) {
+            return 0;
+        }
+        int sponsoredMessagesCount = 0;
+        while (sponsoredMessagesCount < messages.size()) {
+            if (!messages.get(sponsoredMessagesCount).isSponsored()) {
+                break;
             }
             sponsoredMessagesCount++;
         }
-
-        return 0;
+        return sponsoredMessagesCount;
     }
 
     private void processDeletedMessages(ArrayList<Integer> markAsDeletedMessages, long channelId, boolean sent) {
