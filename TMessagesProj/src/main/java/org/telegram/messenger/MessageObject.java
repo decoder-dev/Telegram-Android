@@ -10979,12 +10979,13 @@ public class MessageObject {
         } else if (type == TYPE_EMOJIS) {
             return (fast ? textHeightCached() : textHeight()) + dp(30);
         } else if (type == TYPE_STICKER || type == TYPE_ANIMATED_STICKER) {
-            float maxHeight = AndroidUtilities.displaySize.y * 0.4f;
+            float bananaStickerScale = org.telegram.messenger.banana.BananaHooks.stickerSizeScale(currentAccount);
+            float maxHeight = AndroidUtilities.displaySize.y * 0.4f * bananaStickerScale;
             float maxWidth;
             if (AndroidUtilities.isTablet()) {
-                maxWidth = AndroidUtilities.getMinTabletSide() * 0.5f;
+                maxWidth = AndroidUtilities.getMinTabletSide() * 0.5f * bananaStickerScale;
             } else {
-                maxWidth = AndroidUtilities.displaySize.x * 0.5f;
+                maxWidth = AndroidUtilities.displaySize.x * 0.5f * bananaStickerScale;
             }
             int photoHeight = 0;
             int photoWidth = 0;

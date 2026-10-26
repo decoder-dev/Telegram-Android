@@ -3181,6 +3181,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         actionBar.createAdditionalSubTitleOverlayContainer();
         actionBar.getAdditionalSubTitleOverlayContainer().setTranslationX(dp(4));
         actionBar.getAdditionalSubTitleOverlayContainer().setTranslationY(-dp(3));
+        if (org.telegram.messenger.banana.BananaHooks.chatListCentersTitle(currentAccount)) {
+            actionBar.centerTitle();
+        }
 
         if (inPreviewMode || AndroidUtilities.isTablet() && folderId != 0 && !isArchive()) {
             actionBar.setOccupyStatusBar(false);

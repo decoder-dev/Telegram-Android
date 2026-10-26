@@ -208,6 +208,146 @@ public final class BananaHooks {
                 || BananaConfig.get(account, BananaConfig.Option.HIDE_UPLOAD);
     }
 
+    public static boolean hideTabBar(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_TAB_BAR);
+    }
+
+    public static boolean chatListHidesEmojiStatus(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.CHAT_LIST_HIDES_EMOJI_STATUS);
+    }
+
+    public static boolean chatListCentersTitle(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.CHAT_LIST_CENTERS_TITLE);
+    }
+
+    public static boolean hideGiftButton(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_GIFT_BUTTON);
+    }
+
+    public static boolean hideVerification(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_VERIFICATION);
+    }
+
+    public static boolean hidePremiumStatuses(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_PREMIUM_STATUSES);
+    }
+
+    public static boolean showMessageId(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SHOW_MESSAGE_ID);
+    }
+
+    public static boolean showMediaInfo(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SHOW_MEDIA_INFO);
+    }
+
+    public static boolean glassBubbles(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.GLASS_BUBBLES);
+    }
+
+    public static boolean cleanTrackingLinksEnabled(int account) {
+        return BananaConfig.cleanTrackingLinks(account);
+    }
+
+    public static boolean shouldSendSilently(int account) {
+        return BananaConfig.shouldSendSilently(account);
+    }
+
+    public static boolean ghostScheduleMessages(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.GHOST_SCHEDULE_MESSAGES)
+                && BananaConfig.isGhostModeActive(account);
+    }
+
+    /** Sticker display size multiplier: 50–150 → 0.5–1.5. */
+    public static float stickerSizeScale(int account) {
+        return BananaConfig.stickerSizePercent(account) / 100f;
+    }
+
+    /**
+     * Round radius in px for stickers. Shape 0 = square, 1 = soft (~12% side), 2 = pill (~25% side).
+     */
+    public static int stickerRoundRadiusPx(int account, int sidePx) {
+        int shape = BananaConfig.stickerShape(account);
+        if (shape <= 0 || sidePx <= 0) {
+            return 0;
+        }
+        float fraction = shape == 2 ? 0.25f : 0.12f;
+        return Math.max(1, Math.round(sidePx * fraction));
+    }
+
+    /** Soften bubble color when glass bubbles are enabled (tint percent → alpha). */
+    public static int applyGlassBubbleColor(int account, int color) {
+        if (!glassBubbles(account)) {
+            return color;
+        }
+        int tint = BananaConfig.glassBubbleTint(account);
+        int alpha = Math.max(40, Math.min(255, Math.round(255 * (100 - tint * 0.55f) / 100f)));
+        return (color & 0x00FFFFFF) | (alpha << 24);
+    }
+
+    public static boolean isGlassBubbleColorKey(int key) {
+        return key == org.telegram.ui.ActionBar.Theme.key_chat_inBubble
+                || key == org.telegram.ui.ActionBar.Theme.key_chat_outBubble
+                || key == org.telegram.ui.ActionBar.Theme.key_chat_inBubbleSelected
+                || key == org.telegram.ui.ActionBar.Theme.key_chat_outBubbleSelected
+                || key == org.telegram.ui.ActionBar.Theme.key_chat_inBubbleShadow
+                || key == org.telegram.ui.ActionBar.Theme.key_chat_outBubbleShadow;
+    }
+
+    /** Strip tracking params from a URL when the Extra is on; otherwise return as-is. */
+    public static String maybeCleanTrackingUrl(int account, String url) {
+        if (TextUtils.isEmpty(url) || !cleanTrackingLinksEnabled(account)) {
+            return url;
+        }
+        try {
+            String cleaned = TrackingUrl.clean(url);
+            return cleaned != null ? cleaned : url;
+        } catch (Throwable ignore) {
+            return url;
+        }
+    }
+
+    public static String deletedMark(int account) {
+        String mark = BananaConfig.deletedMessageMark(account);
+        return mark != null ? mark : "";
+    }
+
+    public static String editedMark(int account) {
+        String mark = BananaConfig.editedMessageMark(account);
+        return mark != null ? mark : "";
+    }
+
+    /** Append " #id" when SHOW_MESSAGE_ID is enabled. */
+    public static String appendMessageId(int account, String timeString, int messageId) {
+        if (!showMessageId(account) || messageId <= 0 || timeString == null) {
+            return timeString;
+        }
+        return timeString + " #" + messageId;
+    }
+
+    /** Compact media dimensions / size / duration for overlays. */
+    public static String formatMediaInfo(int account, int width, int height, long sizeBytes, int durationSec) {
+        if (!showMediaInfo(account)) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        if (width > 0 && height > 0) {
+            sb.append(width).append('×').append(height);
+        }
+        if (sizeBytes > 0) {
+            if (sb.length() > 0) {
+                sb.append(" · ");
+            }
+            sb.append(AndroidUtilities.formatFileSize(sizeBytes));
+        }
+        if (durationSec > 0) {
+            if (sb.length() > 0) {
+                sb.append(" · ");
+            }
+            sb.append(LocaleController.formatShortDuration(durationSec));
+        }
+        return sb.length() > 0 ? sb.toString() : null;
+    }
+
     public static boolean shouldHideServiceMessage(int account, TLRPC.Message message) {
         if (!hideServiceMessages(account) || message == null || message.action == null) {
             return false;

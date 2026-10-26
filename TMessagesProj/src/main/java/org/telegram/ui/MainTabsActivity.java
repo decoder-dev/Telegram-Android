@@ -352,6 +352,9 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             tabsView.setViewVisible(view, true, false);
         }
         checkUi_callTabVisible(getUserConfig().showCallsTab, false);
+        if (org.telegram.messenger.banana.BananaHooks.hideTabBar(currentAccount)) {
+            animatorTabsVisible.setValue(false, false);
+        }
 
         selectTab(viewPager.getCurrentPosition(), false);
 
@@ -1109,6 +1112,9 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     private class MainTabsActivityControllerImpl implements MainTabsActivityController {
         @Override
         public void setTabsVisible(boolean visible) {
+            if (org.telegram.messenger.banana.BananaHooks.hideTabBar(currentAccount)) {
+                visible = false;
+            }
             animatorTabsVisible.setValue(visible, true);
         }
     }
