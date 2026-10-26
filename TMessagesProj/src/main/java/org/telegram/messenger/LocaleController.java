@@ -2862,6 +2862,12 @@ public class LocaleController {
     }
 
     public static String formatShortNumber(int number, int[] rounded) {
+        if (org.telegram.messenger.banana.BananaHooks.exactCounts(org.telegram.messenger.UserConfig.selectedAccount)) {
+            if (rounded != null) {
+                rounded[0] = number;
+            }
+            return String.format(java.util.Locale.US, "%,d", number).replace(',', ' ');
+        }
         StringBuilder K = new StringBuilder();
         int lastDec = 0;
         int KCount = 0;

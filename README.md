@@ -12,7 +12,8 @@ BananaGram brings together our [iOS client](https://github.com/decoder-dev/Teleg
 
 The following features are present in the source and are being brought into a consistent Android experience:
 
-- **Ghost controls** — online status, typing and upload activity, message and story read receipts, silent sending and automatic return offline.
+- **Extras hub** — BananaGram iOS ForkExtras catalog on Android (Ninja, Ghost, Privacy, chat list, tabs, messages, media, profile), with account-scoped preferences.
+- **Ghost controls** — online status, typing and upload activity, message and story read receipts, silent sending, read-on-interact and automatic return offline.
 - **Message history** — local records of edits and deletions, saved attachments, search and archive cleanup.
 - **Message filters** — shared and per-chat rules, exceptions, regular expressions, sample previews and reviewed rule imports.
 - **Sending tools** — optional tracking-link cleanup, forwarding controls and scheduled sending.

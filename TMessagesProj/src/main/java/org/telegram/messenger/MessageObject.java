@@ -6830,6 +6830,10 @@ public class MessageObject {
                 contentType = 1;
                 type = TYPE_DATE;
             }
+            if (org.telegram.messenger.banana.BananaHooks.shouldHideServiceMessage(currentAccount, messageOwner)) {
+                messageText = "";
+                messageOwner.message = "";
+            }
         }
         if (oldType != 1000 && oldType != type && type != TYPE_EMOJIS) {
             updateMessageText(MessagesController.getInstance(currentAccount).getUsers(), MessagesController.getInstance(currentAccount).getChats(), null, null);
