@@ -299,6 +299,14 @@ public class Browser {
             return;
         }
         final int currentAccount = UserConfig.selectedAccount;
+        try {
+            String raw = uri.toString();
+            String cleaned = org.telegram.messenger.banana.BananaHooks.maybeCleanTrackingUrl(currentAccount, raw);
+            if (cleaned != null && !cleaned.equals(raw)) {
+                uri = Uri.parse(cleaned);
+            }
+        } catch (Throwable ignore) {
+        }
         if (!Boolean.TRUE.equals(bananaSkipLinkConfirm.get())) {
             final Uri confirmUri = uri;
             final boolean allowCustomFinal = _allowCustom;

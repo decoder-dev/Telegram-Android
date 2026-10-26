@@ -166,21 +166,17 @@ tasks.configureEach { task ->
 }
 
 android {
-    buildFeatures { aidl = true }
+    buildFeatures {
+        aidl = true
+        buildConfig = true
+    }
     compileSdkVersion 36
     buildToolsVersion '36.0.0'
     ndkVersion "27.2.12479018"
 
-
     externalNativeBuild {
         cmake {
             path 'jni/CMakeLists.txt'
-        }
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
-            }
         }
     }
 
@@ -209,6 +205,12 @@ android {
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
 
         multiDexEnabled true
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
 
         externalNativeBuild {
             cmake {
