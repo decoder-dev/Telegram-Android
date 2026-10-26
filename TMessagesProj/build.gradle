@@ -140,6 +140,7 @@ tasks.configureEach { task ->
 }
 
 android {
+    buildFeatures { aidl = true }
     compileSdkVersion 36
     buildToolsVersion '36.0.0'
     ndkVersion "27.2.12479018"

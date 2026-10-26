@@ -290,6 +290,10 @@ public class ApplicationLoader extends Application {
 
         super.onCreate();
 
+        // The permission-less regex worker must not initialize Telegram sessions,
+        // native libraries, preferences, push providers or account databases.
+        if (org.telegram.messenger.banana.RegexProcess.isWorker(this)) return;
+
         // AndroidUtilities must be initialized before FileLog
         final String helloWorld = AndroidUtilities.getHelloWorld();
 
@@ -386,6 +390,7 @@ public class ApplicationLoader extends Application {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        if (org.telegram.messenger.banana.RegexProcess.isWorker(this)) return;
         try {
             LocaleController.getInstance().onDeviceConfigurationChange(newConfig);
             AndroidUtilities.checkDisplaySize(applicationContext, newConfig);

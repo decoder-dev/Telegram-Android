@@ -224,13 +224,15 @@
       "group": "general",
       "setting": "filtersEnabled",
       "source_default": "false",
-      "status": "pending"
+      "status": "partial_verified_local_native_pending_full_parity",
+      "implementation": "Account/owner/backend scoped Java regex rules; native shared/perchat editor, preview, enabled/reversed/case flags, v2 JSON preview/import/export and exceptions; asynchronous exact-content cache and chat tinyrow. Full media gating, blocked users, dialog preview and remote deep links still pending."
     },
     {
       "group": "general",
       "setting": "filtersEnabledInChats",
       "source_default": "false",
-      "status": "pending"
+      "status": "partial_verified_local_native_pending_full_parity",
+      "implementation": "Account/owner/backend scoped Java regex rules; native shared/perchat editor, preview, enabled/reversed/case flags, v2 JSON preview/import/export and exceptions; asynchronous exact-content cache and chat tinyrow. Full media gating, blocked users, dialog preview and remote deep links still pending."
     },
     {
       "group": "general",
@@ -812,15 +814,18 @@
     },
     {
       "setting": "regexFiltersEnabled",
-      "status": "pending"
+      "status": "partial_verified_local_native_pending_full_parity",
+      "implementation": "Account/owner/backend scoped Java regex rules; native shared/perchat editor, preview, enabled/reversed/case flags, v2 JSON preview/import/export and exceptions; asynchronous exact-content cache and chat tinyrow. Full media gating, blocked users, dialog preview and remote deep links still pending."
     },
     {
       "setting": "regexFiltersInChats",
-      "status": "pending"
+      "status": "partial_verified_local_native_pending_full_parity",
+      "implementation": "Account/owner/backend scoped Java regex rules; native shared/perchat editor, preview, enabled/reversed/case flags, v2 JSON preview/import/export and exceptions; asynchronous exact-content cache and chat tinyrow. Full media gating, blocked users, dialog preview and remote deep links still pending."
     },
     {
       "setting": "regexFiltersCaseInsensitive",
-      "status": "pending"
+      "status": "partial_verified_local_native_pending_full_parity",
+      "implementation": "Account/owner/backend scoped Java regex rules; native shared/perchat editor, preview, enabled/reversed/case flags, v2 JSON preview/import/export and exceptions; asynchronous exact-content cache and chat tinyrow. Full media gating, blocked users, dialog preview and remote deep links still pending."
     },
     {
       "setting": "showGhostToggleInDrawer",
@@ -854,7 +859,8 @@
     },
     {
       "feature": "Regex and blocked-user filters, previews, imports and per-chat exceptions",
-      "status": "pending"
+      "status": "partial_verified_local_native_pending_full_parity",
+      "implementation": "Regex rules and local v2 interchange implemented; blocked-user filtering, dialog preview and remote import pending."
     },
     {
       "feature": "Forward-as-copy, reupload and cancellation",
