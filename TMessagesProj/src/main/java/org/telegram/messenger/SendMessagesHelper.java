@@ -2228,8 +2228,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             return 0;
         }
 
-        // --- AyuGram scheduled hook
-        if (AyuConfig.useScheduledMessages && !DialogObject.isEncryptedDialog(peer) && scheduleDateOrig == 0) {
+        // --- Banana/AyuGram ghost scheduled send
+        if ((AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount))
+                && !DialogObject.isEncryptedDialog(peer) && scheduleDateOrig == 0) {
             scheduleDateOrig = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 10; // min t = 10 sec
 
             // ..but here's the problem:
@@ -4524,8 +4525,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             caption = "";
         }
 
-        // --- AyuGram scheduled hook
-        if (AyuConfig.useScheduledMessages && !DialogObject.isEncryptedDialog(peer) && scheduleDate == 0) {
+        // --- Banana/AyuGram ghost scheduled send
+        if ((AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount))
+                && !DialogObject.isEncryptedDialog(peer) && scheduleDate == 0) {
             scheduleDate = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 10; // min t = 10 sec
 
             // ..but here's the problem:

@@ -9071,7 +9071,7 @@ public class Theme {
                 } else if (key == key_chat_serviceBackgroundSelected) {
                     return serviceSelectedMessageColor;
                 }
-                return getDefaultColor(key);
+                return bananaMaybeGlassBubble(key, getDefaultColor(key));
             }
         }
         int index = currentColors.indexOfKey(key);
@@ -9081,7 +9081,7 @@ public class Theme {
             if (fallbackKey != -1) {
                 int fallbackIndex = currentColors.indexOfKey(fallbackKey);
                 if (fallbackIndex >= 0) {
-                    return currentColors.valueAt(fallbackIndex);
+                    return bananaMaybeGlassBubble(key, currentColors.valueAt(fallbackIndex));
                 }
             }
 
@@ -9093,12 +9093,20 @@ public class Theme {
             } else if (key == key_chat_serviceBackgroundSelected) {
                 return serviceSelectedMessageColor;
             }
-            return getDefaultColor(key);
+            return bananaMaybeGlassBubble(key, getDefaultColor(key));
         } else {
             color = currentColors.valueAt(index);
         }
         if (key_windowBackgroundWhite == key || key_windowBackgroundGray == key || key_actionBarDefault == key || key_actionBarDefaultArchived == key) {
             color |= 0xff000000;
+        }
+        return bananaMaybeGlassBubble(key, color);
+    }
+
+    private static int bananaMaybeGlassBubble(int key, int color) {
+        if (org.telegram.messenger.banana.BananaHooks.isGlassBubbleColorKey(key)) {
+            return org.telegram.messenger.banana.BananaHooks.applyGlassBubbleColor(
+                    org.telegram.messenger.UserConfig.selectedAccount, color);
         }
         return color;
     }
