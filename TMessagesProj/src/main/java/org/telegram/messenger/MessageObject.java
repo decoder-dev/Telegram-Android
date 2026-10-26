@@ -709,6 +709,9 @@ public class MessageObject {
         if (isRepostPreview) {
             return false;
         }
+        if (org.telegram.messenger.banana.BananaHooks.hideReactionsBar(currentAccount)) {
+            return false;
+        }
         return true;
     }
 
@@ -8411,6 +8414,9 @@ public class MessageObject {
     }
 
     public boolean needDrawShareButton() {
+        if (org.telegram.messenger.banana.BananaHooks.hideShareButton(currentAccount)) {
+            return false;
+        }
         if (isRepostPreview) {
             return false;
         }
@@ -9133,6 +9139,10 @@ public class MessageObject {
             linesOffset += currentBlockLinesCount;
 
             block.spoilers.clear();
+            if (org.telegram.messenger.banana.BananaHooks.autoRevealSpoilers(currentAccount)) {
+                isSpoilersRevealed = true;
+                isMediaSpoilersRevealed = true;
+            }
             if (!isSpoilersRevealed && !spoiledLoginCode) {
                 int right = linesMaxWidthWithLeft;
                 if (block.quote) {
@@ -9582,6 +9592,10 @@ public class MessageObject {
                 }
 
                 linesOffset += currentBlockLinesCount;
+                if (messageObject != null && org.telegram.messenger.banana.BananaHooks.autoRevealSpoilers(messageObject.currentAccount)) {
+                    messageObject.isSpoilersRevealed = true;
+                    messageObject.isMediaSpoilersRevealed = true;
+                }
                 if (messageObject != null && !messageObject.isSpoilersRevealed && !messageObject.spoiledLoginCode) {
                     int right = linesMaxWidthWithLeft;
                     if (block.quote) {

@@ -13357,6 +13357,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                  boolean topNear,
                                  boolean firstInChat,
                                  boolean lastInChatList) {
+        if (messageObject != null && org.telegram.messenger.banana.BananaHooks.autoRevealSpoilers(currentAccount)) {
+            messageObject.isSpoilersRevealed = true;
+            messageObject.isMediaSpoilersRevealed = true;
+        }
         if (attachedToWindow && !frozen) {
             setMessageContent(messageObject, groupedMessages, bottomNear, topNear, firstInChat, lastInChatList);
         } else {

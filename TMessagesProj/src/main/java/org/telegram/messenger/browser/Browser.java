@@ -292,11 +292,28 @@ public class Browser {
         openUrl(context, uri, allowCustom, tryTelegraph, false, inCaseLoading, null, false, true, false);
     }
 
+    private static final ThreadLocal<Boolean> bananaSkipLinkConfirm = new ThreadLocal<>();
+
     public static void openUrl(final Context context, Uri uri, boolean _allowCustom, boolean tryTelegraph, boolean forceNotInternalForApps, Progress inCaseLoading, String browser, boolean allowIntent, boolean allowInAppBrowser, boolean forceRequest) {
         if (context == null || uri == null) {
             return;
         }
         final int currentAccount = UserConfig.selectedAccount;
+        if (!Boolean.TRUE.equals(bananaSkipLinkConfirm.get())) {
+            final Uri confirmUri = uri;
+            final boolean allowCustomFinal = _allowCustom;
+            final boolean tryTelegraphFinal = tryTelegraph;
+            if (org.telegram.messenger.banana.BananaHooks.interceptOpenUrl(context, currentAccount, uri.toString(), () -> {
+                bananaSkipLinkConfirm.set(true);
+                try {
+                    openUrl(context, confirmUri, allowCustomFinal, tryTelegraphFinal, forceNotInternalForApps, inCaseLoading, browser, allowIntent, allowInAppBrowser, forceRequest);
+                } finally {
+                    bananaSkipLinkConfirm.set(false);
+                }
+            })) {
+                return;
+            }
+        }
         boolean[] forceBrowser = new boolean[]{false};
         boolean internalUri = isInternalUri(uri, forceBrowser);
         String browserPackage = getBrowserPackageName(browser);

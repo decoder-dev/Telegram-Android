@@ -1,14 +1,22 @@
 package org.telegram.messenger.banana;
 
+import android.content.Context;
+import android.net.Uri;
+import android.text.TextUtils;
+
 import com.radolyn.ayugram.AyuConfig;
 
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.browser.Browser;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.AlertDialog;
 
 import java.util.Date;
 
@@ -17,6 +25,9 @@ import java.util.Date;
  */
 public final class BananaHooks {
     private BananaHooks() {}
+
+    private static String lastConfirmedUrl;
+    private static long lastConfirmedAt;
 
     public static boolean hideAds(int account) {
         return BananaConfig.get(account, BananaConfig.Option.HIDE_ADS) || AyuConfig.disableAds;
@@ -52,6 +63,26 @@ public final class BananaHooks {
 
     public static boolean compactChatList(int account) {
         return BananaConfig.get(account, BananaConfig.Option.COMPACT_CHAT_LIST);
+    }
+
+    public static boolean compactMessagePreview(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.COMPACT_MESSAGE_PREVIEW);
+    }
+
+    /** Base DialogCell row height in dp (excluding separator / tags). */
+    public static int dialogCellHeightDp(int account, boolean threeLines) {
+        if (compactChatList(account)) {
+            return threeLines ? 62 : 56;
+        }
+        return threeLines ? 76 : 70;
+    }
+
+    /** Forum DialogCell row height in dp (excluding separator / tags). */
+    public static int forumDialogCellHeightDp(int account, boolean threeLines) {
+        if (compactChatList(account)) {
+            return threeLines ? 74 : 78;
+        }
+        return threeLines ? 86 : 91;
     }
 
     public static boolean exactCounts(int account) {
@@ -122,12 +153,40 @@ public final class BananaHooks {
         return BananaConfig.get(account, BananaConfig.Option.BYPASS_DOWNLOAD_RESTRICTIONS);
     }
 
+    public static boolean confirmVoiceSend(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.CONFIRM_VOICE_SEND);
+    }
+
+    public static boolean stopAfterVoice(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.STOP_AFTER_VOICE);
+    }
+
+    public static boolean stopAfterRoundVideo(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.STOP_AFTER_ROUND_VIDEO);
+    }
+
     public static boolean hideAllChats(int account) {
         return BananaConfig.get(account, BananaConfig.Option.HIDE_ALL_CHATS);
     }
 
     public static boolean rememberLastFolder(int account) {
         return BananaConfig.get(account, BananaConfig.Option.REMEMBER_LAST_FOLDER);
+    }
+
+    public static boolean hideFolderUnreadCount(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_FOLDER_UNREAD_COUNT);
+    }
+
+    public static boolean chatListHidesConnectionStatus(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.CHAT_LIST_HIDES_CONNECTION_STATUS);
+    }
+
+    public static boolean chatListHidesSearch(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.CHAT_LIST_HIDES_SEARCH);
+    }
+
+    public static boolean bottomChatFoldersEnabled(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.BOTTOM_CHAT_FOLDERS_ENABLED);
     }
 
     public static boolean ghostReadOnInteract(int account) {
@@ -169,6 +228,113 @@ public final class BananaHooks {
             return false;
         }
         return MessagesController.getInstance(account).blockePeers.indexOfKey(fromUserId) >= 0;
+    }
+
+    /** Share deep links: tg://msg_url, tg://msg, tg://share, t.me/share, t.me/msg. */
+    public static boolean isShareLink(String url) {
+        if (TextUtils.isEmpty(url)) {
+            return false;
+        }
+        String lower = url.toLowerCase();
+        if (lower.startsWith("tg:msg") || lower.startsWith("tg://msg")
+                || lower.startsWith("tg:share") || lower.startsWith("tg://share")) {
+            return true;
+        }
+        try {
+            Uri uri = Uri.parse(url);
+            String host = AndroidUtilities.getHostAuthority(uri);
+            if (host == null) {
+                return false;
+            }
+            host = host.toLowerCase();
+            if (!"t.me".equals(host) && !"telegram.me".equals(host) && !"telegram.dog".equals(host)
+                    && !host.endsWith(".t.me")) {
+                return false;
+            }
+            String path = uri.getPath();
+            if (path == null) {
+                return false;
+            }
+            path = path.toLowerCase();
+            return path.equals("/share") || path.startsWith("/share/")
+                    || path.equals("/msg") || path.startsWith("/msg/");
+        } catch (Exception ignore) {
+            return false;
+        }
+    }
+
+    /** Alias for share / msg_url style links. */
+    public static boolean isShareOrMsgUrl(String url) {
+        return isShareLink(url);
+    }
+
+    /** In-app Telegram links (t.me / tg://) excluding share deep links. */
+    public static boolean isTelegramDeepLink(String url) {
+        if (TextUtils.isEmpty(url) || isShareLink(url)) {
+            return false;
+        }
+        return Browser.isInternalUrl(url, null);
+    }
+
+    /** String resource for a confirm dialog, or 0 if none needed. */
+    public static int confirmationTitleResForUrl(int account, String url) {
+        if (TextUtils.isEmpty(url)) {
+            return 0;
+        }
+        if (isShareLink(url)) {
+            if (confirmShareLinks(account)) {
+                return R.string.BananaOpt_CONFIRM_SHARE_LINKS;
+            }
+            if (confirmTelegramLinks(account)) {
+                return R.string.BananaOpt_CONFIRM_TELEGRAM_LINKS;
+            }
+            return 0;
+        }
+        if (confirmTelegramLinks(account) && isTelegramDeepLink(url)) {
+            return R.string.BananaOpt_CONFIRM_TELEGRAM_LINKS;
+        }
+        return 0;
+    }
+
+    public static boolean shouldConfirmLink(int account, String url) {
+        return confirmationTitleResForUrl(account, url) != 0;
+    }
+
+    /**
+     * Shows a confirm dialog when Extras require it. Returns true if a dialog was shown
+     * (proceed runs only after OK); false if the caller should continue immediately.
+     */
+    public static boolean interceptOpenUrl(Context context, int account, String url, Runnable proceed) {
+        if (proceed == null) {
+            return false;
+        }
+        if (url != null && url.equals(lastConfirmedUrl) && System.currentTimeMillis() - lastConfirmedAt < 4000) {
+            return false;
+        }
+        int titleRes = confirmationTitleResForUrl(account, url);
+        if (titleRes == 0 || context == null) {
+            return false;
+        }
+        try {
+            new AlertDialog.Builder(context)
+                    .setTitle(LocaleController.getString(titleRes))
+                    .setMessage(url)
+                    .setPositiveButton(LocaleController.getString(R.string.Open), (d, w) -> {
+                        lastConfirmedUrl = url;
+                        lastConfirmedAt = System.currentTimeMillis();
+                        proceed.run();
+                    })
+                    .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+                    .show();
+            return true;
+        } catch (Exception e) {
+            FileLog.e(e);
+            return false;
+        }
+    }
+
+    public static boolean interceptOpenUrl(Context context, String url, Runnable proceed) {
+        return interceptOpenUrl(context, UserConfig.selectedAccount, url, proceed);
     }
 
     public static String maybeMaskPhone(int account, String phone) {
