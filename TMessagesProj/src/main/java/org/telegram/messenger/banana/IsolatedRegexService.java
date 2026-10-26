@@ -44,5 +44,12 @@ public final class IsolatedRegexService extends Service {
         @Override public void abort() { Process.killProcess(Process.myPid()); }
     };
 
+    @Override public void onCreate() {
+        super.onCreate();
+        // Load ICU/compiler tables before publishing the Binder. The match watchdog
+        // measures untrusted expressions, not first-use platform initialization.
+        Pattern.compile("\\p{L}+", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE)
+                .matcher("Warmup").find();
+    }
     @Override public IBinder onBind(Intent intent) { return binder; }
 }

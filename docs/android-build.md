@@ -60,3 +60,11 @@ The local 2026-10-26 probe reached `auth.sendCode`, but its deterministic
 `auth.signIn` was rejected with `PHONE_CODE_INVALID`. This is an external
 capability result, not successful Ghost/history protocol acceptance. A dedicated
 working test-server account is still needed for those integration checks.
+
+
+The deterministic emulator suite never depends on a third-party paste being
+available. An optional `RemoteFilterNetworkProbe` accepts
+`-e banana_filter_source_probe YES -e banana_public_filter_source <raw-HTTPS-URL>`
+with `-e class org.telegram.banana.RemoteFilterNetworkProbe`. It requires a fresh
+emulator with no signed-in accounts, fetches only an allowlisted public JSON
+source and never applies its contents. Do not use a real account for this probe.

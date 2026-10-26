@@ -47,4 +47,4 @@ if not passed or int(passed.group(1)) < 20 or 'FAILURES!!!' in output:
     raise SystemExit('Android smoke checks failed')
 if pull.returncode:
     raise SystemExit('Tests passed but their screenshots could not be collected; see screenshots.log')
-print('Android 4x playback, link detector, Extras/history UI, account isolation and bounded persistent archive: passed')
+print('Android smoke checks passed: native player/history/filters, account isolation and headless Bluetooth setup')

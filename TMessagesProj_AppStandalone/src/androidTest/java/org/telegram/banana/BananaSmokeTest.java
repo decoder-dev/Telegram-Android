@@ -365,23 +365,33 @@ public class BananaSmokeTest {
     }
 
     private static void tapRow(Instrumentation instrumentation, UniversalFragment screen, int id) {
+        instrumentation.waitForIdleSync();
+        SystemClock.sleep(200);
         instrumentation.runOnMainSync(() -> {
             for (int i = 0; i < screen.listView.adapter.getItemCount(); i++) if (screen.listView.adapter.getItem(i).id == id) {
                 screen.listView.scrollToPosition(i); return;
             }
             fail("Missing row " + id);
         });
+        instrumentation.waitForIdleSync();
+        SystemClock.sleep(200);
         int[] xy = new int[2];
         await(instrumentation, () -> {
+            if (screen.listView.isComputingLayout() || screen.listView.getScrollState() != androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE ||
+                    screen.listView.getItemAnimator() != null && screen.listView.getItemAnimator().isRunning()) return false;
             for (int i = 0; i < screen.listView.adapter.getItemCount(); i++) if (screen.listView.adapter.getItem(i).id == id) {
                 View view = screen.listView.findViewByPosition(i);
                 Rect visible = new Rect();
-                if (view == null || !view.getGlobalVisibleRect(visible) || visible.height() < view.getHeight()) return false;
-                xy[0] = visible.centerX(); xy[1] = visible.centerY(); return true;
+                if (view == null || !view.getGlobalVisibleRect(visible) || visible.height() < view.getHeight()) {
+                    // Imports may insert rows after the first position lookup. Resolve by ID again.
+                    screen.listView.scrollToPosition(i);
+                    return false;
+                }
+                view.getLocationOnScreen(xy);
+                xy[0] += view.getWidth() / 2; xy[1] += view.getHeight() / 2; return true;
             }
             return false;
         }, "Row " + id + " must be completely reachable");
-        SystemClock.sleep(150);
         tap(instrumentation, xy[0], xy[1]);
     }
     private static void checkFilters(Instrumentation instrumentation, LaunchActivity activity, BananaSettingsActivity extras, String name) throws Exception {
@@ -420,20 +430,127 @@ public class BananaSmokeTest {
             }
         });
         capture(instrumentation, name + "-filter-editor");
+        View[] previousView = new View[1];
+        instrumentation.runOnMainSync(() -> {
+            previousView[0] = editor[0].getFragmentView();
+            activity.rebuildAllFragments(true);
+        });
+        await(instrumentation, () -> editor[0].getFragmentView() != null && editor[0].getFragmentView() != previousView[0] &&
+                editor[0].getFragmentView().isLaidOut() && !activity.getActionBarLayout().isTransitionAnimationInProgress(),
+                "A native view rebuild must recreate the editor");
+        instrumentation.runOnMainSync(() -> {
+            for (int i = 0; i < editor[0].listView.adapter.getItemCount(); i++) {
+                org.telegram.ui.Components.UItem item = editor[0].listView.adapter.getItem(i);
+                if (item.id == 10) assertEquals("Draft expressions must survive view/theme rebuilds", "(?i)hello", ((android.widget.EditText) item.view).getText().toString());
+                if (item.id == 11) assertEquals("Draft samples must survive view/theme rebuilds", "HELLO", ((android.widget.EditText) item.view).getText().toString());
+            }
+        });
         tapRow(instrumentation, editor[0], 4);
-        await(instrumentation, () -> {
+        try { await(instrumentation, () -> {
             for (int i = 0; i < editor[0].listView.adapter.getItemCount(); i++) if (LocaleController.getString(R.string.BananaFilterHidden)
                     .contentEquals(editor[0].listView.adapter.getItem(i).text == null ? "" : editor[0].listView.adapter.getItem(i).text)) return true;
             return false;
-        }, "The real isolated rule check must update its native preview");
+        }, "The real isolated rule check must update its native preview"); }
+        catch (AssertionError failure) {
+            String[] detail = {""};
+            instrumentation.runOnMainSync(() -> {
+                try {
+                    java.lang.reflect.Field status = BananaFilterEditActivity.class.getDeclaredField("lastResultStatus"); status.setAccessible(true);
+                    detail[0] = "; checker status=" + status.getInt(editor[0]);
+                } catch (Exception ignored) { }
+                for (int i = 0; i < editor[0].listView.adapter.getItemCount(); i++) {
+                    org.telegram.ui.Components.UItem item = editor[0].listView.adapter.getItem(i);
+                    if (item.id == 10) detail[0] += "; field error=" + ((android.widget.EditText) item.view).getError();
+                }
+            });
+            throw new AssertionError(failure.getMessage() + detail[0], failure);
+        }
         capture(instrumentation, name + "-filter-preview");
         tapRow(instrumentation, editor[0], 5);
         await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == screen[0] && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Saving must return to the rule list");
         assertEquals(1, store.rules().rules.size());
         assertEquals("(?i)hello", store.rules().rules.get(0).text);
         assertFalse("Saving a shared rule must not silently enable it in private chats", store.sharedInChats());
+        checkImportDialogs(instrumentation, screen[0], store, name);
         instrumentation.runOnMainSync(() -> { store.setEnabled(false); store.save(FilterRules.empty()); screen[0].finishFragment(false); });
         await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == extras && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Filters must return to Extras");
+    }
+
+    private static AlertDialog waitDialog(Instrumentation instrumentation, UniversalFragment screen, AlertDialog previous) {
+        AlertDialog[] result = new AlertDialog[1];
+        await(instrumentation, () -> {
+            if (!(screen.getVisibleDialog() instanceof AlertDialog) || screen.getVisibleDialog() == previous) return false;
+            result[0] = (AlertDialog) screen.getVisibleDialog();
+            return result[0].isShowing() && result[0].getWindow() != null && result[0].getWindow().getDecorView().isLaidOut();
+        }, "The next native dialog must become visible");
+        return result[0];
+    }
+    private static android.widget.EditText findInput(View view) {
+        if (view instanceof android.widget.EditText) return (android.widget.EditText) view;
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                android.widget.EditText found = findInput(group.getChildAt(i));
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+    private static void enterDialog(Instrumentation instrumentation, AlertDialog dialog, String text) {
+        instrumentation.runOnMainSync(() -> {
+            android.widget.EditText input = findInput(dialog.getWindow().getDecorView());
+            assertNotNull("The import dialog must have a real text field", input);
+            input.setText(text);
+        });
+    }
+    private static void tapDialogButton(Instrumentation instrumentation, AlertDialog dialog, int button) {
+        instrumentation.waitForIdleSync();
+        SystemClock.sleep(150);
+        int[] xy = new int[2];
+        await(instrumentation, () -> {
+            View view = dialog.getButton(button);
+            Rect visible = new Rect();
+            if (view == null || !view.getGlobalVisibleRect(visible) || visible.height() < view.getHeight()) return false;
+            view.getLocationOnScreen(xy); xy[0] += view.getWidth() / 2; xy[1] += view.getHeight() / 2;
+            return true;
+        }, "The native dialog action must be reachable");
+        tap(instrumentation, xy[0], xy[1]);
+    }
+    private static void checkImportDialogs(Instrumentation instrumentation, BananaFiltersActivity screen, FilterStore store, String name) throws Exception {
+        tapRow(instrumentation, screen, 1);
+        await(instrumentation, () -> !store.enabled(), "Disable filters before testing import");
+        FilterRules before = store.rules();
+        String json = before.put(new FilterRules.Rule(java.util.UUID.randomUUID().toString(), 0, "extra-fixture", false, true, true)).export();
+        for (boolean apply : new boolean[]{false, true}) {
+            tapRow(instrumentation, screen, 4);
+            AlertDialog input = waitDialog(instrumentation, screen, null);
+            enterDialog(instrumentation, input, json);
+            tapDialogButton(instrumentation, input, DialogInterface.BUTTON_POSITIVE);
+            AlertDialog preview = waitDialog(instrumentation, screen, input);
+            assertSame("Previewing must never mutate existing rules", before, store.rules());
+            assertFalse("Import preview cannot enable filtering", store.enabled());
+            if (!apply) capture(instrumentation, name + "-filter-import-preview");
+            tapDialogButton(instrumentation, preview, apply ? DialogInterface.BUTTON_POSITIVE : DialogInterface.BUTTON_NEGATIVE);
+            await(instrumentation, () -> screen.getVisibleDialog() == null, "The import decision must close its dialog");
+            assertEquals(apply ? 2 : 1, store.rules().rules.size());
+        }
+        assertFalse("Applying a rule list cannot silently enable filtering", store.enabled());
+        tapRow(instrumentation, screen, 5);
+        AlertDialog exported = waitDialog(instrumentation, screen, null);
+        capture(instrumentation, name + "-filter-export");
+        instrumentation.runOnMainSync(() -> assertTrue(exported.getMessageTextView().getText().toString().contains("extra-fixture")));
+        tapDialogButton(instrumentation, exported, DialogInterface.BUTTON_NEGATIVE);
+        await(instrumentation, () -> screen.getVisibleDialog() == null, "Export must close without changing the clipboard or rules");
+        tapRow(instrumentation, screen, 6);
+        AlertDialog source = waitDialog(instrumentation, screen, null);
+        enterDialog(instrumentation, source, "https://evil.invalid/rules.json");
+        tapDialogButton(instrumentation, source, DialogInterface.BUTTON_POSITIVE);
+        AlertDialog rejected = waitDialog(instrumentation, screen, source);
+        instrumentation.runOnMainSync(() -> assertEquals(LocaleController.getString(R.string.BananaFiltersSourceError), rejected.getMessageTextView().getText().toString()));
+        assertEquals("Unsupported sources must not change rules", 2, store.rules().rules.size());
+        capture(instrumentation, name + "-filter-source-error");
+        tapDialogButton(instrumentation, rejected, DialogInterface.BUTTON_POSITIVE);
+        await(instrumentation, () -> screen.getVisibleDialog() == null, "Source errors must remain dismissible");
     }
 
     private static void capture(Instrumentation instrumentation, String name) throws Exception {
