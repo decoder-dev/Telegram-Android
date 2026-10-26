@@ -324,6 +324,325 @@ public final class BananaHooks {
         return BananaConfig.get(account, BananaConfig.Option.HIDE_STICKER_CHECKS);
     }
 
+    public static boolean hideStickerStatus(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_STICKER_STATUS);
+    }
+
+    public static boolean hideStickerReplyColors(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_STICKER_REPLY_COLORS);
+    }
+
+    public static boolean hideStickerReplyEmoji(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_STICKER_REPLY_EMOJI);
+    }
+
+    public static boolean hideStickerReplyBackground(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_STICKER_REPLY_BACKGROUND);
+    }
+
+    public static boolean hidePremiumReplyEmoji(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_PREMIUM_REPLY_EMOJI);
+    }
+
+    public static boolean infiniteRecentStickers(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.INFINITE_RECENT_STICKERS);
+    }
+
+    public static boolean onlyAddedStickers(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.ONLY_ADDED_STICKERS);
+    }
+
+    public static boolean saveStickerToPhotos(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SAVE_STICKER_TO_PHOTOS);
+    }
+
+    public static boolean useRecentEmojiInReactions(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.USE_RECENT_EMOJI_IN_REACTIONS);
+    }
+
+    public static boolean disableColoredReplies(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.DISABLE_COLORED_REPLIES);
+    }
+
+    public static boolean wideChannelPosts(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.WIDE_CHANNEL_POSTS);
+    }
+
+    public static boolean staticRoundVideoZoom(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.STATIC_ROUND_VIDEO_ZOOM);
+    }
+
+    public static boolean roundVideoStartsWithRear(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.ROUND_VIDEO_STARTS_WITH_REAR);
+    }
+
+    public static boolean roundVideoRemembersCamera(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.ROUND_VIDEO_REMEMBERS_CAMERA);
+    }
+
+    public static boolean forceBuiltInMic(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.FORCE_BUILT_IN_MIC);
+    }
+
+    public static boolean downloadTikTok(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.DOWNLOAD_TIK_TOK);
+    }
+
+    public static boolean downloadYouTubeShorts(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.DOWNLOAD_YOU_TUBE_SHORTS);
+    }
+
+    public static boolean signDownloadedMedia(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SIGN_DOWNLOADED_MEDIA);
+    }
+
+    public static boolean showChannelForwardCount(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SHOW_CHANNEL_FORWARD_COUNT);
+    }
+
+    public static boolean hideChannelBottomButton(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_CHANNEL_BOTTOM_BUTTON);
+    }
+
+    public static boolean channelBottomDiscuss(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.CHANNEL_BOTTOM_DISCUSS);
+    }
+
+    public static boolean pollResultsBeforeVoting(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.POLL_RESULTS_BEFORE_VOTING);
+    }
+
+    public static boolean removeLinkPreviews(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.REMOVE_LINK_PREVIEWS);
+    }
+
+    public static boolean fixLinkPreviews(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.FIX_LINK_PREVIEWS);
+    }
+
+    public static boolean quoteRepliesToDeleted(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.QUOTE_REPLIES_TO_DELETED);
+    }
+
+    public static boolean commaAfterMention(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.COMMA_AFTER_MENTION);
+    }
+
+    public static boolean mentionAvatars(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.MENTION_AVATARS);
+    }
+
+    public static boolean avatarLongPressMention(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.AVATAR_LONG_PRESS_MENTION);
+    }
+
+    public static boolean hashtagsPreferCurrentChat(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HASHTAGS_PREFER_CURRENT_CHAT);
+    }
+
+    public static boolean showOriginalForwardDate(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SHOW_ORIGINAL_FORWARD_DATE);
+    }
+
+    public static boolean sendBannedGifsAsVideo(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SEND_BANNED_GIFS_AS_VIDEO);
+    }
+
+    public static boolean hideBotAutomation(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_BOT_AUTOMATION);
+    }
+
+    public static boolean showPinnedWithBot(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SHOW_PINNED_WITH_BOT);
+    }
+
+    public static boolean hideBirthdayNotifications(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_BIRTHDAY_NOTIFICATIONS);
+    }
+
+    public static boolean disableCustomBackgrounds(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.DISABLE_CUSTOM_BACKGROUNDS);
+    }
+
+    public static boolean avatarGlowEnabled(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.AVATAR_GLOW_ENABLED);
+    }
+
+    public static boolean reactionGlowEnabled(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.REACTION_GLOW_ENABLED);
+    }
+
+    /** Suffix after an inserted @mention: ", " when COMMA_AFTER_MENTION is on. */
+    public static String mentionInsertSuffix(int account) {
+        return commaAfterMention(account) ? ", " : " ";
+    }
+
+    /**
+     * Whether webpage previews should be requested for an outgoing text send.
+     * REMOVE_LINK_PREVIEWS forces off; FIX_LINK_PREVIEWS forces on.
+     */
+    public static boolean shouldSearchLinks(int account, boolean searchLinks) {
+        if (removeLinkPreviews(account)) {
+            return false;
+        }
+        if (fixLinkPreviews(account)) {
+            return true;
+        }
+        return searchLinks;
+    }
+
+    /** Cap for recent stickers list; Integer.MAX_VALUE / 2 when unlimited. */
+    public static int recentStickersMaxCount(int account, int serverMax) {
+        if (infiniteRecentStickers(account)) {
+            return Math.max(serverMax, 2000);
+        }
+        return serverMax;
+    }
+
+    private static final String ROUND_VIDEO_FRONT_KEY = "bananaRoundVideoFrontface";
+
+    /** Initial front-facing preference for round-video camera. */
+    public static boolean initialRoundVideoFrontface(int account) {
+        if (roundVideoRemembersCamera(account)) {
+            return MessagesController.getMainSettings(account).getBoolean(ROUND_VIDEO_FRONT_KEY, !roundVideoStartsWithRear(account));
+        }
+        return !roundVideoStartsWithRear(account);
+    }
+
+    public static void rememberRoundVideoFrontface(int account, boolean frontface) {
+        if (!roundVideoRemembersCamera(account)) {
+            return;
+        }
+        MessagesController.getMainSettings(account).edit().putBoolean(ROUND_VIDEO_FRONT_KEY, frontface).apply();
+    }
+
+    /**
+     * Double-tap action: 0 off, 1 react, 2 reply, 3 repeat, 4 translate, 6 edit.
+     * Legacy DOUBLE_TAP_TO_EDIT maps to 6 when the int pref is unset.
+     */
+    public static int doubleTapAction(int account) {
+        return BananaConfig.doubleTapAction(account);
+    }
+
+    /** 0 off, 1 bold, 2 italic, 3 underline, 4 strike, 5 spoiler. */
+    public static int defaultSendFormatting(int account) {
+        return BananaConfig.defaultSendFormatting(account);
+    }
+
+    /** 0 Telegram default, 1 alternative/system. */
+    public static int translationBackend(int account) {
+        return BananaConfig.translationBackend(account);
+    }
+
+    public static boolean preferAlternativeTranslation(int account) {
+        return translationBackend(account) == 1;
+    }
+
+    /** 0 Telegram default, 1 on-device (unlocks local transcription). */
+    public static int transcriptionBackend(int account) {
+        return BananaConfig.transcriptionBackend(account);
+    }
+
+    public static boolean preferOnDeviceTranscription(int account) {
+        return transcriptionBackend(account) == 1;
+    }
+
+    public static int accentColorSaturation(int account) {
+        return BananaConfig.accentColorSaturation(account);
+    }
+
+    /** Scale HSV saturation of an accent color by ACCENT_COLOR_SATURATION (100 = unchanged). */
+    public static int applyAccentSaturation(int account, int color) {
+        int sat = accentColorSaturation(account);
+        if (sat == 100) {
+            return color;
+        }
+        float[] hsv = new float[3];
+        android.graphics.Color.colorToHSV(color, hsv);
+        hsv[1] = Math.max(0f, Math.min(1f, hsv[1] * (sat / 100f)));
+        return (color & 0xFF000000) | (android.graphics.Color.HSVToColor(hsv) & 0x00FFFFFF);
+    }
+
+    public static boolean isAccentColorKey(int key) {
+        return key == org.telegram.ui.ActionBar.Theme.key_chat_messagePanelSend
+                || key == org.telegram.ui.ActionBar.Theme.key_featuredStickers_addButton
+                || key == org.telegram.ui.ActionBar.Theme.key_checkbox
+                || key == org.telegram.ui.ActionBar.Theme.key_switchTrackChecked
+                || key == org.telegram.ui.ActionBar.Theme.key_actionBarDefault
+                || key == org.telegram.ui.ActionBar.Theme.key_chat_outBubble
+                || key == org.telegram.ui.ActionBar.Theme.key_windowBackgroundWhiteBlueHeader;
+    }
+
+    /**
+     * Soft glow paint for avatar / reaction accents when the matching Extra is on.
+     * Returns null when glow is disabled.
+     */
+    public static android.graphics.Paint glowPaint(int account, boolean avatar, int color) {
+        if (avatar ? !avatarGlowEnabled(account) : !reactionGlowEnabled(account)) {
+            return null;
+        }
+        android.graphics.Paint paint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        paint.setStyle(android.graphics.Paint.Style.STROKE);
+        paint.setStrokeWidth(AndroidUtilities.dp(3));
+        int alpha = avatar ? 0x66 : 0x55;
+        paint.setColor((color & 0x00FFFFFF) | (alpha << 24));
+        paint.setShadowLayer(AndroidUtilities.dp(6), 0, 0, (color & 0x00FFFFFF) | 0x88000000);
+        return paint;
+    }
+
+    /**
+     * Ensure default send formatting wraps plain text when no style entities exist.
+     * Mutates and returns the same list (creating one if null).
+     */
+    public static java.util.ArrayList<TLRPC.MessageEntity> applyDefaultSendFormatting(
+            int account, CharSequence text, java.util.ArrayList<TLRPC.MessageEntity> entities) {
+        int format = defaultSendFormatting(account);
+        if (format <= 0 || text == null || text.length() == 0) {
+            return entities;
+        }
+        if (entities != null) {
+            for (int i = 0; i < entities.size(); i++) {
+                TLRPC.MessageEntity e = entities.get(i);
+                if (e instanceof TLRPC.TL_messageEntityBold
+                        || e instanceof TLRPC.TL_messageEntityItalic
+                        || e instanceof TLRPC.TL_messageEntityUnderline
+                        || e instanceof TLRPC.TL_messageEntityStrike
+                        || e instanceof TLRPC.TL_messageEntitySpoiler
+                        || e instanceof TLRPC.TL_messageEntityCode
+                        || e instanceof TLRPC.TL_messageEntityPre) {
+                    return entities;
+                }
+            }
+        }
+        TLRPC.MessageEntity entity;
+        switch (format) {
+            case 1:
+                entity = new TLRPC.TL_messageEntityBold();
+                break;
+            case 2:
+                entity = new TLRPC.TL_messageEntityItalic();
+                break;
+            case 3:
+                entity = new TLRPC.TL_messageEntityUnderline();
+                break;
+            case 4:
+                entity = new TLRPC.TL_messageEntityStrike();
+                break;
+            case 5:
+                entity = new TLRPC.TL_messageEntitySpoiler();
+                break;
+            default:
+                return entities;
+        }
+        entity.offset = 0;
+        entity.length = text.length();
+        if (entities == null) {
+            entities = new java.util.ArrayList<>();
+        }
+        entities.add(0, entity);
+        return entities;
+    }
+
     public static boolean wideTabBar(int account) {
         return BananaConfig.get(account, BananaConfig.Option.WIDE_TAB_BAR);
     }
@@ -393,13 +712,21 @@ public final class BananaHooks {
         return Math.max(1, Math.round(sidePx * fraction));
     }
 
-    /** Soften bubble color when glass bubbles are enabled (tint percent → alpha). */
+    /**
+     * Soften bubble color when glass bubbles are enabled.
+     * Tint lowers fill alpha; rim top/sides/bottom average slightly restores edge opacity.
+     */
     public static int applyGlassBubbleColor(int account, int color) {
         if (!glassBubbles(account)) {
             return color;
         }
         int tint = BananaConfig.glassBubbleTint(account);
-        int alpha = Math.max(40, Math.min(255, Math.round(255 * (100 - tint * 0.55f) / 100f)));
+        int rim = (BananaConfig.glassBubbleRimTop(account)
+                + BananaConfig.glassBubbleRimSides(account)
+                + BananaConfig.glassBubbleRimBottom(account)) / 3;
+        float base = (100 - tint * 0.55f) / 100f;
+        float rimBoost = rim / 100f * 0.18f;
+        int alpha = Math.max(40, Math.min(255, Math.round(255 * Math.min(1f, base + rimBoost))));
         return (color & 0x00FFFFFF) | (alpha << 24);
     }
 

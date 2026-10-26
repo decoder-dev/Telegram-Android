@@ -11894,6 +11894,9 @@
     <string name="BananaOpt_HIDE_RECORDING">Hide Typing Voice</string>
     <string name="BananaOpt_HIDE_UPLOAD">Hide Typing Files</string>
     <string name="BananaOpt_MESSAGE_SHOT">Message Shot</string>
+    <string name="BananaMessageShot">Message Shot</string>
+    <string name="BananaSaveToCloud">Save to Saved Messages</string>
+    <string name="BananaRepeatMessage">Repeat</string>
     <string name="BananaOpt_POWER_SAVING">Power Saving</string>
     <string name="BananaOpt_SHOWS_OFFLINE_DOT">Shows Offline Dot</string>
     <string name="BananaOpt_HIDE_PAID_REACTIONS">Hide Paid Reactions</string>
@@ -11972,11 +11975,6 @@
     <string name="BananaVal_BackendDefault">Telegram default</string>
     <string name="BananaVal_BackendSystem">System</string>
     <string name="BananaVal_BackendOnDevice">On-device</string>
-
-    <string name="BananaMessageShot">Message shot</string>
-    <string name="BananaSaveToCloud">Save to Saved Messages</string>
-    <string name="BananaSavedToCloud">Saved to Saved Messages</string>
-    <string name="BananaRepeatMessage">Repeat</string>
 
     <string name="appearance">Appearance</string>
 </resources>

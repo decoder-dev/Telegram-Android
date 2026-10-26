@@ -4378,6 +4378,7 @@ public class ChatActivity extends BaseFragment implements
         } else {
             actionBar.addView(avatarContainer, 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, !inPreviewMode ? 52 : 0, 0, 52, 0));
             actionBar.createMenu().bringToFront();
+            org.telegram.messenger.banana.BananaIsland.attachToActionBar(actionBar, currentAccount);
         }
         actionBar.setOnActionModeFactorChangeListener(() -> {
             checkUi_avatarContainerVisibility();
@@ -34917,6 +34918,43 @@ public class ChatActivity extends BaseFragment implements
                         }
                     }
                 }, getResourceProvider(), AlertsCreator.SUGGEST_DATE_PICKER_MODE_EDIT).show(), AmountUtils.Amount.of(suggestedPost != null ? suggestedPost.price : null), !ChatObject.canManageMonoForum(currentAccount, getDialogId()));
+                break;
+            }
+            case OPTION_MESSAGE_SHOT: {
+                View shotCell = null;
+                if (chatListView != null && selectedObject != null) {
+                    for (int i = 0; i < chatListView.getChildCount(); i++) {
+                        View child = chatListView.getChildAt(i);
+                        if (child instanceof ChatMessageCell) {
+                            MessageObject mo = ((ChatMessageCell) child).getMessageObject();
+                            if (mo != null && mo.getId() == selectedObject.getId() && mo.getDialogId() == selectedObject.getDialogId()) {
+                                shotCell = child;
+                                break;
+                            }
+                        }
+                    }
+                }
+                org.telegram.messenger.banana.BananaHooks.shareMessageShot(getParentActivity(), shotCell);
+                break;
+            }
+            case OPTION_SAVE_TO_CLOUD: {
+                if (selectedObject != null && selectedObject.getId() > 0) {
+                    ArrayList<MessageObject> toSave = new ArrayList<>();
+                    if (selectedObjectGroup != null && !selectedObjectGroup.messages.isEmpty()) {
+                        toSave.addAll(selectedObjectGroup.messages);
+                    } else {
+                        toSave.add(selectedObject);
+                    }
+                    getSendMessagesHelper().sendMessage(toSave, getUserConfig().getClientUserId(), true, false, true, 0, null, -1, 0);
+                }
+                break;
+            }
+            case OPTION_REPEAT_MESSAGE: {
+                if (selectedObject != null && selectedObject.isOut()) {
+                    ArrayList<MessageObject> toRepeat = new ArrayList<>();
+                    toRepeat.add(selectedObject);
+                    getSendMessagesHelper().sendMessage(toRepeat, getDialogId(), true, false, true, 0, null, -1, 0);
+                }
                 break;
             }
         }
