@@ -27,6 +27,14 @@ AyuGram research and planned adaptations:
   implementation is a behavior reference, not an alternative upstream baseline.
 - [AyuGram documentation](https://github.com/AyuGram/AyuGramDocs) (MIT).
 
-The AyuGram inventory records pending scope. No AyuGram implementation is claimed
-merely because its setting appears in that inventory. Credits for adapted source
-will identify the specific implementation and author.
+Ghost preset, silent-send modes and automatic return offline follow the behavior
+documented by AyuGram (original project by Radolyn). Android implementations here
+are new adaptations to the current Telegram base, not copies of the older fork.
+Live-server acceptance of Ghost behavior is still pending.
+
+[AyuGramX](https://github.com/AyuGram/AyuGramX) at
+`5c81e822463a34ef8939bd99873f60789727a3fc` is also inventoried as a behavior
+reference. Its TDLib architecture is not merged into this MTProto client.
+
+The AyuGram inventory distinguishes implemented controls from pending scope.
+No feature is claimed merely because its setting appears in the inventory.

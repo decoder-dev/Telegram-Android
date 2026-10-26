@@ -4,6 +4,14 @@ package org.telegram.messenger.banana;
 public final class GhostPolicy {
     private GhostPolicy() {}
 
+    public static boolean sendSilently(int mode, boolean ghostActive) {
+        return mode == 2 || mode == 1 && ghostActive;
+    }
+
+    public static boolean shouldReturnOffline(boolean hideOnline, boolean autoOffline, boolean onlineStatus) {
+        return hideOnline && autoOffline && onlineStatus;
+    }
+
     public static boolean suppressActivity(int action, boolean typing, boolean recording, boolean upload, boolean reads) {
         switch (action) {
             case 0: // Typing.

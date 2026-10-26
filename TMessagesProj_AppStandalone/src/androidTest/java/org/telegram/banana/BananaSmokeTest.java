@@ -22,6 +22,7 @@ import org.telegram.ui.BananaSettingsActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Components.VideoPlayer;
 import org.telegram.ui.Cells.BananaSwitchCell;
+import org.telegram.ui.Cells.BananaValueCell;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -36,6 +37,40 @@ import static org.junit.Assert.*;
 
 /** Runs without a signed-in user; never sends messages or changes a real account. */
 public class BananaSmokeTest {
+    @Test
+    public void ghostPresetAndSilentSendingStayInsideTheirAccount() {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> org.telegram.messenger.ApplicationLoader.postInitApplication());
+        for (int account : new int[]{0, 1}) {
+            assertFalse("Only use unregistered emulator accounts", org.telegram.messenger.UserConfig.getInstance(account).isClientActivated());
+            BananaConfig.setGhostMode(account, false);
+            BananaConfig.setSilentSending(account, BananaConfig.SilentSending.NORMAL);
+        }
+        try {
+            BananaConfig.setSilentSending(0, BananaConfig.SilentSending.IN_GHOST_MODE);
+            assertFalse(BananaConfig.shouldSendSilently(0));
+            BananaConfig.setGhostMode(0, true);
+            assertTrue(BananaConfig.isGhostModeActive(0));
+            assertTrue(BananaConfig.shouldSendSilently(0));
+            assertFalse(BananaConfig.isGhostModeActive(1));
+            assertFalse(BananaConfig.shouldSendSilently(1));
+            BananaConfig.set(0, Option.HIDE_TYPING, false);
+            assertFalse("A custom partial preset is not full Ghost Mode", BananaConfig.isGhostModeActive(0));
+            assertFalse(BananaConfig.shouldSendSilently(0));
+            BananaConfig.setSilentSending(0, BananaConfig.SilentSending.ALWAYS);
+            assertTrue(BananaConfig.shouldSendSilently(0));
+            BananaConfig.setGhostMode(0, false);
+            for (Option option : new Option[]{Option.HIDE_ONLINE, Option.HIDE_TYPING, Option.HIDE_RECORDING,
+                    Option.HIDE_UPLOAD, Option.DONT_READ_MESSAGES, Option.DONT_READ_STORIES}) {
+                assertFalse(BananaConfig.get(0, option));
+            }
+        } finally {
+            for (int account : new int[]{0, 1}) {
+                BananaConfig.setGhostMode(account, false);
+                BananaConfig.setSilentSending(account, BananaConfig.SilentSending.NORMAL);
+            }
+        }
+    }
     @Test
     public void fourTimesSpeedReachesTheActualPlaybackBackend() throws Exception {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
@@ -180,6 +215,8 @@ public class BananaSmokeTest {
                     BananaConfig.set(0, option, false);
                     BananaConfig.set(1, option, false);
                 }
+                BananaConfig.setSilentSending(0, BananaConfig.SilentSending.NORMAL);
+                BananaConfig.setSilentSending(1, BananaConfig.SilentSending.NORMAL);
                 activity.finish();
             });
         }
@@ -187,6 +224,17 @@ public class BananaSmokeTest {
     private static void assertVisibleLabelsFit(BananaSettingsActivity screen) {
         for (int i = 0; i < screen.listView.getChildCount(); i++) {
             View child = screen.listView.getChildAt(i);
+            if (child instanceof BananaValueCell) {
+                BananaValueCell cell = (BananaValueCell) child;
+                for (android.widget.TextView text : new android.widget.TextView[]{cell.getTextView(), cell.getValueTextView()}) {
+                    assertNotNull(text.getLayout());
+                    for (int line = 0; line < text.getLayout().getLineCount(); line++) {
+                        assertEquals("A setting and its value must be fully readable", 0, text.getLayout().getEllipsisCount(line));
+                    }
+                }
+                assertTrue("The setting title and value must not overlap", cell.getValueTextView().getTop() >= cell.getTextView().getBottom());
+                assertTrue("The value must fit in its row", cell.getValueTextView().getBottom() <= child.getHeight());
+            }
             if (!(child instanceof BananaSwitchCell)) continue;
             android.widget.TextView text = ((BananaSwitchCell) child).getTextView();
             assertNotNull(text.getLayout());

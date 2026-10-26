@@ -5,7 +5,9 @@ The port scope also includes [AyuGram](https://github.com/AyuGram) features.
 Full feature parity is still in progress; there is no BananaGram Android release yet.
 
 The first implementation block adds account-specific Extras, opt-in tracking-link
-cleanup, basic Ghost Mode controls and playback speeds up to 4×. See the
+cleanup, Ghost Mode controls and playback speeds up to 4×. The next block adds
+a Ghost preset, silent sending and an optional return offline after activity.
+Server-side Ghost acceptance is still pending. See the
 [complete iOS feature reference](docs/phone-features-source.md),
 [iOS port inventory](docs/phone-port-inventory.json),
 [AyuGram inventory](docs/ayugram-port-inventory.json), [source credits](docs/port-sources.md)

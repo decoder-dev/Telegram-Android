@@ -14,6 +14,12 @@
     {
       "repo": "AyuGram/AyuGramDocs",
       "commit": "42f5f32c6b05aab4a69a5f8d0bf7652e1cb11a9b"
+    },
+    {
+      "repo": "AyuGram/AyuGramX",
+      "commit": "5c81e822463a34ef8939bd99873f60789727a3fc",
+      "file": "README.md",
+      "meaning": "Telegram-X/TDLib fork: use native equivalents on the official Android base"
     }
   ],
   "desktop_settings": [
@@ -21,31 +27,36 @@
       "group": "ghost",
       "setting": "sendReadMessages",
       "source_default": "true",
-      "status": "pending"
+      "status": "implemented_pending_live_server_acceptance",
+      "android": "BananaConfig.DONT_READ_MESSAGES"
     },
     {
       "group": "ghost",
       "setting": "sendReadStories",
       "source_default": "true",
-      "status": "pending"
+      "status": "implemented_pending_live_server_acceptance",
+      "android": "BananaConfig.DONT_READ_STORIES"
     },
     {
       "group": "ghost",
       "setting": "sendOnlinePackets",
       "source_default": "true",
-      "status": "pending"
+      "status": "implemented_pending_live_server_acceptance",
+      "android": "BananaConfig.HIDE_ONLINE"
     },
     {
       "group": "ghost",
       "setting": "sendUploadProgress",
       "source_default": "true",
-      "status": "pending"
+      "status": "implemented_pending_live_server_acceptance",
+      "android": "BananaConfig.HIDE_UPLOAD"
     },
     {
       "group": "ghost",
       "setting": "sendOfflinePacketAfterOnline",
       "source_default": "false",
-      "status": "pending"
+      "status": "implemented_pending_live_server_acceptance",
+      "android": "BananaConfig.OFFLINE_AFTER_ACTIVITY and coalesced own-online status handling"
     },
     {
       "group": "ghost",
@@ -63,7 +74,8 @@
       "group": "ghost",
       "setting": "sendWithoutSound",
       "source_default": "SendWithoutSoundOption::Never",
-      "status": "pending"
+      "status": "implemented_pending_live_server_acceptance",
+      "android": "BananaConfig.SilentSending; new messages, media, forwards and games"
     },
     {
       "group": "ghost",
@@ -75,7 +87,8 @@
       "group": "ghost",
       "setting": "ghostModeActive",
       "source_default": "false",
-      "status": "pending"
+      "status": "implemented_pending_live_server_acceptance",
+      "android": "BananaConfig.setGhostMode (six account-scoped controls)"
     },
     {
       "group": "ghost",
@@ -864,5 +877,51 @@
       "status": "pending"
     }
   ],
-  "existing_overlap": "Basic per-account read/story/online/activity suppression exists; advanced behavior and live-server acceptance remain pending."
+  "existing_overlap": "Basic per-account read/story/online/activity suppression exists; advanced behavior and live-server acceptance remain pending.",
+  "ayu_gram_x_features": [
+    {
+      "feature": "Message details",
+      "status": "pending"
+    },
+    {
+      "feature": "Replace displayed phone number with username, ID or hidden label",
+      "status": "pending"
+    },
+    {
+      "feature": "Hide reactions",
+      "status": "pending"
+    },
+    {
+      "feature": "Hide drawer unread counter",
+      "status": "pending"
+    },
+    {
+      "feature": "Photo send resolution presets",
+      "status": "pending"
+    },
+    {
+      "feature": "Blur drawer background",
+      "status": "pending"
+    },
+    {
+      "feature": "Avatar corner customization",
+      "status": "pending"
+    },
+    {
+      "feature": "Composer button visibility",
+      "status": "pending"
+    },
+    {
+      "feature": "Remember copy/silent/sound message options",
+      "status": "pending"
+    },
+    {
+      "feature": "Replace choosing-sticker status with typing",
+      "status": "pending"
+    },
+    {
+      "feature": "Copy photos and documents",
+      "status": "pending"
+    }
+  ]
 }
