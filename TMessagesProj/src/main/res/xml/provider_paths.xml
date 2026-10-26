@@ -3,5 +3,7 @@
     <external-path name="media" path="."/>
     <files-path name="logs" path="/logs/"/>
     <files-path name="cache" path="/cache/"/>
+    <!-- Only explicitly shared archive media; the sibling history databases stay private. -->
+    <files-path name="banana_history_media" path="../no_backup/banana-history/attachments/"/>
     <root-path name="external_files" path="/storage/" />
 </paths>

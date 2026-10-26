@@ -77,9 +77,10 @@ public final class BananaHistoryActivity extends UniversalFragment {
             HistoryDatabase.Record record = records.get(i);
             String title = LocaleController.getString(record.deleted ? R.string.BananaHistoryDeleted : R.string.BananaHistoryEdited)
                     + " · " + LocaleController.formatDateAudio(record.savedAt / 1000, true);
-            int end = Math.min(500, record.text.length());
-            if (end < record.text.length() && Character.isHighSurrogate(record.text.charAt(end - 1))) end--;
-            String text = end < record.text.length() ? record.text.substring(0, end) + "…" : record.text;
+            String display = display(record);
+            int end = Math.min(500, display.length());
+            if (end < display.length() && Character.isHighSurrogate(display.charAt(end - 1))) end--;
+            String text = end < display.length() ? display.substring(0, end) + "…" : display;
             items.add(BananaValueCell.Factory.of(100 + i, title, text));
         }
         items.add(UItem.asButton(2, LocaleController.getString(R.string.BananaHistoryClear)).red());
@@ -101,13 +102,35 @@ public final class BananaHistoryActivity extends UniversalFragment {
                     }).create());
         } else if (item.id >= 100 && item.id - 100 < records.size()) {
             HistoryDatabase.Record record = records.get(item.id - 100);
-            showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider())
                     .setTitle(LocaleController.formatString(R.string.BananaHistoryPeer, record.dialogId, record.messageId))
-                    .setMessage(record.text)
+                    .setMessage(display(record))
                     .setNegativeButton(LocaleController.getString(R.string.Close), null)
-                    .setPositiveButton(LocaleController.getString(R.string.Copy), (dialog, which) -> AndroidUtilities.addToClipboard(record.text))
-                    .create());
+                    .setPositiveButton(LocaleController.getString(R.string.Copy), (dialog, which) -> AndroidUtilities.addToClipboard(record.text));
+            if (record.attachment != null) builder.setNeutralButton(LocaleController.getString(R.string.BananaHistoryOpenAttachment),
+                    (dialog, which) -> MessageHistory.attachment(currentAccount, record, file -> {
+                        if (destroyed || getParentActivity() == null) return;
+                        try {
+                            if (file != null && AndroidUtilities.openForView(file, record.attachment.displayName,
+                                    record.attachment.mimeType, getParentActivity(), getResourceProvider(), false)) return;
+                        } catch (Exception error) { org.telegram.messenger.FileLog.e(error); }
+                        showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                                .setMessage(LocaleController.getString(R.string.BananaHistoryAttachmentUnavailable))
+                                .setPositiveButton(LocaleController.getString(R.string.OK), null).create());
+                    }));
+            showDialog(builder.create());
         }
+    }
+
+    private String display(HistoryDatabase.Record record) {
+        if (record.attachment == null) return record.text;
+        int[] labels = {R.string.BananaHistoryPhoto, R.string.BananaHistoryVideo, R.string.BananaHistoryAudio, R.string.BananaHistoryFile};
+        int kind = record.attachment.kind;
+        String label = LocaleController.getString(labels[Math.max(0, Math.min(3, kind - 1))]);
+        String name = record.attachment.displayName;
+        return label + (name.isEmpty() ? "" : " · " + name) +
+                (record.attachment.storedName == null ? " · " + LocaleController.getString(R.string.BananaHistoryMediaNotSaved) : "") +
+                (record.text.isEmpty() ? "" : "\n" + record.text);
     }
 
     @Override

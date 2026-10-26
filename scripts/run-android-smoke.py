@@ -31,7 +31,7 @@ apks = root / 'TMessagesProj_AppStandalone/build/intermediates/apk'
 run('install', '-t', '-r', str(apks / 'afat/debug/app.apk'))
 run('install', '-t', '-r', str(apks / 'androidTest/afat/debug/TMessagesProj_AppStandalone-afat-debug-androidTest.apk'))
 output = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class',
-             'org.telegram.banana.BananaSmokeTest,org.telegram.banana.HistoryDatabaseTest',
+             'org.telegram.banana.BananaSmokeTest,org.telegram.banana.HistoryDatabaseTest,org.telegram.banana.HistoryCaptureTest',
              'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner')
 (args.output_dir / 'instrumentation.log').write_text(output)
 # Preserve visual diagnostics even when another test in the same run fails.
@@ -41,7 +41,7 @@ pull = subprocess.run([adb, '-s', args.serial, 'pull',
                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=60)
 (args.output_dir / 'screenshots.log').write_text(pull.stdout)
 passed = re.search(r'OK \((\d+) tests?\)', output)
-if not passed or int(passed.group(1)) < 8 or 'FAILURES!!!' in output:
+if not passed or int(passed.group(1)) < 11 or 'FAILURES!!!' in output:
     print(output)
     raise SystemExit('Android smoke checks failed')
 if pull.returncode:

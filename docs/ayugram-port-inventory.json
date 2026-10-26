@@ -202,22 +202,22 @@
       "group": "general",
       "setting": "saveDeletedMessages",
       "source_default": "true",
-      "status": "implemented_text_archive_pending_live_capture_acceptance",
-      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
+      "status": "implemented_local_capture_verified_pending_live_server_acceptance",
+      "android": "Opt-in previous/deleted text and downloaded photo/document snapshots. Native cache replacement, unlink, shared-file reuse, media-only rows and pending-clear verified. No live server acceptance yet; inline anti-recall and import/export pending."
     },
     {
       "group": "general",
       "setting": "saveMessagesHistory",
       "source_default": "true",
-      "status": "implemented_text_archive_pending_live_capture_acceptance",
-      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
+      "status": "implemented_local_capture_verified_pending_live_server_acceptance",
+      "android": "Opt-in previous/deleted text and downloaded photo/document snapshots. Native cache replacement, unlink, shared-file reuse, media-only rows and pending-clear verified. No live server acceptance yet; inline anti-recall and import/export pending."
     },
     {
       "group": "general",
       "setting": "saveForBots",
       "source_default": "false",
-      "status": "implemented_text_archive_pending_live_capture_acceptance",
-      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
+      "status": "implemented_local_capture_verified_pending_live_server_acceptance",
+      "android": "Opt-in previous/deleted text and downloaded photo/document snapshots. Native cache replacement, unlink, shared-file reuse, media-only rows and pending-clear verified. No live server acceptance yet; inline anti-recall and import/export pending."
     },
     {
       "group": "general",
@@ -747,17 +747,18 @@
     },
     {
       "setting": "saveDeletedMessages",
-      "status": "implemented_text_archive_pending_live_capture_acceptance",
-      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
+      "status": "implemented_local_capture_verified_pending_live_server_acceptance",
+      "android": "Opt-in previous/deleted text and downloaded photo/document snapshots. Native cache replacement, unlink, shared-file reuse, media-only rows and pending-clear verified. No live server acceptance yet; inline anti-recall and import/export pending."
     },
     {
       "setting": "saveMessagesHistory",
-      "status": "implemented_text_archive_pending_live_capture_acceptance",
-      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
+      "status": "implemented_local_capture_verified_pending_live_server_acceptance",
+      "android": "Opt-in previous/deleted text and downloaded photo/document snapshots. Native cache replacement, unlink, shared-file reuse, media-only rows and pending-clear verified. No live server acceptance yet; inline anti-recall and import/export pending."
     },
     {
       "setting": "saveMedia",
-      "status": "pending"
+      "status": "implemented_cached_attachments_only",
+      "android": "Option.SAVE_MEDIA_HISTORY: copy already available media on edit/delete;64MiB/file,512MiB/account. No proactive download or TTL/secret retention yet."
     },
     {
       "setting": "saveMediaInPrivateChats",
@@ -789,8 +790,8 @@
     },
     {
       "setting": "saveForBots",
-      "status": "implemented_text_archive_pending_live_capture_acceptance",
-      "android": "MessageHistory + HistoryDatabase + BananaHistoryActivity; opt-in text only, bounded private archive and search. Attachments, inline anti-recall and import/export remain pending."
+      "status": "implemented_local_capture_verified_pending_live_server_acceptance",
+      "android": "Opt-in previous/deleted text and downloaded photo/document snapshots. Native cache replacement, unlink, shared-file reuse, media-only rows and pending-clear verified. No live server acceptance yet; inline anti-recall and import/export pending."
     },
     {
       "setting": "markReadAfterSend",
