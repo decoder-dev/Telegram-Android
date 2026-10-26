@@ -96,6 +96,8 @@ import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.AyuCustomHandlers;
 import com.radolyn.ayugram.AyuUtils;
 
+import org.telegram.messenger.banana.BananaConfig;
+
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
@@ -713,19 +715,21 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     drawerLayoutContainer.closeDrawer(false);
                 }
 
-                // --- AyuGram hook
+                // --- AyuGram / BananaGram ghost toggle (BananaConfig is source of truth)
                 if (id == AyuConstants.DRAWER_TOGGLE_GHOST && AyuConfig.showGhostToggleInDrawer) {
-                    var msg = AyuConfig.isGhostModeActive()
-                            ? LocaleController.getString("GhostModeDisabled", R.string.GhostModeDisabled)
-                            : LocaleController.getString("GhostModeEnabled", R.string.GhostModeEnabled);
+                    int account = UserConfig.selectedAccount;
+                    boolean enable = !BananaConfig.isGhostModeActive(account);
+                    var msg = enable
+                            ? LocaleController.getString("GhostModeEnabled", R.string.GhostModeEnabled)
+                            : LocaleController.getString("GhostModeDisabled", R.string.GhostModeDisabled);
 
-                    AyuConfig.toggleGhostMode();
+                    BananaConfig.setGhostMode(account, enable);
 
                     BulletinFactory.of(getLastFragment()).createSuccessBulletin(msg).show();
                     drawerLayoutContainer.closeDrawer(false);
 
                     // update button text
-                    NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+                    NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.mainUserInfoChanged);
                 } else if (id == AyuConstants.DRAWER_KILL_APP) {
                     AyuUtils.killApplication(this);
                 }
@@ -3147,7 +3151,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 } else if (intent.getAction().equals("new_dialog")) {
                     open_new_dialog = 1;
                 } else if (intent.getAction().equals("ghost_mode")) {
-                    AyuConfig.setGhostMode(true);
+                    BananaConfig.setGhostMode(UserConfig.selectedAccount, true);
 
                     // update button text
                     NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);

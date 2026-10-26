@@ -69,10 +69,15 @@ public final class BananaExtrasSectionActivity extends UniversalFragment {
             Option option = Option.values()[item.id - 1];
             boolean next = !BananaConfig.get(currentAccount, option);
             BananaConfig.set(currentAccount, option, next);
-            if (option == Option.GHOST_DONT_SEND_TYPING && next) {
-                BananaConfig.set(currentAccount, Option.HIDE_TYPING, true);
-                BananaConfig.set(currentAccount, Option.HIDE_RECORDING, true);
-                BananaConfig.set(currentAccount, Option.HIDE_UPLOAD, true);
+            if (option == Option.GHOST_DONT_SEND_TYPING) {
+                if (next) {
+                    BananaConfig.set(currentAccount, Option.HIDE_TYPING, true);
+                    BananaConfig.set(currentAccount, Option.HIDE_RECORDING, true);
+                    BananaConfig.set(currentAccount, Option.HIDE_UPLOAD, true);
+                }
+                // Keep Ayu sendUploadProgress / typing suppression in sync
+                com.radolyn.ayugram.AyuConfig.sendUploadProgress = !next;
+                com.radolyn.ayugram.AyuConfig.editor.putBoolean("sendUploadProgress", !next).apply();
             }
             if (option == Option.HIDE_ADS) {
                 com.radolyn.ayugram.AyuConfig.disableAds = next;
