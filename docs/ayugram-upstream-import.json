@@ -1,0 +1,857 @@
+{
+  "upstream": "https://github.com/AyuGram/AyuGram4A",
+  "upstream_tip": "7013145676d36d82ee13c02a89f72097b7490dcd",
+  "target_base_before_series": "3e06133",
+  "mainline_commits": 169,
+  "transfer": "First 28 commits adapted to the modern base; remaining commits directly replayed with incoming conflict preference at the owner request. Merge commits use their first-parent delta. Original authors and Upstream-Commit trailers are preserved.",
+  "validation": "No tests or application build after the bulk replay, at the owner request. Compatibility and feature integration remain manual work; this is not a verified release.",
+  "credentials": "Foreign API_KEYS and private signing files were excluded; registered application credentials remain outside source.",
+  "automation": "CI skipped for this import push. The inherited self-hosted release workflow requires manual environment review before enablement.",
+  "commits": [
+    {
+      "upstream": "0cf55c3673a0ec6739f031778c9d8269976f28b7",
+      "target": "698eb7faaa6e953f28e9370c62b5b626f13aa6a4",
+      "subject": "fix: make it compile"
+    },
+    {
+      "upstream": "5228e050c63e71db9f8e2b633712498e6756b855",
+      "target": "af1a4e46f75bb9d46322d1713aa06a6350bd3c9e",
+      "subject": "feat: use AyuGram brand"
+    },
+    {
+      "upstream": "fa5b0f67fa24704c572ba3531d9e246d751f796e",
+      "target": "3cc087cc220b8499e4e0ec1f91f3ae6948db0a37",
+      "subject": "feat: pretend to be official Telegram"
+    },
+    {
+      "upstream": "02880b3be0ad05e762202d82975f20238decc329",
+      "target": "b944cfedbcdd1b24bd783522f9b576441affe9d9",
+      "subject": "feat: patch TLRPC"
+    },
+    {
+      "upstream": "11d3c4c0831baba74cde53ee030f41ef6444040f",
+      "target": "a1ed4bf305bcf2eb4c8d885978435d6a4298e360",
+      "subject": "feat: don't set privacy flags"
+    },
+    {
+      "upstream": "96de33bd9aaca0422be6b00585198403070e0d6b",
+      "target": "2286dc76a45f0f099f62fb075c858f20e7309d46",
+      "subject": "feat: remove ads"
+    },
+    {
+      "upstream": "0ace702733cfe1a4a0a9c374765af684ced066e2",
+      "target": "0f38fd2b151d392a6bf828a5bd5cdcba958074e1",
+      "subject": "feat: kang Extera's config"
+    },
+    {
+      "upstream": "36e43bb56d9e32e06d7af5eef0edde7f7b3aea3e",
+      "target": "6bc1b904846bdb7a471209b09bd14c57cf79ca8b",
+      "subject": "feat: import AyuGram changes"
+    },
+    {
+      "upstream": "57a8a0c2ad1241f8f5009d070a686400619f17f7",
+      "target": "e2f49b94a4c16ebc10e17e88f0a7b8f13496954d",
+      "subject": "feat: save deleted messages"
+    },
+    {
+      "upstream": "9ac3ab6fe9145709b5a308e2530308084a19c454",
+      "target": "08c1b1d9b560fd613e03faca44eb17b414d37349",
+      "subject": "feat: save kicked out chats"
+    },
+    {
+      "upstream": "855d7f39923667e8e8fa9b5a21477bbf97b79fec",
+      "target": "a05f60f9aeb149f55311204eaa90ae15ac399cdf",
+      "subject": "feat: save media in secret chats"
+    },
+    {
+      "upstream": "fa412fd0e0548fc97533beb93c17e56c13c83661",
+      "target": "8b32c709c48102fc3742fb2500a06d6f23c82105",
+      "subject": "fix: nuke useless"
+    },
+    {
+      "upstream": "8ce5cb26584487a2c1a8b6b78cbbb38f9e707e35",
+      "target": "c8d13c1f214859037cc2f57291bb2bda3dde8cd3",
+      "subject": "feat: show if the message from channel (Nagram)"
+    },
+    {
+      "upstream": "6d240e80b60b1a62b734c4726f408fea19cb2280",
+      "target": "f71d7719026aa6ae7a3023127704e5c58d8c9339",
+      "subject": "feat: import notifications"
+    },
+    {
+      "upstream": "0300420c37775929b7ed1d3c50ac826f97b20020",
+      "target": "dac40ce7df4c4dd9a70d71821f37f2b50b5d6a85",
+      "subject": "feat: add database cleanup"
+    },
+    {
+      "upstream": "5e9e218e04440ec3a0812c24f3d74df4349969b1",
+      "target": "8ea371c5246fef9635b1ba613b422c89313f4d40",
+      "subject": "feat: use strings feat: add `enableAds`"
+    },
+    {
+      "upstream": "6062532beb44981baf598e9dad29e6f75c9a5690",
+      "target": "46f42a1a94ad047660526cf738c49e1c4202a210",
+      "subject": "feat: use new app icons fix: separate debug"
+    },
+    {
+      "upstream": "571a8df7729f8bbf507a8ca3f55f9f02c32830af",
+      "target": "f2d15028515f91bd7fee7f0251513b5850d1f91b",
+      "subject": "feat: somehow improve history"
+    },
+    {
+      "upstream": "129fb9c401b8c6588fc74d469044be2b45f85f47",
+      "target": "4c5104613788c32a2a3f6298ee898444d213275c",
+      "subject": "feat: tweak defaults"
+    },
+    {
+      "upstream": "2d24b43103b2aa9b3072d890fcdaf42ee225cf30",
+      "target": "85cf02719003b6fd3fb4076725566fb482da1b0f",
+      "subject": "fix: add Crowdin file"
+    },
+    {
+      "upstream": "455899ae553a397e81b38fe8e8dc178240e6d2ab",
+      "target": "43b8c18cdec300fb043bb4a04b865f8f961abf53",
+      "subject": "feat: apply Crowdin updates"
+    },
+    {
+      "upstream": "e2854d224d906456c44805b43d826a3e003c7449",
+      "target": "f64afec578e09aec88e485b36146198fce187f7f",
+      "subject": "fix: a lot of crashes"
+    },
+    {
+      "upstream": "bbb645388fca2aeb49da19f2c2db0055df17104f",
+      "target": "f2f109e945fd81820bae1f2227ec60a6567a9700",
+      "subject": "feat: implement `useScheduledMessages`"
+    },
+    {
+      "upstream": "2c446735fe60c08962cedf0465bfad5d771eafa5",
+      "target": "af3c3e9bf2e5b321edb4f50b16b2511efcc97b76",
+      "subject": "fix: use our color"
+    },
+    {
+      "upstream": "db59b23a7fbb4cb41f5728dc1e04fd328c8d93f4",
+      "target": "fcbb4249b50b7b9c520435cc5955072b8f3844b1",
+      "subject": "fix: disable test backend"
+    },
+    {
+      "upstream": "5b22e602c77527296ae23f174b5d21a1d751eb22",
+      "target": "89b3c09ff96d939e90098b1db5f83dd310d675fd",
+      "subject": "fix: handle more requests fix: reset state on checkbox toggle fix: allow burn TTL messages"
+    },
+    {
+      "upstream": "0af0e20f4d5904e393aceb4fe36fc16909e2656a",
+      "target": "00f611cd8e2986ffd35ef1a9dbe255b921dabd20",
+      "subject": "feat: add `Read until` button"
+    },
+    {
+      "upstream": "82747115f2edbb8228d991ab534c2f69a9eb47f0",
+      "target": "5318e8942eaad8fe055a99556f6167908e25ca73",
+      "subject": "fix: don't try to save webpage preview"
+    },
+    {
+      "upstream": "25ceb8a02d862d80180fb3bba2da81a1d11414c4",
+      "target": "92af4cde16f5d636a3bdc66ea5d54eac619112be",
+      "subject": "fix: schedule stickers & photos"
+    },
+    {
+      "upstream": "db6280118cf2a44a1f3cc8afbaf2704ea66c694f",
+      "target": "d1586180aca379d92d2947d0b6b427589328b8a2",
+      "subject": "fix: really disable test backend"
+    },
+    {
+      "upstream": "cfddf1a2a5db3a85cd85e05896d2cbb769a696e4",
+      "target": "d10bda2b71895e7f19f06d6df6319730fe1a67fe",
+      "subject": "feat: apply Crowdin updates"
+    },
+    {
+      "upstream": "a284d21fc286ed5a2717f1d622bfb9fd587961c7",
+      "target": "68c36cd7df9c9ac6d31adf0c8186f9c9ec692836",
+      "subject": "fix: double check"
+    },
+    {
+      "upstream": "07ab09588f0b657d53f729b3f1afd99b40853945",
+      "target": "e9d51df330e7df70016434af7f21e8d6783f9a4c",
+      "subject": "upload: README"
+    },
+    {
+      "upstream": "31c3496eff6ad8fdedaf1d56b6e0bd329f6ec982",
+      "target": "d3c80568cfac2e349ccbe423306becc197a57896",
+      "subject": "feat: add ghost mode button fix: ignore `markReadAfterSend` if `sendReadPackets` fix: move AyuGram Preferences & change icon"
+    },
+    {
+      "upstream": "8051e6d2396ef30d66d4e082c671b7bbb6d54f86",
+      "target": "4933a44f8fa383a5ae4bdbb8c06dd0c1fbce5717",
+      "subject": "fix: minor ui improvements"
+    },
+    {
+      "upstream": "a065a505295c65ae34f2327acc8907c76c449ad9",
+      "target": "d9cf4d520e6b70fe4917fc1157244ca1f7e8f9d5",
+      "subject": "Merge branch 'exteraSquad-main2' into rewrite"
+    },
+    {
+      "upstream": "981e46bf6599b1e65b8b8455b7b8ba0027d888f8",
+      "target": "d5bec1a7c61832a426a35917a75a24e579e762b7",
+      "subject": "feat: apply Crowdin updates"
+    },
+    {
+      "upstream": "1578a229489f92b5a447c4039dd5fa5e799dc919",
+      "target": "178095e9fdd38062932de001588f94b4be89fa3f",
+      "subject": "feat: add `Enter with Ghost` option fix: Ghost settings are not being saved"
+    },
+    {
+      "upstream": "ae795d99b0d41954d63a9720a10d6613e68ec30a",
+      "target": "4212f2d8e432510e01781bd1fbf7109f55863eaa",
+      "subject": "fix: cache dao instances fix: run some operations in the background fix: close database after some time to cleanup memory"
+    },
+    {
+      "upstream": "70d32e38840e12668a15e0c7d45308bf8e299990",
+      "target": "2e56ab23fe3b9fe8134c3e5eeb18e12c7d6ea61b",
+      "subject": "fix: bring `noforwards` back fix: restrict any actions with deleted messages"
+    },
+    {
+      "upstream": "914c65c18b58e54fabee9097c92ad87daef5b963",
+      "target": "c017aa0740e2157254032598629a6c4628edf90a",
+      "subject": "fix: message is not edited on reaction fix: disable more options if message is deleted"
+    },
+    {
+      "upstream": "9759be83e3c40ff4ec1982bacadb12686c7a272e",
+      "target": "1091eefb3042492bea42959abbc74e15ad7fb999",
+      "subject": "fix: less SQL queries for albums"
+    },
+    {
+      "upstream": "c623097282c075c6b9af3ff7dc3c0288b6d3aaf3",
+      "target": "3bd3930db3cd361cb327dc589da43c018ebb6124",
+      "subject": "feat: show Ayu's notice"
+    },
+    {
+      "upstream": "3b4fcac1c0c102e0c366e25e82bade7a7e9d5b4a",
+      "target": "4b7035d2f115d75584817d44dc8288cf212a1f2a",
+      "subject": "feat: new `noforwards` patch"
+    },
+    {
+      "upstream": "232b1d8bf2d3d224b91868fb6b1d5be65434c9ed",
+      "target": "2d65ed03936a6643f149601babde70494fd094e7",
+      "subject": "feat: tweak defaults"
+    },
+    {
+      "upstream": "392f9c20d7ce93d11ec354aa1edf92984e150585",
+      "target": "6c4ef12de8ede7bf621c4b2cf62705bc41407a74",
+      "subject": "fix: mark mentions & reactions as read"
+    },
+    {
+      "upstream": "c03470414e14e0d96ae234d6768e36e6f8b99abd",
+      "target": "de44efa64d5b869c65554a5e96a045c45e28287d",
+      "subject": "feat: implement edited mark text change feat: add reset button for deleted mark"
+    },
+    {
+      "upstream": "603470dda4c8329d2119e4c375fca7fe76374478",
+      "target": "fcd827a35348b37bd780532567374fd74d5aad72",
+      "subject": "fix: some optimizations"
+    },
+    {
+      "upstream": "10f320cb7f4d39dd04264bb294abbc6d0d0c2e47",
+      "target": "be7140e104a3e1af33e65412dae8225bf20a9f0c",
+      "subject": "feat: show ayu's database size"
+    },
+    {
+      "upstream": "e8bc3e699ffb770e021daa7d80cd3821540d20d7",
+      "target": "a314457f554a1ae9ed2a5639a0c82642e72674a3",
+      "subject": "feat: bring WAL mode back"
+    },
+    {
+      "upstream": "8862dab4b5452221a16c490efd0211b37ebec580",
+      "target": "0249cbb710261a2a78c7c7b5ef87f243f8335875",
+      "subject": "fix: update database size on delete"
+    },
+    {
+      "upstream": "fea85f7a7392aeb49a377f73d93e22f067ebc590",
+      "target": "f0f4e7e73d206d4bd825e2e71fcef4b626ca061b",
+      "subject": "feat: apply Crowdin updates"
+    },
+    {
+      "upstream": "db1687a06e86325b06370a3b76c2125aa8f362dd",
+      "target": "dc75cec556c51877cc426e3245fe06d66d29b300",
+      "subject": "fix: don't show toggle if disabled"
+    },
+    {
+      "upstream": "6c4ad114fe97c877804e0db5d024fa00494564bb",
+      "target": "efdd495428e0e9e49f4e74c78bfcea708ebceae8",
+      "subject": "fix: regenerate icon with pure white"
+    },
+    {
+      "upstream": "275095805f0a4563c9b473590694254bdf46e2b8",
+      "target": "267714f4ae0d21b7aab1458d7b92d31e11287eae",
+      "subject": "feat: new saving system"
+    },
+    {
+      "upstream": "8dd434430a3c4d4d576b5cdf04ccfd0e8d4de677",
+      "target": "243a8393d120bd49a7892492c9764852b0cc4b9b",
+      "subject": "fix: support topics"
+    },
+    {
+      "upstream": "8a0927802ccba7742c231b97d4eab2525fb78691",
+      "target": "1a21263ba3748e34da62a1830358767efaf8b080",
+      "subject": "feat: show deleted date"
+    },
+    {
+      "upstream": "bbb1c95ceacd15065e5174ac8e41f4ab6c6a036f",
+      "target": "198d6e21168b305494fdada73a9150f0794338e5",
+      "subject": "feat: add kill app button"
+    },
+    {
+      "upstream": "e3a9a1d9957ca72a2ddbf3355db3a925d8469a9a",
+      "target": "ece61d2a7bfdd729889447eb636a2ece9040507c",
+      "subject": "fix: grouped_id"
+    },
+    {
+      "upstream": "736e5640f4c044a2a03ce4a8df7169b2e7287b05",
+      "target": "ce81c481b4789c5b7eb2ecf27ee291ab8881c814",
+      "subject": "fix: prettify README"
+    },
+    {
+      "upstream": "6b00d8e8bbaaaeab04c4c3b78ea08543d0d50faf",
+      "target": "8649cd811c6249d1a3f8308f949ddc60470a0bf1",
+      "subject": "fix: move to another repo"
+    },
+    {
+      "upstream": "69188a46f6b353b636aaefb0b2b57aec7a74df98",
+      "target": "6b2d8a229266ecd9466d0995f6f050a1ca0228b5",
+      "subject": "fix: support deleted stickers"
+    },
+    {
+      "upstream": "81c2e4f8887a0ee244ef66ccf6ff409c1d5aca63",
+      "target": "96c45d10f11095298a56efa07ea52741f990f957",
+      "subject": "fix: support sticker for sure"
+    },
+    {
+      "upstream": "2c50e1e8880fb9fdce710a2aa3f5abd1f0759d77",
+      "target": "39449712f6cbc1b706db8eb5dd36b5361801f0c5",
+      "subject": "fix: use better icon"
+    },
+    {
+      "upstream": "c07f758a261e47339edf1f77c7c30010bcd97e98",
+      "target": "d6065743fdf202df90d19328cdc2b48f1fe85249",
+      "subject": "feat: save resolution"
+    },
+    {
+      "upstream": "9d59ea103ec2549f7123ca5663331cb769e90fad",
+      "target": "7e970b9e2502ecc1890272072c37e82dc19dced7",
+      "subject": "fix: try CI"
+    },
+    {
+      "upstream": "4dd2dd7834965f73341c189eaaed1a09fb757944",
+      "target": "0894ca1403850e7664a760d2488cbd95c8f0aaea",
+      "subject": "fix: don't use alpha & fix icon size"
+    },
+    {
+      "upstream": "b897c678189e02d86e22b6afd5ec08d67de16e3c",
+      "target": "3af12590449508cf6657f48fe836dc4747c73b62",
+      "subject": "feat: AyuSync initial fix: NPE fix: use DNS instead IP feat: more debug info fix: improve UX fix: improve UX fix: update LICENSE copyright feat: new force sync system fix: improve code quality & UX feat(AyuSync): implement batch event & fix reads sync feat(AyuSync): implement settings view feat(AyuSync): implement `sync_read` fix: use same `AyuState` implementation"
+    },
+    {
+      "upstream": "117429e26585983c4be09e91e8963aba41930501",
+      "target": "7639e15b052125023cc1d0261d559121187d4a4e",
+      "subject": "feat: add toggle for secure connection fix: reconnect for sure if disconnected"
+    },
+    {
+      "upstream": "44acd17d01e6fb696834fd00456e9ca31edda29e",
+      "target": "5ef31b8da70c2f9ab2418f0f1650f1d0bb687b14",
+      "subject": "feat: new hook to load deleted messages fix: use selected account instance fix: remove useless debug"
+    },
+    {
+      "upstream": "4a1cca59c5700002b5ad22443b0f349150764934",
+      "target": "6177894bd58002f8d45a71f7efccfcf27cb5300b",
+      "subject": "fix: deleted message hook"
+    },
+    {
+      "upstream": "a3412395b61de162a78d4f201140d6a3a5f120fe",
+      "target": "2307335b474a8815e4c8c158992dddf74e08f374",
+      "subject": "fix: tweak `markReadAfterSend`"
+    },
+    {
+      "upstream": "d043807d9b40f7f9422eebdb6e2cb4d29534efd1",
+      "target": "356672fa2feeb10ddcc78fa4506f64b3dd60a06e",
+      "subject": "feat: show register status code fix: add space between brand and model name fix: reformat fix: sync translations"
+    },
+    {
+      "upstream": "e4b587209d5e1969f92c8f1f49d0c16dae92e426",
+      "target": "09d1ba9849db139197bb0761ed13526052384310",
+      "subject": "fix: catch all errors actually"
+    },
+    {
+      "upstream": "14a61ac01d338f094baef0abe4964e7d26fba91a",
+      "target": "9b21b23293cc3e9efa62a1a7bdf50f0f82e181e4",
+      "subject": "fix: number 2"
+    },
+    {
+      "upstream": "cecf4ca0d113d64f6818c5dfdda85317ca7c0a10",
+      "target": "bebc82586f7633b8385d4c1651db75d78ab19ee5",
+      "subject": "fix: number 3"
+    },
+    {
+      "upstream": "7ee57bd8cfd75cb7c647fe3bb25cb89addc04722",
+      "target": "624f5f852752ae298e36c9ba677ed75607f12dfb",
+      "subject": "fix: don't delete messages in real time"
+    },
+    {
+      "upstream": "c416b0cbfb44a6227c332d147752d3b9a93cab91",
+      "target": "00c5932ef5ccad5613ad938d40b8bd312aea371d",
+      "subject": "fix: use original document name"
+    },
+    {
+      "upstream": "79e7a70616aa6ffeaee3f9e9e2af984db811acd1",
+      "target": "a5346027730e20b58c8f2b42cc7dab836d301d71",
+      "subject": "fix: ghost icon color"
+    },
+    {
+      "upstream": "ebbab0712127ad0dcb02644021cdd38252923d35",
+      "target": "d85af2b512d4a9493c779ed6cb3ea8376715462c",
+      "subject": "feat: update translations"
+    },
+    {
+      "upstream": "45c5e4fa057ba5aa0cee23b5f3d21401bcb482a8",
+      "target": "018a0b7d86161e918766f68cb9d13b5fb38bb30a",
+      "subject": "fix: links handling"
+    },
+    {
+      "upstream": "606d3de97b11959186f1f8d94d5555199a3ffd3a",
+      "target": "fcbba542543545867f9465bec08d9f5486e73327",
+      "subject": "fix: smth"
+    },
+    {
+      "upstream": "e42299f939c298d1065607b5d1cc74ad512bbdb7",
+      "target": "fc0735e8f09bc46005d22b54c9ab82def891dcbb",
+      "subject": "feat: move preferences to profile"
+    },
+    {
+      "upstream": "02902f0910d19ed53c6a665caae04c9bd30a41e2",
+      "target": "c88109ac0547ca2d6e3ce9ae6d640615078ddbd0",
+      "subject": "feat: message filters"
+    },
+    {
+      "upstream": "0c71d8d0d819f6f8af06990a4d441a965602b1b8",
+      "target": "53348b29b4ba35fd0205c656489601a7355d42ca",
+      "subject": "feat: local premium"
+    },
+    {
+      "upstream": "855b3ea1efc5ca336bf5e24b0494782f3eca6aab",
+      "target": "7d9a7d32b3ce10c35db356e0ad2854e9bf94803a",
+      "subject": "feat: some additional settings to filters"
+    },
+    {
+      "upstream": "9a8ac31d53d46fb64fc5635dcfebb3eaebbf060a",
+      "target": "8ae27ebfe8c4f9b4870fa0afea771d6c23d97c4f",
+      "subject": "fix: allow deleting messages"
+    },
+    {
+      "upstream": "bffb48d11f765bd97bdd283cfe3e5c528f63ea25",
+      "target": "d6e03e169a40314aea8def25ed21ede28982ee19",
+      "subject": "fix: load users from db"
+    },
+    {
+      "upstream": "4e0b7805e72afdbde33c0318bcb3f427c2060892",
+      "target": "0f8c1267b823442e7c2ed48f9f9ebb1f4feb21c8",
+      "subject": "feat: sync translations"
+    },
+    {
+      "upstream": "107636b6207fd3903610c47afec42b8e4031e9dc",
+      "target": "e59fb77500c706ea5a2d191db8cb270b411fd6e4",
+      "subject": "fix: don't optimize it"
+    },
+    {
+      "upstream": "f2902557342a4dbe75b3cbda3dcda7a2a05c2783",
+      "target": "327eccbf55adc19818ad5850ca6fee3f0460d3a5",
+      "subject": "chore: update deps"
+    },
+    {
+      "upstream": "292400744f773a05a8c4903ccfeae0eb7595bebb",
+      "target": "d0f06701101e397cfb38c2a7a5dd960f0f679cd4",
+      "subject": "feat: use self-hosted runner"
+    },
+    {
+      "upstream": "58a4b5d4b5557f5bca359fba64c9814dd385fa9a",
+      "target": "4dd4f60ea8067dc58241267d7fd644a9a14e655a",
+      "subject": "fix: message loading"
+    },
+    {
+      "upstream": "426ea8cd7c66acf02ae202fc1b49c67d8ee4ff7a",
+      "target": "207f55cb7032c517602cf894cb7c0d23ef6f9ea8",
+      "subject": "fix: deleted messages loading once again fix: possible deleted messages duplication fix: \"Save to Gallery\" showing on empty media fix: change TTL icon so its size matches others fix: show TTL duration string, not just a number fix: save TTL media after sending read packet (saves into message history) fix: \"send as\" not showing when using local premium fix: typing status in secret chats fix: messages saving in secret chats fix: media size extraction NPE fix: show filename without random hash"
+    },
+    {
+      "upstream": "869eb964ce5993c68ae3e8333e2333a14ae58ff5",
+      "target": "4ee4da9039022733332c99949c568be8676a111e",
+      "subject": "fix: reorder context menu"
+    },
+    {
+      "upstream": "4398431aa88c1fa9750662390c7e6a08d7bdf181",
+      "target": "c8581169f8fddd1949562b3caedb222f94f83962",
+      "subject": "fix: remove useless"
+    },
+    {
+      "upstream": "e08b712f8f623f12f115c32953c96187a38c0bd5",
+      "target": "00bcea62f850f0f44b5f4f2655de3329428d5984",
+      "subject": "fix: filter out message groups"
+    },
+    {
+      "upstream": "d25d3149315b4968439780d68f38280ed10382f7",
+      "target": "efe8d33f458fa79ce2f635c9e6c72fa49cdbb2e6",
+      "subject": "fix: possible bug"
+    },
+    {
+      "upstream": "afb921875b3f9de8c9381167700affc77dd8cf5c",
+      "target": "b3d8a7df8c6ab530575003b173eb8642d0fef12f",
+      "subject": "fix: consider `isSending`"
+    },
+    {
+      "upstream": "d5511790fc697523341f7cc92b55c8c6306a7d59",
+      "target": "0813b428d37e2bed9ca1e05defad6078893cbbf2",
+      "subject": "fix: text color"
+    },
+    {
+      "upstream": "1a9803984981ae51712dcc848b3a2d066bd3e7d0",
+      "target": "1bf8899c1b6b5f0bc3cfab7e3c7aeaec74956e6c",
+      "subject": "fix: don't schedule in secret chats"
+    },
+    {
+      "upstream": "d94e01d048bd610fcec75dfee29940b729e42abb",
+      "target": "73067a3466f5c4058645440196f3d2bbe766f508",
+      "subject": "feat: new scheduled hook fix: NPE in `isFiltered`"
+    },
+    {
+      "upstream": "a55d0ec4aef3d245434bae2a09e850f6a8e357a2",
+      "target": "ad0f30ad780bd3d49d8574fba9bf94a42ab0223d",
+      "subject": "feat: consider urls in entities"
+    },
+    {
+      "upstream": "c9c877f4f1b4c435437b5c4b6892d1bfef8a58e1",
+      "target": "82486dd6266f3ea5323207682e6a03bff32f237c",
+      "subject": "fix: load deleted messages for secret chats"
+    },
+    {
+      "upstream": "fafa8b802e2834bac1465ff8060caa36685b9131",
+      "target": "4115c2f2f73dff02b353dea94d50fcd87aedc4ea",
+      "subject": "feat: add support for polls' headers in filters"
+    },
+    {
+      "upstream": "23d75bd761bfecc43cba455ba1ea58b77e458f1f",
+      "target": "b9aef199a7e9ab3d534259f36d81cb6dc2c4e881",
+      "subject": "feat: show regex error fix: move \"Add filter\" to the top"
+    },
+    {
+      "upstream": "7e1d7f09fb291437cde94b01f6496a9f4c534c5c",
+      "target": "82fb0caeb5d707f0697284c53f43e7226a80ac87",
+      "subject": "fix: AyuGram fixed."
+    },
+    {
+      "upstream": "e0239d6734ae5cdbd00b33a62ba926aceaaab370",
+      "target": "73b750c957dc04b77a80d3b298a6454d6c9d9c13",
+      "subject": "fix: try into TTL messages"
+    },
+    {
+      "upstream": "761d8e59e70d72830fddf8af8dc49887de93a424",
+      "target": "0f2a67e108eeae365d790a793b969628554e5524",
+      "subject": "feat: new serializer system"
+    },
+    {
+      "upstream": "42ffd25a10ad1efd45bf650c58d3d647aeb2964a",
+      "target": "bc82ff9049eb758ef94a4e1aa88b5b4ead46fb2b",
+      "subject": "feat: add message saving preferences fix: \"Keep...\" -> \"Save...\""
+    },
+    {
+      "upstream": "544865e9c281f68b510f5dd3e94af02a5a4a8c3f",
+      "target": "3018bc34c261e0b7f09a90c6dcba3291c33b7d72",
+      "subject": "fix: media type detection in history fix: media saving for history when various types"
+    },
+    {
+      "upstream": "d9507d7326dbb86dc9e20dec08e002c7b27ab140",
+      "target": "4b489e8a16dec08db516f65873dabc6019fea797",
+      "subject": "fix: remove duplicate code"
+    },
+    {
+      "upstream": "a48e9794ad216228a73cbae3d2a8beb137356768",
+      "target": "758f5bdc6be9ce2762de50e556ba0ded536f9808",
+      "subject": "feat: open AyuGram on Keep Alive Service notification click"
+    },
+    {
+      "upstream": "3131db4bba4b432683dba80ce2c2262f5e0abc5d",
+      "target": "f8e30efcdeeec29c3535a10eb8fe53d74cbe0942",
+      "subject": "feat: save encrypted media"
+    },
+    {
+      "upstream": "43d027e2577c0bb0151f50812a035de38b8fa14e",
+      "target": "1ef3d747eee78a867f7c5a3067b241a715e47c76",
+      "subject": "fix: set the same media in history"
+    },
+    {
+      "upstream": "cccbf25551e88b1e3f6bbb80a406efc8892d5658",
+      "target": "e1ef3503fcf21153ff24f85e69205886ed1cd1b6",
+      "subject": "feat: sync translations"
+    },
+    {
+      "upstream": "ebaeb191aa4c2ef898ed00773ee631855134aa6b",
+      "target": "2124d9d11a354e8d3fbcd54afe57554e94f5b20b",
+      "subject": "fix: try CI"
+    },
+    {
+      "upstream": "44f6ef648af5eeb4faa5640a280e6e365e76a003",
+      "target": "c6bb84d76b08048008a397e3ea434c5a14cb285f",
+      "subject": "fix: NPE in utils"
+    },
+    {
+      "upstream": "d829420de71fadaae1a3d0c1c5ff6107d5e64e1a",
+      "target": "2c9e550bdb4021fa11228cfcf28d005c801e182d",
+      "subject": "fix: crash on Xiaomi"
+    },
+    {
+      "upstream": "251ee8d1eb4e54e22c1ddaf13ba60b38b7c32a4d",
+      "target": "d9f38265dd3b0ad72e5dc4edd28896b22cf6d79b",
+      "subject": "fix: NPE in `onMessageEditedInner`"
+    },
+    {
+      "upstream": "30b95a06fe2b66ca27a16980525c5d7ae17f73ff",
+      "target": "d5f5744cf26411e9a2a851949f8681167619369e",
+      "subject": "fix: wrap these methods, so they don't crash thread"
+    },
+    {
+      "upstream": "85527be717fe5c4f37bf5e28bff3c468cf6d6bf8",
+      "target": "c247758af1ef54c583ecefe4b2fc523b61691451",
+      "subject": "fix: recreate database after clean"
+    },
+    {
+      "upstream": "61d0b8687c55819c257d2d435cc7673c86033db7",
+      "target": "8ef2e3c5cb026c05520bf283b4c3226bd77b322b",
+      "subject": "fix: don't show \"Filters\" label if no filters"
+    },
+    {
+      "upstream": "8b94c605f6eea9575aa1d4a08dc4b1d9aa3b88bb",
+      "target": "3f6d22aade9976d37c8fd4cb3d0abd603dedd364",
+      "subject": "fix: deleted messages loading in topics"
+    },
+    {
+      "upstream": "468b2b1c78a924282021a525bb0b8fc14cf8121b",
+      "target": "53ac49e274c23e0d8bbb5f9987a7c88f5e3a17a7",
+      "subject": "fix: allow deleting deleted messages"
+    },
+    {
+      "upstream": "b3238eebc3c202c855931ebfb4344d4fcd6d1c7f",
+      "target": "334f407f4b1b89f32ac9a550cc6cd7f901d2e82a",
+      "subject": "fix: more detailed regex error message"
+    },
+    {
+      "upstream": "b1fe40d4c18cd21f8bccd897e63655b2ea5795f7",
+      "target": "c86d7fc6f52d300f81f33a88053e388a70cf4b31",
+      "subject": "fix: don't show deleted messages in scheduled mode"
+    },
+    {
+      "upstream": "72755a9f5320c1f65a554caf4c9aeedee18b1d99",
+      "target": "7aa2a21bd80615188bdccb747633785c9856a946",
+      "subject": "fix: try to avoid crashing on Xiaomi"
+    },
+    {
+      "upstream": "4ac0e1cec20edb187239623534afc7bf0c5d5d41",
+      "target": "ec85f93c8f071d941ab9a0b9873ccfb820e4f5ea",
+      "subject": "fix: topics only"
+    },
+    {
+      "upstream": "0144bf0118c703e0115bf366345a1cac580aa612",
+      "target": "b6d4d458ba1f925f42b9f6ff09c63267eb85c347",
+      "subject": "fix: make avatars clickable"
+    },
+    {
+      "upstream": "d91a23363dff11001073b0f46784b0869ae98df9",
+      "target": "9544619d8385621075ff019e0ae3c429ba70c728",
+      "subject": "fix: make filters work for real"
+    },
+    {
+      "upstream": "4d1a6086a5a4c6d1589de6b3096b2cd2f119779a",
+      "target": "da49069449d3ec3ce655cdbba663bc0c537c9dec",
+      "subject": "fix: really restrict forwarding of deleted messages"
+    },
+    {
+      "upstream": "4b5e541730deb4310eb74ea641657eb11a0254ee",
+      "target": "b0dc0da09157cfb227f3ac3da2ac18da31cf1dca",
+      "subject": "fix: crash in filters"
+    },
+    {
+      "upstream": "7e9d47255d4f1535d6b66d427ad6536ad541e4a6",
+      "target": "42d2be142a4048d56b5ffc854ce06c9f48bb6421",
+      "subject": "fix: `saveDeletedMessages` & `saveMessagesHistory`"
+    },
+    {
+      "upstream": "1e27dd8be1d32b38eade48a52fcbd68524efeeb6",
+      "target": "1b0f604561fe5767d1b4450be173fc453689d102",
+      "subject": "feat: refactor feat: save media attributes"
+    },
+    {
+      "upstream": "6edea22d00d7b32772e49ff08e85510c3433e428",
+      "target": "4feebaf8698f237e72116a8278fac55cb7168008",
+      "subject": "feat: use extera's `ChatUtils.getMessageText`"
+    },
+    {
+      "upstream": "bfdda179ab7b0016a46f067c21a2b4b6d6cbf4f6",
+      "target": "09c906a0279e806b3112c7bc4b550a192b591825",
+      "subject": "feat: allow deletion with saving fix: don't save unknown messages fix: some bugs"
+    },
+    {
+      "upstream": "2611159c2a01ac603649d8538d30b99e66c36081",
+      "target": "42d555098a1187cadcb65c65bb652a83a7934d3a",
+      "subject": "feat: save fwd & reply state feat: take some message args from `flags` feat: add real local database cleaner"
+    },
+    {
+      "upstream": "ee6a3c1de062a044952441cf0d30eed3f54c9544",
+      "target": "45603d0656dfabb29a227c268d6d592b33f6a78a",
+      "subject": "fix: deep replies loading fix: ensure no duplicates in hook fix: optimize a bit"
+    },
+    {
+      "upstream": "44a92a5eab830ebe7214db0c1e7813a6515d8cff",
+      "target": "f36e1dec6f13986cab4a1c7b394b23bde421b9e9",
+      "subject": "feat: save hq thumbs feat: fill README feat: check for more media paths"
+    },
+    {
+      "upstream": "525990123ca600b41fba9409e5fb319278a6374c",
+      "target": "3133033082b563472bdc2ef1003a89f2001325e5",
+      "subject": "fix: remove reactions view for deleted messages"
+    },
+    {
+      "upstream": "4663bb5c22d8f7b2a5648ce063274d86a420f9c9",
+      "target": "323c76ceb0fe2d0dbacf0a68e30cff4454192900",
+      "subject": "feat: option to disable saving for bots fix: buttons turning red randomly fix: excluding option pairs (`localPremium` + `enableAds`, `markReadAfterSendRow` + `useScheduledMessagesRow`)"
+    },
+    {
+      "upstream": "f29f270f232382ede1e6d4a86c6bb57281d4dbd5",
+      "target": "372cf83015fc469cb41ba48fd7ae724537257ae1",
+      "subject": "feat: try to improve filters performance using caching fix: don't auto-download media for filtered messages"
+    },
+    {
+      "upstream": "e9ed17a870f0c628a30289ef9413c3d0fb7bdc33",
+      "target": "99711a97c9cef459d951399d7e3abbccee07857b",
+      "subject": "fix: remove firebase config"
+    },
+    {
+      "upstream": "cb492c792205c148e8edab65d572da4d6de374b9",
+      "target": "3c6236d774075c6c1a1f5b2adf09e718596fb951",
+      "subject": "fix: let's be more clear"
+    },
+    {
+      "upstream": "2d2669431111bcf7e7eadc8fe0046fec6a54dad8",
+      "target": "84f29058e7729d85d01511d4b3646ad761e6b88c",
+      "subject": "Merge remote-tracking branch 'origin/rewrite' into rewrite"
+    },
+    {
+      "upstream": "db227a5de42dc55e3bca7a738feac84e123bb5e9",
+      "target": "e0194008cb46eac6a2df3b07c88831eba0f15218",
+      "subject": "🤔"
+    },
+    {
+      "upstream": "c3201fe0973be647b10c402ea7d97ebb9af9175a",
+      "target": "02c93158e5f3d30a7ec6781f532d6617e3f48743",
+      "subject": "fix: remove needless dividers"
+    },
+    {
+      "upstream": "14ea4c249c169aa7a2cc882944e0d9c2f7adfa26",
+      "target": "53142fd6ef08dbaf096140f255b02c514b8cff16",
+      "subject": "fix: load filters only once"
+    },
+    {
+      "upstream": "ce596a83844ffd8f2a13c3e835ca1dfd45c22945",
+      "target": "b0044b8d25839b0e83fe2f5b9f8ed039c236090d",
+      "subject": "fix: don't show pagedown button fix: read last filtered message"
+    },
+    {
+      "upstream": "f91ef8694452675352033115e2baee3810b8a443",
+      "target": "72469b5a2e707aff797cee5b560b0970b858cdf5",
+      "subject": "fix: some improvements before build"
+    },
+    {
+      "upstream": "05dfb5ea7457abc42acbe7fced0a760a72b50634",
+      "target": "82aa04af22e7fb6b4ebcb110be390fe5f57d7923",
+      "subject": "fix: text overlying"
+    },
+    {
+      "upstream": "c6949861ab5304aa8fa2b6dc11947a43c9a38293",
+      "target": "6c3a372b455f8afc6f13aa13b1f393e05205546c",
+      "subject": "fix: don't show fwd from a hidden account like it's a current user fix: reflect AyuSync changes"
+    },
+    {
+      "upstream": "e24822d210b90f766d3ce9fab1ec8b453a8d3e9d",
+      "target": "7439fb505392492614686aa277d428ce6dfbbce0",
+      "subject": "feat: improve ui"
+    },
+    {
+      "upstream": "0c5fe31339199d056ee33371ac87c377d2fce888",
+      "target": "52d0299d36fa10c1edf7846b9cb2f030f07f7cb6",
+      "subject": "feat: improve ui"
+    },
+    {
+      "upstream": "762e7519ada17a6a31f05ef6ce1475eca3b8949e",
+      "target": "9c058f7704bc2752112a6f9f4708ed246a3ddf4a",
+      "subject": "fix: use different icons"
+    },
+    {
+      "upstream": "ffbf90a0fbffc24de6366c036d87d10ec0ef0074",
+      "target": "157c5b1a590bb937e744fa842783bb3b6c5b32b4",
+      "subject": "fix: remove \"channel\" label"
+    },
+    {
+      "upstream": "65a149002fec886ef2f67e42cf2f4e17cdba49d6",
+      "target": "e730a429311a2e94e77a04ec2b979239d52c7e0a",
+      "subject": "fix: `enableAds` -> `disableAds`"
+    },
+    {
+      "upstream": "891a740c2fb3f1f7a8a7746bff12a509918ba230",
+      "target": "8d4af6f52f4eedf7e3a5355cc96d875161ffb049",
+      "subject": "fix: crashing"
+    },
+    {
+      "upstream": "650beeb9bfa3f7ec7122952c643721febbe8a293",
+      "target": "94e74a2dbc67cd1c67c5f4587de31a58134cd5c2",
+      "subject": "feat: update history in real time"
+    },
+    {
+      "upstream": "cca55ae7dbf4e2f9581398a7d76d2936fb0c61f8",
+      "target": "933a93aa581b1e9431a6d0960d6f63fb2c2fc13d",
+      "subject": "feat: implement AyuForwarder"
+    },
+    {
+      "upstream": "95191fcd1b35cf4536900ebf05b44bced372ccaf",
+      "target": "3cd1f00fdd67afbe9b4f5eaa13e882d373374fda",
+      "subject": "feat: add hint"
+    },
+    {
+      "upstream": "26b1c01d76b45f2d9e240908b852e2f928f2cfe2",
+      "target": "273ffd4034020e5563d370ec468df757f15eafdc",
+      "subject": "feat: add build date"
+    },
+    {
+      "upstream": "c9c317cf5b0877763e0e973acaf334251a5d38a8",
+      "target": "e346347d737dcc6e364f71020b34692ca359ad80",
+      "subject": "feat: include author & some text when replying to a deleted message"
+    },
+    {
+      "upstream": "da8db4be2ff497718cc0e35535fd591b309ff91e",
+      "target": "4bc23e82231bffa5037eb55956ea0288787eac88",
+      "subject": "fix: deleted loading once again, but not finally"
+    },
+    {
+      "upstream": "68e562d9bf72d0b294c06d16a2511878df20d1c7",
+      "target": "88e7204fc363d5da3097e798bf38b4cb05f58749",
+      "subject": "fix: bring back test backend on beta"
+    },
+    {
+      "upstream": "3310adaadaa10c781f415ddc7792f672cc3ddb63",
+      "target": "fba47e3d66416e75f7107f96c1849b70c4e7b8e2",
+      "subject": "fix: don't load in pinned"
+    },
+    {
+      "upstream": "e3083040c8f8c0bc1385b873ea1c034d24a8dc5c",
+      "target": "6e49ef9c5ddc8656a6a383901f78c69e86d5b24a",
+      "subject": "fix: update ghost mode toggle logic"
+    },
+    {
+      "upstream": "7013145676d36d82ee13c02a89f72097b7490dcd",
+      "target": "4401d4797b7a7c76f707fc262fb458e1f4eabcd1",
+      "subject": "fix: blur filtered message in the dialogs view"
+    }
+  ]
+}
