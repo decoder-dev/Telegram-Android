@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -129,7 +128,7 @@ public final class BananaIsland {
                 label.setTypeface(Typeface.DEFAULT_BOLD);
                 label.setTextColor(0xFFFFFFFF);
                 label.setSingleLine(true);
-                label.setPadding(AndroidUtilities.dp(followsIcon || true ? 6 : 0), 0, 0, 0);
+                label.setPadding(AndroidUtilities.dp(6), 0, 0, 0);
                 addView(label, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL));
             }
 

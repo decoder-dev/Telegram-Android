@@ -5456,6 +5456,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             FilesMigrationService.checkBottomSheet(this);
         }
         actionBar.setDrawBlurBackground(contentView);
+        org.telegram.messenger.banana.BananaIsland.attachToActionBar(actionBar, currentAccount);
 
         rightSlidingDialogContainer = new RightSlidingDialogContainer(context) {
 
