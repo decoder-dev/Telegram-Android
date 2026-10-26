@@ -157,6 +157,7 @@ import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
 
 import com.radolyn.ayugram.AyuConfig;
+import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.ApplicationLoader;
@@ -192,6 +193,7 @@ import org.telegram.messenger.TranslateController;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.WebFile;
 import org.telegram.messenger.browser.Browser;
@@ -5790,8 +5792,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         menu = actionBar.createMenu();
         menu.setOnLayoutListener(this::updateActionBarTitlePadding);
 
-        pipItem = menu.addItem(gallery_menu_pip, ExteraConfig.useSolarIcons ? R.drawable.header_goinline_solar : R.drawable.ic_goinline);
-        pipItem.setContentDescription(LocaleController.getString("AccDescrPipMode", R.string.AccDescrPipMode));
+        // PiP is a submenu item (ActionBarMenuSubItem), not a top-level ActionBarMenuItem.
+        pipItem = menuItem.addSubItem(gallery_menu_pip, R.drawable.ic_goinline, LocaleController.getString("AccDescrPipMode", R.string.AccDescrPipMode)).setColors(0xfffafafa, 0xfffafafa);
         masksItem = menu.addItem(gallery_menu_masks, R.drawable.msg_mask);
         masksItem.setContentDescription(getString(R.string.Masks));
         editItem = menu.addItem(gallery_menu_paint, R.drawable.msg_header_draw);
@@ -14131,7 +14133,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
 
         animatorPollAttachButtonsVisibility.setValue(sendPhotoTypeIsPollMediaEdit, false);
 
-        final boolean noforwards = messageObject != null && (MessagesController.getInstance(currentAccount).isPeerNoForwards(messageObject.getDialogId()) || (messageObject.messageOwner != null && messageObject.messageOwner.noforwards) || messageObject.hasRevealedExtendedMedia());
+        boolean noforwards = messageObject != null && (MessagesController.getInstance(currentAccount).isPeerNoForwards(messageObject.getDialogId()) || (messageObject.messageOwner != null && messageObject.messageOwner.noforwards) || messageObject.hasRevealedExtendedMedia());
+        if (noforwards && org.telegram.messenger.banana.BananaHooks.bypassDownloadRestrictions(currentAccount)) {
+            noforwards = false;
+        }
         if (messageObject != null && messages == null) {
             if (messageObject.messageOwner != null && MessageObject.getMedia(messageObject.messageOwner) instanceof TLRPC.TL_messageMediaWebPage && MessageObject.getMedia(messageObject.messageOwner).webpage != null) {
                 TLRPC.WebPage webPage = MessageObject.getMedia(messageObject.messageOwner).webpage;
@@ -14576,10 +14581,49 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             if (!newMessageObject.isQuickReply() && !newMessageObject.isSponsored() && newMessageObject.messageOwner != null) {
                 subtitle = LocaleController.formatDateAudio(newMessageObject.messageOwner.date, false);
             }
+            if (org.telegram.messenger.banana.BananaHooks.showMediaInfo(currentAccount)) {
+                int w = 0, h = 0, mediaDuration = 0;
+                long size = 0;
+                try {
+                    if (newMessageObject.photoThumbs != null && !newMessageObject.photoThumbs.isEmpty()) {
+                        TLRPC.PhotoSize largest = FileLoader.getClosestPhotoSizeWithSize(newMessageObject.photoThumbs, Integer.MAX_VALUE);
+                        if (largest != null) {
+                            w = largest.w;
+                            h = largest.h;
+                            size = largest.size;
+                        }
+                    }
+                    TLRPC.Document doc = newMessageObject.getDocument();
+                    if (doc != null) {
+                        if (size <= 0) {
+                            size = doc.size;
+                        }
+                        mediaDuration = (int) newMessageObject.getDuration();
+                        for (int a = 0; a < doc.attributes.size(); a++) {
+                            TLRPC.DocumentAttribute attr = doc.attributes.get(a);
+                            if (attr instanceof TLRPC.TL_documentAttributeImageSize || attr instanceof TLRPC.TL_documentAttributeVideo) {
+                                if (attr.w > 0 && attr.h > 0) {
+                                    w = attr.w;
+                                    h = attr.h;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                } catch (Exception ignore) {
+                }
+                String mediaInfo = org.telegram.messenger.banana.BananaHooks.formatMediaInfo(currentAccount, w, h, size, mediaDuration);
+                if (mediaInfo != null) {
+                    subtitle = TextUtils.isEmpty(subtitle) ? mediaInfo : TextUtils.concat(subtitle, " · ", mediaInfo);
+                }
+            }
             actionBarContainer.setSubtitle(subtitle, animated);
 
             boolean isInvoice = newMessageObject.isInvoice();
             boolean noforwards = MessagesController.getInstance(currentAccount).isPeerNoForwards(newMessageObject.getDialogId()) || (newMessageObject.messageOwner != null && newMessageObject.messageOwner.noforwards) || newMessageObject.hasRevealedExtendedMedia();
+            if (noforwards && org.telegram.messenger.banana.BananaHooks.bypassDownloadRestrictions(currentAccount)) {
+                noforwards = false;
+            }
             if (isVideo && !isLivePhoto) {
                 bottomLayout.setVisibility(View.VISIBLE);
                 bottomLayout.setTag(1);
@@ -15188,7 +15232,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             }
             menuItem.hideSubItem(gallery_menu_translate);
             menuItem.hideSubItem(gallery_menu_hide_translation);
-            allowShare = !MessagesController.getInstance(currentAccount).isPeerNoForwards(currentDialogId) && (currentMessageObject == null || !currentMessageObject.hasRevealedExtendedMedia()) && !isPageBlocksNoForwards(pageBlocksAdapter);
+            allowShare = (org.telegram.messenger.banana.BananaHooks.bypassDownloadRestrictions(currentAccount)
+                    || !MessagesController.getInstance(currentAccount).isPeerNoForwards(currentDialogId))
+                    && (currentMessageObject == null || !currentMessageObject.hasRevealedExtendedMedia())
+                    && !isPageBlocksNoForwards(pageBlocksAdapter);
             TL_iv.PageBlock pageBlock = pageBlocksAdapter.get(switchingToIndex);
             caption = pageBlocksAdapter.getCaption(switchingToIndex);
             isVideo = pageBlocksAdapter.isVideo(switchingToIndex);
@@ -15699,7 +15746,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 return;
             }
             MessageObject newMessageObject = imagesArr.get(currentIndex);
-            final boolean noforwards = newMessageObject != null && (MessagesController.getInstance(currentAccount).isPeerNoForwards(newMessageObject.getDialogId()) || (newMessageObject.messageOwner != null && newMessageObject.messageOwner.noforwards) || newMessageObject.hasRevealedExtendedMedia());
+            boolean noforwards = newMessageObject != null && (MessagesController.getInstance(currentAccount).isPeerNoForwards(newMessageObject.getDialogId()) || (newMessageObject.messageOwner != null && newMessageObject.messageOwner.noforwards) || newMessageObject.hasRevealedExtendedMedia());
+            if (noforwards && org.telegram.messenger.banana.BananaHooks.bypassDownloadRestrictions(currentAccount)) {
+                noforwards = false;
+            }
             sameImage = init && currentMessageObject != null && currentMessageObject.getId() == newMessageObject.getId();
             if (sameImage) {
                 newMessageObject.putInDownloadsStore = currentMessageObject.putInDownloadsStore;
@@ -19491,6 +19541,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         if (adapter == null) {
             return false;
         }
+        if (org.telegram.messenger.banana.BananaHooks.bypassDownloadRestrictions(currentAccount)) {
+            return false;
+        }
         // rich messages open their media as page blocks without a MessageObject/dialogId,
         // so protected content has to be resolved from the adapter's parent message
         final Object parent = adapter.getParentObject();
@@ -20982,7 +21035,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         boolean forward = x >= width / 3 * 2;
         long current = getCurrentVideoPosition();
         long total = getVideoDuration();
-        return current != C.TIME_UNSET && total > 15 * 1000 && (!forward || total - current > 10000);
+        long seekMs = BananaConfig.doubleTapSeekSeconds(currentAccount) * 1000L;
+        return seekMs > 0 && current != C.TIME_UNSET && total > 15 * 1000 && (!forward || total - current > seekMs);
     }
 
     long totalRewinding;
@@ -20994,20 +21048,20 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             long total = getVideoDuration();
             float x = e.getX();
             int width = getContainerViewWidth();
-            boolean forward = x >= width / 3 * 2;
-            if (canDoubleTapSeekVideo(e)) {
+            long seekMs = BananaConfig.doubleTapSeekSeconds(currentAccount) * 1000L;
+            if (seekMs > 0 && canDoubleTapSeekVideo(e)) {
                 long old = current;
                 if (x >= width / 3 * 2) {
-                    current += 10000;
+                    current += seekMs;
                 } else if (x < width / 3) {
-                    current -= 10000;
+                    current -= seekMs;
                 }
                 if (old != current) {
                     boolean apply = true;
                     if (current > total) {
                         current = total;
                     } else if (current < 0) {
-                        if (current < -9000) {
+                        if (current < -(seekMs - 1000)) {
                             apply = false;
                         }
                         current = 0;
@@ -21015,7 +21069,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     if (apply) {
                         videoForwardDrawable.setOneShootAnimation(true);
                         videoForwardDrawable.setLeftSide(x < width / 3);
-                        videoForwardDrawable.addTime(10000);
+                        videoForwardDrawable.addTime((int) seekMs);
                         seekVideoOrWebTo(current);
                         containerView.invalidate();
                         videoPlayerSeekbar.setProgress(current / (float) total, true);

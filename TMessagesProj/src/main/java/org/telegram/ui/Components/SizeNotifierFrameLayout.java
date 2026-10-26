@@ -558,7 +558,8 @@ public class SizeNotifierFrameLayout extends FrameLayout implements Theme.Colora
     }
 
     private void checkSnowflake(Canvas canvas) {
-        if (backgroundView != null && Theme.canStartHolidayAnimation() && LiteMode.isEnabled(LiteMode.FLAG_CHAT_BACKGROUND)) {
+        boolean bananaSnow = org.telegram.messenger.banana.BananaHooks.snowEnabled(org.telegram.messenger.UserConfig.selectedAccount);
+        if (backgroundView != null && (bananaSnow || Theme.canStartHolidayAnimation()) && LiteMode.isEnabled(LiteMode.FLAG_CHAT_BACKGROUND)) {
             if (snowflakesEffect == null) {
                 snowflakesEffect = new SnowflakesEffect(1);
                 snowflakesEffect.setForcedColor(0xFFFFFFFF);

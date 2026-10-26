@@ -501,6 +501,9 @@ public abstract class BaseFragment {
         return finishing;
     }
 
+    public void setProgressToDrawerOpened(float progress) {
+    }
+
     public boolean onFragmentCreate() {
         return true;
     }

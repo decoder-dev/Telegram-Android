@@ -8,6 +8,11 @@
 
 package org.telegram.messenger;
 
+import android.view.Gravity;
+import android.widget.FrameLayout;
+
+import me.vkryl.core.BitwiseUtils;
+
 import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.messenger.banana.BananaConfig.Option;
 import org.telegram.messenger.banana.GhostPolicy;
@@ -933,7 +938,7 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean isPremiumUser(TLRPC.User currentUser) {
-        return !premiumLocked && (currentUser.premium || currentUser.id == getUserConfig().getClientUserId() && AyuConfig.localPremium);
+        return !premiumLocked && (currentUser.premium || currentUser.id == getUserConfig().getClientUserId() && org.telegram.messenger.banana.BananaHooks.localPremium(currentAccount));
     }
 
     public boolean didPressTranscribeButtonEnough() {
@@ -9754,7 +9759,8 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean hasHiddenArchive() {
-        return SharedConfig.archiveHidden && dialogs_dict.get(DialogObject.makeFolderDialogId(1)) != null;
+        boolean bananaHideArchive = org.telegram.messenger.banana.BananaHooks.hideArchive(currentAccount);
+        return (SharedConfig.archiveHidden || bananaHideArchive) && dialogs_dict.get(DialogObject.makeFolderDialogId(1)) != null;
     }
 
 
@@ -19923,10 +19929,11 @@ public class MessagesController extends BaseController implements NotificationCe
                 for (var dialogId : dialogIds) {
                     for (var msgId : messageIds) {
                         var msg = messagesStorage.getMessage(dialogId, msgId);
-                        var topicId = msg != null ? MessageObject.getTopicId(msg, isForum(dialogId)) : 0;
+                        long topicIdLong = msg != null ? MessageObject.getTopicId(currentAccount, msg, isForum(dialogId)) : 0;
+                        int topicId = (int) topicIdLong;
 
                         // TLRPC.Message msg, int accountId, long dialogId, int topicId, int messageId, int requestCatchTime
-                        var prefs = new AyuSavePreferences(msg, currentAccount, dialogId, topicId, msgId, currentTimeS);
+                        var prefs = new AyuSavePreferences(msg, currentAccount, dialogId, (int) topicId, msgId, currentTimeS);
                         ayuMessagesController.onMessageDeleted(prefs);
                     }
 
@@ -21853,6 +21860,9 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public SponsoredMessagesInfo getSponsoredMessages(long dialogId) {
+        if (org.telegram.messenger.banana.BananaHooks.hideAds(currentAccount)) {
+            return null;
+        }
         SponsoredMessagesInfo info = sponsoredMessages.get(dialogId);
         if (info != null && (info.loading || Math.abs(SystemClock.elapsedRealtime() - info.loadTime) <= 5 * 60 * 1000)) {
             return info;

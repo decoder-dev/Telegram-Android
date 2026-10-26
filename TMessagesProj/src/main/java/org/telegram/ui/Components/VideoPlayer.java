@@ -88,6 +88,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.chromecast.ChromecastMedia;
 import org.telegram.messenger.chromecast.ChromecastMediaVariations;
@@ -426,10 +427,39 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
     public static Quality getSavedQuality(ArrayList<Quality> qualities, long did, int mid) {
         final SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("media_saved_pos", Activity.MODE_PRIVATE);
         final String setting = preferences.getString(did + "_" + mid + "q2", "");
-        if (TextUtils.isEmpty(setting)) return null;
+        if (TextUtils.isEmpty(setting)) {
+            return defaultQualityForExtras(qualities);
+        }
         for (Quality q : qualities) {
             final String idx = q.width + "x" + q.height + (q.original ? "s" : "");
             if (TextUtils.equals(setting, idx)) return q;
+        }
+        return defaultQualityForExtras(qualities);
+    }
+
+    /** BananaGram DEFAULT_VIDEO_QUALITY: 0 auto, 1 highest, 2 lowest. */
+    private static Quality defaultQualityForExtras(ArrayList<Quality> qualities) {
+        if (qualities == null || qualities.isEmpty()) {
+            return null;
+        }
+        int mode = org.telegram.messenger.banana.BananaHooks.defaultVideoQuality(UserConfig.selectedAccount);
+        if (mode == 1) {
+            Quality max = null;
+            for (Quality q : qualities) {
+                if (max == null || max.width * max.height < q.width * q.height) {
+                    max = q;
+                }
+            }
+            return max;
+        }
+        if (mode == 2) {
+            Quality min = null;
+            for (Quality q : qualities) {
+                if (min == null || min.width * min.height > q.width * q.height) {
+                    min = q;
+                }
+            }
+            return min;
         }
         return null;
     }

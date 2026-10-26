@@ -23,6 +23,15 @@ credit is retained when a change is adopted:
 - AyuGram Desktop: [archive, link hardening and ghost read-state cleanup](https://github.com/AyuGram/AyuGramDesktop/commit/105b6c21a69703a5c103d1615e4fbba12b519c3b) ([archive mark-as-read copy](https://github.com/AyuGram/AyuGramDesktop/commit/d623608993885a3456fc4a118ebaa2030fd407c4)).
 - AyuGram Desktop: [expiring media and TTL timers](https://github.com/AyuGram/AyuGramDesktop/commit/d4b7546e77f93ac4c9bb53a3fcf7e9ffbbecf1b5).
 
+BananaGram iOS Extras catalog (`ForkExtrasSettings`) is exposed on Android through
+`BananaConfig` and the Extras hub in Settings. Boolean preferences are stored per
+account; high-impact behaviors (ads, Premium unlock, call confirmation, mention/pinned
+notification filters, stories/archive visibility, exact counters, Ghost↔AyuGram sync)
+are wired. Non-boolean values (saturation, sticker size/shape, photo quality, seek,
+double-tap action, glass levels, marks, backends) live under Values and Marks with
+iOS defaults; deleted/edited marks, media seek and outgoing photo size are wired.
+Remaining toggles and value behaviors keep preferences for incremental call-site work.
+
 AyuGram research and planned adaptations:
 
 - [AyuGram Desktop](https://github.com/AyuGram/AyuGramDesktop), reference commit

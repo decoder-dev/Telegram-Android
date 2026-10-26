@@ -7,86 +7,86 @@
     {
       "setting": "removePings",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "sendTelegramStatistics",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "bananaIslandEnabled",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "bananaIslandShowsName",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "bananaIslandFollowsIcon",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "wideTabBar",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "integratedTabSearch",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "tabSearchOnLeft",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "bottomChatFoldersEnabled",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "avatarGlowEnabled",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "snowEnabled",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "showChannelForwardCount",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "reactionGlowEnabled",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "showContactsTab",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "ghostDontReadMessages",
@@ -121,8 +121,8 @@
     {
       "setting": "ghostReadOnInteract",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "ghostAlertBeforeOpeningStory",
@@ -133,116 +133,116 @@
     {
       "setting": "instantPasscodeLock",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideMentionNotifications",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hidePinnedNotifications",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "sessionKeychainBackup",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "compactChatList",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "compactMessagePreview",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "compactFolderNames",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideReactionsBar",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "useRecentEmojiInReactions",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "showDC",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "showProfileId",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "accentColorSaturation",
       "type": "Int32",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "confirmBeforeCall",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "sendWithReturnKey",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "forceBuiltInMic",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "keepAliveInBackground",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "translationBackend",
       "type": "ForkTranslationBackend",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "transcriptionBackend",
       "type": "ForkTranscriptionBackend",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "scrollToNextChatDisabled",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "saveDeletedMessages",
@@ -271,116 +271,116 @@
     {
       "setting": "proactiveSaveMedia",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "deletedMessageMark",
       "type": "String",
-      "status": "pending",
-      "android": null
+      "status": "implemented_wired",
+      "android": "BananaConfig + history/UI labels via AyuConfig marks"
     },
     {
       "setting": "editedMessageMark",
       "type": "String",
-      "status": "pending",
-      "android": null
+      "status": "implemented_wired",
+      "android": "BananaConfig + history/UI labels via AyuConfig marks"
     },
     {
       "setting": "ayuForward",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "bypassDownloadRestrictions",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "localPremium",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideAds",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideBlockedMessages",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "allowSecretScreenshots",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "expireTtlButton",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "keepBannedChats",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "regexMessageFiltersEnabled",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "regexMessageFiltersCaseInsensitive",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "regexMessageFilterPatterns",
       "type": "[String]",
       "status": "pending",
-      "android": null
+      "android": "BananaConfig UI pending (non-boolean control)"
     },
     {
       "setting": "ghostScheduleMessages",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideAllChats",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "rememberLastFolder",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideTabBar",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "showMessageSeconds",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "stripTrackingParameters",
@@ -391,212 +391,212 @@
     {
       "setting": "wideChannelPosts",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "stickerSizePercent",
       "type": "Int32",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "doubleTapToEdit",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "quickTranslateButton",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "saveToCloudMenu",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "selectFromAuthor",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "downloadSpeedBoost",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "outgoingPhotoQuality",
       "type": "Int32",
-      "status": "pending",
-      "android": null
+      "status": "implemented_wired",
+      "android": "BananaConfig + AndroidUtilities.getPhotoSize"
     },
     {
       "setting": "streamerMode",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideStickerStatus",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideStickerReplyColors",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "chooseFolderAfterJoin",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "recentChatsMenu",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "messageBookmarks",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "localGroupAlias",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "disableStoryCameraSwipe",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "jumpToStartInChatMenu",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideServiceMessages",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "confirmReactionsInUnjoinedChats",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "confirmTelegramLinks",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "confirmShareLinks",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "confirmChatPreviewEntry",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "disableGiftStarsRedirect",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "visualLabels",
       "type": "[Int64: Int32]",
       "status": "pending",
-      "android": null
+      "android": "BananaConfig UI pending (non-boolean control)"
     },
     {
       "setting": "hideStickerReplyEmoji",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideStickerReplyBackground",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hidePremiumReplyEmoji",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "showChatCreationDate",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "profileIdBotApiFormat",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "showMutualContact",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hidePremiumStatuses",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideVerification",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideGiftButton",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "visualPhoneEnabled",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "visualPhoneNumber",
       "type": "String",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig StringValue + Values UI (behavior pending)"
     },
     {
       "setting": "ghostSendWithoutSound",
@@ -613,260 +613,260 @@
     {
       "setting": "hideStories",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideArchive",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "allowProtectedScreenshots",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "accelerateUpload",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "infiniteRecentStickers",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "onlyAddedStickers",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "autoPauseMediaInBackground",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "doubleTapSeekSeconds",
       "type": "Int32",
-      "status": "pending",
-      "android": null
+      "status": "implemented_wired",
+      "android": "BananaConfig + PhotoViewer double-tap seek"
     },
     {
       "setting": "showMessageId",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "autoRevealSpoilers",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "doubleTapAction",
       "type": "Int32",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "repeatMessageMenu",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "staticRoundVideoZoom",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "stickerShape",
       "type": "Int32",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "commaAfterMention",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "disableColoredReplies",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideStickerChecks",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "mentionAvatars",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "relativeLastSeen",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "disableCustomBackgrounds",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "channelBottomDiscuss",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideChannelBottomButton",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideShareButton",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "glassBubbles",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "glassBubbleTint",
       "type": "Int32",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "glassBubbleRimTop",
       "type": "Int32",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "glassBubbleRimSides",
       "type": "Int32",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "glassBubbleRimBottom",
       "type": "Int32",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "showDisappearedGifts",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "roundVideoStartsWithRear",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "roundVideoRemembersCamera",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "chatListHidesConnectionStatus",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "chatListHidesEmojiStatus",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "chatListCentersTitle",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "chatListHidesSearch",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "pollResultsBeforeVoting",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "exactLastSeen",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "downloadTikTok",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "downloadYouTubeShorts",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "signDownloadedMedia",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "quoteRepliesToDeleted",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "exactCounts",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "confirmVoiceSend",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideTypingText",
@@ -889,176 +889,176 @@
     {
       "setting": "messageShot",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "powerSaving",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "showsOfflineDot",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hidePaidReactions",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideViaBot",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "removeLinkPreviews",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideBirthdayNotifications",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideBotAutomation",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "showPinnedWithBot",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "stopAfterVoice",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "stopAfterRoundVideo",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideGreetingSticker",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hashtagsPreferCurrentChat",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "showOriginalForwardDate",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "sendBannedGifsAsVideo",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "showSensitiveContent",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "disableStoryCreation",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideChannelPostReactions",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "defaultSendFormatting",
       "type": "Int32",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     },
     {
       "setting": "avatarLongPressMention",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "fixLinkPreviews",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "saveStickerToPhotos",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "showMediaInfo",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "inviteLinksBulkRevoke",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hideFolderUnreadCount",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "confirmUnpin",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "hidePrivateChatActivities",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "stayAtLatestMessageAfterRefresh",
       "type": "Bool",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
     },
     {
       "setting": "defaultVideoQuality",
       "type": "Int32",
-      "status": "pending",
-      "android": null
+      "status": "implemented_settings_ui_pending_behavior",
+      "android": "BananaConfig IntValue + Values UI (behavior pending)"
     }
   ]
 }

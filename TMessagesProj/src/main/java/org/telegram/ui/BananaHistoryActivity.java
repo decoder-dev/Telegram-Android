@@ -7,6 +7,7 @@ import android.widget.EditText;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.messenger.banana.HistoryDatabase;
 import org.telegram.messenger.banana.MessageHistory;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -32,7 +33,7 @@ public final class BananaHistoryActivity extends UniversalFragment {
     public BananaHistoryActivity(int account) { setCurrentAccount(account); }
 
     @Override
-    public Theme.ResourcesProvider getResourceProvider() { return BananaTheme.COLORS; }
+    public Theme.ResourcesProvider getResourceProvider() { return BananaTheme.forExtras(); }
 
     @Override
     protected CharSequence getTitle() { return LocaleController.getString(R.string.BananaHistory); }
@@ -75,8 +76,7 @@ public final class BananaHistoryActivity extends UniversalFragment {
         }
         for (int i = 0; i < records.size(); i++) {
             HistoryDatabase.Record record = records.get(i);
-            String title = LocaleController.getString(record.deleted ? R.string.BananaHistoryDeleted : R.string.BananaHistoryEdited)
-                    + " · " + LocaleController.formatDateAudio(record.savedAt / 1000, true);
+            String title = historyMark(record.deleted) + " · " + LocaleController.formatDateAudio(record.savedAt / 1000, true);
             String display = display(record);
             int end = Math.min(500, display.length());
             if (end < display.length() && Character.isHighSurrogate(display.charAt(end - 1))) end--;
@@ -120,6 +120,15 @@ public final class BananaHistoryActivity extends UniversalFragment {
                     }));
             showDialog(builder.create());
         }
+    }
+
+    private String historyMark(boolean deleted) {
+        if (deleted) {
+            String mark = BananaConfig.deletedMessageMark(currentAccount);
+            return mark == null || mark.isEmpty() ? LocaleController.getString(R.string.BananaHistoryDeleted) : mark;
+        }
+        String mark = BananaConfig.editedMessageMark(currentAccount);
+        return mark == null || mark.isEmpty() ? LocaleController.getString(R.string.BananaHistoryEdited) : mark;
     }
 
     private String display(HistoryDatabase.Record record) {

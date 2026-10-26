@@ -8,6 +8,8 @@
 
 package org.telegram.messenger;
 
+import com.radolyn.ayugram.AyuConstants;
+
 import android.Manifest;
 import android.accounts.Account;
 import android.accounts.AccountManager;

@@ -17,7 +17,8 @@ public class VoIpSnowView extends View {
     }
 
     {
-        if (LiteMode.isEnabled(LiteMode.FLAG_CALLS_ANIMATIONS) && Theme.getEventType() == 0) {
+        boolean bananaSnow = org.telegram.messenger.banana.BananaHooks.snowEnabled(org.telegram.messenger.UserConfig.selectedAccount);
+        if (LiteMode.isEnabled(LiteMode.FLAG_CALLS_ANIMATIONS) && (bananaSnow || Theme.getEventType() == 0)) {
             snowflakesEffect = new SnowflakesEffect(0);
         }
     }

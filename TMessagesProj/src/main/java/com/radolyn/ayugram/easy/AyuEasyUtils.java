@@ -9,6 +9,8 @@
 
 package com.radolyn.ayugram.easy;
 
+import org.telegram.messenger.SendMessagesHelper;
+
 import com.radolyn.ayugram.utils.AyuGhostUtils;
 import org.telegram.messenger.*;
 import org.telegram.tgnet.TLRPC;
@@ -57,7 +59,7 @@ public class AyuEasyUtils {
         var helper = SendMessagesHelper.getInstance(currentAccount);
 
         AndroidUtilities.runOnUIThread(() -> {
-            helper.sendMessage(
+            helper.sendMessage(SendMessagesHelper.SendMessageParams.of(
                     message,
                     peer,
                     replyToMsg,
@@ -69,9 +71,10 @@ public class AyuEasyUtils {
                     null,
                     notify,
                     0,
+                    0,
                     null,
                     false
-            );
+            ));
         });
 
         waiter.trySetSendingId(dialogId);
@@ -108,7 +111,7 @@ public class AyuEasyUtils {
         var params = createParams(groupId, isFinalInGroup);
 
         AndroidUtilities.runOnUIThread(() -> {
-            helper.sendMessage(
+            helper.sendMessage(SendMessagesHelper.SendMessageParams.of(
                     document,
                     null,
                     path,
@@ -122,10 +125,11 @@ public class AyuEasyUtils {
                     notify,
                     0,
                     0,
+                    0,
                     null,
                     null,
                     false
-            );
+            ));
         });
 
         if (waitToSend) {
@@ -174,7 +178,7 @@ public class AyuEasyUtils {
         var params = createParams(groupId, isFinalInGroup);
 
         AndroidUtilities.runOnUIThread(() -> {
-            helper.sendMessage(
+            helper.sendMessage(SendMessagesHelper.SendMessageParams.of(
                     photo,
                     path,
                     peer,
@@ -187,10 +191,11 @@ public class AyuEasyUtils {
                     notify,
                     0,
                     0,
+                    0,
                     null,
                     false,
                     false
-            );
+            ));
         });
 
         if (waitToSend) {

@@ -9,6 +9,8 @@
 
 package com.radolyn.ayugram;
 
+import org.telegram.messenger.ApplicationLoader;
+
 import android.content.Intent;
 import android.net.Uri;
 import org.telegram.messenger.*;
@@ -33,7 +35,7 @@ public class AyuCustomHandlers {
             BulletinFactory.of(fragment).createSimpleBulletin(R.raw.info, LocaleController.getString(R.string.SecretMessageXiaomiFailure)).show();
 
             Intent intent = new Intent(Intent.ACTION_DELETE);
-            intent.setData(Uri.parse("package:" + BuildConfig.APPLICATION_ID));
+            intent.setData(Uri.parse("package:" + ApplicationLoader.applicationContext.getPackageName()));
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             ApplicationLoader.applicationContext.startActivity(intent);
         } else {

@@ -56,6 +56,16 @@ configurations.all {
 }
 
 dependencies {
+    api project(":TMessagesProj_Modules:media3:media-lib-exoplayer")
+    api project(":TMessagesProj_Modules:media3:media-lib-exoplayer-dash")
+    api project(":TMessagesProj_Modules:media3:media-lib-exoplayer-hls")
+    api project(":TMessagesProj_Modules:media3:media-lib-decoder-ffmpeg")
+    api project(":TMessagesProj_Modules:media3:media-lib-session")
+    api project(':jlatexmath')
+    implementation 'com.google.android.recaptcha:recaptcha:18.7.1'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+    testImplementation 'junit:junit:4.13.2'
+
     // AyuGram local message archive.
     implementation "androidx.room:room-runtime:2.4.3"
     annotationProcessor "androidx.room:room-compiler:2.4.3"
@@ -114,11 +124,42 @@ dependencies {
     implementation "dev.gustavoavila:java-android-websocket-client:2.0.2"
     implementation "com.squareup.okhttp3:okhttp:4.10.0"
 
+    // Markdown / Markwon (MarkdownParser) — commonmark group is com.atlassian for 0.13.x
+    implementation "io.noties.markwon:core:4.6.2"
+    implementation "io.noties.markwon:html:4.6.2"
+    implementation "io.noties.markwon:ext-strikethrough:4.6.2"
+    implementation "io.noties.markwon:ext-tables:4.6.2"
+    implementation "io.noties.markwon:inline-parser:4.6.2"
+    implementation "com.atlassian.commonmark:commonmark:0.13.0"
+    implementation "com.atlassian.commonmark:commonmark-ext-gfm-strikethrough:0.13.0"
+    implementation "com.atlassian.commonmark:commonmark-ext-gfm-tables:0.13.0"
+
     implementation files('libs/libgsaverification-client.aar')
 }
 
 def isPmBuild = "false"
 def abis = [9: 'universal', 1: 'armeabi-v7a', 5: 'arm64-v8a', 2: 'x86', 6: 'x86_64']
+
+// Obtain your own keys at: https://core.telegram.org/api/obtaining_api_id
+// Prefer TELEGRAM_API_* env; fall back to API_KEYS for AyuGram-style local builds.
+Properties localApiKeys = new Properties()
+if (project.rootProject.file('API_KEYS').exists()) {
+    localApiKeys.load(project.rootProject.file('API_KEYS').newDataInputStream())
+}
+def resolvedAppId = bananaApiId != 0 ? bananaApiId.toString() : localApiKeys.getProperty("APP_ID", "0")
+def resolvedAppHash = !bananaApiHash.isEmpty() ? ("\"" + bananaApiHash + "\"") : localApiKeys.getProperty("APP_HASH", "\"\"")
+def resolvedAyuVersion = '"' + new Date().format("yyyyMMdd") + '"'
+
+ext.getProps = { String propName ->
+    def propsFile = rootProject.file('local.properties')
+    if (propsFile.exists()) {
+        def props = new Properties()
+        props.load(new FileInputStream(propsFile))
+        def value = props[propName]
+        return value != null ? value : ""
+    }
+    return ""
+}
 
 android {
     compileSdkVersion 33
@@ -126,30 +167,8 @@ android {
     ndkVersion "21.4.7075529"
     namespace 'org.telegram.messenger'
 
-    defaultConfig.applicationId = APP_PACKAGE
+    // Library modules cannot set applicationId (AGP 8+).
     defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)
-
-    Properties localProperties = new Properties()
-    if (project.rootProject.file('API_KEYS').exists()) {
-        localProperties.load(project.rootProject.file('API_KEYS').newDataInputStream())
-    }
-
-    api project(":TMessagesProj_Modules:media3:media-lib-exoplayer")
-    api project(":TMessagesProj_Modules:media3:media-lib-exoplayer-dash")
-    api project(":TMessagesProj_Modules:media3:media-lib-exoplayer-hls")
-    api project(":TMessagesProj_Modules:media3:media-lib-decoder-ffmpeg")
-    api project(":TMessagesProj_Modules:media3:media-lib-session")
-    api project(':jlatexmath')
-
-        // Obtain your own keys at: https://core.telegram.org/api/obtaining_api_id
-        buildConfigField 'int', 'APP_ID', localProperties.getProperty("APP_ID")
-        buildConfigField 'String', 'APP_HASH', localProperties.getProperty("APP_HASH")
-        buildConfigField 'String', 'AYU_VERSION', '"' + new Date().format("yyyyMMdd") + '"'
-
-    implementation 'com.google.android.recaptcha:recaptcha:18.7.1'
-
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
-    testImplementation 'junit:junit:4.13.2'
 }
 
 // Development builds can be inspected without credentials; distributable
@@ -168,21 +187,17 @@ tasks.configureEach { task ->
 }
 
 android {
-    buildFeatures { aidl = true }
+    buildFeatures {
+        aidl = true
+        buildConfig = true
+    }
     compileSdkVersion 36
     buildToolsVersion '36.0.0'
     ndkVersion "27.2.12479018"
 
-
     externalNativeBuild {
         cmake {
             path 'jni/CMakeLists.txt'
-        }
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
-            }
         }
     }
 
@@ -193,8 +208,9 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // Java 11+: Ayu/Banana code uses local-variable type inference (`var`).
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
 
         coreLibraryDesugaringEnabled true
     }
@@ -202,12 +218,21 @@ android {
     defaultConfig {
         buildConfigField "int", "TELEGRAM_API_ID", bananaApiId.toString()
         buildConfigField "String", "TELEGRAM_API_HASH", groovy.json.JsonOutput.toJson(bananaApiHash)
+        buildConfigField 'int', 'APP_ID', resolvedAppId
+        buildConfigField 'String', 'APP_HASH', resolvedAppHash
+        buildConfigField 'String', 'AYU_VERSION', resolvedAyuVersion
         minSdkVersion 23
         targetSdkVersion 36
 
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
 
         multiDexEnabled true
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
 
         externalNativeBuild {
             cmake {
@@ -225,7 +250,7 @@ android {
             multiDexEnabled true
             ndk.debugSymbolLevel = 'FULL'
             buildConfigField "String", "BUILD_VERSION_STRING", "\"" + APP_VERSION_NAME + "\""
-            buildConfigField "String", "BETA_URL", "\"" + getProps("BETA_PRIVATE_URL") + "\""
+            buildConfigField "String", "BETA_URL", "\"" + project.ext.getProps("BETA_PRIVATE_URL") + "\""
             buildConfigField "boolean", "DEBUG_VERSION", "true"
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "true"
             buildConfigField "boolean", "BUNDLE", "false"
@@ -238,7 +263,7 @@ android {
             multiDexEnabled true
             ndk.debugSymbolLevel = 'FULL'
             buildConfigField "String", "BUILD_VERSION_STRING", "\"" + APP_VERSION_NAME + "\""
-            buildConfigField "String", "BETA_URL", "\"" + getProps("BETA_PRIVATE_URL") + "\""
+            buildConfigField "String", "BETA_URL", "\"" + project.ext.getProps("BETA_PRIVATE_URL") + "\""
             buildConfigField "boolean", "DEBUG_VERSION", "true"
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "true"
             buildConfigField "boolean", "BUNDLE", "false"
@@ -251,7 +276,7 @@ android {
             multiDexEnabled true
             ndk.debugSymbolLevel = 'FULL'
             buildConfigField "String", "BUILD_VERSION_STRING", "\"" + APP_VERSION_NAME + "\""
-            buildConfigField "String", "BETA_URL", "\"" + getProps("BETA_PUBLIC_URL") + "\""
+            buildConfigField "String", "BETA_URL", "\"" + project.ext.getProps("BETA_PUBLIC_URL") + "\""
             buildConfigField "boolean", "DEBUG_VERSION", "true"
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "false"
             buildConfigField "boolean", "BUNDLE", "false"
@@ -264,7 +289,7 @@ android {
             multiDexEnabled true
             ndk.debugSymbolLevel = 'FULL'
             buildConfigField "String", "BUILD_VERSION_STRING", "\"" + APP_VERSION_NAME + "\""
-            buildConfigField "String", "BETA_URL", "\"" + getProps("BETA_HARDCORE_URL") + "\""
+            buildConfigField "String", "BETA_URL", "\"" + project.ext.getProps("BETA_HARDCORE_URL") + "\""
             buildConfigField "boolean", "DEBUG_VERSION", "true"
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "true"
             buildConfigField "boolean", "BUNDLE", "false"

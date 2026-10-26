@@ -548,10 +548,15 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         avatarView.setForUserOrChat(user, avatarDrawable);
         titleView.setText(UserObject.getUserName(user));
         final StringBuilder sb = new StringBuilder();
-        if (user != null) {
-            sb.append(PhoneFormat.getInstance().format("+" + user.phone));
+        if (user != null && !TextUtils.isEmpty(user.phone)) {
+            String phone = org.telegram.messenger.banana.BananaHooks.maybeMaskPhone(currentAccount, user.phone);
+            if ("•••••".equals(phone)) {
+                sb.append(phone);
+            } else {
+                sb.append(PhoneFormat.getInstance().format("+" + phone));
+            }
         }
-        final String username = UserObject.getPublicUsername(user);
+        final String username = org.telegram.messenger.banana.BananaHooks.maybeMaskUsername(currentAccount, UserObject.getPublicUsername(user));
         if (username != null) {
             sb.append(" • @").append(username);
         }

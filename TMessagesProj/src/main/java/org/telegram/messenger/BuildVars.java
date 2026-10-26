@@ -24,12 +24,13 @@ public class BuildVars {
     public static boolean USE_CLOUD_STRINGS = true;
     public static boolean CHECK_UPDATES = true;
     public static boolean NO_SCOPED_STORAGE = Build.VERSION.SDK_INT <= 29;
-    public static boolean PM_BUILD = BuildConfig.IS_PM_BUILD;
+    public static boolean PM_BUILD = false;
     public static int BUILD_VERSION;
     public static String BUILD_VERSION_STRING;
     public static String AYU_VERSION;
     public static int APP_ID;
     public static String APP_HASH;
+    public static String SMS_HASH;
 
     // SafetyNet key for Google Identity SDK, set it to empty to disable
     public static String SAFETYNET_KEY = "AIzaSyDqt8P-7F7CPCseMkOiVRgb1LY8RN1bvH8";
@@ -46,8 +47,8 @@ public class BuildVars {
     public static boolean SUPPORTS_PASSKEYS = true;
 
     static {
-        BUILD_VERSION = BuildConfig.VERSION_CODE;
-        BUILD_VERSION_STRING = BuildConfig.VERSION_NAME;
+        BUILD_VERSION = 7237;
+        BUILD_VERSION_STRING = BuildConfig.BUILD_VERSION_STRING;
         AYU_VERSION = BuildConfig.AYU_VERSION;
 
         // Obtain your own APP_ID at https://core.telegram.org/api/obtaining_api_id

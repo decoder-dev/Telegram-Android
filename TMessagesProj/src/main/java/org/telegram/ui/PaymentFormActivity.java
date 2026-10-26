@@ -483,7 +483,7 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
         paymentFormCallback = callback;
     }
 
-    private void setCurrentPassword(TLRPC.account_Password password) {
+    private void setCurrentPassword(TL_account.Password password) {
         if (password == null) {
             return;
         }

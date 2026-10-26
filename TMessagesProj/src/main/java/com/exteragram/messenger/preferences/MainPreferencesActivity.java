@@ -270,7 +270,7 @@ public class MainPreferencesActivity extends BasePreferencesActivity {
                     if (position == generalRow) {
                         textCell.setTextAndIcon(LocaleController.getString("General", R.string.General), R.drawable.msg_media, true);
                     } else if (position == appearanceRow) {
-                        textCell.setTextAndIcon(LocaleController.getString("Appearance", R.string.Appearance), R.drawable.msg_theme, true);
+                        textCell.setTextAndIcon(LocaleController.getString("Appearance", R.string.appearance), R.drawable.msg_theme, true);
                     } else if (position == chatsRow) {
                         textCell.setTextAndIcon(LocaleController.getString("SearchAllChatsShort", R.string.SearchAllChatsShort), R.drawable.msg_discussion, true);
                     } else if (position == otherRow) {

@@ -8,6 +8,8 @@
 
 package org.telegram.messenger;
 
+import android.util.Log;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlarmManager;
@@ -37,6 +39,8 @@ import androidx.annotation.NonNull;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.radolyn.ayugram.AyuConfig;
+
+import org.json.JSONObject;
 
 import com.radolyn.ayugram.sync.AyuSyncController;
 import org.telegram.messenger.voip.VideoCapturerDevice;

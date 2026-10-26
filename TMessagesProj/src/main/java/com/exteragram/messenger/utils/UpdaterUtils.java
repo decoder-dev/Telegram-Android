@@ -141,7 +141,7 @@ public class UpdaterUtils {
                 version = obj.getString("tag_name");
                 changelog = obj.getString("body");
                 uploadDate = obj.getString("published_at").replaceAll("[TZ]", " ");
-                uploadDate = LocaleController.formatDateTime(getMillisFromDate(uploadDate, "yyyy-M-dd hh:mm:ss") / 1000);
+                uploadDate = LocaleController.formatDateTime(getMillisFromDate(uploadDate, "yyyy-M-dd hh:mm:ss") / 1000, true);
                 Update update = new Update(version, changelog, size, downloadURL, uploadDate);
                 if (update.isNew() && fragment != null) {
                     checkDirs();
@@ -209,7 +209,7 @@ public class UpdaterUtils {
 
     public static String getOtaDirSize() {
         checkDirs();
-        return AndroidUtilities.formatFileSize(Utilities.getDirSize(otaPath.getAbsolutePath(), 5, true), true);
+        return AndroidUtilities.formatFileSize(Utilities.getDirSize(otaPath.getAbsolutePath(), 5, true), true, false);
     }
 
     public static String getInstalledApkType() {
@@ -273,7 +273,7 @@ public class UpdaterUtils {
             int end;
             StringBuilder stringBuilder = new StringBuilder(str);
             SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(str);
-            String symbol = "", font = AndroidUtilities.TYPEFACE_ROBOTO_REGULAR;
+            String symbol = "", font = AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM;
             for (int i = 0; i < 3; i++) {
                 switch (i) {
                     case 0:
@@ -282,7 +282,7 @@ public class UpdaterUtils {
                         break;
                     case 1:
                         symbol = "_";
-                        font = AndroidUtilities.TYPEFACE_ROBOTO_ITALIC;
+                        font = AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM_ITALIC;
                         break;
                     case 2:
                         symbol = "`";

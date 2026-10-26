@@ -78,8 +78,29 @@ public class VoIPHelper {
 			AccountFrozenAlert.show(accountInstance == null ? UserConfig.selectedAccount : accountInstance.getCurrentAccount());
 			return;
 		}
+		final int bananaAccount = accountInstance != null ? accountInstance.getCurrentAccount() : UserConfig.selectedAccount;
+		if (org.telegram.messenger.banana.BananaHooks.confirmBeforeCall(bananaAccount) && activity != null && user != null) {
+			try {
+				new AlertDialog.Builder(activity)
+						.setTitle(LocaleController.getString(R.string.BananaOpt_CONFIRM_BEFORE_CALL))
+						.setMessage(ContactsController.formatName(user.first_name, user.last_name))
+						.setPositiveButton(LocaleController.getString(R.string.Call), (d, w) ->
+								startCallConfirmed(user, videoCall, canVideoCall, activity, userFull, accountInstance))
+						.setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+						.show();
+			} catch (Exception e) {
+				FileLog.e(e);
+				startCallConfirmed(user, videoCall, canVideoCall, activity, userFull, accountInstance);
+			}
+			return;
+		}
+		startCallConfirmed(user, videoCall, canVideoCall, activity, userFull, accountInstance);
+	}
+
+	private static void startCallConfirmed(TLRPC.User user, boolean videoCall, boolean canVideoCall, final Activity activity, TLRPC.UserFull userFull, AccountInstance accountInstance) {
 		if (userFull != null && userFull.phone_calls_private) {
-			AlertsCreator.showCallsForbidden(activity, accountInstance.getCurrentAccount(), user.id, null);
+			int account = accountInstance != null ? accountInstance.getCurrentAccount() : UserConfig.selectedAccount;
+			AlertsCreator.showCallsForbidden(activity, account, user.id, null);
 			return;
 		}
 		if (ConnectionsManager.getInstance(UserConfig.selectedAccount).getConnectionState() != ConnectionsManager.ConnectionStateConnected) {
