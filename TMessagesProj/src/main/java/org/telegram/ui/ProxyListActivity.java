@@ -28,6 +28,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -62,6 +63,7 @@ import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
+import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.CheckBox2;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
@@ -90,6 +92,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     private int rowCount;
     @Keep
     private int useProxyRow;
+    private int automaticProxyRow;
+    private int vlessRow;
     private int useProxyShadowRow;
     private int connectionsHeaderRow;
     private int proxyStartRow;
@@ -430,6 +434,14 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                         cell.updateStatus();
                     }
                 }
+            } else if (position == automaticProxyRow) {
+                boolean enabled = !org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled();
+                org.telegram.messenger.banana.BananaAutomaticProxy.setEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+            } else if (position == vlessRow) {
+                showVlessEditor();
             } else if (position == rotationRow) {
                 SharedConfig.proxyRotationEnabled = !SharedConfig.proxyRotationEnabled;
                 TextCheckCell textCheckCell = (TextCheckCell) view;
@@ -591,9 +603,44 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         return super.onBackPressed(invoked);
     }
 
+    private void showVlessEditor() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        EditText field = new EditText(getParentActivity());
+        field.setText(org.telegram.messenger.banana.VlessProfile.load());
+        field.setHint("vless://");
+        int pad = AndroidUtilities.dp(20);
+        field.setPadding(pad, pad, pad, pad);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(getString(R.string.BananaVless));
+        builder.setMessage(getString(R.string.BananaVlessHint));
+        builder.setView(field);
+        builder.setNegativeButton(getString(R.string.Cancel), null);
+        builder.setPositiveButton(getString(R.string.OK), (dialog, which) -> {
+            String text = field.getText().toString().trim();
+            if (text.isEmpty()) {
+                org.telegram.messenger.banana.VlessProfile.save("");
+                updateRows(true);
+                return;
+            }
+            try {
+                org.telegram.messenger.banana.VlessProfile.parse(text);
+                org.telegram.messenger.banana.VlessProfile.save(text);
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.contact_check, getString(R.string.BananaVlessSaved)).show();
+                updateRows(true);
+            } catch (IllegalArgumentException e) {
+                BulletinFactory.of(this).createErrorBulletin(org.telegram.messenger.banana.VlessProfile.errorText(e)).show();
+            }
+        });
+        showDialog(builder.create());
+    }
+
     private void updateRows(boolean notify) {
         rowCount = 0;
         useProxyRow = rowCount++;
+        automaticProxyRow = rowCount++;
+        vlessRow = rowCount++;
         if (useProxySettings && SharedConfig.currentProxy != null && SharedConfig.proxyList.size() > 1 && IS_PROXY_ROTATION_AVAILABLE) {
             rotationRow = rowCount++;
             if (SharedConfig.proxyRotationEnabled) {
@@ -838,7 +885,18 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 case VIEW_TYPE_TEXT_SETTING: {
                     TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
                     textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                    if (position == proxyAddRow) {
+                    if (position == vlessRow) {
+                        String saved = org.telegram.messenger.banana.VlessProfile.load();
+                        String value = getString(R.string.BananaVlessNone);
+                        if (!saved.isEmpty()) {
+                            try {
+                                value = org.telegram.messenger.banana.VlessProfile.parse(saved).summary();
+                            } catch (IllegalArgumentException ignored) {
+                                value = saved;
+                            }
+                        }
+                        textCell.setTextAndValue(getString(R.string.BananaVless), value, true);
+                    } else if (position == proxyAddRow) {
                         textCell.setText(getString(R.string.AddProxy), deleteAllRow != -1);
                     } else if (position == deleteAllRow) {
                         textCell.setTextColor(Theme.getColor(Theme.key_text_RedRegular));
@@ -856,7 +914,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 case VIEW_TYPE_TEXT_CHECK: {
                     TextCheckCell checkCell = (TextCheckCell) holder.itemView;
                     if (position == useProxyRow) {
-                        checkCell.setTextAndCheck(getString(R.string.UseProxySettings), useProxySettings, rotationRow != -1);
+                        checkCell.setTextAndCheck(getString(R.string.UseProxySettings), useProxySettings, true);
+                    } else if (position == automaticProxyRow) {
+                        checkCell.setTextAndValueAndCheck(getString(R.string.BananaAutomaticProxy), getString(R.string.BananaAutomaticProxyInfo), org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled(), true, true);
                     } else if (position == rotationRow) {
                         checkCell.setTextAndCheck(getString(R.string.UseProxyRotation), SharedConfig.proxyRotationEnabled, true);
                     }
@@ -912,6 +972,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 TextCheckCell checkCell = (TextCheckCell) holder.itemView;
                 if (position == useProxyRow) {
                     checkCell.setChecked(useProxySettings);
+                } else if (position == automaticProxyRow) {
+                    checkCell.setChecked(org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled());
                 } else if (position == rotationRow) {
                     checkCell.setChecked(SharedConfig.proxyRotationEnabled);
                 }
@@ -928,6 +990,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 int position = holder.getAdapterPosition();
                 if (position == useProxyRow) {
                     checkCell.setChecked(useProxySettings);
+                } else if (position == automaticProxyRow) {
+                    checkCell.setChecked(org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled());
                 } else if (position == rotationRow) {
                     checkCell.setChecked(SharedConfig.proxyRotationEnabled);
                 }
@@ -937,7 +1001,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position == useProxyRow || position == rotationRow || position == proxyAddRow || position == deleteAllRow || position >= proxyStartRow && position < proxyEndRow;
+            return position == useProxyRow || position == automaticProxyRow || position == vlessRow || position == rotationRow || position == proxyAddRow || position == deleteAllRow || position >= proxyStartRow && position < proxyEndRow;
         }
 
         @Override
@@ -997,6 +1061,10 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 return -10;
             } else if (position == rotationTimeoutInfoRow) {
                 return -11;
+            } else if (position == automaticProxyRow) {
+                return -12;
+            } else if (position == vlessRow) {
+                return -13;
             } else if (position >= proxyStartRow && position < proxyEndRow) {
                 return proxyList.get(position - proxyStartRow).hashCode();
             } else {
@@ -1008,9 +1076,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         public int getItemViewType(int position) {
             if (position == useProxyShadowRow || position == proxyShadowRow) {
                 return VIEW_TYPE_SHADOW;
-            } else if (position == proxyAddRow || position == deleteAllRow) {
+            } else if (position == proxyAddRow || position == deleteAllRow || position == vlessRow) {
                 return VIEW_TYPE_TEXT_SETTING;
-            } else if (position == useProxyRow || position == rotationRow) {
+            } else if (position == useProxyRow || position == automaticProxyRow || position == rotationRow) {
                 return VIEW_TYPE_TEXT_CHECK;
             } else if (position == connectionsHeaderRow) {
                 return VIEW_TYPE_HEADER;

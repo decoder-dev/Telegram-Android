@@ -4608,6 +4608,13 @@ public class AndroidUtilities {
             }
             Uri data = intent.getData();
             if (data != null) {
+                String scheme = data.getScheme();
+                if (scheme != null && scheme.equalsIgnoreCase("vless")) {
+                    if (invoked) {
+                        showVlessAlert(activity, data.toString());
+                    }
+                    return true;
+                }
                 final ProxySettings proxySettings = ProxySettings.fromUri(data);
                 if (proxySettings != null && proxySettings.isValid()) {
                     if (invoked) showProxyAlert(activity, proxySettings);
@@ -4618,6 +4625,27 @@ public class AndroidUtilities {
 
         }
         return false;
+    }
+
+    private static void showVlessAlert(Activity activity, String url) {
+        org.telegram.messenger.banana.VlessProfile profile;
+        try {
+            profile = org.telegram.messenger.banana.VlessProfile.parse(url);
+        } catch (IllegalArgumentException e) {
+            new AlertDialog.Builder(activity)
+                    .setTitle(getString(R.string.BananaVless))
+                    .setMessage(org.telegram.messenger.banana.VlessProfile.errorText(e))
+                    .setPositiveButton(getString(R.string.OK), null)
+                    .show();
+            return;
+        }
+        org.telegram.messenger.banana.VlessProfile saved = profile;
+        new AlertDialog.Builder(activity)
+                .setTitle(getString(R.string.BananaVless))
+                .setMessage(saved.summary() + "\n\n" + getString(R.string.BananaVlessRuntimeMissing))
+                .setPositiveButton(getString(R.string.OK), (dialog, which) -> org.telegram.messenger.banana.VlessProfile.save(saved.url))
+                .setNegativeButton(getString(R.string.Cancel), null)
+                .show();
     }
 
     public static float getAnimatorDurationScale() {

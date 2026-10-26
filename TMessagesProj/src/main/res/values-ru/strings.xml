@@ -607,5 +607,12 @@
     <string name="BananaSaveToCloud">В Избранное</string>
     <string name="BananaSavedToCloud">Сохранено в Избранное</string>
     <string name="BananaRepeatMessage">Повторить</string>
+    <string name="BananaAutomaticProxy">Автопрокси</string>
+    <string name="BananaAutomaticProxyInfo">Подбирает публичные MTProto-прокси (tg://proxy, t.me/proxy и host:port:secret). Вручную добавленный прокси остаётся выбранным.</string>
+    <string name="BananaVless">VLESS</string>
+    <string name="BananaVlessNone">Не задан</string>
+    <string name="BananaVlessHint">Вставьте ссылку vless://. SOCKS5, MTProto и WEB остаются доступны.</string>
+    <string name="BananaVlessRuntimeMissing">Ссылка сохранена. В этой сборке Android нет встроенного Xray, поэтому VLESS не подменяет активный SOCKS5, MTProto или WEB. Ссылки tg://proxy и t.me/proxy работают как раньше.</string>
+    <string name="BananaVlessSaved">Ссылка VLESS сохранена</string>
 
 </resources>
