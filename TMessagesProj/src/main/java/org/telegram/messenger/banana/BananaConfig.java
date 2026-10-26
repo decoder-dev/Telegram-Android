@@ -259,6 +259,189 @@ public final class BananaConfig {
                 get(account, Option.DONT_READ_MESSAGES));
     }
 
+    /** Non-boolean ForkExtrasSettings values (ints / strings / enum backends). */
+    public enum IntValue {
+        ACCENT_COLOR_SATURATION("bananaAccentColorSaturation", 100),
+        STICKER_SIZE_PERCENT("bananaStickerSizePercent", 100),
+        OUTGOING_PHOTO_QUALITY("bananaOutgoingPhotoQuality", 0),
+        DOUBLE_TAP_SEEK_SECONDS("bananaDoubleTapSeekSeconds", 15),
+        DOUBLE_TAP_ACTION("bananaDoubleTapAction", 0),
+        STICKER_SHAPE("bananaStickerShape", 0),
+        GLASS_BUBBLE_TINT("bananaGlassBubbleTint", 25),
+        GLASS_BUBBLE_RIM_TOP("bananaGlassBubbleRimTop", 95),
+        GLASS_BUBBLE_RIM_SIDES("bananaGlassBubbleRimSides", 20),
+        GLASS_BUBBLE_RIM_BOTTOM("bananaGlassBubbleRimBottom", 55),
+        DEFAULT_SEND_FORMATTING("bananaDefaultSendFormatting", 0),
+        DEFAULT_VIDEO_QUALITY("bananaDefaultVideoQuality", 0),
+        TRANSLATION_BACKEND("bananaTranslationBackend", 0),
+        TRANSCRIPTION_BACKEND("bananaTranscriptionBackend", 0);
+
+        public final String key;
+        public final int defaultValue;
+        IntValue(String key, int defaultValue) {
+            this.key = key;
+            this.defaultValue = defaultValue;
+        }
+    }
+
+    public enum StringValue {
+        DELETED_MESSAGE_MARK("bananaDeletedMessageMark", "🧹"),
+        EDITED_MESSAGE_MARK("bananaEditedMessageMark", ""),
+        VISUAL_PHONE_NUMBER("bananaVisualPhoneNumber", "");
+
+        public final String key;
+        public final String defaultValue;
+        StringValue(String key, String defaultValue) {
+            this.key = key;
+            this.defaultValue = defaultValue;
+        }
+    }
+
+    private static final int[] DOUBLE_TAP_SEEK_ALLOWED = {0, 5, 10, 15, 30};
+    private static final int[] DOUBLE_TAP_ACTION_ALLOWED = {0, 1, 2, 3, 4, 6};
+
+    public static int getInt(int account, IntValue value) {
+        SharedPreferences prefs = MessagesController.getMainSettings(account);
+        int fallback = value.defaultValue;
+        if (value == IntValue.DOUBLE_TAP_ACTION && !prefs.contains(value.key) && get(account, Option.DOUBLE_TAP_TO_EDIT)) {
+            fallback = 6;
+        }
+        return clampInt(value, prefs.getInt(value.key, fallback));
+    }
+
+    public static void setInt(int account, IntValue value, int raw) {
+        MessagesController.getMainSettings(account).edit().putInt(value.key, clampInt(value, raw)).apply();
+        if (value == IntValue.DOUBLE_TAP_ACTION) {
+            set(account, Option.DOUBLE_TAP_TO_EDIT, clampInt(value, raw) == 6);
+        }
+    }
+
+    public static String getString(int account, StringValue value) {
+        String stored = MessagesController.getMainSettings(account).getString(value.key, value.defaultValue);
+        return stored != null ? stored : value.defaultValue;
+    }
+
+    public static void setString(int account, StringValue value, String raw) {
+        String next = raw != null ? raw : value.defaultValue;
+        if ((value == StringValue.DELETED_MESSAGE_MARK || value == StringValue.EDITED_MESSAGE_MARK) && next.length() > 8) {
+            next = next.substring(0, 8);
+        }
+        MessagesController.getMainSettings(account).edit().putString(value.key, next).apply();
+        if (value == StringValue.DELETED_MESSAGE_MARK) {
+            syncAyuMark("deletedMarkText", next);
+        } else if (value == StringValue.EDITED_MESSAGE_MARK) {
+            syncAyuMark("editedMarkText", next);
+        }
+    }
+
+    public static int accentColorSaturation(int account) { return getInt(account, IntValue.ACCENT_COLOR_SATURATION); }
+    public static void setAccentColorSaturation(int account, int value) { setInt(account, IntValue.ACCENT_COLOR_SATURATION, value); }
+
+    public static int stickerSizePercent(int account) { return getInt(account, IntValue.STICKER_SIZE_PERCENT); }
+    public static void setStickerSizePercent(int account, int value) { setInt(account, IntValue.STICKER_SIZE_PERCENT, value); }
+
+    public static int outgoingPhotoQuality(int account) { return getInt(account, IntValue.OUTGOING_PHOTO_QUALITY); }
+    public static void setOutgoingPhotoQuality(int account, int value) { setInt(account, IntValue.OUTGOING_PHOTO_QUALITY, value); }
+
+    /** Max side length for outgoing photos: 0→1280, 1→1920, 2→2560. */
+    public static int outgoingPhotoMaxSide(int account) {
+        switch (outgoingPhotoQuality(account)) {
+            case 1: return 1920;
+            case 2: return 2560;
+            default: return 1280;
+        }
+    }
+
+    public static int doubleTapSeekSeconds(int account) { return getInt(account, IntValue.DOUBLE_TAP_SEEK_SECONDS); }
+    public static void setDoubleTapSeekSeconds(int account, int value) { setInt(account, IntValue.DOUBLE_TAP_SEEK_SECONDS, value); }
+
+    public static int doubleTapAction(int account) { return getInt(account, IntValue.DOUBLE_TAP_ACTION); }
+    public static void setDoubleTapAction(int account, int value) { setInt(account, IntValue.DOUBLE_TAP_ACTION, value); }
+
+    public static int stickerShape(int account) { return getInt(account, IntValue.STICKER_SHAPE); }
+    public static void setStickerShape(int account, int value) { setInt(account, IntValue.STICKER_SHAPE, value); }
+
+    public static int glassBubbleTint(int account) { return getInt(account, IntValue.GLASS_BUBBLE_TINT); }
+    public static void setGlassBubbleTint(int account, int value) { setInt(account, IntValue.GLASS_BUBBLE_TINT, value); }
+
+    public static int glassBubbleRimTop(int account) { return getInt(account, IntValue.GLASS_BUBBLE_RIM_TOP); }
+    public static void setGlassBubbleRimTop(int account, int value) { setInt(account, IntValue.GLASS_BUBBLE_RIM_TOP, value); }
+
+    public static int glassBubbleRimSides(int account) { return getInt(account, IntValue.GLASS_BUBBLE_RIM_SIDES); }
+    public static void setGlassBubbleRimSides(int account, int value) { setInt(account, IntValue.GLASS_BUBBLE_RIM_SIDES, value); }
+
+    public static int glassBubbleRimBottom(int account) { return getInt(account, IntValue.GLASS_BUBBLE_RIM_BOTTOM); }
+    public static void setGlassBubbleRimBottom(int account, int value) { setInt(account, IntValue.GLASS_BUBBLE_RIM_BOTTOM, value); }
+
+    public static int defaultSendFormatting(int account) { return getInt(account, IntValue.DEFAULT_SEND_FORMATTING); }
+    public static void setDefaultSendFormatting(int account, int value) { setInt(account, IntValue.DEFAULT_SEND_FORMATTING, value); }
+
+    public static int defaultVideoQuality(int account) { return getInt(account, IntValue.DEFAULT_VIDEO_QUALITY); }
+    public static void setDefaultVideoQuality(int account, int value) { setInt(account, IntValue.DEFAULT_VIDEO_QUALITY, value); }
+
+    /** 0 = Telegram default, 1 = system. */
+    public static int translationBackend(int account) { return getInt(account, IntValue.TRANSLATION_BACKEND); }
+    public static void setTranslationBackend(int account, int value) { setInt(account, IntValue.TRANSLATION_BACKEND, value); }
+
+    /** 0 = Telegram default, 1 = on-device (iOS: apple). */
+    public static int transcriptionBackend(int account) { return getInt(account, IntValue.TRANSCRIPTION_BACKEND); }
+    public static void setTranscriptionBackend(int account, int value) { setInt(account, IntValue.TRANSCRIPTION_BACKEND, value); }
+
+    public static String deletedMessageMark(int account) { return getString(account, StringValue.DELETED_MESSAGE_MARK); }
+    public static void setDeletedMessageMark(int account, String value) { setString(account, StringValue.DELETED_MESSAGE_MARK, value); }
+
+    public static String editedMessageMark(int account) { return getString(account, StringValue.EDITED_MESSAGE_MARK); }
+    public static void setEditedMessageMark(int account, String value) { setString(account, StringValue.EDITED_MESSAGE_MARK, value); }
+
+    public static String visualPhoneNumber(int account) { return getString(account, StringValue.VISUAL_PHONE_NUMBER); }
+    public static void setVisualPhoneNumber(int account, String value) { setString(account, StringValue.VISUAL_PHONE_NUMBER, value); }
+
+    private static int clampInt(IntValue value, int raw) {
+        switch (value) {
+            case ACCENT_COLOR_SATURATION:
+            case GLASS_BUBBLE_TINT:
+            case GLASS_BUBBLE_RIM_TOP:
+            case GLASS_BUBBLE_RIM_SIDES:
+            case GLASS_BUBBLE_RIM_BOTTOM:
+                return Math.max(0, Math.min(100, raw));
+            case STICKER_SIZE_PERCENT:
+                return Math.max(50, Math.min(150, raw));
+            case OUTGOING_PHOTO_QUALITY:
+            case STICKER_SHAPE:
+            case DEFAULT_VIDEO_QUALITY:
+                return Math.max(0, Math.min(2, raw));
+            case TRANSLATION_BACKEND:
+            case TRANSCRIPTION_BACKEND:
+                return Math.max(0, Math.min(1, raw));
+            case DEFAULT_SEND_FORMATTING:
+                return Math.max(0, Math.min(5, raw));
+            case DOUBLE_TAP_SEEK_SECONDS:
+                return nearestAllowed(raw, DOUBLE_TAP_SEEK_ALLOWED, 15);
+            case DOUBLE_TAP_ACTION:
+                return nearestAllowed(raw, DOUBLE_TAP_ACTION_ALLOWED, 0);
+            default:
+                return raw;
+        }
+    }
+
+    private static int nearestAllowed(int raw, int[] allowed, int fallback) {
+        for (int value : allowed) {
+            if (value == raw) {
+                return raw;
+            }
+        }
+        return fallback;
+    }
+
+    private static void syncAyuMark(String key, String value) {
+        try {
+            if (AyuConfig.editor != null) {
+                AyuConfig.editor.putString(key, value).apply();
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
     private static boolean defaultFor(Option option) {
         switch (option) {
             case HIDE_ADS:

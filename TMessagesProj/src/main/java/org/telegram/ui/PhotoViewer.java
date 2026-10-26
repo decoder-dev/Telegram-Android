@@ -192,6 +192,7 @@ import org.telegram.messenger.TranslateController;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.WebFile;
 import org.telegram.messenger.browser.Browser;
@@ -20982,7 +20983,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         boolean forward = x >= width / 3 * 2;
         long current = getCurrentVideoPosition();
         long total = getVideoDuration();
-        return current != C.TIME_UNSET && total > 15 * 1000 && (!forward || total - current > 10000);
+        long seekMs = BananaConfig.doubleTapSeekSeconds(currentAccount) * 1000L;
+        return seekMs > 0 && current != C.TIME_UNSET && total > 15 * 1000 && (!forward || total - current > seekMs);
     }
 
     long totalRewinding;
@@ -20994,20 +20996,20 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             long total = getVideoDuration();
             float x = e.getX();
             int width = getContainerViewWidth();
-            boolean forward = x >= width / 3 * 2;
-            if (canDoubleTapSeekVideo(e)) {
+            long seekMs = BananaConfig.doubleTapSeekSeconds(currentAccount) * 1000L;
+            if (seekMs > 0 && canDoubleTapSeekVideo(e)) {
                 long old = current;
                 if (x >= width / 3 * 2) {
-                    current += 10000;
+                    current += seekMs;
                 } else if (x < width / 3) {
-                    current -= 10000;
+                    current -= seekMs;
                 }
                 if (old != current) {
                     boolean apply = true;
                     if (current > total) {
                         current = total;
                     } else if (current < 0) {
-                        if (current < -9000) {
+                        if (current < -(seekMs - 1000)) {
                             apply = false;
                         }
                         current = 0;
@@ -21015,7 +21017,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     if (apply) {
                         videoForwardDrawable.setOneShootAnimation(true);
                         videoForwardDrawable.setLeftSide(x < width / 3);
-                        videoForwardDrawable.addTime(10000);
+                        videoForwardDrawable.addTime((int) seekMs);
                         seekVideoOrWebTo(current);
                         containerView.invalidate();
                         videoPlayerSeekbar.setProgress(current / (float) total, true);

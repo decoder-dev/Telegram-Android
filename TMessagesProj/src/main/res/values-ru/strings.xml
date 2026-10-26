@@ -544,4 +544,56 @@
     <string name="BananaOpt_HIDE_PRIVATE_CHAT_ACTIVITIES">Hide Private Chat Activities</string>
     <string name="BananaOpt_STAY_AT_LATEST_MESSAGE_AFTER_REFRESH">Stay At Latest Message After Refresh</string>
 
+    <!-- BananaGram Extras values -->
+    <string name="BananaValues">Значения и метки</string>
+    <string name="BananaValuesInfo">Числовые и текстовые настройки. Значения по умолчанию совпадают с BananaGram iOS, где они известны. Поведение части опций ещё подключается.</string>
+    <string name="BananaValuesAppearance">Внешний вид</string>
+    <string name="BananaValuesGlass">Стеклянные пузыри</string>
+    <string name="BananaValuesMedia">Медиа</string>
+    <string name="BananaValuesMessages">Сообщения</string>
+    <string name="BananaValuesBackends">Движки</string>
+    <string name="BananaValuesProfile">Профиль</string>
+    <string name="BananaVal_AccentSaturation">Насыщенность акцента</string>
+    <string name="BananaVal_StickerSize">Размер стикеров</string>
+    <string name="BananaVal_StickerShape">Форма стикеров</string>
+    <string name="BananaVal_GlassTint">Оттенок стекла</string>
+    <string name="BananaVal_GlassRimTop">Кромка сверху</string>
+    <string name="BananaVal_GlassRimSides">Кромка по бокам</string>
+    <string name="BananaVal_GlassRimBottom">Кромка снизу</string>
+    <string name="BananaVal_OutgoingPhotoQuality">Качество исходящих фото</string>
+    <string name="BananaVal_DoubleTapSeek">Перемотка двойным тапом</string>
+    <string name="BananaVal_DefaultVideoQuality">Качество видео по умолчанию</string>
+    <string name="BananaVal_DoubleTapAction">Действие двойного тапа</string>
+    <string name="BananaVal_DefaultSendFormatting">Форматирование при отправке</string>
+    <string name="BananaVal_DeletedMessageMark">Метка удалённого</string>
+    <string name="BananaVal_EditedMessageMark">Метка изменённого</string>
+    <string name="BananaVal_TranslationBackend">Движок перевода</string>
+    <string name="BananaVal_TranscriptionBackend">Движок расшифровки</string>
+    <string name="BananaVal_VisualPhoneNumber">Визуальный номер телефона</string>
+    <string name="BananaVal_PhotoQualityDefault">Обычное (1280)</string>
+    <string name="BananaVal_PhotoQualityBetter">Лучше (1920)</string>
+    <string name="BananaVal_PhotoQualityMax">Максимум (2560)</string>
+    <string name="BananaVal_SeekOff">Выкл.</string>
+    <string name="BananaVal_TapOff">Выкл.</string>
+    <string name="BananaVal_TapReact">Реакция</string>
+    <string name="BananaVal_TapReply">Ответ</string>
+    <string name="BananaVal_TapRepeat">Повтор</string>
+    <string name="BananaVal_TapTranslate">Перевод</string>
+    <string name="BananaVal_TapEdit">Редактировать</string>
+    <string name="BananaVal_ShapeStock">Стандарт</string>
+    <string name="BananaVal_ShapeRounded">Скруглённые</string>
+    <string name="BananaVal_ShapeMoreRounded">Сильнее скруглённые</string>
+    <string name="BananaVal_FormatOff">Выкл.</string>
+    <string name="BananaVal_FormatBold">Жирный</string>
+    <string name="BananaVal_FormatItalic">Курсив</string>
+    <string name="BananaVal_FormatUnderline">Подчёркнутый</string>
+    <string name="BananaVal_FormatStrike">Зачёркнутый</string>
+    <string name="BananaVal_FormatSpoiler">Спойлер</string>
+    <string name="BananaVal_VideoAuto">Авто</string>
+    <string name="BananaVal_VideoHighest">Наивысшее</string>
+    <string name="BananaVal_VideoLowest">Наинизшее</string>
+    <string name="BananaVal_BackendDefault">Telegram по умолчанию</string>
+    <string name="BananaVal_BackendSystem">Системный</string>
+    <string name="BananaVal_BackendOnDevice">На устройстве</string>
+
 </resources>
