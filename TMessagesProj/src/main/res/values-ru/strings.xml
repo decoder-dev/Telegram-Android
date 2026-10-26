@@ -309,4 +309,9 @@
     <string name="BananaHistoryFile">Файл</string>
     <string name="BananaHistoryMediaNotSaved">файл не сохранён</string>
     <string name="BananaHistoryMediaInfo">При изменении или удалении сообщения копирует доступное скачанное вложение до очистки кэша. До 64 МБ на файл и 512 МБ вложений на аккаунт. Не скачивает недостающие файлы.</string>
+    <string name="BananaWarnBeforeStories">Спрашивать перед просмотром историй</string>
+    <string name="BananaStoryPromptTitle">Открыть истории?</string>
+    <string name="BananaStoryPromptInfo">Просмотр может быть виден автору. Включите режим призрака перед продолжением или откройте истории обычным способом. Ответы и реакции всё ещё могут раскрывать активность.</string>
+    <string name="BananaStoryEnableGhost">Включить призрака</string>
+    <string name="BananaStoryOpenNormally">Открыть</string>
 </resources>

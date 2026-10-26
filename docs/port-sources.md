@@ -54,3 +54,10 @@ Only the dedicated attachment subdirectory is added to FileProvider, and sharing
 happens after an explicit Open action; sibling databases stay outside its roots.
 Private archive cleanup never deletes source paths. Proactive downloads, TTL or
 secret retention, inline retained messages and import/export remain pending.
+
+The optional pre-story prompt follows AyuGram Ghost documentation. Its native
+Android presenter and current-viewer integration are new adaptations. Ownership
+is checked again after choosing; a cancelled prompt does not open a viewer.
+Existing parent-story playback is paused through its native dialog state and
+restored on dismissal. Authenticated story playback and server receipts still
+require a working test-server account for acceptance.

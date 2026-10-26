@@ -11676,4 +11676,9 @@
     <string name="BananaHistoryFile">File</string>
     <string name="BananaHistoryMediaNotSaved">file not saved</string>
     <string name="BananaHistoryMediaInfo">When a message is edited or deleted, copies its already-downloaded attachment before cache cleanup. Up to 64 MB per file and 512 MB of attachments per account. Does not download missing files.</string>
+    <string name="BananaWarnBeforeStories">Ask before opening stories</string>
+    <string name="BananaStoryPromptTitle">Open stories?</string>
+    <string name="BananaStoryPromptInfo">Viewing can notify the author. Enable Ghost Mode before continuing, or open normally. Replies and reactions can still reveal activity.</string>
+    <string name="BananaStoryEnableGhost">Enable Ghost</string>
+    <string name="BananaStoryOpenNormally">Open</string>
 </resources>

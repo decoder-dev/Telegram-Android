@@ -25,8 +25,12 @@ The current workflow checks the credential loader, Java compilation, policy
 unit tests, a complete x86_64 development APK and smoke tests on Android 16.
 The smoke suite uses an emulator without a signed-in account and checks the platform URL detector,
 the Extras screen in English/Russian and light/dark themes, real switch taps and
-account preference isolation, Ghost preset scope and silent-send mode selection.
-The current suite has 23 JVM policy/file IO tests, 7 credential-loader tests and 11 Android
+account preference isolation, Ghost preset scope, silent-send mode selection and
+story privacy prompt choices (including Back and exactly-once cancellation).
+Navigation checks wait for the actual initial and nested transitions to finish.
+A failure saves its screenshot and current stack state, rather than relaxing the
+layout or transition assertions.
+The current suite has 24 JVM policy/file IO tests, 7 credential-loader tests and 11 Android
 smoke tests. Archive tests use synthetic private databases and verify persistence, duplicate
 handling, limits, search, deletion and account/backend isolation. A local native-cache fixture also verifies edit/delete capture, copied files
 surviving cache unlink, shared-file reuse, media-only rows and clearing while a

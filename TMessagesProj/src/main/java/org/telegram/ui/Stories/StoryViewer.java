@@ -68,6 +68,12 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.banana.BananaConfig;
+import org.telegram.messenger.banana.BananaConfig.Option;
+import org.telegram.messenger.banana.GhostPolicy;
+import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.Components.BananaTheme;
+import org.telegram.ui.Components.StoryPrivacyPrompt;
 import org.telegram.messenger.pip.PipSource;
 import org.telegram.messenger.pip.source.IPipSourceDelegate;
 import org.telegram.messenger.pip.utils.PipUtils;
@@ -118,6 +124,7 @@ public class StoryViewer implements NotificationCenter.NotificationCenterDelegat
     private static TL_stories.StoryItem lastStoryItem;
 
     Theme.ResourcesProvider resourcesProvider = new DarkThemeResourceProvider();
+    private AlertDialog bananaGhostPrompt;
     private boolean opening;
     ValueAnimator openCloseAnimator;
     ValueAnimator swipeToDissmissBackAnimator;
@@ -373,6 +380,10 @@ public class StoryViewer implements NotificationCenter.NotificationCenterDelegat
         open(UserConfig.selectedAccount, context, storyItem, peerIds, position, storiesList, userStories, placeProvider, reversed);
     }
     public void open(int account, Context context, TL_stories.StoryItem storyItem, ArrayList<Long> peerIds, int position, StoriesController.StoriesList storiesList, TL_stories.PeerStories userStories, PlaceProvider placeProvider, boolean reversed) {
+        openInternal(account, context, storyItem, peerIds, position, storiesList, userStories, placeProvider, reversed, false);
+    }
+
+    private void openInternal(int account, Context context, TL_stories.StoryItem storyItem, ArrayList<Long> peerIds, int position, StoriesController.StoriesList storiesList, TL_stories.PeerStories userStories, PlaceProvider placeProvider, boolean reversed, boolean storyWarningAccepted) {
         if (!isContextSafe(context)) {
             doOnAnimationReadyRunnables.clear();
             return;
@@ -384,6 +395,57 @@ public class StoryViewer implements NotificationCenter.NotificationCenterDelegat
         if (isShowing) {
             doOnAnimationReadyRunnables.clear();
             return;
+        }
+        if (!storyWarningAccepted) {
+            final long owner = UserConfig.getInstance(account).getClientUserId();
+            long target = storyItem == null ? 0 : storyItem.dialogId;
+            if (peerIds != null) {
+                if (position >= 0 && position < peerIds.size()) target = peerIds.get(position);
+                // Accept once for this whole viewer session, including a queue opened on our own story.
+                if (target == owner) for (long peer : peerIds) if (peer != 0 && peer != owner) { target = peer; break; }
+            }
+            if (GhostPolicy.shouldWarnStory(BananaConfig.get(account, Option.WARN_BEFORE_STORIES),
+                    BananaConfig.get(account, Option.DONT_READ_STORIES), owner, target)) {
+                if (bananaGhostPrompt != null) return;
+                ArrayList<Long> requestedPeers = peerIds == null ? null : new ArrayList<>(peerIds);
+                BaseFragment host = LaunchActivity.getLastFragment();
+                StoryViewer parent = host == null ? null : host.getLastStoryViewer();
+                Dialog previousDialog = parent == null ? null : parent.currentDialog;
+                AlertDialog[] prompt = new AlertDialog[1];
+                Runnable restoreParent = () -> {
+                    if (parent != null && parent.currentDialog == prompt[0]) {
+                        parent.currentDialog = previousDialog != null && previousDialog.isShowing() ? previousDialog : null;
+                        if (parent.isShowing && isContextSafe(context)) parent.updatePlayingMode();
+                    }
+                };
+                try {
+                    bananaGhostPrompt = StoryPrivacyPrompt.create(context, BananaTheme.COLORS, choice -> {
+                        bananaGhostPrompt = null;
+                        if (choice == StoryPrivacyPrompt.Choice.CANCEL || !isContextSafe(context) ||
+                                UserConfig.getInstance(account).getClientUserId() != owner) {
+                            cancelBananaStoryOpen();
+                            return;
+                        }
+                        if (choice == StoryPrivacyPrompt.Choice.ENABLE_GHOST) {
+                            BananaConfig.setGhostMode(account, true);
+                            Utilities.stageQueue.postRunnable(() -> MessagesController.getInstance(account).updateTimerProc());
+                        }
+                        openInternal(account, context, storyItem, requestedPeers, position, storiesList, userStories, placeProvider, reversed, true);
+                    }, restoreParent);
+                    prompt[0] = bananaGhostPrompt;
+                    bananaGhostPrompt.show();
+                    if (parent != null && parent != this) {
+                        parent.currentDialog = bananaGhostPrompt;
+                        parent.updatePlayingMode();
+                    }
+                } catch (Exception error) {
+                    FileLog.e(error);
+                    bananaGhostPrompt = null;
+                    restoreParent.run();
+                    cancelBananaStoryOpen();
+                }
+                return;
+            }
         }
         setSpeed(1f);
         ATTACH_TO_FRAGMENT = !AndroidUtilities.isTablet() && !fromBottomSheet;
@@ -2483,6 +2545,7 @@ public class StoryViewer implements NotificationCenter.NotificationCenterDelegat
     }
 
     public void instantClose() {
+        if (dismissBananaStoryPrompt()) return;
         if (!isShowing) {
             return;
         }
@@ -2631,6 +2694,7 @@ public class StoryViewer implements NotificationCenter.NotificationCenterDelegat
 
     @Override
     public void release() {
+        dismissBananaStoryPrompt();
         lastUri = null;
         setInTouchMode(false);
         allowScreenshots(true);
@@ -2668,6 +2732,7 @@ public class StoryViewer implements NotificationCenter.NotificationCenterDelegat
     }
 
     public void close(boolean backAnimation) {
+        if (dismissBananaStoryPrompt()) return;
         AndroidUtilities.hideKeyboard(windowView);
         isClosed = true;
         invalidateOutRect = true;
@@ -2677,6 +2742,21 @@ public class StoryViewer implements NotificationCenter.NotificationCenterDelegat
             unreadStateChanged = false;
             //MessagesController.getInstance(currentAccount).getStoriesController().scheduleSort();
         }
+    }
+
+    private boolean dismissBananaStoryPrompt() {
+        if (bananaGhostPrompt == null) return false;
+        AlertDialog prompt = bananaGhostPrompt;
+        bananaGhostPrompt = null;
+        prompt.dismiss();
+        return true;
+    }
+
+    private void cancelBananaStoryOpen() {
+        doOnAnimationReadyRunnables.clear();
+        Runnable closed = onCloseListener;
+        onCloseListener = null;
+        if (closed != null) closed.run();
     }
 
     @Override

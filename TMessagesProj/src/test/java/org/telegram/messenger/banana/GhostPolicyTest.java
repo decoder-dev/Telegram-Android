@@ -6,6 +6,16 @@ import static org.junit.Assert.*;
 
 public class GhostPolicyTest {
     @Test
+    public void storyPromptRequiresAnOptInAndAnotherPeersUnprotectedStory() {
+        assertTrue(GhostPolicy.shouldWarnStory(true, false, 12, 13));
+        assertTrue(GhostPolicy.shouldWarnStory(true, false, 12, -13));
+        assertFalse(GhostPolicy.shouldWarnStory(false, false, 12, 13));
+        assertFalse(GhostPolicy.shouldWarnStory(true, true, 12, 13));
+        assertFalse(GhostPolicy.shouldWarnStory(true, false, 12, 12));
+        assertFalse(GhostPolicy.shouldWarnStory(true, false, 0, 13));
+        assertFalse(GhostPolicy.shouldWarnStory(true, false, 12, 0));
+    }
+    @Test
     public void silentSendingRespectsModeAndGhostState() {
         assertFalse(GhostPolicy.sendSilently(0, false));
         assertFalse(GhostPolicy.sendSilently(0, true));

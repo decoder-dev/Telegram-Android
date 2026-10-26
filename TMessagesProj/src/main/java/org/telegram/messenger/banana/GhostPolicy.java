@@ -4,6 +4,10 @@ package org.telegram.messenger.banana;
 public final class GhostPolicy {
     private GhostPolicy() {}
 
+    public static boolean shouldWarnStory(boolean enabled, boolean privateViews, long owner, long target) {
+        return enabled && !privateViews && owner > 0 && target != 0 && target != owner;
+    }
+
     public static boolean sendSilently(int mode, boolean ghostActive) {
         return mode == 2 || mode == 1 && ghostActive;
     }
