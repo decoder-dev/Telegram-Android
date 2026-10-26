@@ -4,6 +4,20 @@ apply plugin: 'com.android.library'
 apply plugin: 'org.telegram.build-plugin'
 apply plugin: 'idea'
 
+// Developer credentials are supplied by the build environment, never checked in.
+def bananaApiIdInput = providers.environmentVariable("TELEGRAM_API_ID").orElse("0").get()
+def bananaApiHash = providers.environmentVariable("TELEGRAM_API_HASH").orElse("").get()
+if (!(bananaApiIdInput ==~ /[0-9]{1,10}/) || new BigInteger(bananaApiIdInput) > Integer.MAX_VALUE) {
+    throw new GradleException("TELEGRAM_API_ID must be a positive integer")
+}
+if (!bananaApiHash.isEmpty() && !(bananaApiHash ==~ /[a-fA-F0-9]{32}/)) {
+    throw new GradleException("TELEGRAM_API_HASH must contain 32 hexadecimal characters")
+}
+def bananaApiId = new BigInteger(bananaApiIdInput).intValue()
+if ((bananaApiId == 0) != bananaApiHash.isEmpty()) {
+    throw new GradleException("Supply both TELEGRAM_API_ID and TELEGRAM_API_HASH")
+}
+
 idea {
     module {
         excludeDirs += [
@@ -109,6 +123,21 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }
 
+// Development builds can be inspected without credentials; distributable
+// variants must never silently fall back to Telegram's public sample keys.
+def verifyBananaCredentials = tasks.register("verifyBananaReleaseCredentials") {
+    doLast {
+        if (bananaApiId == 0 || bananaApiHash.isEmpty()) {
+            throw new GradleException("Set TELEGRAM_API_ID and TELEGRAM_API_HASH before building a release variant")
+        }
+    }
+}
+tasks.configureEach { task ->
+    if (task.name.startsWith("generate") && task.name.endsWith("BuildConfig") && !task.name.contains("Debug")) {
+        task.dependsOn(verifyBananaCredentials)
+    }
+}
+
 android {
     compileSdkVersion 36
     buildToolsVersion '36.0.0'
@@ -135,6 +164,8 @@ android {
     }
 
     defaultConfig {
+        buildConfigField "int", "TELEGRAM_API_ID", bananaApiId.toString()
+        buildConfigField "String", "TELEGRAM_API_HASH", groovy.json.JsonOutput.toJson(bananaApiHash)
         minSdkVersion 23
         targetSdkVersion 36
 

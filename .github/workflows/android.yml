@@ -1,0 +1,43 @@
+name: BananaGram Android checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  java:
+    name: Android Java compilation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Check private credential loader
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+      - name: Verify configured API credentials
+        if: github.event_name != 'pull_request'
+        env:
+          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
+          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
+        run: python3 scripts/build-android.py -- -Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.workers.max=2 :TMessagesProj:verifyBananaReleaseCredentials
+      - name: Compile Android application code
+        env:
+          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
+          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
+        run: python3 scripts/build-android.py -- -Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.workers.max=2 :TMessagesProj:compileDebugJavaWithJavac
