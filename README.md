@@ -8,8 +8,11 @@ The first implementation block adds account-specific Extras, opt-in tracking-lin
 cleanup, Ghost Mode controls and playback speeds up to 4×. The next block adds
 a Ghost preset, silent sending and an optional return offline after activity.
 An opt-in local archive adds previous/deleted versions, downloaded attachments,
-search and clear. Local capture is tested; live message updates and server-side
-Ghost acceptance are still pending. See the
+search and clear. Native message filters add shared/per-chat rules, exceptions,
+an isolated Java regex evaluator, a sample preview and reviewed AyuGram v2 JSON
+import/export. English/Russian screens, local capture and native filter paths
+are tested on an emulator without signing in; live messages, real call hardware and
+server-side Ghost acceptance still need verification. See the
 [complete iOS feature reference](docs/phone-features-source.md),
 [iOS port inventory](docs/phone-port-inventory.json),
 [AyuGram inventory](docs/ayugram-port-inventory.json), [source credits](docs/port-sources.md)
@@ -31,8 +34,8 @@ There are several things we require from **all developers** for the moment.
 1. [**Obtain your own api_id**](https://core.telegram.org/api/obtaining_api_id) for your application.
 2. Please **do not** use the name Telegram for your app — or make sure your users understand that it is unofficial.
 3. Kindly **do not** use our standard logo (white paper plane in a blue circle) as your app's logo.
-3. Please study our [**security guidelines**](https://core.telegram.org/mtproto/security_guidelines) and take good care of your users' data and privacy.
-4. Please remember to publish **your** code too in order to comply with the licences.
+4. Please study our [**security guidelines**](https://core.telegram.org/mtproto/security_guidelines) and take good care of your users' data and privacy.
+5. Please remember to publish **your** code too in order to comply with the licences.
 
 ### API, Protocol documentation
 
@@ -42,15 +45,15 @@ MTproto protocol manuals: https://core.telegram.org/mtproto
 
 ### Compilation Guide
 
-**Note**: In order to support [reproducible builds](https://core.telegram.org/reproducible-builds), this repo contains dummy release.keystore,  google-services.json and filled variables inside BuildVars.java. Before publishing your own APKs please make sure to replace all these files with your own.
+**Note**: The inherited `release.keystore` and `google-services.json` are upstream placeholders. Configure your own signing, package identity and Firebase project before publishing. BananaGram API credentials come from the environment or the private loader, as described in [Android build checks](docs/android-build.md).
 
 You will require Android Studio 2025.1.4, Android NDK 27.2.12479018 and Android SDK 36.
 
 1. Clone the Telegram source code with its submodules:
    ```bash
-   git clone --recursive --shallow-submodules https://github.com/DrKLO/Telegram.git Telegram
+   git clone --recursive --shallow-submodules https://github.com/decoder-dev/Telegram-Android.git BananaGram
    ```
-   In case you forgot the `--recursive` flag, change to the `Telegram` directory and run:
+   In case you forgot the `--recursive` flag, change to the `BananaGram` directory and run:
    ```bash
    git submodule init && git submodule update --init --recursive --depth=1
    ```
