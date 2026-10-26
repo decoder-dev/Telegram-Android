@@ -53,7 +53,7 @@ The repository contains Android checks and an inherited release workflow. The in
 
 Bug reports and focused pull requests are welcome. Include the device, Android version, reproduction steps and relevant logs with tokens and private conversation data removed.
 
-Use the [import record](docs/ayugram-upstream-import.json), [iOS feature inventory](docs/phone-port-inventory.json) and [AyuGram inventory](docs/ayugram-port-inventory.json) to follow porting progress.
+Use the [changelog](CHANGELOG.md), [import record](docs/ayugram-upstream-import.json), [iOS feature inventory](docs/phone-port-inventory.json) and [AyuGram inventory](docs/ayugram-port-inventory.json) to follow porting progress.
 
 ## Русский
 
