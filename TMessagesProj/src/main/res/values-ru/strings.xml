@@ -376,6 +376,13 @@
     <string name="BananaHubMediaLabel">Звонки, голосовые, музыка</string>
     <string name="BananaHubProfile">Профиль и эффекты</string>
     <string name="BananaHubProfileLabel">Диагностика, свечение, Premium</string>
+
+    <string name="BananaThemeCream">Banana Cream</string>
+    <string name="BananaThemeGraphite">Banana Graphite</string>
+    <string name="BananaThemeSystem">Системная тема</string>
+    <string name="BananaAppearanceTheme">Тема BananaGram</string>
+    <string name="BananaProfileDC">Дата-центр</string>
+    <string name="BananaProfileId">ID профиля</string>
     <string name="BananaHubNetwork">Сеть</string>
     <string name="BananaHubNetworkLabel">Прокси, загрузки, работа в фоне</string>
     <string name="BananaCat_NINJA">Ниндзя</string>

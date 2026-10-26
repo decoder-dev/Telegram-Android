@@ -51,7 +51,7 @@ public final class BananaFilterEditActivity extends UniversalFragment {
         editor.initialSample = selection.toString();
         return editor;
     }
-    @Override public Theme.ResourcesProvider getResourceProvider() { return BananaTheme.COLORS; }
+    @Override public Theme.ResourcesProvider getResourceProvider() { return BananaTheme.forExtras(); }
     @Override protected CharSequence getTitle() { return text(R.string.BananaFilterEdit); }
     @Override public View createView(Context context) {
         String pattern = expression == null ? initial : expression.getText().toString();

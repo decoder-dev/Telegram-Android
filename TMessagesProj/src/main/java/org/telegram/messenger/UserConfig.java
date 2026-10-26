@@ -572,10 +572,10 @@ public class UserConfig extends BaseController {
     }
 
     public boolean isPremium() {
-        if (currentUser == null) {
-            return AyuConfig.localPremium;
+        if (org.telegram.messenger.banana.BananaHooks.localPremium(currentAccount)) {
+            return true;
         }
-        return AyuConfig.localPremium || currentUser.premium;
+        return currentUser != null && currentUser.premium;
     }
 
     public Long getEmojiStatus() {

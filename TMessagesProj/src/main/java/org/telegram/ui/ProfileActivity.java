@@ -674,6 +674,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int userInfoRow;
     private int channelInfoRow;
     private int usernameRow;
+    private int bananaDcRow;
+    private int bananaProfileIdRow;
     private int notificationsDividerRow;
     private int notificationsRow;
     private int bizHoursRow;
@@ -7456,6 +7458,21 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             return true;
         } else if (position == noteRow) {
 
+        } else if (position == bananaDcRow || position == bananaProfileIdRow) {
+            String copy;
+            if (position == bananaDcRow) {
+                TLRPC.User u = userId != 0 ? getMessagesController().getUser(userId) : null;
+                TLRPC.Chat c = chatId != 0 ? getMessagesController().getChat(chatId) : currentChat;
+                int dc = org.telegram.messenger.banana.BananaHooks.resolveDcId(currentAccount, u, c);
+                copy = dc > 0 ? Integer.toString(dc) : null;
+            } else {
+                copy = org.telegram.messenger.banana.BananaHooks.formatProfileId(currentAccount, userId, chatId);
+            }
+            if (!TextUtils.isEmpty(copy)) {
+                AndroidUtilities.addToClipboard(copy);
+                BulletinFactory.of(this).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
+            }
+            return true;
         } else if (position == phoneRow || position == numberRow) {
             if (editRow(view, position)) return true;
 
@@ -10585,6 +10602,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         locationRow = -1;
         channelInfoRow = -1;
         usernameRow = -1;
+        bananaDcRow = -1;
+        bananaProfileIdRow = -1;
         settingsTimerRow = -1;
         settingsKeyRow = -1;
         notificationsDividerRow = -1;
@@ -10688,6 +10707,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 numberRow = rowCount++;
                 setUsernameRow = rowCount++;
                 bioRow = rowCount++;
+                if (org.telegram.messenger.banana.BananaHooks.showProfileId(currentAccount)) {
+                    bananaProfileIdRow = rowCount++;
+                }
+                if (org.telegram.messenger.banana.BananaHooks.showDC(currentAccount)) {
+                    bananaDcRow = rowCount++;
+                }
 
                 settingsSectionRow = rowCount++;
 
@@ -10780,6 +10805,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
                 if (user != null && username != null) {
                     usernameRow = rowCount++;
+                }
+                if (org.telegram.messenger.banana.BananaHooks.showProfileId(currentAccount)) {
+                    bananaProfileIdRow = rowCount++;
+                }
+                if (org.telegram.messenger.banana.BananaHooks.showDC(currentAccount)) {
+                    bananaDcRow = rowCount++;
                 }
                 if (userInfo != null) {
                     if (userInfo.birthday != null) {
@@ -13713,13 +13744,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             if (username == null || TextUtils.isEmpty(username)) {
                                 text = LocaleController.getString(R.string.UsernameEmpty);
                             } else {
-                                text = "@" + username;
+                                text = "@" + org.telegram.messenger.banana.BananaHooks.maybeMaskUsername(currentAccount, username);
                             }
                             value = alsoUsernamesString(username, user.usernames, value);
                         } else {
                             username = UserObject.getPublicUsername(user);
                             if (user != null && !TextUtils.isEmpty(username)) {
-                                text = "@" + username;
+                                text = "@" + org.telegram.messenger.banana.BananaHooks.maybeMaskUsername(currentAccount, username);
                             } else {
                                 text = LocaleController.getString(R.string.UsernameEmpty);
                             }

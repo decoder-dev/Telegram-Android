@@ -48,7 +48,7 @@ public final class BananaExtrasValuesActivity extends UniversalFragment {
 
     @Override
     public Theme.ResourcesProvider getResourceProvider() {
-        return BananaTheme.COLORS;
+        return BananaTheme.forExtras();
     }
 
     @Override

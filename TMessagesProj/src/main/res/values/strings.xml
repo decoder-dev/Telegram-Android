@@ -11632,6 +11632,13 @@
     <string name="NoPaidMessagesTokenImported">You can now message **%1$s** for free.</string>
 
     <!-- BananaGram phone features -->
+
+    <string name="BananaThemeCream">Banana Cream</string>
+    <string name="BananaThemeGraphite">Banana Graphite</string>
+    <string name="BananaThemeSystem">System theme</string>
+    <string name="BananaAppearanceTheme">Banana theme</string>
+    <string name="BananaProfileDC">Data center</string>
+    <string name="BananaProfileId">Profile ID</string>
     <string name="BananaExtras">BananaGram Extras</string>
     <string name="BananaExtrasInfo">Additional features for this account</string>
     <string name="BananaSending">Sending messages</string>

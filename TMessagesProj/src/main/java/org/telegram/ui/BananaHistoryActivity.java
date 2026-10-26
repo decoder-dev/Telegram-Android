@@ -33,7 +33,7 @@ public final class BananaHistoryActivity extends UniversalFragment {
     public BananaHistoryActivity(int account) { setCurrentAccount(account); }
 
     @Override
-    public Theme.ResourcesProvider getResourceProvider() { return BananaTheme.COLORS; }
+    public Theme.ResourcesProvider getResourceProvider() { return BananaTheme.forExtras(); }
 
     @Override
     protected CharSequence getTitle() { return LocaleController.getString(R.string.BananaHistory); }
