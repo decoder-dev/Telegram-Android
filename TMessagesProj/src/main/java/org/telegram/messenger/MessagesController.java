@@ -10,6 +10,7 @@ package org.telegram.messenger;
 
 import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.messenger.banana.BananaConfig.Option;
+import org.telegram.messenger.banana.GhostPolicy;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
@@ -407,6 +408,9 @@ public class MessagesController extends BaseController implements NotificationCe
     private int statusRequest;
     private int statusSettingState;
     private boolean offlineSent;
+    // Accessed on stageQueue. Coalesce status updates from other sessions.
+    private Runnable bananaOfflineTask;
+    private long bananaLastOfflineReset;
     private String uploadingAvatar;
     private final LongSparseArray<ArrayList<MessageObject>> welcomeMessages = new LongSparseArray<>();
 
@@ -6665,6 +6669,11 @@ public class MessagesController extends BaseController implements NotificationCe
 
         Utilities.stageQueue.postRunnable(() -> {
             FileLog.d("cleanup: isUpdating = false");
+            if (bananaOfflineTask != null) {
+                Utilities.stageQueue.cancelRunnable(bananaOfflineTask);
+                bananaOfflineTask = null;
+            }
+            bananaLastOfflineReset = 0;
             getConnectionsManager().setIsUpdating(false);
             updatesQueueChannels.clear();
             updatesStartWaitTimeChannels.clear();
@@ -10509,6 +10518,24 @@ public class MessagesController extends BaseController implements NotificationCe
             if (pinnedMessages != null) {
                 getNotificationCenter().postNotificationName(NotificationCenter.pinnedInfoDidLoad, user.id, pinnedMessages, pinnedMessagesMap, totalPinnedCount, pinnedEndReached);
             }
+        });
+    }
+
+    private void bananaOwnOnlineObserved(long ownerId) {
+        Utilities.stageQueue.postRunnable(() -> {
+            if (bananaOfflineTask != null) return;
+            bananaOfflineTask = () -> {
+                bananaOfflineTask = null;
+                if (!getUserConfig().isClientActivated() || getUserConfig().getClientUserId() != ownerId ||
+                        !GhostPolicy.shouldReturnOffline(BananaConfig.get(currentAccount, Option.HIDE_ONLINE),
+                                BananaConfig.get(currentAccount, Option.OFFLINE_AFTER_ACTIVITY), true)) return;
+                bananaLastOfflineReset = SystemClock.elapsedRealtime();
+                offlineSent = false;
+                statusSettingState = 0;
+                updateTimerProc();
+            };
+            Utilities.stageQueue.postRunnable(bananaOfflineTask,
+                    Math.max(0, 5000 - (SystemClock.elapsedRealtime() - bananaLastOfflineReset)));
         });
     }
 
@@ -19993,6 +20020,11 @@ public class MessagesController extends BaseController implements NotificationCe
                         dbUsersStatus.add(toDbUser);
                         if (update.user_id == getUserConfig().getClientUserId()) {
                             getNotificationsController().setLastOnlineFromOtherDevice(update.status.expires);
+                            if (GhostPolicy.shouldReturnOffline(BananaConfig.get(currentAccount, Option.HIDE_ONLINE),
+                                    BananaConfig.get(currentAccount, Option.OFFLINE_AFTER_ACTIVITY),
+                                    update.status instanceof TLRPC.TL_userStatusOnline)) {
+                                bananaOwnOnlineObserved(update.user_id);
+                            }
                         }
                     } else if (baseUpdate instanceof TL_update.TL_updateMonoForumNoPaidException) {
                         TL_update.TL_updateMonoForumNoPaidException update = (TL_update.TL_updateMonoForumNoPaidException) baseUpdate;

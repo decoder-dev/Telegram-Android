@@ -11645,4 +11645,11 @@
     <string name="BananaDontReadMessages">Keep message reads local</string>
     <string name="BananaDontReadStories">Keep story views local</string>
     <string name="BananaGhostModeInfo">Applies to this account. Read and viewed markers stay on this device. Sending messages and other explicit actions may still reveal activity.</string>
+    <string name="BananaGhostPreset">Enable all Ghost controls</string>
+    <string name="BananaOfflineAfterActivity">Return offline after activity</string>
+    <string name="BananaSilentSending">Send without sound</string>
+    <string name="BananaSilentNormal">Follow chat setting</string>
+    <string name="BananaSilentGhost">In Ghost Mode</string>
+    <string name="BananaSilentAlways">Always</string>
+    <string name="BananaSilentSendingInfo">Sends new messages, forwards and media without a notification sound. Does not prevent a notification or hide your activity. The Ghost preset changes all six controls above; returning offline is optional and may affect the status shown by other clients.</string>
 </resources>

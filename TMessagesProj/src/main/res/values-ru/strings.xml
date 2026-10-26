@@ -278,4 +278,11 @@
     <string name="BananaDontReadMessages">Читать сообщения только локально</string>
     <string name="BananaDontReadStories">Смотреть истории только локально</string>
     <string name="BananaGhostModeInfo">Действует для этого аккаунта. Отметки о прочтении и просмотре сохраняются только на этом устройстве. Отправка сообщений и другие явные действия могут раскрывать активность.</string>
+    <string name="BananaGhostPreset">Включить все настройки призрака</string>
+    <string name="BananaOfflineAfterActivity">Возвращаться в офлайн после активности</string>
+    <string name="BananaSilentSending">Отправлять без звука</string>
+    <string name="BananaSilentNormal">По настройке чата</string>
+    <string name="BananaSilentGhost">В режиме призрака</string>
+    <string name="BananaSilentAlways">Всегда</string>
+    <string name="BananaSilentSendingInfo">Новые сообщения, пересылки и медиа отправляются без звука уведомления. Само уведомление и ваша активность могут быть видны. Общий переключатель меняет все шесть настроек выше. Возврат в офлайн включается отдельно и может влиять на статус в других клиентах.</string>
 </resources>

@@ -52,6 +52,7 @@ import androidx.collection.LongSparseArray;
 import androidx.core.view.inputmethod.InputContentInfoCompat;
 
 import org.json.JSONObject;
+import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.messenger.audioinfo.AudioInfo;
 import org.telegram.messenger.support.SparseLongArray;
 import org.telegram.messenger.utils.EphemeralMessagesHelper;
@@ -2234,7 +2235,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         final long peer,
         boolean forwardFromMyName,
         boolean hideCaption,
-        boolean notify,
+        boolean requestedNotify,
         int scheduleDate,
         int scheduleRepeatPeriod,
         MessageObject replyToTopMsg,
@@ -2243,6 +2244,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         long monoForumPeerId,
         MessageSuggestionParams suggestionParams
     ) {
+        final boolean notify = requestedNotify && !BananaConfig.shouldSendSilently(currentAccount);
         if (messages == null || messages.isEmpty()) {
             return 0;
         }
@@ -4381,6 +4383,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         } else {
             request.silent = MessagesController.getNotificationsSettings(currentAccount).getBoolean("silent_" + peer.user_id, false);
         }
+        request.silent |= BananaConfig.shouldSendSilently(currentAccount);
         request.random_id = random_id != 0 ? random_id : getNextRandomId();
         request.message = "";
         request.media = game;
@@ -4447,7 +4450,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         ArrayList<TLRPC.MessageEntity> entities = sendMessageParams.entities;
         TLRPC.ReplyMarkup replyMarkup = sendMessageParams.replyMarkup;
         HashMap<String, String> params = sendMessageParams.params;
-        boolean notify = sendMessageParams.notify;
+        boolean notify = sendMessageParams.notify && !BananaConfig.shouldSendSilently(currentAccount);
         int scheduleDate = sendMessageParams.scheduleDate;
         int scheduleRepeatPeriod = sendMessageParams.scheduleRepeatPeriod;
         int ttl = sendMessageParams.ttl;

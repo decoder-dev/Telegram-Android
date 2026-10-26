@@ -35,7 +35,7 @@ output = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class',
              'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner')
 (args.output_dir / 'instrumentation.log').write_text(output)
 passed = re.search(r'OK \((\d+) tests?\)', output)
-if not passed or int(passed.group(1)) < 3 or 'FAILURES!!!' in output:
+if not passed or int(passed.group(1)) < 4 or 'FAILURES!!!' in output:
     print(output)
     raise SystemExit('Android smoke checks failed')
 run('pull', '/sdcard/Android/data/org.telegram.messenger.web/files/banana-smoke', str(args.output_dir / 'screens'))
