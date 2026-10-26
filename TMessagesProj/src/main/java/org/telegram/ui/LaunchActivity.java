@@ -3114,7 +3114,67 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                 } else if (contactToken != null && !TextUtils.isEmpty(noPaidMessagesToken)) {
                                     openNoPaidMessagesContactLink(intentAccount[0], contactToken, noPaidMessagesToken, progress);
                                 } else {
-                                    runLinkRequest(intentAccount[0], username, group, sticker, emoji, botUser, botChat, botChannel, botChatAdminParams, message, contactToken, folderSlug, text, hasUrl, messageId, channelId, threadId, commentId, game, auth, lang, unsupportedUrl, code, login, wallPaper, inputInvoiceSlug, uniqueGiftSlug, theme, voicechat, videochat, livestream, 0, videoTimestamp, setAsAttachBot, attachMenuBotToOpen, attachMenuBotChoose, botAppMaybe, startApp, progress, forceNotInternalForApps, storyId, liveStory, storyAlbumId, giftCollectionId, auctionSlug, stargiftPreviewSlug, isBoost, chatLinkSlug, botCompact, botFullscreen, openedTelegram, openProfile, forceRequest, referrer, taskId, openDirect, optionId);
+                                    final String bananaConfirmUrl = data != null ? data.toString() : null;
+                                    final int bananaAccount = intentAccount[0];
+                                    final String bananaUsername = username;
+                                    final String bananaGroup = group;
+                                    final String bananaSticker = sticker;
+                                    final String bananaEmoji = emoji;
+                                    final String bananaBotUser = botUser;
+                                    final String bananaBotChat = botChat;
+                                    final String bananaBotChannel = botChannel;
+                                    final String bananaBotChatAdminParams = botChatAdminParams;
+                                    final String bananaMessage = message;
+                                    final String bananaContactToken = contactToken;
+                                    final String bananaFolderSlug = folderSlug;
+                                    final String bananaText = text;
+                                    final boolean bananaHasUrl = hasUrl;
+                                    final Integer bananaMessageId = messageId;
+                                    final Long bananaChannelId = channelId;
+                                    final Long bananaThreadId = threadId;
+                                    final Integer bananaCommentId = commentId;
+                                    final String bananaGame = game;
+                                    final HashMap<String, String> bananaAuth = auth;
+                                    final String bananaLang = lang;
+                                    final String bananaUnsupportedUrl = unsupportedUrl;
+                                    final String bananaCode = code;
+                                    final String bananaLogin = login;
+                                    final TLRPC.TL_wallPaper bananaWallPaper = wallPaper;
+                                    final String bananaInputInvoiceSlug = inputInvoiceSlug;
+                                    final String bananaUniqueGiftSlug = uniqueGiftSlug;
+                                    final String bananaTheme = theme;
+                                    final String bananaVoicechat = voicechat;
+                                    final boolean bananaVideochat = videochat;
+                                    final String bananaLivestream = livestream;
+                                    final int bananaVideoTimestamp = videoTimestamp;
+                                    final String bananaSetAsAttachBot = setAsAttachBot;
+                                    final String bananaAttachMenuBotToOpen = attachMenuBotToOpen;
+                                    final String bananaAttachMenuBotChoose = attachMenuBotChoose;
+                                    final String bananaBotAppMaybe = botAppMaybe;
+                                    final String bananaStartApp = startApp;
+                                    final Browser.Progress bananaProgress = progress;
+                                    final boolean bananaForceNotInternalForApps = forceNotInternalForApps;
+                                    final int bananaStoryId = storyId;
+                                    final boolean bananaLiveStory = liveStory;
+                                    final int bananaStoryAlbumId = storyAlbumId;
+                                    final int bananaGiftCollectionId = giftCollectionId;
+                                    final String bananaAuctionSlug = auctionSlug;
+                                    final String bananaStargiftPreviewSlug = stargiftPreviewSlug;
+                                    final boolean bananaIsBoost = isBoost;
+                                    final String bananaChatLinkSlug = chatLinkSlug;
+                                    final boolean bananaBotCompact = botCompact;
+                                    final boolean bananaBotFullscreen = botFullscreen;
+                                    final boolean bananaOpenedTelegram = openedTelegram;
+                                    final boolean bananaOpenProfile = openProfile;
+                                    final boolean bananaForceRequest = forceRequest;
+                                    final String bananaReferrer = referrer;
+                                    final Integer bananaTaskId = taskId;
+                                    final boolean bananaOpenDirect = openDirect;
+                                    final byte[] bananaOptionId = optionId;
+                                    final Runnable bananaProceed = () -> runLinkRequest(bananaAccount, bananaUsername, bananaGroup, bananaSticker, bananaEmoji, bananaBotUser, bananaBotChat, bananaBotChannel, bananaBotChatAdminParams, bananaMessage, bananaContactToken, bananaFolderSlug, bananaText, bananaHasUrl, bananaMessageId, bananaChannelId, bananaThreadId, bananaCommentId, bananaGame, bananaAuth, bananaLang, bananaUnsupportedUrl, bananaCode, bananaLogin, bananaWallPaper, bananaInputInvoiceSlug, bananaUniqueGiftSlug, bananaTheme, bananaVoicechat, bananaVideochat, bananaLivestream, 0, bananaVideoTimestamp, bananaSetAsAttachBot, bananaAttachMenuBotToOpen, bananaAttachMenuBotChoose, bananaBotAppMaybe, bananaStartApp, bananaProgress, bananaForceNotInternalForApps, bananaStoryId, bananaLiveStory, bananaStoryAlbumId, bananaGiftCollectionId, bananaAuctionSlug, bananaStargiftPreviewSlug, bananaIsBoost, bananaChatLinkSlug, bananaBotCompact, bananaBotFullscreen, bananaOpenedTelegram, bananaOpenProfile, bananaForceRequest, bananaReferrer, bananaTaskId, bananaOpenDirect, bananaOptionId);
+                                    if (!org.telegram.messenger.banana.BananaHooks.interceptOpenUrl(LaunchActivity.this, bananaAccount, bananaConfirmUrl, bananaProceed)) {
+                                        bananaProceed.run();
+                                    }
                                 }
                             } else {
                                 try (Cursor cursor = getContentResolver().query(intent.getData(), null, null, null, null)) {
