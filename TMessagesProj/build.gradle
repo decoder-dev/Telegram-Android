@@ -221,7 +221,7 @@ android {
         buildConfigField 'int', 'APP_ID', resolvedAppId
         buildConfigField 'String', 'APP_HASH', resolvedAppHash
         buildConfigField 'String', 'AYU_VERSION', resolvedAyuVersion
-        minSdkVersion 23
+        minSdkVersion 24
         targetSdkVersion 36
 
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
