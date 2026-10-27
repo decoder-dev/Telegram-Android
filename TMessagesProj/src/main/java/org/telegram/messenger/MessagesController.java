@@ -9368,7 +9368,9 @@ public class MessagesController extends BaseController implements NotificationCe
                     // invalidating views
                     getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messages);
                 });
-            } else if (messages != null && !messages.isEmpty() && taskId != 0) { // process TTL messages
+            } else if (messages != null && !messages.isEmpty() && (taskId != 0 || cacheOnly)) {
+                // TTL / auto-delete. The local timer (checkDeletingTask) uses taskId == 0 and cacheOnly.
+                // AyuGramDesktop 2e02aa326a: destruction must save, not drop, the message.
                 var invalidate = new ArrayList<Integer>();
 
                 for (var msgId : messages) {
@@ -14629,7 +14631,8 @@ public class MessagesController extends BaseController implements NotificationCe
             newTaskId = taskId;
         }
         int time = getConnectionsManager().getCurrentTime();
-        if (createDeleteTask) {
+        // AyuGramDesktop d4b7546e77: saving deleted messages must not arm local self-destruct.
+        if (createDeleteTask && !com.radolyn.ayugram.AyuConfig.saveDeletedMessageFor(currentAccount, dialogId)) {
             getMessagesStorage().createTaskForMid(dialogId, mid, time, time, ttl, false);
         }
         if (BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) {
