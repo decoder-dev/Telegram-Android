@@ -11644,6 +11644,8 @@
     <string name="BananaThemeGraphite">BananaGram Graphite</string>
     <string name="BananaThemeClassicWhite">Classic White</string>
     <string name="BananaThemeClassicBlack">Classic Black</string>
+    <string name="BananaThemeGlass">BananaGram Glass</string>
+    <string name="BananaThemeGlassNight">BananaGram Glass Night</string>
     <string name="BananaArchivePasswordSection">PASSWORD</string>
     <string name="BananaArchiveLock">Lock Archive and Saved Messages</string>
     <string name="BananaArchiveFooter">Archive and Saved Messages stay hidden until you tap Settings 10 times. The revealed row shows only the title until you unlock. Opening them needs the password or biometrics. Leaving the Archive or leaving the app locks them again. Archived chats stay muted.</string>

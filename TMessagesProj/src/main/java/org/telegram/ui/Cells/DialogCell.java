@@ -63,6 +63,7 @@ import androidx.core.math.MathUtils;
 import com.radolyn.ayugram.AyuFilter;
 import com.radolyn.ayugram.AyuUtils;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.banana.BananaThemes;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ChatThemeController;
@@ -648,6 +649,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     private boolean isSelected;
 
     private RectF rect = new RectF();
+    private final Paint glassCardPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final RectF glassCardRect = new RectF();
     private DialogsAdapter.DialogsPreloader preloader;
     private Path counterPath;
     private RectF counterPathRect;
@@ -4086,6 +4089,13 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             gtx += translationX;
         }
 
+        if (BananaThemes.glassChrome() && currentDialogFolderId == 0) {
+            int card = Theme.getColor(getIsPinned() ? Theme.key_chats_pinnedOverlay : Theme.key_dialogBackground, resourcesProvider);
+            glassCardPaint.setColor(card);
+            glassCardRect.set(dp(8), dp(3), getMeasuredWidth() - dp(8), getMeasuredHeight() - dp(3));
+            canvas.drawRoundRect(glassCardRect, dp(18), dp(18), glassCardPaint);
+        }
+
         float cornersRadius = dp(8) * cornerProgress;
         if (isSelected) {
             rect.set(0, 0, getMeasuredWidth(), AndroidUtilities.lerp(getMeasuredHeight(), getCollapsedHeight(), rightFragmentOpenedProgress));
@@ -4889,7 +4899,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             canvas.restore();
         }
 
-        if (useSeparator) {
+        if (useSeparator && !(BananaThemes.glassChrome() && currentDialogFolderId == 0)) {
             int left;
             if (fullSeparator || currentDialogFolderId != 0 && archiveHidden && !fullSeparator2 || fullSeparator2 && !archiveHidden) {
                 left = 0;
