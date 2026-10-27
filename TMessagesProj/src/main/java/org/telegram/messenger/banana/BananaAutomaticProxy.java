@@ -32,11 +32,11 @@ import java.util.Set;
 /**
  * Public MTProxy list, ported from iOS {@code ManagedAutomaticMtProxy}.
  *
- * iOS refreshes every 10 minutes, probes at most 20 candidates, and dials at most
- * 4 of them at a time ({@code ProxyStatusProbeQueue}). A manual route is never replaced.
- * Android spaces those dials by {@link #PROBE_GAP_MS} as well: a burst of {@code checkProxy}
- * wakes the radio. The refresh runnable is not re-armed while the process stays in the
- * background, the screen is off, power save is on, or there is no network.
+ * iOS refreshes every 10 minutes and may consider a larger pool. This client probes at most
+ * {@link #PROBE_LIMIT} candidates per pass, at most {@link #PROBE_CONCURRENCY} at a time, with
+ * {@link #PROBE_GAP_MS} between dials. An enabled hand-added route is never replaced.
+ * The refresh runnable is not re-armed while the process stays in the background, the screen
+ * is off, power save is on, or there is no network.
  */
 public final class BananaAutomaticProxy {
     private static final String ENABLED = "bananaAutomaticMtProxy";
@@ -52,8 +52,8 @@ public final class BananaAutomaticProxy {
     /** {@code automaticMtProxySwitchRttFactor}. */
     private static final double SWITCH_RTT_FACTOR = 0.7d;
     private static final int STORED_LIMIT = 40;
-    /** Candidates considered. iOS does not dial this many at once. */
-    private static final int PROBE_LIMIT = 20;
+    /** Candidates dialed in one refresh. Kept at the concurrency cap so a pass cannot queue a second wave. */
+    private static final int PROBE_LIMIT = 4;
     /** {@code ProxyStatusProbeQueue(limit: 4)}. */
     private static final int PROBE_CONCURRENCY = 4;
     /** Extra gap so Android does not open even those four sockets in one burst. */
@@ -404,6 +404,16 @@ public final class BananaAutomaticProxy {
         final int generation = probeGeneration;
         final SharedConfig.ProxyInfo info = probeQueue.get(probeCursor);
         probeCursor++;
+        if (info == null || info.settings == null) {
+            probePending = Math.max(0, probePending - 1);
+            if (probePending == 0) {
+                AndroidUtilities.cancelRunOnUIThread(SELECT);
+                AndroidUtilities.runOnUIThread(SELECT, SELECTION_DELAY_MS);
+            } else if (probeCursor < probeQueue.size()) {
+                AndroidUtilities.runOnUIThread(PROBE_KICK, PROBE_GAP_MS);
+            }
+            return;
+        }
         probesInFlight++;
         info.checking = true;
         final int account = UserConfig.selectedAccount;
@@ -449,7 +459,10 @@ public final class BananaAutomaticProxy {
         probeGeneration++;
         if (probeQueue != null) {
             for (int i = 0; i < probeQueue.size(); i++) {
-                probeQueue.get(i).checking = false;
+                SharedConfig.ProxyInfo info = probeQueue.get(i);
+                if (info != null) {
+                    info.checking = false;
+                }
             }
         }
         probeQueue = null;
@@ -465,7 +478,7 @@ public final class BananaAutomaticProxy {
             return;
         }
         SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
-        if (current != null && !isAutomatic(current)) {
+        if (current != null && !isAutomatic(current) && SharedConfig.isProxyEnabled()) {
             return;
         }
         failureDrivenSwitch = true;
@@ -485,13 +498,15 @@ public final class BananaAutomaticProxy {
             return;
         }
         SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
-        if (current != null && !isAutomatic(current)) {
+        // An enabled hand-added route stays selected. A disabled one is left in the list;
+        // auto may then choose its own route instead of no-op'ing the toggle.
+        if (current != null && !isAutomatic(current) && SharedConfig.isProxyEnabled()) {
             return;
         }
         SharedConfig.ProxyInfo best = null;
         for (int i = 0; i < probed.size(); i++) {
             SharedConfig.ProxyInfo info = probed.get(i);
-            if (failureDriven && info == current) {
+            if (info == null || (failureDriven && info == current)) {
                 continue;
             }
             if (!info.available || info.ping <= 0) {
@@ -501,13 +516,8 @@ public final class BananaAutomaticProxy {
                 best = info;
             }
         }
-        if (best == null) {
-            if (current != null) {
-                return;
-            }
-            best = probed.get(0);
-        }
-        if (best == null || best == current) {
+        // A pass that found no live candidate must not enable a dead proxy.
+        if (best == null || best == current || best.settings == null) {
             return;
         }
         long now = System.currentTimeMillis();
@@ -561,7 +571,12 @@ public final class BananaAutomaticProxy {
     }
 
     private static String key(ProxySettings settings) {
-        return settings.getAddress() + "\n" + settings.getPort() + "\n" + settings.getSecret();
+        if (settings == null) {
+            return "";
+        }
+        String address = settings.getAddress() == null ? "" : settings.getAddress();
+        String secret = settings.getSecret() == null ? "" : settings.getSecret();
+        return address + "\n" + settings.getPort() + "\n" + secret;
     }
 
     private static Set<String> loadKeys() {
@@ -650,6 +665,16 @@ public final class BananaAutomaticProxy {
         return host.matches("[A-Za-z0-9_.:\\-\\[\\]]+");
     }
 
+    private static void closeQuietly(java.io.InputStream stream) {
+        if (stream == null) {
+            return;
+        }
+        try {
+            stream.close();
+        } catch (Throwable ignore) {
+        }
+    }
+
     private static String fetch(String url) {
         HttpURLConnection connection = null;
         try {
@@ -658,6 +683,7 @@ public final class BananaAutomaticProxy {
             connection.setReadTimeout(8000);
             connection.setInstanceFollowRedirects(true);
             if (connection.getResponseCode() != 200) {
+                closeQuietly(connection.getErrorStream());
                 return "";
             }
             StringBuilder sb = new StringBuilder();

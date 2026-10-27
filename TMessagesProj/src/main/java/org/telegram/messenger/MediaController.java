@@ -5832,15 +5832,18 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 cv.put(MediaStore.MediaColumns.RELATIVE_PATH, dirDest + File.separator);
                 cv.put(MediaStore.Downloads.DISPLAY_NAME, filename);
                 cv.put(MediaStore.MediaColumns.MIME_TYPE, outputMime);
-                cv.put(MediaStore.MediaColumns.IS_PENDING, 1);
+                putPending(cv);
                 final Uri dst = ApplicationLoader.applicationContext.getContentResolver().insert(uriToInsert, cv);
                 if (dst != null) {
                     boolean ok = false;
-                    try (OutputStream os = ApplicationLoader.applicationContext.getContentResolver().openOutputStream(dst, "w")) {
+                    try (OutputStream os = openGalleryOutput(dst)) {
                         if (os != null) {
                             writeMotionPhoto(photoFile, videoFile, os, null);
                             ok = !cancelled;
                         }
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                        ok = false;
                     }
                     if (ok) {
                         finishPendingMediaUri(dst);
@@ -6237,14 +6240,17 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                     cv.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
                     cv.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
                     cv.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
-                    cv.put(MediaStore.MediaColumns.IS_PENDING, 1);
+                    putPending(cv);
                     final Uri dst = ApplicationLoader.applicationContext.getContentResolver().insert(uriToInsert, cv);
                     if (dst != null) {
-                        try (OutputStream os = ApplicationLoader.applicationContext.getContentResolver().openOutputStream(dst, "w")) {
+                        try (OutputStream os = openGalleryOutput(dst)) {
                             if (os != null) {
                                 writeMotionPhoto(photoFile, videoFile, os, cancelled);
                                 ok = !cancelled[0];
                             }
+                        } catch (Exception writeError) {
+                            FileLog.e(writeError);
+                            ok = false;
                         }
                         if (ok) {
                             finishPendingMediaUri(dst);
@@ -6362,6 +6368,17 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 "<?xpacket end=\"w\"?>";
     }
 
+    private static void putPending(ContentValues values) {
+        if (Build.VERSION.SDK_INT >= 29) {
+            values.put(MediaStore.MediaColumns.IS_PENDING, 1);
+        }
+    }
+
+    /** Mode {@code "w"}. The two-argument overload is API 26 and crashes on minSdk 24. */
+    private static OutputStream openGalleryOutput(Uri uri) throws java.io.FileNotFoundException {
+        return ApplicationLoader.applicationContext.getContentResolver().openOutputStream(uri);
+    }
+
     private static void finishPendingMediaUri(Uri uri) {
         if (uri == null || Build.VERSION.SDK_INT < 29) {
             return;
@@ -6398,6 +6415,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
     }
 
     private static Uri saveFileInternal(int type, File sourceFile, String filename) {
+        Uri dstUri = null;
         try {
             int selectedType = type;
             ContentValues contentValues = new ContentValues();
@@ -6470,13 +6488,13 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             }
 
             contentValues.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
-            contentValues.put(MediaStore.MediaColumns.IS_PENDING, 1);
+            putPending(contentValues);
 
-            Uri dstUri = ApplicationLoader.applicationContext.getContentResolver().insert(uriToInsert, contentValues);
+            dstUri = ApplicationLoader.applicationContext.getContentResolver().insert(uriToInsert, contentValues);
             if (dstUri != null) {
                 boolean copied = false;
                 try (FileInputStream fileInputStream = new FileInputStream(sourceFile);
-                     OutputStream outputStream = ApplicationLoader.applicationContext.getContentResolver().openOutputStream(dstUri, "w")) {
+                     OutputStream outputStream = openGalleryOutput(dstUri)) {
                     if (outputStream != null) {
                         AndroidUtilities.copyFile(fileInputStream, outputStream);
                         copied = true;
@@ -6491,6 +6509,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             return dstUri;
         } catch (Exception e) {
             FileLog.e(e);
+            deleteMediaUri(dstUri);
             return null;
         }
     }
