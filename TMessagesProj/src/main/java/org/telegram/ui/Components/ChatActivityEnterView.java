@@ -15203,7 +15203,10 @@ public class ChatActivityEnterView extends FrameLayout implements
             updateColors();
             checkBackgroundRect();
             if (isNewDesignSendButton) {
-                canvas.drawRoundRect(backgroundRect, dp(RADIUS), dp(RADIUS), backgroundPaint);
+                final float radius = org.telegram.messenger.banana.BananaThemes.glassChrome()
+                        ? backgroundRect.height() / 2f
+                        : dp(RADIUS);
+                canvas.drawRoundRect(backgroundRect, radius, radius, backgroundPaint);
             }
 
             final boolean inactive = isInactive();
@@ -15211,7 +15214,12 @@ public class ChatActivityEnterView extends FrameLayout implements
 
             int x, y;
             if (isNewDesignSendButton) {
-                x = Math.round(backgroundRect.right - backgroundRect.height() / 2f - drawable.getIntrinsicWidth() / 2f);
+                final float capsule = org.telegram.messenger.banana.BananaThemes.glassChrome()
+                        ? dpf2(org.telegram.messenger.banana.BananaThemes.GLASS_SEND_CAPSULE_DP) : 0f;
+                final float end = capsule > 0
+                        ? Math.min(backgroundRect.width(), Math.max(backgroundRect.height(), capsule)) / 2f
+                        : backgroundRect.height() / 2f;
+                x = Math.round(backgroundRect.right - end - drawable.getIntrinsicWidth() / 2f);
                 y = Math.round(backgroundRect.top + backgroundRect.height() / 2f - drawable.getIntrinsicHeight() / 2f);
             } else {
                 x = getMeasuredWidth() - getMeasuredHeight() / 2 - drawable.getIntrinsicWidth() / 2;
@@ -15540,8 +15548,10 @@ public class ChatActivityEnterView extends FrameLayout implements
         private void checkBackgroundRect() {
             final float margin = dpf2(3);
             final float height = dpf2(38);
+            final float capsule = org.telegram.messenger.banana.BananaThemes.glassChrome()
+                    ? dpf2(org.telegram.messenger.banana.BananaThemes.GLASS_SEND_CAPSULE_DP) : 0f;
             final float width = lerp(
-                Math.max(height, dpf2(10 + 10) + priceText.getCurrentWidth()),
+                Math.max(Math.max(height, capsule), dpf2(10 + 10) + priceText.getCurrentWidth()),
                 height, sameWidthFactor);
             backgroundRect.set(
                     getMeasuredWidth() - width - margin,

@@ -23,6 +23,7 @@ import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.banana.BananaThemes;
 import org.telegram.ui.Components.MotionBackgroundDrawable;
 import org.telegram.ui.Components.blur3.utils.NinePatchBuilder;
 
@@ -674,6 +675,11 @@ public class MessageDrawable extends Drawable {
 
     private void generatePath(Path path, Rect bounds, int padding, int rad, int smallRad, int nearRad, int top, boolean drawFullBottom, boolean drawFullTop, boolean customPaint) {
         path.rewind();
+        // Glassgram's bubbles keep a short rounded tail. Drawn into the existing
+        // bubble bitmap, not a second animation.
+        if (BananaThemes.glassChrome() && currentType != TYPE_MEDIA && currentType != TYPE_PREVIEW) {
+            smallRad = dp(5);
+        }
         int heightHalf = (bounds.height() - padding) >> 1;
         if (rad > heightHalf) {
             rad = heightHalf;

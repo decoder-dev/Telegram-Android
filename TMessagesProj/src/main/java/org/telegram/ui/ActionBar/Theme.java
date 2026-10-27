@@ -1534,6 +1534,10 @@ public class Theme {
                 return getString(R.string.BananaThemeCream);
             } else if ("Banana Graphite".equals(name)) {
                 return getString(R.string.BananaThemeGraphite);
+            } else if ("Banana Glass".equals(name)) {
+                return getString(R.string.BananaThemeGlass);
+            } else if ("Banana Glass Night".equals(name)) {
+                return getString(R.string.BananaThemeGlassNight);
             } else if ("Classic White".equals(name)) {
                 return getString(R.string.BananaThemeClassicWhite);
             } else if ("Classic Black".equals(name)) {
@@ -1654,9 +1658,9 @@ public class Theme {
             if (isDark != UNKNOWN) {
                 return isDark == DARK;
             }
-            if ("Dark Blue".equals(name) || "Night".equals(name) || "Banana Graphite".equals(name) || "Classic Black".equals(name)) {
+            if ("Dark Blue".equals(name) || "Night".equals(name) || "Banana Graphite".equals(name) || "Banana Glass Night".equals(name) || "Classic Black".equals(name)) {
                 isDark = DARK;
-            } else if ("Blue".equals(name) || "Arctic Blue".equals(name) || "Day".equals(name) || "Banana Cream".equals(name) || "Classic White".equals(name)) {
+            } else if ("Blue".equals(name) || "Arctic Blue".equals(name) || "Day".equals(name) || "Banana Cream".equals(name) || "Banana Glass".equals(name) || "Classic White".equals(name)) {
                 isDark = LIGHT;
             }
             if (isDark == UNKNOWN) {
@@ -5694,6 +5698,35 @@ public class Theme {
             registerBananaThemeAccents(graphite, graphiteAccents);
             themes.add(graphite);
             themesDict.put("Banana Graphite", graphite);
+        }
+        if (!themesDict.containsKey("Banana Glass")) {
+            ThemeInfo glass = new ThemeInfo();
+            glass.name = "Banana Glass";
+            glass.assetName = "day.attheme";
+            glass.setPreviewBackgroundColor(0xFFE7EEF5);
+            glass.setPreviewInColor(0xFFFCFDFE);
+            glass.setPreviewOutColor(0xFFE4F0FF);
+            glass.sortIndex = 1;
+            glass.firstAccentIsDefault = false;
+            glass.currentAccentId = 0;
+            int[] glassAccents = new int[]{0xFF3D8BFF, 0xFF5B6CFF, 0xFF2F9B8A, 0xFF7A8BA0};
+            registerBananaThemeAccents(glass, glassAccents);
+            themes.add(glass);
+            themesDict.put("Banana Glass", glass);
+        }
+        if (!themesDict.containsKey("Banana Glass Night")) {
+            ThemeInfo glassNight = new ThemeInfo();
+            glassNight.name = "Banana Glass Night";
+            glassNight.assetName = "night.attheme";
+            glassNight.setPreviewBackgroundColor(0xFF171E28);
+            glassNight.setPreviewInColor(0xFF243140);
+            glassNight.setPreviewOutColor(0xFF1C3D66);
+            glassNight.sortIndex = 2;
+            glassNight.currentAccentId = 0;
+            int[] glassNightAccents = new int[]{0xFF8EBBFF, 0xFFA9B8FF, 0xFF7ED0C0, 0xFFC5D0DC};
+            registerBananaThemeAccents(glassNight, glassNightAccents);
+            themes.add(glassNight);
+            themesDict.put("Banana Glass Night", glassNight);
         }
     }
 

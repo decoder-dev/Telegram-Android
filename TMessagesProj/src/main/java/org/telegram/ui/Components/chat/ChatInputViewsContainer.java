@@ -17,6 +17,7 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 
+import org.telegram.messenger.banana.BananaThemes;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.blur3.BlurredBackgroundWithFadeDrawable;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
@@ -79,7 +80,15 @@ public class ChatInputViewsContainer extends FrameLayout {
     public void setInputIslandBubbleDrawable(BlurredBackgroundDrawable drawable) {
         blurredBackgroundDrawable = drawable;
         blurredBackgroundDrawable.setPadding(dp(7));
-        blurredBackgroundDrawable.setRadius(dp(INPUT_BUBBLE_RADIUS));
+        applyIslandRadius();
+    }
+
+    private void applyIslandRadius() {
+        if (blurredBackgroundDrawable == null) {
+            return;
+        }
+        int radius = BananaThemes.glassChrome() ? BananaThemes.GLASS_ISLAND_RADIUS_DP : INPUT_BUBBLE_RADIUS;
+        blurredBackgroundDrawable.setRadius(dp(radius));
     }
 
     public void setUnderKeyboardBackgroundDrawable(BlurredBackgroundDrawable drawable) {
@@ -91,6 +100,7 @@ public class ChatInputViewsContainer extends FrameLayout {
     }
 
     public void updateColors() {
+        applyIslandRadius();
         blurredBackgroundDrawable.updateColors();
         underKeyboardBackgroundDrawable.updateColors();
         invalidate();

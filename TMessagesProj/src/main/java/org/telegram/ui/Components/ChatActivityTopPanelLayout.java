@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 
+import org.telegram.messenger.banana.BananaThemes;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 
@@ -68,14 +69,15 @@ public class ChatActivityTopPanelLayout extends AnimatedLinearLayout {
 
         clipRectF.set(getPaddingLeft(), getPaddingTop(), getMeasuredWidth() - getPaddingRight(), getPaddingTop() + bgHeight);
 
-        final float r = Math.min(dp(18), Math.min(clipRectF.width(), clipRectF.height()) / 2f);
+        final int radiusDp = BananaThemes.glassChrome() ? BananaThemes.GLASS_PANEL_RADIUS_DP : 18;
+        final float r = Math.min(dp(radiusDp), Math.min(clipRectF.width(), clipRectF.height()) / 2f);
         clipPath.rewind();
         clipPath.addRoundRect(clipRectF, r, r, Path.Direction.CW);
 
         if (backgroundDrawable != null) {
             backgroundDrawable.setAlpha((int) (bgAlpha * 255));
             backgroundDrawable.setBounds(getPaddingLeft() - dp(7), 0, getMeasuredWidth() - getPaddingRight() + dp(7), getPaddingTop() + getPaddingBottom() + (int) bgHeight);
-            backgroundDrawable.setRadius(Math.min(dp(18), bgHeight / 2));
+            backgroundDrawable.setRadius(Math.min(dp(radiusDp), bgHeight / 2));
         }
     }
 
@@ -87,6 +89,7 @@ public class ChatActivityTopPanelLayout extends AnimatedLinearLayout {
         final int color = Theme.getColor(Theme.key_windowBackgroundWhite);
         final int alpha = Color.alpha(color);
 
+        checkBoundsAndClipping();
         invalidate();
     }
 
@@ -161,8 +164,9 @@ public class ChatActivityTopPanelLayout extends AnimatedLinearLayout {
 
             final int wasAlpha = Theme.dividerPaint.getAlpha();
             Theme.dividerPaint.setAlpha((int) (wasAlpha * alpha));
-            final float offsetL = getPaddingLeft() + dp(16) * (1f - alpha);
-            final float offsetR = getPaddingRight() + dp(16) * (1f - alpha);
+            final float side = BananaThemes.glassChrome() ? dp(14) : 0;
+            final float offsetL = getPaddingLeft() + side + dp(16) * (1f - alpha);
+            final float offsetR = getPaddingRight() + side + dp(16) * (1f - alpha);
             canvas.drawLine(offsetL, top, getWidth() - offsetR, top, Theme.dividerPaint);
             Theme.dividerPaint.setAlpha(wasAlpha);
         }
