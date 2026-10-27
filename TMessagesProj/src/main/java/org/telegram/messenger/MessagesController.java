@@ -8307,7 +8307,11 @@ public class MessagesController extends BaseController implements NotificationCe
                 if (task != null) {
                     for (int a = 0, N = task.size(); a < N; a++) {
                         ArrayList<Integer> mids = task.valueAt(a);
-                        deleteMessages(mids, null, null, task.keyAt(a), 0, true, 0, !mids.isEmpty() && mids.get(0) > 0);
+                        if (mids == null || mids.isEmpty()) {
+                            continue;
+                        }
+                        Integer first = mids.get(0);
+                        deleteMessages(mids, null, null, task.keyAt(a), 0, true, 0, first != null && first > 0);
                     }
                 }
                 if (taskMedia != null) {
@@ -8316,6 +8320,9 @@ public class MessagesController extends BaseController implements NotificationCe
                     for (int a = 0, N = taskMedia.size(); a < N; a++) {
                         long dialogId = taskMedia.keyAt(a);
                         ArrayList<Integer> mids = taskMedia.valueAt(a);
+                        if (mids == null) {
+                            continue;
+                        }
                         if (checkViewer && viewerObject != null && viewerObject.currentAccount == currentAccount && viewerObject.getDialogId() == dialogId && mids.contains(viewerObject.getId())) {
                             final int id = viewerObject.getId();
                             mids.remove((Integer) id);
@@ -9374,19 +9381,23 @@ public class MessagesController extends BaseController implements NotificationCe
                 var invalidate = new ArrayList<Integer>();
 
                 for (var msgId : messages) {
-                    if (AyuState.isDeletePermitted(dialogId, msgId)) {
-                        continue;
-                    }
-
-                    var msg = getMessagesStorage().getMessage(dialogId, msgId);
-                    if (msg != null) {
-                        if (msg.ttl > 0 || msg.ttl_period > 0) {
-                            invalidate.add(msgId);
-
-                            var prefs = new AyuSavePreferences(msg, currentAccount);
-                            prefs.setDialogId(dialogId);
-                            AyuMessagesController.getInstance().onMessageDeleted(prefs);
+                    try {
+                        if (AyuState.isDeletePermitted(dialogId, msgId)) {
+                            continue;
                         }
+
+                        var msg = getMessagesStorage().getMessage(dialogId, msgId);
+                        if (msg != null) {
+                            if (msg.ttl > 0 || msg.ttl_period > 0) {
+                                invalidate.add(msgId);
+
+                                var prefs = new AyuSavePreferences(msg, currentAccount);
+                                prefs.setDialogId(dialogId);
+                                AyuMessagesController.getInstance().onMessageDeleted(prefs);
+                            }
+                        }
+                    } catch (Throwable t) {
+                        FileLog.e(t);
                     }
                 }
 

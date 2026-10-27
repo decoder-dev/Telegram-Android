@@ -1066,7 +1066,11 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
             } else if (position == vlessRow) {
                 return -13;
             } else if (position >= proxyStartRow && position < proxyEndRow) {
-                return proxyList.get(position - proxyStartRow).hashCode();
+                // Keep proxy ids out of the negative sentinel range (-1..-13). A colliding
+                // hash with stable ids crashes the list with two holders for one id.
+                SharedConfig.ProxyInfo info = proxyList.get(position - proxyStartRow);
+                long mixed = info == null ? position : (info.hashCode() & 0xffffffffL);
+                return 0x1_0000_0000L + mixed;
             } else {
                 return -7;
             }
