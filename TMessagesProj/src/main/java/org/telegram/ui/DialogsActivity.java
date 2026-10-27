@@ -3080,6 +3080,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public void onFragmentDestroy() {
+        INavigationLayout layout = parentLayout;
         super.onFragmentDestroy();
         if (observersGroup != null) {
             observersGroup.removeAllObservers();
@@ -3102,6 +3103,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         notificationsLocker.unlock();
         delegate = null;
         SuggestClearDatabaseBottomSheet.dismissDialog();
+        if (folderId == 1) {
+            org.telegram.messenger.banana.BananaArchiveLock.noteSurfaceClosed(currentAccount, layout, this);
+        }
+    }
+
+    public boolean isArchiveFolder() {
+        return folderId == 1;
     }
 
     @Override

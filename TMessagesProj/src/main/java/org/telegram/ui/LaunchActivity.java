@@ -421,6 +421,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     private WindowAnimatedInsetsProvider rootAnimatedInsetsListener;
 
     public static LaunchActivity instance;
+    private FlagSecureReason archiveSecureReason;
+
+    public void invalidateArchiveSecure() {
+        if (archiveSecureReason != null) {
+            archiveSecureReason.invalidate();
+        }
+    }
 
     public boolean voipLaunchedInBackground;
 
@@ -7369,6 +7376,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     protected void onPause() {
         super.onPause();
         org.telegram.messenger.banana.BananaArchiveLock.onHostPause();
+        invalidateArchiveSecure();
         isResumed = false;
         pipActivityHandler.onPause();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 4096);
@@ -7615,6 +7623,12 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     protected void onResume() {
         super.onResume();
         org.telegram.messenger.banana.BananaArchiveLock.onHostResume();
+        if (archiveSecureReason == null) {
+            archiveSecureReason = new FlagSecureReason(getWindow(), () -> org.telegram.messenger.banana.BananaArchiveLock.shouldSecureWindow(currentAccount));
+            archiveSecureReason.attach();
+        } else {
+            invalidateArchiveSecure();
+        }
         isResumed = true;
         pipActivityHandler.onResume();
         if (onResumeStaticCallback != null) {

@@ -9,9 +9,8 @@ import org.telegram.ui.ActionBar.Theme;
  * Values follow iOS {@code makeBananaGramTheme} in MakePresentationTheme.swift
  * (decoder-dev/Telegram-iOS): warm paper by day, warm charcoal by night.
  * Classic White and Classic Black keep the stock Day and Night assets.
- * Scheduled auto-night stays off: {@link Theme#selectedAutoNightType} still defaults
- * to follow-system on API 29+ and to none otherwise ({@code Theme} around the
- * {@code selectedAutoNightType} preference read). Time-of-day switching is not enabled.
+ * A missing auto-night preference stays off. A stored clock schedule is cleared.
+ * Follow-system is left alone when the user already saved it.
  */
 public final class BananaThemes {
     public static final String CREAM = "Banana Cream";

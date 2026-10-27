@@ -4082,7 +4082,9 @@ public class Theme {
             final ThemeInfo themeDarkBlue = themesDict.get("Dark Blue");
 
             String theme = preferences.getString("theme", null);
-            if ("Default".equals(theme)) {
+            if (theme == null) {
+                applyingTheme = themesDict.get("Classic White");
+            } else if ("Default".equals(theme)) {
                 applyingTheme = themesDict.get("Blue");
                 applyingTheme.currentAccentId = DEFALT_THEME_ACCENT_ID;
             } else if ("Dark".equals(theme)) {
@@ -4098,7 +4100,12 @@ public class Theme {
             }
 
             theme = preferences.getString("nighttheme", null);
-            if ("Default".equals(theme)) {
+            if (theme == null) {
+                ThemeInfo classicBlack = themesDict.get("Classic Black");
+                if (classicBlack != null) {
+                    currentNightTheme = classicBlack;
+                }
+            } else if ("Default".equals(theme)) {
                 applyingTheme = themesDict.get("Blue");
                 applyingTheme.currentAccentId = DEFALT_THEME_ACCENT_ID;
             } else if ("Dark".equals(theme)) {
@@ -4270,7 +4277,11 @@ public class Theme {
                 oldEditorNew.commit();
             }
 
-            selectedAutoNightType = preferences.getInt("selectedAutoNightType", Build.VERSION.SDK_INT >= 29 ? AUTO_NIGHT_TYPE_SYSTEM : AUTO_NIGHT_TYPE_NONE);
+            selectedAutoNightType = preferences.getInt("selectedAutoNightType", AUTO_NIGHT_TYPE_NONE);
+            if (selectedAutoNightType == AUTO_NIGHT_TYPE_SCHEDULED) {
+                selectedAutoNightType = AUTO_NIGHT_TYPE_NONE;
+                preferences.edit().putInt("selectedAutoNightType", AUTO_NIGHT_TYPE_NONE).apply();
+            }
             autoNightScheduleByLocation = preferences.getBoolean("autoNightScheduleByLocation", false);
             autoNightBrighnessThreshold = preferences.getFloat("autoNightBrighnessThreshold", 0.25f);
             autoNightDayStartTime = preferences.getInt("autoNightDayStartTime", 22 * 60);

@@ -383,6 +383,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private final CrossfadeDrawable[] verifiedCrossfadeDrawable = new CrossfadeDrawable[2];
     private final CrossfadeDrawable[] premiumCrossfadeDrawable = new CrossfadeDrawable[2];
     private ScamDrawable scamDrawable;
+    private ScamDrawable visualBadgeDrawable;
+    private String visualBadgeText;
     private UndoView undoView;
     private OverlaysView overlaysView;
     public SharedMediaLayout sharedMediaLayout;
@@ -2386,9 +2388,27 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return !isPulledDown;
     }
 
+    public long getArchiveGateId() {
+        if (dialogId != 0) {
+            return dialogId;
+        }
+        if (userId != 0) {
+            return userId;
+        }
+        if (chatId != 0) {
+            return -chatId;
+        }
+        return 0;
+    }
+
     @Override
     public void onFragmentDestroy() {
+        org.telegram.ui.ActionBar.INavigationLayout bananaLayout = parentLayout;
+        long bananaDialog = getArchiveGateId();
         super.onFragmentDestroy();
+        if (bananaDialog != 0 && org.telegram.messenger.banana.BananaArchiveLock.isProtected(currentAccount, bananaDialog)) {
+            org.telegram.messenger.banana.BananaArchiveLock.noteSurfaceClosed(currentAccount, bananaLayout, this);
+        }
         if (sharedMediaLayout != null) {
             sharedMediaLayout.onDestroy();
         }
@@ -11208,6 +11228,23 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return scamDrawable;
     }
 
+    /** Own-account display badge. Server scam and fake flags stay in {@link #getScamDrawable}. */
+    private String ownVisualBadge(TLRPC.User user) {
+        if (user == null || !user.self || user.scam || user.fake) {
+            return null;
+        }
+        return org.telegram.messenger.banana.BananaVisualLabels.badgeText(currentAccount);
+    }
+
+    private Drawable getVisualBadge(String text) {
+        if (visualBadgeDrawable == null || visualBadgeText == null || !visualBadgeText.equals(text)) {
+            visualBadgeDrawable = new ScamDrawable(11, text);
+            visualBadgeText = text;
+        }
+        visualBadgeDrawable.setColor(getThemedColor(Theme.key_avatar_subtitleInProfileBlue));
+        return visualBadgeDrawable;
+    }
+
     private Drawable getLockIconDrawable() {
         if (lockIconDrawable == null) {
             lockIconDrawable = Theme.chat_lockIconDrawable.getConstantState().newDrawable().mutate();
@@ -11606,6 +11643,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     if (user.scam || user.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(user.scam ? 0 : 1));
                         nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.ScamMessage);
+                    } else if (ownVisualBadge(user) != null) {
+                        nameTextView[a].setRightDrawable2(getVisualBadge(ownVisualBadge(user)));
+                        nameTextViewRightDrawable2ContentDescription = ownVisualBadge(user);
                     } else if (user.verified && !bananaHideVerified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                         nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.AccDescrVerified);
@@ -11633,6 +11673,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 } else if (a == 1) {
                     if (user.scam || user.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(user.scam ? 0 : 1));
+                    } else if (ownVisualBadge(user) != null) {
+                        nameTextView[a].setRightDrawable2(getVisualBadge(ownVisualBadge(user)));
                     } else if (user.verified && !bananaHideVerified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                     } else {
