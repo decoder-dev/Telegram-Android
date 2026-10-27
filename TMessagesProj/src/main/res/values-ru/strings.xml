@@ -377,8 +377,43 @@
     <string name="BananaHubProfile">Профиль и эффекты</string>
     <string name="BananaHubProfileLabel">Диагностика, свечение, Premium</string>
 
-    <string name="BananaThemeCream">Banana Cream</string>
-    <string name="BananaThemeGraphite">Banana Graphite</string>
+    <string name="BananaThemeCream">BananaGram Cream</string>
+    <string name="BananaThemeGraphite">BananaGram Graphite</string>
+    <string name="BananaThemeClassicWhite">Classic White</string>
+    <string name="BananaThemeClassicBlack">Classic Black</string>
+    <string name="BananaArchivePasswordSection">ПАРОЛЬ</string>
+    <string name="BananaArchiveLock">Блокировать архив и «Избранное»</string>
+    <string name="BananaArchiveFooter">Архив и «Избранное» скрыты, пока вы не нажмёте «Настройки» 10 раз. Открытая строка показывает только название, пока вы не введёте пароль. Для входа нужен пароль или биометрия. Выход из архива или из приложения снова закрывает доступ. Архивированные чаты остаются без звука.</string>
+    <string name="BananaVisualLabel">Визуальная метка (только у вас)</string>
+    <string name="BananaVisualLabelNone">Без метки</string>
+    <string name="BananaVisualLabelScam">SCAM</string>
+    <string name="BananaVisualLabelFake">FAKE</string>
+    <string name="BananaVisualLabelSupport">SUPPORT</string>
+    <string name="BananaVisualLabelBot">BOT</string>
+    <string name="BananaArchiveLockNow">Заблокировать сейчас</string>
+    <string name="BananaArchiveChangePassword">Изменить пароль</string>
+    <string name="BananaArchiveUseBiometrics">Разблокировать биометрией</string>
+    <string name="BananaArchiveEnterTitle">Пароль архива</string>
+    <string name="BananaArchiveEnterText">Введите пароль, чтобы открыть архив и «Избранное»</string>
+    <string name="BananaArchiveUnlock">Разблокировать</string>
+    <string name="BananaArchivePasswordHint">Пароль</string>
+    <string name="BananaArchiveSetTitle">Задать пароль архива</string>
+    <string name="BananaArchiveSetText">Архивированные чаты остаются без звука и скрыты из списка, пока вы их не откроете</string>
+    <string name="BananaArchiveContinue">Продолжить</string>
+    <string name="BananaArchiveConfirmTitle">Подтвердите пароль</string>
+    <string name="BananaArchiveConfirmText">Введите пароль архива ещё раз</string>
+    <string name="BananaArchiveRemoveTitle">Удалить пароль архива</string>
+    <string name="BananaArchiveRemoveText">Введите текущий пароль, чтобы отключить блокировку</string>
+    <string name="BananaArchiveRemove">Удалить</string>
+    <string name="BananaArchiveIncorrect">Неверный пароль. Осталось попыток: %1$d.</string>
+    <string name="BananaArchiveCooldown">Слишком много неверных попыток. Повторите через %1$d с.</string>
+    <string name="BananaArchiveMismatch">Пароли не совпадают. Попробуйте снова.</string>
+    <string name="BananaArchiveStorageError">Не удалось безопасно сохранить изменение пароля. Ничего не изменено. Попробуйте ещё раз.</string>
+    <string name="BananaArchiveChanged">Пароль архива изменён</string>
+    <string name="BananaArchiveRevealed">Архив и «Избранное» видны. Введите пароль, чтобы открыть их.</string>
+    <string name="BananaArchiveNotificationTitle">Закрытый чат</string>
+    <string name="BananaArchiveNotificationHidden">Новое сообщение</string>
+    <string name="BananaArchiveBiometricReason">Разблокировать архив и «Избранное»</string>
     <string name="BananaThemeSystem">Системная тема</string>
     <string name="BananaAppearanceTheme">Тема BananaGram</string>
     <string name="BananaProfileDC">Дата-центр</string>
@@ -602,5 +637,17 @@
     <string name="BananaVal_BackendDefault">Telegram по умолчанию</string>
     <string name="BananaVal_BackendSystem">Системный</string>
     <string name="BananaVal_BackendOnDevice">На устройстве</string>
+
+    <string name="BananaMessageShot">Снимок сообщения</string>
+    <string name="BananaSaveToCloud">В Избранное</string>
+    <string name="BananaSavedToCloud">Сохранено в Избранное</string>
+    <string name="BananaRepeatMessage">Повторить</string>
+    <string name="BananaAutomaticProxy">Автопрокси</string>
+    <string name="BananaAutomaticProxyInfo">Подбирает публичные MTProto-прокси (tg://proxy, t.me/proxy и host:port:secret). Вручную добавленный прокси остаётся выбранным.</string>
+    <string name="BananaVless">VLESS</string>
+    <string name="BananaVlessNone">Не задан</string>
+    <string name="BananaVlessHint">Вставьте ссылку vless://. SOCKS5, MTProto и WEB остаются доступны.</string>
+    <string name="BananaVlessRuntimeMissing">Ссылка сохранена. В этой сборке Android нет встроенного Xray, поэтому VLESS не подменяет активный SOCKS5, MTProto или WEB. Ссылки tg://proxy и t.me/proxy работают как раньше.</string>
+    <string name="BananaVlessSaved">Ссылка VLESS сохранена</string>
 
 </resources>

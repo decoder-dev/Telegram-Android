@@ -322,6 +322,9 @@ public class Browser {
                 return;
             }
         }
+        if (org.telegram.messenger.banana.BananaHooks.maybeOpenExternalVideoForDownload(context, currentAccount, uri.toString())) {
+            return;
+        }
         boolean[] forceBrowser = new boolean[]{false};
         boolean internalUri = isInternalUri(uri, forceBrowser);
         String browserPackage = getBrowserPackageName(browser);

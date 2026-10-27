@@ -3,11 +3,15 @@ package org.telegram.ui;
 import android.view.View;
 
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.messenger.banana.BananaConfig.Option;
 import org.telegram.messenger.banana.BananaExtrasCatalog;
+import org.telegram.messenger.banana.BananaVisualLabels;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.BananaSwitchCell;
 import org.telegram.ui.Components.BananaTheme;
@@ -46,7 +50,9 @@ public final class BananaExtrasSectionActivity extends UniversalFragment {
                     label != 0 ? LocaleController.getString(label) : option.name(),
                     BananaConfig.get(currentAccount, option)));
         }
-        if ("GHOST".equals(section)) {
+        if ("PROFILE".equals(section)) {
+            items.add(UItem.asButton(9100, LocaleController.getString(R.string.BananaVisualLabel), BananaVisualLabels.labelName(currentAccount)));
+        } else if ("GHOST".equals(section)) {
             items.add(UItem.asShadow(LocaleController.getString(R.string.BananaGhostModeInfo)));
         } else if ("NINJA".equals(section)) {
             items.add(UItem.asButton(9001, LocaleController.getString(R.string.BananaHistoryOpen)));
@@ -57,6 +63,26 @@ public final class BananaExtrasSectionActivity extends UniversalFragment {
 
     @Override
     protected void onClick(UItem item, View view, int position, float x, float y) {
+        if (item.id == 9100) {
+            CharSequence[] labels = new CharSequence[]{
+                    LocaleController.getString(R.string.BananaVisualLabelNone),
+                    LocaleController.getString(R.string.BananaVisualLabelScam),
+                    LocaleController.getString(R.string.BananaVisualLabelFake),
+                    LocaleController.getString(R.string.BananaVisualLabelSupport),
+                    LocaleController.getString(R.string.BananaVisualLabelBot)
+            };
+            showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                    .setTitle(LocaleController.getString(R.string.BananaVisualLabel))
+                    .setItems(labels, (dialog, which) -> {
+                        BananaVisualLabels.set(currentAccount, which);
+                        NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+                        NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_NAME);
+                        if (listView != null && listView.adapter != null) {
+                            listView.adapter.update(true);
+                        }
+                    }).create());
+            return;
+        }
         if (item.id == 9001) {
             presentFragment(new BananaHistoryActivity(currentAccount));
             return;

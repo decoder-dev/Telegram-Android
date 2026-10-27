@@ -2645,7 +2645,8 @@ public class ChatActivityEnterView extends FrameLayout implements
         viewParentForEmojiView = parent;
         sizeNotifierLayout.setDelegate(this);
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-        sendByEnter = preferences.getBoolean("send_by_enter", false);
+        sendByEnter = preferences.getBoolean("send_by_enter", false)
+                || org.telegram.messenger.banana.BananaHooks.sendWithReturnKey(UserConfig.selectedAccount);
 
         textFieldContainer = new FrameLayout(context) {
             @Override
@@ -5805,9 +5806,16 @@ public class ChatActivityEnterView extends FrameLayout implements
         if (isKeyboardSupportIncognitoMode() && encryptedChat != null) {
             flags |= EditorInfoCompat.IME_FLAG_NO_PERSONALIZED_LEARNING;
         }
+        if (org.telegram.messenger.banana.BananaHooks.sendWithReturnKey(currentAccount)) {
+            flags |= EditorInfo.IME_ACTION_SEND;
+        }
         messageEditText.setIncludeFontPadding(false);
         messageEditText.setImeOptions(flags);
-        messageEditText.setInputType(commonInputType = (messageEditText.getInputType() | EditorInfo.TYPE_TEXT_FLAG_CAP_SENTENCES | EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE));
+        int inputType = messageEditText.getInputType() | EditorInfo.TYPE_TEXT_FLAG_CAP_SENTENCES;
+        if (!org.telegram.messenger.banana.BananaHooks.sendWithReturnKey(currentAccount)) {
+            inputType |= EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE;
+        }
+        messageEditText.setInputType(commonInputType = inputType);
         updateFieldHint(false);
         messageEditText.setSingleLine(false);
         messageEditText.setMaxLines(6);
@@ -7845,6 +7853,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                 }
                 CharSequence[] message = new CharSequence[]{ part };
                 ArrayList<TLRPC.MessageEntity> entities = MediaDataController.getInstance(currentAccount).getEntities(message, supportsNewEntities);
+                entities = org.telegram.messenger.banana.BananaHooks.applyDefaultSendFormatting(currentAccount, message[0], entities);
                 MessageObject.SendAnimationData sendAnimationData = null;
 
                 if (!delegate.hasForwardingMessages()) {
@@ -7871,7 +7880,8 @@ public class ChatActivityEnterView extends FrameLayout implements
                 if (replyToTopMsg == null && replyingTopMessage != null) {
                     replyToTopMsg = replyingTopMessage;
                 }
-                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(message[0].toString(), dialog_id, replyingMessageObject, replyToTopMsg, messageWebPage, messageWebPageSearch, entities, null, null, notify, scheduleDate, scheduleRepeatPeriod, sendAnimationData, updateStickersOrder);
+                boolean bananaSearchLinks = org.telegram.messenger.banana.BananaHooks.shouldSearchLinks(currentAccount, messageWebPageSearch);
+                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(message[0].toString(), dialog_id, replyingMessageObject, replyToTopMsg, messageWebPage, bananaSearchLinks, entities, null, null, notify, scheduleDate, scheduleRepeatPeriod, sendAnimationData, updateStickersOrder);
                 params.sendMessageChatArguments = parentFragment != null ? parentFragment.getMessageChatSendParams() : null;
                 params.effect_id = effectId;
                 params.payStars = payStars;

@@ -3982,6 +3982,8 @@ public class MessagesStorage extends BaseController {
                 }
                 Collections.reverse(messages);
 
+                HashSet<Long> loadedUserIds = new HashSet<>(usersToLoad);
+                HashSet<Long> loadedChatIds = new HashSet<>(chatsToLoad);
                 usersToLoad.clear();
                 chatsToLoad.clear();
                 cursor = database.queryFinalized("SELECT uid, sid, date, expire_date, localName, flags FROM story_pushes");
@@ -3989,12 +3991,13 @@ public class MessagesStorage extends BaseController {
                 while (cursor.next()) {
                     long dialogId = cursor.longValue(0);
                     if (dialogId >= 0) {
-                        if (!usersToLoad.contains(dialogId)) {
+                        if (!loadedUserIds.contains(dialogId) && !usersToLoad.contains(dialogId)) {
                             usersToLoad.add(dialogId);
                         }
                     } else {
-                        if (!chatsToLoad.contains(dialogId)) {
-                            chatsToLoad.add(dialogId);
+                        long chatId = -dialogId;
+                        if (!loadedChatIds.contains(chatId) && !chatsToLoad.contains(chatId)) {
+                            chatsToLoad.add(chatId);
                         }
                     }
                     int id = cursor.intValue(1);
@@ -4756,11 +4759,15 @@ public class MessagesStorage extends BaseController {
                         message.readAttachPath(data, getUserConfig().clientUserId);
                         data.reuse();
                         if (message.media != null) {
+                            // AyuGramDesktop d4b7546e77: saving deleted messages keeps expiring media.
+                            if (message.media.ttl_seconds != 0 && AyuConfig.saveDeletedMessageFor(currentAccount, dialogId)) {
+                                continue;
+                            }
                             if (!addFilesToDelete(message, filesToDelete, idsToDelete, namesToDelete, true)) {
                                 continue;
                             } else {
-                                // --- AyuGram hook
-                                if (AyuConfig.saveMessagesHistory) {
+                                // --- AyuGram hook (Ayu OR Banana SAVE_EDITS)
+                                if (org.telegram.messenger.banana.BananaHooks.ayuSaveEditsEnabled(currentAccount)) {
                                     var prefs = new AyuSavePreferences(message, currentAccount);
                                     prefs.setDialogId(dialogId);
                                     AyuMessagesController.getInstance().onMessageEditedForce(prefs);

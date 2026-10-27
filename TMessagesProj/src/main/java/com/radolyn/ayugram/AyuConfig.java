@@ -145,7 +145,8 @@ public class AyuConfig {
     }
 
     public static boolean saveDeletedMessageFor(int accountId, long dialogId) {
-        if (!AyuConfig.saveDeletedMessages) {
+        boolean banana = org.telegram.messenger.banana.BananaHooks.saveDeleted(accountId);
+        if (!AyuConfig.saveDeletedMessages && !banana) {
             return false;
         }
 
@@ -158,7 +159,8 @@ public class AyuConfig {
     }
 
     public static boolean saveEditedMessageFor(int accountId, long dialogId) {
-        if (!AyuConfig.saveMessagesHistory) {
+        boolean banana = org.telegram.messenger.banana.BananaHooks.saveEdits(accountId);
+        if (!AyuConfig.saveMessagesHistory && !banana) {
             return false;
         }
 

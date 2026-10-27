@@ -201,6 +201,14 @@ public class ApplicationLoader extends Application {
         }
         applicationInited = true;
         NativeLoader.initNativeLibs(ApplicationLoader.applicationContext);
+        try {
+            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                if (UserConfig.getInstance(a).isClientActivated()) {
+                    org.telegram.messenger.banana.BananaHooks.maybeSessionKeychainBackup(a);
+                }
+            }
+        } catch (Throwable ignore) {
+        }
 
         try {
             LocaleController.getInstance(); //TODO improve
@@ -368,6 +376,7 @@ public class ApplicationLoader extends Application {
 
         LauncherIconController.tryFixLauncherIconIfNeeded();
         ProxyRotationController.init();
+        org.telegram.messenger.banana.BananaAutomaticProxy.init();
 
         //if (BuildConfig.DEBUG_PRIVATE_VERSION) {
         //    Choreographer60FpsContent.getInstance().addFrameCallback(debugEverySecondChecks, 1);
@@ -380,13 +389,18 @@ public class ApplicationLoader extends Application {
 
     public static void startPushService() {
         SharedPreferences preferences = MessagesController.getGlobalNotificationsSettings();
-        boolean enabled;
+        final boolean bananaKeepAlive = org.telegram.messenger.banana.BananaHooks.keepAliveInBackground(UserConfig.selectedAccount);
+        final boolean pushPref;
         if (preferences.contains("pushService")) {
-            enabled = preferences.getBoolean("pushService", true);
+            pushPref = preferences.getBoolean("pushService", true);
         } else {
-            enabled = MessagesController.getMainSettings(UserConfig.selectedAccount).getBoolean("keepAliveService", false);
+            pushPref = MessagesController.getMainSettings(UserConfig.selectedAccount).getBoolean("keepAliveService", false);
         }
-        if (enabled) {
+        ForegroundDetector detector = ForegroundDetector.getInstance();
+        final boolean background = detector != null && detector.isBackground();
+        if (pushPref || AyuConfig.keepAliveService) {
+            // Ayu's repeating wakeup stays on its own pending intent. Banana keep-alive
+            // must not add a second RTC_WAKEUP while the UI is in front.
             if (AyuConfig.keepAliveService) {
                 Log.d("TFOSS", "Trying to start push service every minute");
                 AlarmManager am = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
@@ -403,17 +417,50 @@ public class ApplicationLoader extends Application {
             } catch (Throwable ignore) {
                 Log.d("TFOSS", "Failed to start push service");
             }
+        } else if (bananaKeepAlive && background) {
+            try {
+                applicationContext.startService(new Intent(applicationContext, NotificationsService.class));
+            } catch (Throwable ignore) {
+                Log.d("TFOSS", "Failed to start push service");
+            }
         } else {
             applicationContext.stopService(new Intent(applicationContext, NotificationsService.class));
-
-            if (AyuConfig.keepAliveService) {
-                PendingIntent pintent = PendingIntent.getService(applicationContext, 0, new Intent(applicationContext, NotificationsService.class), PendingIntent.FLAG_IMMUTABLE);
-                AlarmManager alarm = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
-                alarm.cancel(pintent);
-                if (pendingIntent != null) {
-                    alarm.cancel(pendingIntent);
-                }
+            AlarmManager alarm = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
+            PendingIntent pintent = PendingIntent.getService(applicationContext, 0, new Intent(applicationContext, NotificationsService.class), PendingIntent.FLAG_IMMUTABLE);
+            alarm.cancel(pintent);
+            if (pendingIntent != null) {
+                alarm.cancel(pendingIntent);
             }
+        }
+        syncBananaKeepAlive(background);
+    }
+
+    /**
+     * iOS {@code ForkBackgroundKeepAlive} plays silence only while the app is off screen,
+     * and it stops in the foreground. Android does not loop audio. A single inexact
+     * wakeup, never faster than 15 minutes and never while the UI is up, restarts the
+     * service if the process was frozen. No partial wake lock is held.
+     */
+    public static void syncBananaKeepAlive(boolean inBackground) {
+        if (applicationContext == null) {
+            return;
+        }
+        AlarmManager alarm = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(applicationContext, NotificationsService.class);
+        PendingIntent existing = PendingIntent.getService(applicationContext, 7, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_NO_CREATE);
+        if (existing != null) {
+            alarm.cancel(existing);
+        }
+        boolean banana = org.telegram.messenger.banana.BananaHooks.keepAliveInBackground(UserConfig.selectedAccount);
+        if (!banana || !inBackground || AyuConfig.keepAliveService) {
+            return;
+        }
+        PendingIntent next = PendingIntent.getService(applicationContext, 7, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        long when = System.currentTimeMillis() + AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarm.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, next);
+        } else {
+            alarm.set(AlarmManager.RTC_WAKEUP, when, next);
         }
     }
 

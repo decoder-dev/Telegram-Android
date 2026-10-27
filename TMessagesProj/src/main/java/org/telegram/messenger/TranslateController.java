@@ -1103,7 +1103,8 @@ public class TranslateController extends BaseController {
                 }
 
                 final String method = getMessagesController().translationsAutoEnabled;
-                if ("alternative".equals(method) || "system".equals(method)) {
+                if ("alternative".equals(method) || "system".equals(method)
+                        || org.telegram.messenger.banana.BananaHooks.preferAlternativeTranslation(currentAccount)) {
                     final String toLanguage = pendingTranslation1.language;
                     for (int i = 0; i < pendingTranslation1.messageIds.size(); ++i) {
                         final int id = pendingTranslation1.messageIds.get(i);

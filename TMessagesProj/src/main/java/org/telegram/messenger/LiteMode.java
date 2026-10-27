@@ -103,6 +103,12 @@ public class LiteMode {
         if (!loaded) {
             loadPreference();
         }
+        if (!ignorePowerSaving && org.telegram.messenger.banana.BananaHooks.powerSaving(org.telegram.messenger.UserConfig.selectedAccount)) {
+            if (!lastPowerSaverApplied) {
+                onPowerSaverApplied(lastPowerSaverApplied = true);
+            }
+            return PRESET_POWER_SAVER;
+        }
         if (!ignorePowerSaving && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (getBatteryLevel() <= powerSaverLevel && powerSaverLevel > 0) {
                 if (!lastPowerSaverApplied) {

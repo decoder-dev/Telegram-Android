@@ -58,6 +58,7 @@ import android.os.PowerManager;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -1882,7 +1883,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             ArrayList<Integer> markAsDeletedMessages = (ArrayList<Integer>) args[0];
             if (playingMessageObject != null) {
                 if (channelId == playingMessageObject.messageOwner.peer_id.channel_id) {
-                    if (markAsDeletedMessages.contains(playingMessageObject.getId()) && !AyuConfig.saveDeletedMessages) {
+                    if (markAsDeletedMessages.contains(playingMessageObject.getId())
+                            && !org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(UserConfig.selectedAccount)) {
                         cleanupPlayer(true, true);
                     }
                 }
@@ -2632,7 +2634,22 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         }
         if (stopService) {
             CastSync.stop();
+            stopMediaSessionPlayback();
         }
+    }
+
+    private void stopMediaSessionPlayback() {
+        if (playingMessageObject != null) {
+            return;
+        }
+        TelegramMediaSession mediaSession = TelegramMediaSession.peekInstance();
+        if (mediaSession == null) {
+            return;
+        }
+        mediaSession.publishPlaybackState(new PlaybackStateCompat.Builder()
+                .setState(PlaybackStateCompat.STATE_STOPPED, 0, 0f)
+                .setActions(mediaSession.getAvailableActions())
+                .build());
     }
 
     public boolean isGoingToShowMessageObject(MessageObject messageObject) {
@@ -5185,7 +5202,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                         requestRecordAudioFocus(true);
 //                        MediaDataController.getInstance(recordingCurrentAccount).pushDraftVoiceMessage(recordDialogId, recordTopicId, null);
 //
-                        audioRecorder = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
+                        int bananaMicSource = org.telegram.messenger.banana.BananaHooks.forceBuiltInMic(UserConfig.selectedAccount)
+                                ? MediaRecorder.AudioSource.MIC : MediaRecorder.AudioSource.DEFAULT;
+                        audioRecorder = new AudioRecord(bananaMicSource, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
                         recordStartTime = System.currentTimeMillis();
                         writtenFrame = 0;
                         samplesCount = 0;
@@ -5288,7 +5307,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 }
 
                 audioRecorderPaused = false;
-                audioRecorder = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
+                int bananaMicSource = org.telegram.messenger.banana.BananaHooks.forceBuiltInMic(UserConfig.selectedAccount)
+                        ? MediaRecorder.AudioSource.MIC : MediaRecorder.AudioSource.DEFAULT;
+                audioRecorder = new AudioRecord(bananaMicSource, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
                 recordStartTime = System.currentTimeMillis();
                 recordTimeCount = 0;
                 writtenFrame = 0;
@@ -5811,21 +5832,21 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 cv.put(MediaStore.MediaColumns.RELATIVE_PATH, dirDest + File.separator);
                 cv.put(MediaStore.Downloads.DISPLAY_NAME, filename);
                 cv.put(MediaStore.MediaColumns.MIME_TYPE, outputMime);
+                cv.put(MediaStore.MediaColumns.IS_PENDING, 1);
                 final Uri dst = ApplicationLoader.applicationContext.getContentResolver().insert(uriToInsert, cv);
                 if (dst != null) {
                     boolean ok = false;
-                    try (OutputStream os = ApplicationLoader.applicationContext.getContentResolver().openOutputStream(dst)) {
+                    try (OutputStream os = ApplicationLoader.applicationContext.getContentResolver().openOutputStream(dst, "w")) {
                         if (os != null) {
                             writeMotionPhoto(photoFile, videoFile, os, null);
                             ok = !cancelled;
                         }
                     }
                     if (ok) {
+                        finishPendingMediaUri(dst);
                         copiedFiles++;
                     } else {
-                        try {
-                            ApplicationLoader.applicationContext.getContentResolver().delete(dst, null, null);
-                        } catch (Exception ignored) {}
+                        deleteMediaUri(dst);
                     }
                 }
             } else {
@@ -6013,6 +6034,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             return;
         }
 
+        final String bananaSignedName = org.telegram.messenger.banana.BananaHooks.maybeSignDownloadedFileName(
+                UserConfig.selectedAccount, name);
         final File sourceFile = file;
         final boolean[] cancelled = new boolean[]{false};
         if (sourceFile.exists()) {
@@ -6065,15 +6088,16 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                             }
                             dir = new File(dir, com.radolyn.ayugram.AyuConstants.APP_NAME);
                             dir.mkdirs();
-                            destFile = new File(dir, name);
+                            final String destName = bananaSignedName != null ? bananaSignedName : name;
+                            destFile = new File(dir, destName);
                             if (destFile.exists()) {
-                                int idx = name.lastIndexOf('.');
+                                int idx = destName.lastIndexOf('.');
                                 for (int a = 0; a < 10; a++) {
                                     String newName;
                                     if (idx != -1) {
-                                        newName = name.substring(0, idx) + "(" + (a + 1) + ")" + name.substring(idx);
+                                        newName = destName.substring(0, idx) + "(" + (a + 1) + ")" + destName.substring(idx);
                                     } else {
-                                        newName = name + "(" + (a + 1) + ")";
+                                        newName = destName + "(" + (a + 1) + ")";
                                     }
                                     destFile = new File(dir, newName);
                                     if (!destFile.exists()) {
@@ -6213,20 +6237,20 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                     cv.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
                     cv.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
                     cv.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
+                    cv.put(MediaStore.MediaColumns.IS_PENDING, 1);
                     final Uri dst = ApplicationLoader.applicationContext.getContentResolver().insert(uriToInsert, cv);
                     if (dst != null) {
-                        try (OutputStream os = ApplicationLoader.applicationContext.getContentResolver().openOutputStream(dst)) {
+                        try (OutputStream os = ApplicationLoader.applicationContext.getContentResolver().openOutputStream(dst, "w")) {
                             if (os != null) {
                                 writeMotionPhoto(photoFile, videoFile, os, cancelled);
                                 ok = !cancelled[0];
                             }
                         }
                         if (ok) {
+                            finishPendingMediaUri(dst);
                             savedUri = dst;
                         } else {
-                            try {
-                                ApplicationLoader.applicationContext.getContentResolver().delete(dst, null, null);
-                            } catch (Exception ignored) {}
+                            deleteMediaUri(dst);
                         }
                     }
                 } else {
@@ -6338,14 +6362,52 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 "<?xpacket end=\"w\"?>";
     }
 
+    private static void finishPendingMediaUri(Uri uri) {
+        if (uri == null || Build.VERSION.SDK_INT < 29) {
+            return;
+        }
+        try {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.IS_PENDING, 0);
+            ApplicationLoader.applicationContext.getContentResolver().update(uri, values, null, null);
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+    }
+
+    private static void deleteMediaUri(Uri uri) {
+        if (uri == null) {
+            return;
+        }
+        try {
+            ApplicationLoader.applicationContext.getContentResolver().delete(uri, null, null);
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+    }
+
+    private static String fixExtension(String extension) {
+        if (TextUtils.isEmpty(extension)) {
+            return null;
+        }
+        extension = extension.trim().toLowerCase(Locale.ROOT);
+        if (extension.indexOf('/') >= 0 || extension.indexOf('\\') >= 0) {
+            return null;
+        }
+        return extension;
+    }
+
     private static Uri saveFileInternal(int type, File sourceFile, String filename) {
         try {
             int selectedType = type;
             ContentValues contentValues = new ContentValues();
-            String extension = FileLoader.getFileExtension(sourceFile);
+            String extension = fixExtension(FileLoader.getFileExtension(sourceFile));
             String mimeType = null;
             if (extension != null) {
                 mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+            }
+            if (filename != null) {
+                filename = org.telegram.messenger.banana.BananaHooks.maybeSignDownloadedFileName(UserConfig.selectedAccount, filename);
             }
             Uri uriToInsert = null;
             if ((type == 0 || type == 1) && mimeType != null) {
@@ -6357,8 +6419,13 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 }
             }
             if (selectedType == 0) {
+                if (TextUtils.isEmpty(mimeType) || !mimeType.startsWith("image/")) {
+                    mimeType = "image/jpeg";
+                    extension = "jpg";
+                }
                 if (filename == null) {
-                    filename = AndroidUtilities.generateFileName(0, extension);
+                    filename = org.telegram.messenger.banana.BananaHooks.maybeSignDownloadedFileName(
+                            UserConfig.selectedAccount, AndroidUtilities.generateFileName(0, extension));
                 }
                 uriToInsert = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                 File dirDest = new File(Environment.DIRECTORY_PICTURES, com.radolyn.ayugram.AyuConstants.APP_NAME);
@@ -6366,14 +6433,22 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
                 contentValues.put(MediaStore.Images.Media.MIME_TYPE, mimeType);
             } else if (selectedType == 1) {
+                if (TextUtils.isEmpty(mimeType) || !mimeType.startsWith("video/")) {
+                    mimeType = "video/mp4";
+                    extension = "mp4";
+                }
                 if (filename == null) {
-                    filename = AndroidUtilities.generateFileName(1, extension);
+                    filename = org.telegram.messenger.banana.BananaHooks.maybeSignDownloadedFileName(
+                            UserConfig.selectedAccount, AndroidUtilities.generateFileName(1, extension));
                 }
                 File dirDest = new File(Environment.DIRECTORY_MOVIES, com.radolyn.ayugram.AyuConstants.APP_NAME);
                 contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, dirDest + File.separator);
                 uriToInsert = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                 contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
             } else if (selectedType == 2) {
+                if (TextUtils.isEmpty(mimeType)) {
+                    mimeType = "application/octet-stream";
+                }
                 if (filename == null) {
                     filename = sourceFile.getName();
                 }
@@ -6382,6 +6457,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 uriToInsert = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                 contentValues.put(MediaStore.Downloads.DISPLAY_NAME, filename);
             } else {
+                if (TextUtils.isEmpty(mimeType) || !mimeType.startsWith("audio/")) {
+                    mimeType = "audio/mpeg";
+                }
                 if (filename == null) {
                     filename = sourceFile.getName();
                 }
@@ -6392,13 +6470,23 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             }
 
             contentValues.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+            contentValues.put(MediaStore.MediaColumns.IS_PENDING, 1);
 
             Uri dstUri = ApplicationLoader.applicationContext.getContentResolver().insert(uriToInsert, contentValues);
             if (dstUri != null) {
-                FileInputStream fileInputStream = new FileInputStream(sourceFile);
-                OutputStream outputStream = ApplicationLoader.applicationContext.getContentResolver().openOutputStream(dstUri);
-                AndroidUtilities.copyFile(fileInputStream, outputStream);
-                fileInputStream.close();
+                boolean copied = false;
+                try (FileInputStream fileInputStream = new FileInputStream(sourceFile);
+                     OutputStream outputStream = ApplicationLoader.applicationContext.getContentResolver().openOutputStream(dstUri, "w")) {
+                    if (outputStream != null) {
+                        AndroidUtilities.copyFile(fileInputStream, outputStream);
+                        copied = true;
+                    }
+                }
+                if (!copied) {
+                    deleteMediaUri(dstUri);
+                    return null;
+                }
+                finishPendingMediaUri(dstUri);
             }
             return dstUri;
         } catch (Exception e) {

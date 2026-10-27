@@ -4549,11 +4549,11 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             if (scheduled) {
                 return;
             }
-            // --- AyuGram hook
-            if (AyuConfig.saveDeletedMessages) {
+            // --- AyuGram / Banana hook
+            if (org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount)) {
                 return;
             }
-            // --- AyuGram hook
+            // --- AyuGram / Banana hook
             long channelId = (Long) args[1];
             ArrayList<Integer> markAsDeletedMessages = (ArrayList<Integer>) args[0];
             boolean reset = false;
@@ -14362,6 +14362,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 allowCaption = cropItem.getVisibility() == View.VISIBLE;
             }
             needCaptionLayout = allowCaption && (placeProvider == null || placeProvider.allowCaption());
+            if (parentChatActivity != null) {
+                captionEdit.setChatInfo(parentChatActivity.chatInfo);
+                topCaptionEdit.setChatInfo(parentChatActivity.chatInfo);
+            }
             if (parentChatActivity != null && captionEdit.mentionContainer != null) {
                 captionEdit.mentionContainer.getAdapter().setChatInfo(parentChatActivity.chatInfo);
                 captionEdit.mentionContainer.getAdapter().setNeedUsernames(parentChatActivity.currentChat != null);
@@ -14630,6 +14634,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             } else {
                 bottomLayout.setVisibility(View.GONE);
                 bottomLayout.setTag(null);
+                setVideoPlayerControlVisible(false, animated);
             }
             if (isInvoice) {
                 setItemVisible(masksItem, false, animated);
@@ -17008,12 +17013,12 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     }
                 } else if (avatarsDialogId != 0) {
                     if (avatarsDialogId > 0) {
-                        parentObject = MessagesController.getInstance(currentAccount).getUser(avatarsDialogId);
+                        parentObject = "avatar_" + avatarsDialogId;
                     } else {
                         parentObject = MessagesController.getInstance(currentAccount).getChat(-avatarsDialogId);
-                    }
-                    if (photoObject != null) {
-                        parentObject = photoObject;
+                        if (photoObject != null) {
+                            parentObject = photoObject;
+                        }
                     }
                     if (placeHolder == null && thumbLocation instanceof TLRPC.TL_photoStrippedSize) {
                         placeHolder = new ImageReceiver.BitmapHolder(ImageLoader.getStrippedPhotoBitmap(thumbLocation.bytes, "b"));
@@ -17536,12 +17541,15 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR |
                 WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM |
                 WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS;
-            if (chatActivity != null && chatActivity.getCurrentEncryptedChat() != null ||
-                avatarsDialogId != 0 && MessagesController.getInstance(currentAccount).isPeerNoForwards(avatarsDialogId) ||
-                messageObject != null && (MessagesController.getInstance(currentAccount).isPeerNoForwards(messageObject.getDialogId()) ||
-                (messageObject.messageOwner != null && messageObject.messageOwner.noforwards)) || messageObject != null && messageObject.hasRevealedExtendedMedia() ||
-                isPageBlocksNoForwards(pageBlocksAdapter)
-            ) {
+            final boolean bananaSecret = chatActivity != null && chatActivity.getCurrentEncryptedChat() != null;
+            final boolean bananaProtected =
+                (avatarsDialogId != 0 && MessagesController.getInstance(currentAccount).isPeerNoForwards(avatarsDialogId)) ||
+                (messageObject != null && (MessagesController.getInstance(currentAccount).isPeerNoForwards(messageObject.getDialogId()) ||
+                (messageObject.messageOwner != null && messageObject.messageOwner.noforwards))) ||
+                (messageObject != null && messageObject.hasRevealedExtendedMedia()) ||
+                isPageBlocksNoForwards(pageBlocksAdapter);
+            if (org.telegram.messenger.banana.BananaHooks.shouldSecureForSecret(currentAccount, bananaSecret)
+                    || org.telegram.messenger.banana.BananaHooks.shouldSecureForProtected(currentAccount, bananaProtected)) {
                 windowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SECURE;
                 AndroidUtilities.logFlagSecure();
             } else {

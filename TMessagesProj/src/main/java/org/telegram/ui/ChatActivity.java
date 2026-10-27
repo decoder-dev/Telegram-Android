@@ -1312,6 +1312,12 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_VIEW_STATISTICS = 115;
     public final static int OPTION_WELCOME_REVERT = 116;
     public final static int OPTION_SEND_MONEY = 117;
+    public final static int OPTION_MESSAGE_SHOT = 118;
+    public final static int OPTION_SAVE_TO_CLOUD = 119;
+    public final static int OPTION_REPEAT_MESSAGE = 120;
+    public final static int OPTION_SELECT_FROM_AUTHOR = 121;
+    public final static int OPTION_BOOKMARK_MESSAGE = 122;
+    public final static int OPTION_EXPIRE_TTL = 123;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             AyuConstants.MESSAGES_DELETED_NOTIFICATION,
@@ -1753,6 +1759,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int charge_fee = 72;
     private final static int chat_menu_topic_create = 73;
     private final static int to_beginning = 75;
+    private final static int banana_local_alias = 76;
 
     private final static int permissions = 100;
     private final static int administrators = 101;
@@ -2021,7 +2028,20 @@ public class ChatActivity extends BaseFragment implements
             } else {
                 return false;
             }
-            return messageObject != null && !messageObject.isDateObject && !messageObject.isSending() && messageObject.canSetReaction() && !messageObject.isEditing() && !actionBar.isActionModeShowed() && !isSecretChat() && !isInScheduleMode() && !messageObject.isSponsored();
+            if (messageObject == null || messageObject.isDateObject || messageObject.isSending() || messageObject.isEditing() || actionBar.isActionModeShowed() || isSecretChat() || isInScheduleMode() || messageObject.isSponsored()) {
+                return false;
+            }
+            int bananaTap = org.telegram.messenger.banana.BananaHooks.doubleTapAction(currentAccount);
+            if (bananaTap == 0) {
+                return false;
+            }
+            if (bananaTap == 6 || org.telegram.messenger.banana.BananaHooks.doubleTapToEdit(currentAccount)) {
+                return messageObject.isOutOwner() && messageObject.canEditMessage(currentChat);
+            }
+            if (bananaTap == 2 || bananaTap == 3 || bananaTap == 4) {
+                return true;
+            }
+            return messageObject.canSetReaction();
         }
 
         @Override
@@ -2040,7 +2060,37 @@ public class ChatActivity extends BaseFragment implements
             } else {
                 return;
             }
-            if (messageObject.isSecret() || !messageObject.canSetReaction() || messageObject.isExpiredStory() || messageObject.type == MessageObject.TYPE_JOINED_CHANNEL) {
+            if (messageObject.isSecret() || messageObject.isExpiredStory() || messageObject.type == MessageObject.TYPE_JOINED_CHANNEL) {
+                return;
+            }
+            int bananaTap = org.telegram.messenger.banana.BananaHooks.doubleTapAction(currentAccount);
+            if (bananaTap == 0) {
+                return;
+            }
+            if (bananaTap == 6 || (bananaTap != 1 && bananaTap != 2 && bananaTap != 3 && bananaTap != 4 && org.telegram.messenger.banana.BananaHooks.doubleTapToEdit(currentAccount))) {
+                if (messageObject.isOutOwner() && messageObject.canEditMessage(currentChat)) {
+                    startEditingMessageObject(messageObject);
+                }
+                return;
+            }
+            if (bananaTap == 2) {
+                showFieldPanelForReply(messageObject);
+                return;
+            }
+            if (bananaTap == 3) {
+                ArrayList<MessageObject> toRepeat = new ArrayList<>();
+                toRepeat.add(messageObject);
+                getSendMessagesHelper().sendMessage(toRepeat, getDialogId(), true, false, true, 0, null, -1, 0);
+                return;
+            }
+            if (bananaTap == 4) {
+                CharSequence text = messageObject.getMessageTextToTranslate(null, null);
+                if (!TextUtils.isEmpty(text)) {
+                    TranslateAlert2.showAlert(getParentActivity(), ChatActivity.this, currentAccount, "und", TranslateAlert2.getToLanguage(), text, null, false, null, null);
+                }
+                return;
+            }
+            if (!messageObject.canSetReaction()) {
                 return;
             }
             if (!(currentChat == null || ChatObject.isChannelAndNotMegaGroup(currentChat) || ChatObject.canUserDoAction(currentChat, ChatObject.ACTION_SEND_REACTIONS))) {
@@ -2049,6 +2099,9 @@ public class ChatActivity extends BaseFragment implements
 
             ReactionsEffectOverlay.removeCurrent(false);
             String reactionString = getMediaDataController().getDoubleTapReaction();
+            if (TextUtils.isEmpty(reactionString)) {
+                return;
+            }
             if (reactionString.startsWith("animated_")) {
                 boolean available = dialog_id >= 0;
                 if (!available && chatInfo != null) {
@@ -2780,6 +2833,25 @@ public class ChatActivity extends BaseFragment implements
         final long chatId = arguments.getLong("chat_id", 0);
         final long userId = arguments.getLong("user_id", 0);
         final int encId = arguments.getInt("enc_id", 0);
+        final long bananaGateId = chatId != 0 ? -chatId : (userId != 0 ? userId : (encId != 0 ? org.telegram.messenger.DialogObject.makeEncryptedDialogId(encId) : 0));
+        if (bananaGateId != 0 && org.telegram.messenger.banana.BananaArchiveLock.blocksOpening(currentAccount, bananaGateId)) {
+            final Bundle reopen = arguments == null ? null : new Bundle(arguments);
+            AndroidUtilities.runOnUIThread(() -> {
+                if (parentLayout == null) {
+                    return;
+                }
+                BaseFragment host = parentLayout.getLastFragment();
+                if (host == null || host == ChatActivity.this) {
+                    return;
+                }
+                org.telegram.messenger.banana.BananaArchiveLock.promptUnlock(host, () -> {
+                    if (reopen != null) {
+                        host.presentFragment(new ChatActivity(reopen));
+                    }
+                });
+            });
+            return false;
+        }
         dialogFolderId = arguments.getInt("dialog_folder_id", 0);
         dialogFilterId = arguments.getInt("dialog_filter_id", 0);
         chatMode = arguments.getInt("chatMode", 0);
@@ -3466,8 +3538,13 @@ public class ChatActivity extends BaseFragment implements
 
     @Override
     public void onFragmentDestroy() {
+        org.telegram.ui.ActionBar.INavigationLayout bananaLayout = parentLayout;
+        long bananaDialog = dialog_id;
         org.telegram.messenger.banana.MessageFilters.removeListener(currentAccount, bananaFiltersChanged);
         super.onFragmentDestroy();
+        if (bananaDialog != 0 && org.telegram.messenger.banana.BananaArchiveLock.isProtected(currentAccount, bananaDialog)) {
+            org.telegram.messenger.banana.BananaArchiveLock.noteSurfaceClosed(currentAccount, bananaLayout, this);
+        }
         if (messageMetricsView != null) {
             messageMetricsView.finish();
         }
@@ -4026,6 +4103,11 @@ public class ChatActivity extends BaseFragment implements
                     }
                 } else if (id == to_beginning) {
                     scrollToMessageId(1, 0, false, 0, true, 0);
+                } else if (id == banana_local_alias) {
+                    if (currentChat != null) {
+                        org.telegram.messenger.banana.BananaHooks.promptLocalGroupAlias(
+                                ChatActivity.this, currentAccount, dialog_id, currentChat.title);
+                    }
                 } else if (id == show_pinned) {
                     setPinVisibility(true);
                 } else if (id == recent_actions) {
@@ -4375,6 +4457,7 @@ public class ChatActivity extends BaseFragment implements
         } else {
             actionBar.addView(avatarContainer, 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, !inPreviewMode ? 52 : 0, 0, 52, 0));
             actionBar.createMenu().bringToFront();
+            org.telegram.messenger.banana.BananaIsland.attachToActionBar(actionBar, currentAccount);
         }
         actionBar.setOnActionModeFactorChangeListener(() -> {
             checkUi_avatarContainerVisibility();
@@ -4576,7 +4659,12 @@ public class ChatActivity extends BaseFragment implements
             if (currentChat != null && !currentChat.creator && !ChatObject.hasAdminRights(currentChat)) {
                 headerItem.lazilyAddSubItem(report, R.drawable.msg_report, LocaleController.getString(R.string.ReportChat));
             }
-            headerItem.lazilyAddSubItem(to_beginning, R.drawable.msg_go_up, LocaleController.getString("ToBeginning", R.string.ToBeginning));
+            if (org.telegram.messenger.banana.BananaHooks.jumpToStartInChatMenu(currentAccount)) {
+                headerItem.lazilyAddSubItem(to_beginning, R.drawable.msg_go_up, LocaleController.getString(R.string.BananaJumpToStart));
+            }
+            if (currentChat != null && org.telegram.messenger.banana.BananaHooks.localGroupAlias(currentAccount)) {
+                headerItem.lazilyAddSubItem(banana_local_alias, R.drawable.msg_edit, LocaleController.getString(R.string.BananaLocalGroupAlias));
+            }
             if (currentChat != null && (ChatObject.canUserDoAction(currentChat, ChatObject.ACTION_PIN) || ChatObject.isChannel(currentChat)) || currentEncryptedChat == null && currentUser != null) {
                 headerItem.lazilyAddSubItem(show_pinned, R.drawable.msg_pin, LocaleController.getString("PinnedMessage", R.string.PinnedMessage));
             }
@@ -6829,7 +6917,8 @@ public class ChatActivity extends BaseFragment implements
                 if (!foundTopView) {
                     scrolled = super.scrollVerticallyBy(dy, recycler, state);
                 }
-                final boolean allowPullingDownScroll = !isInPollAddOptionMode() && !hasSelectedMessages();
+                final boolean allowPullingDownScroll = !isInPollAddOptionMode() && !hasSelectedMessages()
+                        && !org.telegram.messenger.banana.BananaHooks.scrollToNextChatDisabled(currentAccount);
                 if (allowPullingDownScroll && dy > 0 && scrolled == 0 && (ChatObject.isChannel(currentChat) && !currentChat.megagroup || isTopic && !UserObject.isBotForum(currentUser)) && chatMode != MODE_SAVED && chatMode != MODE_WELCOME_MESSAGES && chatMode != MODE_SCHEDULED && chatListView.getScrollState() == RecyclerView.SCROLL_STATE_DRAGGING && !chatListView.isFastScrollAnimationRunning() && !chatListView.isMultiselect() && !isReport()) {
                     if (pullingDownOffset == 0 && pullingDownDrawable != null) {
                         if (nextChannels != null && !nextChannels.isEmpty()) {
@@ -7501,7 +7590,7 @@ public class ChatActivity extends BaseFragment implements
                 } else {
                     String username = ChatObject.getPublicUsername(chat);
                     if (username != null) {
-                        chatActivityEnterView.replaceWithText(start, len, "@" + username + " ", false);
+                        chatActivityEnterView.replaceWithText(start, len, "@" + username + org.telegram.messenger.banana.BananaHooks.mentionInsertSuffix(currentAccount), false);
                     }
                 }
             } else if (object instanceof TLRPC.User) {
@@ -7509,11 +7598,12 @@ public class ChatActivity extends BaseFragment implements
                 if (searchingForUser && searchContainer != null && searchContainer.getVisibility() == View.VISIBLE) {
                     searchUserMessages(user, null);
                 } else {
+                    final String bananaMentionSuffix = org.telegram.messenger.banana.BananaHooks.mentionInsertSuffix(currentAccount);
                     if (UserObject.getPublicUsername(user) != null) {
-                        chatActivityEnterView.replaceWithText(start, len, "@" + UserObject.getPublicUsername(user) + " ", false);
+                        chatActivityEnterView.replaceWithText(start, len, "@" + UserObject.getPublicUsername(user) + bananaMentionSuffix, false);
                     } else {
                         String name = UserObject.getFirstName(user, false);
-                        Spannable spannable = new SpannableString(name + " ");
+                        Spannable spannable = new SpannableString(name + bananaMentionSuffix);
                         spannable.setSpan(new URLSpanUserMention("" + user.id, 3), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                         chatActivityEnterView.replaceWithText(start, len, spannable, false);
                     }
@@ -8758,6 +8848,11 @@ public class ChatActivity extends BaseFragment implements
                                 getNotificationCenter().postNotificationName(NotificationCenter.peerSettingsDidLoad, dialog_id);
                             }
                         }
+                    } else if (bottomOverlayChatText.getTag() != null && bottomOverlayChatText.getTag().equals(R.string.ViewDiscussion)
+                            && chatInfo != null && chatInfo.linked_chat_id != 0) {
+                        Bundle args = new Bundle();
+                        args.putLong("chat_id", chatInfo.linked_chat_id);
+                        presentFragment(new ChatActivity(args));
                     } else {
                         toggleMute(true);
                     }
@@ -8829,8 +8924,8 @@ public class ChatActivity extends BaseFragment implements
         chatScrollHelper.setAnimationCallback(chatScrollHelperCallback);
 
         flagSecure = new FlagSecureReason(getParentActivity().getWindow(), () ->
-            currentEncryptedChat != null ||
-            isPeerNoForwards()
+            org.telegram.messenger.banana.BananaHooks.shouldSecureForSecret(currentAccount, currentEncryptedChat != null) ||
+            org.telegram.messenger.banana.BananaHooks.shouldSecureForProtected(currentAccount, isPeerNoForwards())
         );
 
         if (oldMessage != null) {
@@ -11776,9 +11871,21 @@ public class ChatActivity extends BaseFragment implements
                 builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
                 showDialog(builder.create());
             } else if (!pinnedMessageIds.isEmpty()) {
-                SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
-                preferences.edit().putInt("pin_" + dialog_id, pinnedMessageIds.get(0)).apply();
-                updatePinnedMessageView(true);
+                Runnable hidePin = () -> {
+                    SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
+                    preferences.edit().putInt("pin_" + dialog_id, pinnedMessageIds.get(0)).apply();
+                    updatePinnedMessageView(true);
+                };
+                if (org.telegram.messenger.banana.BananaHooks.confirmUnpin(currentAccount)) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
+                    builder.setTitle(LocaleController.getString(R.string.UnpinMessageAlertTitle));
+                    builder.setMessage(LocaleController.getString(R.string.UnpinMessageAlert));
+                    builder.setPositiveButton(LocaleController.getString(R.string.OK), (d, w) -> hidePin.run());
+                    builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+                    showDialog(builder.create());
+                } else {
+                    hidePin.run();
+                }
             }
         });
         closePinned.setOnLongClickListener(v -> {
@@ -14097,7 +14204,7 @@ public class ChatActivity extends BaseFragment implements
             }
             boolean allowGifs;
             if (ChatObject.isChannel(currentChat) && currentChat.banned_rights != null && currentChat.banned_rights.send_gifs) {
-                allowGifs = false;
+                allowGifs = org.telegram.messenger.banana.BananaHooks.sendBannedGifsAsVideo(currentAccount);
             } else {
                 allowGifs = true;
             }
@@ -14167,7 +14274,7 @@ public class ChatActivity extends BaseFragment implements
 
     public boolean allowSendGifs() {
         if (ChatObject.isChannel(currentChat) && currentChat.banned_rights != null && currentChat.banned_rights.send_gifs) {
-            return false;
+            return org.telegram.messenger.banana.BananaHooks.sendBannedGifsAsVideo(currentAccount);
         } else {
             return true;
         }
@@ -15867,26 +15974,34 @@ public class ChatActivity extends BaseFragment implements
         if (messageObject == null || messageObject.isOut() || !messageObject.isSecretMedia() || messageObject.messageOwner.destroyTime != 0 || messageObject.messageOwner.ttl <= 0) {
             return null;
         }
+        // AyuGramDesktop d4b7546e77: keep incoming TTL media instead of starting local self-destruct.
+        final boolean keep = messageObject.messageOwner.media != null
+                && messageObject.messageOwner.media.ttl_seconds != 0
+                && AyuConfig.saveDeletedMessageFor(currentAccount, dialog_id);
         if (readNow) {
-            final boolean delete = messageObject.messageOwner.ttl != 0x7FFFFFFF;
+            final boolean delete = !keep && messageObject.messageOwner.ttl != 0x7FFFFFFF;
             final int ttl = messageObject.messageOwner.ttl == 0x7FFFFFFF ? 0 : messageObject.messageOwner.ttl;
-            messageObject.messageOwner.destroyTime = ttl + getConnectionsManager().getCurrentTime();
+            if (!keep) {
+                messageObject.messageOwner.destroyTime = ttl + getConnectionsManager().getCurrentTime();
+            }
             if (currentEncryptedChat != null) {
-                getMessagesController().markMessageAsRead(dialog_id, messageObject.messageOwner.random_id, ttl);
+                getMessagesController().markMessageAsRead(dialog_id, messageObject.messageOwner.random_id, keep ? Integer.MIN_VALUE : ttl);
             } else {
-                getMessagesController().markMessageAsRead2(dialog_id, messageObject.getId(), null, ttl, 0, delete);
+                getMessagesController().markMessageAsRead2(dialog_id, messageObject.getId(), null, keep ? 0 : ttl, 0, delete);
             }
             return null;
         } else {
             return () -> {
-                final boolean delete = messageObject.messageOwner.ttl != 0x7FFFFFFF;
+                final boolean delete = !keep && messageObject.messageOwner.ttl != 0x7FFFFFFF;
                 final int ttl = messageObject.messageOwner.ttl == 0x7FFFFFFF ? 0 : messageObject.messageOwner.ttl;
-                messageObject.messageOwner.destroyTime = ttl + getConnectionsManager().getCurrentTime();
-                messageObject.messageOwner.destroyTimeMillis = ttl * 1000L + getConnectionsManager().getCurrentTimeMillis();
+                if (!keep) {
+                    messageObject.messageOwner.destroyTime = ttl + getConnectionsManager().getCurrentTime();
+                    messageObject.messageOwner.destroyTimeMillis = ttl * 1000L + getConnectionsManager().getCurrentTimeMillis();
+                }
                 if (currentEncryptedChat != null) {
-                    getMessagesController().markMessageAsRead(dialog_id, messageObject.messageOwner.random_id, ttl);
+                    getMessagesController().markMessageAsRead(dialog_id, messageObject.messageOwner.random_id, keep ? Integer.MIN_VALUE : ttl);
                 } else {
-                    getMessagesController().markMessageAsRead2(dialog_id, messageObject.getId(), null, ttl, 0, delete);
+                    getMessagesController().markMessageAsRead2(dialog_id, messageObject.getId(), null, keep ? 0 : ttl, 0, delete);
                 }
             };
         }
@@ -15894,6 +16009,9 @@ public class ChatActivity extends BaseFragment implements
 
     private Runnable sendSecretMediaDelete(MessageObject messageObject) {
         if (messageObject == null || messageObject.isOut() || !messageObject.isSecretMedia() || messageObject.messageOwner.ttl != 0x7FFFFFFF) {
+            return null;
+        }
+        if (AyuConfig.saveDeletedMessageFor(currentAccount, dialog_id)) {
             return null;
         }
         final long taskId = getMessagesController().createDeleteShowOnceTask(dialog_id, messageObject.getId());
@@ -18593,6 +18711,8 @@ public class ChatActivity extends BaseFragment implements
         protected void onMeasure(int origWidthMeasureSpec, int heightMeasureSpec) {
             invalidateBlurredSourcesView.bringToFrontIfNeeded();
 
+            updateChatListViewSuppression(false);
+
             final int allWidth = MeasureSpec.getSize(origWidthMeasureSpec);
             final int allHeight = MeasureSpec.getSize(heightMeasureSpec);
 
@@ -19889,7 +20009,9 @@ public class ChatActivity extends BaseFragment implements
         } else if (chatMode == MODE_PINNED) {
             avatarContainer.setTitle(LocaleController.formatPluralString("PinnedMessagesCount", getPinnedMessagesCount()));
         } else if (currentChat != null) {
-            avatarContainer.setTitle(AndroidUtilities.removeRTL(AndroidUtilities.removeDiacritics(currentChat.title)), currentChat.scam, currentChat.fake, currentChat.verified, false, currentChat.emoji_status, animated);
+            final String bananaChatTitle = org.telegram.messenger.banana.BananaHooks.resolveChatTitle(
+                    currentAccount, dialog_id, currentChat.title);
+            avatarContainer.setTitle(AndroidUtilities.removeRTL(AndroidUtilities.removeDiacritics(bananaChatTitle)), currentChat.scam, currentChat.fake, currentChat.verified, false, currentChat.emoji_status, animated);
         } else if (currentUser != null) {
             if (currentUser.self) {
                 avatarContainer.setTitle(LocaleController.getString(R.string.SavedMessages));
@@ -25527,6 +25649,15 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private void clearHistory(boolean overwrite, TLRPC.TL_updates_channelDifferenceTooLong differenceTooLong) {
+        if (overwrite && org.telegram.messenger.banana.BananaHooks.stayAtLatestMessageAfterRefresh(currentAccount)) {
+            clearHistory(false, null);
+            first_unread_id = 0;
+            createUnreadMessageAfterId = 0;
+            startLoadFromMessageId = 0;
+            forwardEndReached[0] = forwardEndReached[1] = true;
+            getMessagesController().loadMessages(dialog_id, mergeDialogId, false, 30, 0, 0, true, 0, classGuid, 0, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
+            return;
+        }
         if (overwrite) {
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.d("clear history by overwrite firstLoading=" + firstLoading + " minMessage=" + minMessageId[0] + " topMessage=" + differenceTooLong.dialog.top_message);
@@ -28041,6 +28172,19 @@ public class ChatActivity extends BaseFragment implements
         }
     }
 
+    private void updateChatListViewSuppression(boolean requestLayoutOnResume) {
+        if (chatListView == null || chatListView.isComputingLayout()) {
+            return;
+        }
+        final boolean freezeChatList = visibleDialog != null && visibleDialog.isShowing() || getLastSheet() != null;
+        if (chatListView.isLayoutSuppressed() != freezeChatList) {
+            chatListView.suppressLayout(freezeChatList);
+            if (!freezeChatList && requestLayoutOnResume) {
+                chatListView.requestLayout();
+            }
+        }
+    }
+
     @Override
     protected void onDialogDismiss(Dialog dialog) {
         if (closeChatDialog != null && dialog == closeChatDialog) {
@@ -28053,6 +28197,7 @@ public class ChatActivity extends BaseFragment implements
                 finishFragment();
             }
         }
+        AndroidUtilities.runOnUIThread(() -> updateChatListViewSuppression(true));
     }
 
     @Override
@@ -28270,7 +28415,18 @@ public class ChatActivity extends BaseFragment implements
                     bottomOverlayChatText.setTextInfo(LocaleController.getString(R.string.ForumReplyToMessagesInTopic));
                     bottomOverlayChatText.setEnabled(false);
                 } else if (!isThreadChat()) {
-                    if (!getMessagesController().isDialogMuted(dialog_id, getTopicId())) {
+                    if (org.telegram.messenger.banana.BananaHooks.hideChannelBottomButton(currentAccount)
+                            && ChatObject.isChannelAndNotMegaGroup(currentChat)) {
+                        if (bottomChannelButtonsLayout != null) {
+                            bottomChannelButtonsLayout.setVisibility(View.INVISIBLE);
+                        }
+                    } else if (org.telegram.messenger.banana.BananaHooks.channelBottomDiscuss(currentAccount)
+                            && chatInfo != null && chatInfo.linked_chat_id != 0
+                            && ChatObject.isChannelAndNotMegaGroup(currentChat)) {
+                        bottomOverlayChatText.setText(LocaleController.getString(R.string.ViewDiscussion), false);
+                        bottomOverlayChatText.setEnabled(true);
+                        bottomOverlayChatText.setTag(R.string.ViewDiscussion);
+                    } else if (!getMessagesController().isDialogMuted(dialog_id, getTopicId())) {
                         bottomOverlayChatText.setText(LocaleController.getString(R.string.ChannelMuteNoCaps), false);
                         bottomOverlayChatText.setEnabled(true);
                     } else {
@@ -28691,9 +28847,10 @@ public class ChatActivity extends BaseFragment implements
         boolean progressIsVisible = pinnedProgress.getTag() != null;
         boolean closeIsVisible = closePinned.getTag() != null;
 
-        boolean showClosed = !show && !pinnedProgressIsShowing && !pinnedMessageButtonShown;
-        boolean showPinned = show && !pinnedProgressIsShowing && !pinnedMessageButtonShown;
-        boolean showProgress = pinnedProgressIsShowing && !pinnedMessageButtonShown;
+        final boolean bananaPinnedBotOk = !pinnedMessageButtonShown || org.telegram.messenger.banana.BananaHooks.showPinnedWithBot(currentAccount);
+        boolean showClosed = !show && !pinnedProgressIsShowing && bananaPinnedBotOk;
+        boolean showPinned = show && !pinnedProgressIsShowing && bananaPinnedBotOk;
+        boolean showProgress = pinnedProgressIsShowing && bananaPinnedBotOk;
 
         if (visible != show || progressIsVisible != showProgress || closeIsVisible != showClosed) {
             if (pinnedListAnimator != null) {
@@ -29530,7 +29687,8 @@ public class ChatActivity extends BaseFragment implements
         int chatWithAdminDate = preferences.getInt("dialog_bar_chat_with_date" + did, 0);
         boolean showAddMembersToGroup = preferences.getBoolean("dialog_bar_invite" + did, false);
         TLRPC.EmojiStatus showEmojiStatusReport = currentUser != null && (showReport || showBlock) ? DialogObject.filterEmojiStatus(currentUser.emoji_status) : null;
-        TL_bots.BotVerification showBotVerificationReport = (show && (showReport || showBlock) || shownBotVerification || preferences.getBoolean("dialog_bar_botver" + did, true)) ? (userInfo != null && !UserObject.isUserSelf(currentUser) && userInfo.bot_verification != null ? userInfo.bot_verification : chatInfo != null && chatInfo.bot_verification != null ? chatInfo.bot_verification : null) : null;
+        TL_bots.BotVerification showBotVerificationReport = org.telegram.messenger.banana.BananaHooks.hideBotAutomation(currentAccount) ? null
+                : ((show && (showReport || showBlock) || shownBotVerification || preferences.getBoolean("dialog_bar_botver" + did, true)) ? (userInfo != null && !UserObject.isUserSelf(currentUser) && userInfo.bot_verification != null ? userInfo.bot_verification : chatInfo != null && chatInfo.bot_verification != null ? chatInfo.bot_verification : null) : null);
         long showCost = 0;
         if (ChatObject.isMonoForum(currentChat) && ChatObject.canManageMonoForum(currentAccount, currentChat)) {
             TLRPC.TL_forumTopic topic = getMessagesController().getTopicsController().findTopic(-dialog_id, getThreadId());
@@ -30222,8 +30380,22 @@ public class ChatActivity extends BaseFragment implements
     @Override
     public void onResume() {
         super.onResume();
+        if (org.telegram.messenger.banana.BananaArchiveLock.blocksOpening(currentAccount, dialog_id)) {
+            finishFragment();
+            return;
+        }
         org.telegram.messenger.banana.MessageFilters.addListener(currentAccount, bananaFiltersChanged);
         bananaFiltersChanged.run();
+        if (getParentActivity() != null) {
+            org.telegram.messenger.banana.BananaIsland.attach(getParentActivity());
+            CharSequence title = null;
+            if (currentUser != null) {
+                title = UserObject.getUserName(currentUser);
+            } else if (currentChat != null) {
+                title = currentChat.title;
+            }
+            org.telegram.messenger.banana.BananaIsland.show(getParentActivity(), title != null ? title.toString() : null);
+        }
         checkShowBlur(false);
         activityResumeTime = System.currentTimeMillis();
         if (openImport && getSendMessagesHelper().getImportingHistory(dialog_id) != null) {
@@ -30436,6 +30608,7 @@ public class ChatActivity extends BaseFragment implements
     @Override
     public void onPause() {
         super.onPause();
+        org.telegram.messenger.banana.BananaIsland.hide();
         scrolling = false;
         if (scrimPopupWindow != null) {
             scrimPopupWindow.setPauseNotifications(false);
@@ -33335,6 +33508,36 @@ public class ChatActivity extends BaseFragment implements
             AccountFrozenAlert.show(currentAccount);
             return;
         }
+        if (org.telegram.messenger.banana.BananaHooks.confirmReactionsInUnjoinedChats(currentAccount)
+                && currentChat != null && ChatObject.isNotInChat(currentChat) && !ChatObject.isMonoForum(currentChat)
+                && getParentActivity() != null) {
+            final View bananaCell = cell;
+            final MessageObject bananaMsg = primaryMessage;
+            final ReactionsContainerLayout bananaLayout = reactionsLayout;
+            final View bananaFrom = fromView;
+            final float bananaX = x;
+            final float bananaY = y;
+            final ReactionsLayoutInBubble.VisibleReaction bananaReaction = visibleReaction;
+            final boolean bananaDouble = fromDoubleTap;
+            final boolean bananaBig = bigEmoji;
+            final boolean bananaRecent = addToRecent;
+            final boolean bananaWithout = withoutAnimation;
+            new AlertDialog.Builder(getParentActivity(), themeDelegate)
+                    .setTitle(LocaleController.getString(R.string.BananaOpt_CONFIRM_REACTIONS_IN_UNJOINED_CHATS))
+                    .setMessage(LocaleController.getString(R.string.AreYouSure))
+                    .setPositiveButton(LocaleController.getString(R.string.OK), (d, w) ->
+                            selectReactionConfirmed(bananaCell, bananaMsg, bananaLayout, bananaFrom, bananaX, bananaY, bananaReaction, bananaDouble, bananaBig, bananaRecent, bananaWithout))
+                    .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+                    .show();
+            return;
+        }
+        selectReactionConfirmed(cell, primaryMessage, reactionsLayout, fromView, x, y, visibleReaction, fromDoubleTap, bigEmoji, addToRecent, withoutAnimation);
+    }
+
+    private void selectReactionConfirmed(View cell, MessageObject primaryMessage, ReactionsContainerLayout reactionsLayout, View fromView, float x, float y, ReactionsLayoutInBubble.VisibleReaction visibleReaction, boolean fromDoubleTap, boolean bigEmoji, boolean addToRecent, boolean withoutAnimation) {
+        if (isInScheduleMode() || primaryMessage == null) {
+            return;
+        }
         if (visibleReaction != null && visibleReaction.isStar) {
             closeMenu();
             if (cell == null) {
@@ -34281,8 +34484,14 @@ public class ChatActivity extends BaseFragment implements
                             path = f.getPath();
                         }
                     }
-                    MediaController.saveFile(path, getParentActivity(), 2, fileName, selectedObject.getDocument() != null ? selectedObject.getDocument().mime_type : "", uri -> {
+                    final boolean bananaStickerToPhotos = org.telegram.messenger.banana.BananaHooks.saveStickerToPhotos(currentAccount)
+                            && selectedObject != null && selectedObject.isAnyKindOfSticker();
+                    MediaController.saveFile(path, getParentActivity(), bananaStickerToPhotos ? 0 : 2, fileName, selectedObject.getDocument() != null ? selectedObject.getDocument().mime_type : "", uri -> {
                         if (getParentActivity() == null) {
+                            return;
+                        }
+                        if (bananaStickerToPhotos) {
+                            BulletinFactory.createSaveToGalleryBulletin(this, false, themeDelegate).show();
                             return;
                         }
                         final BulletinFactory.FileType fileType;
@@ -34448,6 +34657,14 @@ public class ChatActivity extends BaseFragment implements
                 if (chatMode == MODE_PINNED && messages.size() == 2) {
                     finishFragment();
                     chatActivityDelegate.onUnpin(false, false);
+                } else if (org.telegram.messenger.banana.BananaHooks.confirmUnpin(currentAccount) && getParentActivity() != null) {
+                    MessageObject toUnpin = messageObject;
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
+                    builder.setTitle(LocaleController.getString(R.string.UnpinMessageAlertTitle));
+                    builder.setMessage(LocaleController.getString(R.string.UnpinMessageAlert));
+                    builder.setPositiveButton(LocaleController.getString(R.string.UnpinMessage), (d, w) -> unpinMessage(toUnpin));
+                    builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+                    showDialog(builder.create());
                 } else {
                     unpinMessage(messageObject);
                 }
@@ -34845,6 +35062,83 @@ public class ChatActivity extends BaseFragment implements
                         }
                     }
                 }, getResourceProvider(), AlertsCreator.SUGGEST_DATE_PICKER_MODE_EDIT).show(), AmountUtils.Amount.of(suggestedPost != null ? suggestedPost.price : null), !ChatObject.canManageMonoForum(currentAccount, getDialogId()));
+                break;
+            }
+            case OPTION_MESSAGE_SHOT: {
+                View shotCell = null;
+                if (chatListView != null && selectedObject != null) {
+                    for (int i = 0; i < chatListView.getChildCount(); i++) {
+                        View child = chatListView.getChildAt(i);
+                        if (child instanceof ChatMessageCell) {
+                            MessageObject mo = ((ChatMessageCell) child).getMessageObject();
+                            if (mo != null && mo.getId() == selectedObject.getId() && mo.getDialogId() == selectedObject.getDialogId()) {
+                                shotCell = child;
+                                break;
+                            }
+                        }
+                    }
+                }
+                org.telegram.messenger.banana.BananaHooks.shareMessageShot(getParentActivity(), shotCell);
+                break;
+            }
+            case OPTION_SAVE_TO_CLOUD: {
+                if (selectedObject != null && selectedObject.getId() > 0) {
+                    ArrayList<MessageObject> toSave = new ArrayList<>();
+                    if (selectedObjectGroup != null && !selectedObjectGroup.messages.isEmpty()) {
+                        toSave.addAll(selectedObjectGroup.messages);
+                    } else {
+                        toSave.add(selectedObject);
+                    }
+                    getSendMessagesHelper().sendMessage(toSave, getUserConfig().getClientUserId(), true, false, true, 0, null, -1, 0);
+                    BulletinFactory.of(this).createSimpleBulletin(R.raw.forward, LocaleController.getString(R.string.BananaSavedToCloud)).show();
+                }
+                break;
+            }
+            case OPTION_REPEAT_MESSAGE: {
+                if (selectedObject != null && selectedObject.isOut()) {
+                    ArrayList<MessageObject> toRepeat = new ArrayList<>();
+                    toRepeat.add(selectedObject);
+                    getSendMessagesHelper().sendMessage(toRepeat, getDialogId(), true, false, true, 0, null, -1, 0);
+                }
+                break;
+            }
+            case OPTION_SELECT_FROM_AUTHOR: {
+                if (selectedObject != null) {
+                    MessageObject seed = selectedObject;
+                    long authorId = seed.getFromChatId();
+                    clearSelectionMode();
+                    createActionMode();
+                    actionBar.showActionMode(true, null, null, null, null, null, 0);
+                    for (int i = 0; i < messages.size(); i++) {
+                        MessageObject msg = messages.get(i);
+                        if (msg != null && !msg.isDateObject && msg.getFromChatId() == authorId && msg.getId() > 0) {
+                            addToSelectedMessages(msg, false);
+                        }
+                    }
+                    updateActionModeTitle();
+                    updateVisibleRows();
+                }
+                break;
+            }
+            case OPTION_BOOKMARK_MESSAGE: {
+                if (selectedObject != null && selectedObject.getId() > 0) {
+                    org.telegram.messenger.banana.BananaHooks.addBookmark(currentAccount, getDialogId(), selectedObject.getId());
+                    BulletinFactory.of(this).createSimpleBulletin(R.raw.contact_check, LocaleController.getString(R.string.BananaBookmarkAdded)).show();
+                }
+                break;
+            }
+            case OPTION_EXPIRE_TTL: {
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.expireTtlButton(currentAccount)) {
+                    ArrayList<Integer> ids = new ArrayList<>();
+                    ids.add(selectedObject.getId());
+                    ArrayList<Long> randoms = null;
+                    if (currentEncryptedChat != null && selectedObject.messageOwner != null) {
+                        randoms = new ArrayList<>();
+                        randoms.add(selectedObject.messageOwner.random_id);
+                    }
+                    final int topicId = (int) getTopicId();
+                    getMessagesController().deleteMessages(ids, randoms, currentEncryptedChat, getDialogId(), topicId, true, chatMode);
+                }
                 break;
             }
         }
@@ -40268,6 +40562,13 @@ public class ChatActivity extends BaseFragment implements
 
         @Override
         public boolean didLongPressUserAvatar(ChatMessageCell cell, TLRPC.User user, float touchX, float touchY) {
+            if (org.telegram.messenger.banana.BananaHooks.avatarLongPressMention(currentAccount)
+                    && currentChat != null
+                    && (bottomChannelButtonsLayout == null || bottomChannelButtonsLayout.getVisibility() != View.VISIBLE)
+                    && (bottomOverlay == null || bottomOverlay.getVisibility() != View.VISIBLE)) {
+                appendMention(user);
+                return true;
+            }
             if (isAvatarPreviewerEnabled()) {
                 final boolean enableMention = currentChat != null && (bottomChannelButtonsLayout == null || bottomChannelButtonsLayout.getVisibility() != View.VISIBLE) && (bottomOverlay == null || bottomOverlay.getVisibility() != View.VISIBLE);
                 final boolean enableSearchMessages = currentChat != null && (threadMessageId == 0 || isTopic) && (!ChatObject.isChannel(currentChat) || currentChat.megagroup);
@@ -40350,8 +40651,9 @@ public class ChatActivity extends BaseFragment implements
                     sb.append(' ');
                 }
                 String username = ChatObject.getPublicUsername(chat);
+                final String bananaMentionSuffix = org.telegram.messenger.banana.BananaHooks.mentionInsertSuffix(currentAccount);
                 if (username != null) {
-                    sb.append("@").append(username).append(" ");
+                    sb.append("@").append(username).append(bananaMentionSuffix);
                 } else {
                     return;
                 }
@@ -40375,12 +40677,13 @@ public class ChatActivity extends BaseFragment implements
                 if (sb.length() > 0 && sb.charAt(sb.length() - 1) != ' ') {
                     sb.append(' ');
                 }
+                final String bananaMentionSuffix = org.telegram.messenger.banana.BananaHooks.mentionInsertSuffix(currentAccount);
                 String username = UserObject.getPublicUsername(user);
                 if (username != null) {
-                    sb.append("@").append(username).append(" ");
+                    sb.append("@").append(username).append(bananaMentionSuffix);
                 } else {
                     String name = UserObject.getFirstName(user, false);
-                    Spannable spannable = new SpannableString(name + " ");
+                    Spannable spannable = new SpannableString(name + bananaMentionSuffix);
                     spannable.setSpan(new URLSpanUserMention("" + user.id, 3), 0, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                     sb.append(spannable);
                 }
@@ -40391,6 +40694,14 @@ public class ChatActivity extends BaseFragment implements
 
         @Override
         public boolean didLongPressChannelAvatar(ChatMessageCell cell, TLRPC.Chat chat, int postId, float touchX, float touchY) {
+            if (org.telegram.messenger.banana.BananaHooks.avatarLongPressMention(currentAccount)
+                    && !TextUtils.isEmpty(ChatObject.getPublicUsername(chat))
+                    && currentChat != null
+                    && (bottomChannelButtonsLayout == null || bottomChannelButtonsLayout.getVisibility() != View.VISIBLE)
+                    && (bottomOverlay == null || bottomOverlay.getVisibility() != View.VISIBLE)) {
+                appendMention(chat);
+                return true;
+            }
             if (isAvatarPreviewerEnabled()) {
                 final boolean enableMention = !TextUtils.isEmpty(ChatObject.getPublicUsername(chat)) && currentChat != null && (bottomChannelButtonsLayout == null || bottomChannelButtonsLayout.getVisibility() != View.VISIBLE) && (bottomOverlay == null || bottomOverlay.getVisibility() != View.VISIBLE);
                 final boolean enableSearchMessages = currentChat != null && (threadMessageId == 0 || isTopic) && (!ChatObject.isChannel(currentChat) || currentChat.megagroup);
@@ -42682,6 +42993,15 @@ public class ChatActivity extends BaseFragment implements
 
         @Override
         public void didPressRevealSensitiveContent(ChatMessageCell cell) {
+            if (org.telegram.messenger.banana.BananaHooks.showSensitiveContent(currentAccount)) {
+                if (cell != null) {
+                    if (cell.getMessageObject() != null) {
+                        cell.getMessageObject().isSensitiveCached = false;
+                    }
+                    cell.startRevealMedia();
+                }
+                return;
+            }
             if (!getMessagesController().showSensitiveContent()) {
                 final AlertDialog progressDialog = new AlertDialog(getContext(), AlertDialog.ALERT_TYPE_SPINNER);
                 progressDialog.showDelayed(200);
@@ -44120,10 +44440,12 @@ public class ChatActivity extends BaseFragment implements
         public void setCurrentTheme(final EmojiThemes chatTheme, TLRPC.WallPaper newWallpaper, boolean animated, Boolean forceDark) {
             setCurrentTheme(chatTheme, newWallpaper, animated, forceDark, false);
         }
-        public void setCurrentTheme(final EmojiThemes chatTheme, TLRPC.WallPaper newWallpaper, boolean animated, Boolean forceDark, boolean force) {
+        public void setCurrentTheme(final EmojiThemes chatThemeIn, TLRPC.WallPaper newWallpaperIn, boolean animated, Boolean forceDark, boolean force) {
             if (parentLayout == null || parentThemeDelegate != null) {
                 return;
             }
+            final EmojiThemes chatTheme = org.telegram.messenger.banana.BananaHooks.disableCustomBackgrounds(currentAccount) ? null : chatThemeIn;
+            final TLRPC.WallPaper newWallpaper = org.telegram.messenger.banana.BananaHooks.disableCustomBackgrounds(currentAccount) ? null : newWallpaperIn;
             final EmojiThemes prevTheme = this.chatTheme;
             boolean newIsDark = forceDark != null ? forceDark : this.isDark;//Theme.getActiveTheme().isDark();
             ThemeKey newEmoticon = chatTheme != null ? chatTheme.getThemeKey() : null;
@@ -44899,7 +45221,7 @@ public class ChatActivity extends BaseFragment implements
         return (bottomChannelButtonsLayout == null || bottomChannelButtonsLayout.getVisibility() == View.INVISIBLE) &&
                 chatActivityEnterView.getVisibility() == View.INVISIBLE &&
                 searchContainer.getVisibility() == View.INVISIBLE &&
-                !isInPreviewMode() && !isInBubbleMode() && com.exteragram.messenger.ExteraConfig.bottomButton == 0;
+                !isInPreviewMode() && !isInBubbleMode() && org.telegram.messenger.banana.BananaHooks.hideChannelBottomButton(currentAccount);
     }
 
     private void updateVisibleWallpaperActions() {
@@ -46507,6 +46829,43 @@ public class ChatActivity extends BaseFragment implements
                     items.add(LocaleController.getString(R.string.TranslateMessage));
                     options.add(OPTION_TRANSLATE);
                     icons.add(R.drawable.msg_translate);
+                } else if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.quickTranslateButton(currentAccount) && selectedObject.contentType == 0 && !TextUtils.isEmpty(selectedObject.messageText)) {
+                    items.add(LocaleController.getString(R.string.TranslateMessage));
+                    options.add(OPTION_TRANSLATE);
+                    icons.add(R.drawable.msg_translate);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.messageShot(currentAccount) && selectedObject.contentType == 0) {
+                    items.add(LocaleController.getString(R.string.BananaMessageShot));
+                    options.add(OPTION_MESSAGE_SHOT);
+                    icons.add(R.drawable.msg_share);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.saveToCloudMenu(currentAccount) && selectedObject.getId() > 0 && !selectedObject.isSponsored()) {
+                    items.add(LocaleController.getString(R.string.BananaSaveToCloud));
+                    options.add(OPTION_SAVE_TO_CLOUD);
+                    icons.add(R.drawable.msg_forward);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.repeatMessageMenu(currentAccount) && selectedObject.isOut() && selectedObject.getId() > 0 && chatMode == 0) {
+                    items.add(LocaleController.getString(R.string.BananaRepeatMessage));
+                    options.add(OPTION_REPEAT_MESSAGE);
+                    icons.add(R.drawable.msg_retry);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.selectFromAuthor(currentAccount) && selectedObject.getId() > 0 && chatMode == 0) {
+                    items.add(LocaleController.getString(R.string.BananaSelectFromAuthor));
+                    options.add(OPTION_SELECT_FROM_AUTHOR);
+                    icons.add(R.drawable.msg_select);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.messageBookmarks(currentAccount) && selectedObject.getId() > 0) {
+                    items.add(LocaleController.getString(R.string.BananaBookmarkMessage));
+                    options.add(OPTION_BOOKMARK_MESSAGE);
+                    icons.add(R.drawable.msg_message);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.expireTtlButton(currentAccount)
+                        && selectedObject.messageOwner != null
+                        && (selectedObject.messageOwner.ttl_period > 0 || selectedObject.messageOwner.ttl > 0)
+                        && selectedObject.getId() > 0) {
+                    items.add(LocaleController.getString(R.string.BananaExpireTtlNow));
+                    options.add(OPTION_EXPIRE_TTL);
+                    icons.add(R.drawable.msg_autodelete);
                 }
                 if (message.canEditMessage(currentChat) && message.type != MessageObject.TYPE_POLL || chatMode == MODE_WELCOME_MESSAGES) {
                     items.add(LocaleController.getString(R.string.Edit));
@@ -46854,6 +47213,43 @@ public class ChatActivity extends BaseFragment implements
                     items.add(LocaleController.getString(R.string.TranslateMessage));
                     options.add(OPTION_TRANSLATE);
                     icons.add(R.drawable.msg_translate);
+                } else if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.quickTranslateButton(currentAccount) && selectedObject.contentType == 0 && !TextUtils.isEmpty(selectedObject.messageText)) {
+                    items.add(LocaleController.getString(R.string.TranslateMessage));
+                    options.add(OPTION_TRANSLATE);
+                    icons.add(R.drawable.msg_translate);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.messageShot(currentAccount) && selectedObject.contentType == 0) {
+                    items.add(LocaleController.getString(R.string.BananaMessageShot));
+                    options.add(OPTION_MESSAGE_SHOT);
+                    icons.add(R.drawable.msg_share);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.saveToCloudMenu(currentAccount) && selectedObject.getId() > 0 && !selectedObject.isSponsored()) {
+                    items.add(LocaleController.getString(R.string.BananaSaveToCloud));
+                    options.add(OPTION_SAVE_TO_CLOUD);
+                    icons.add(R.drawable.msg_forward);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.repeatMessageMenu(currentAccount) && selectedObject.isOut() && selectedObject.getId() > 0 && chatMode == 0) {
+                    items.add(LocaleController.getString(R.string.BananaRepeatMessage));
+                    options.add(OPTION_REPEAT_MESSAGE);
+                    icons.add(R.drawable.msg_retry);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.selectFromAuthor(currentAccount) && selectedObject.getId() > 0 && chatMode == 0) {
+                    items.add(LocaleController.getString(R.string.BananaSelectFromAuthor));
+                    options.add(OPTION_SELECT_FROM_AUTHOR);
+                    icons.add(R.drawable.msg_select);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.messageBookmarks(currentAccount) && selectedObject.getId() > 0) {
+                    items.add(LocaleController.getString(R.string.BananaBookmarkMessage));
+                    options.add(OPTION_BOOKMARK_MESSAGE);
+                    icons.add(R.drawable.msg_message);
+                }
+                if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.expireTtlButton(currentAccount)
+                        && selectedObject.messageOwner != null
+                        && (selectedObject.messageOwner.ttl_period > 0 || selectedObject.messageOwner.ttl > 0)
+                        && selectedObject.getId() > 0) {
+                    items.add(LocaleController.getString(R.string.BananaExpireTtlNow));
+                    options.add(OPTION_EXPIRE_TTL);
+                    icons.add(R.drawable.msg_autodelete);
                 }
                 if (allowEdit || chatMode == MODE_WELCOME_MESSAGES) {
                     items.add(LocaleController.getString(R.string.Edit));

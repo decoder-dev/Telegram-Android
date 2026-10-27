@@ -283,6 +283,9 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
     }
 
     private boolean filter(Object obj) {
+        if (org.telegram.messenger.banana.BananaArchiveLock.hidesObject(currentAccount, obj)) {
+            return false;
+        }
         if (dialogsType != DialogsActivity.DIALOGS_TYPE_START_ATTACH_BOT) {
             return true;
         }
@@ -629,6 +632,9 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
                                 continue;
                             }
                             MessageObject msg = messageObjects.get(a);
+                            if (org.telegram.messenger.banana.BananaArchiveLock.hidesObject(currentAccount, msg)) {
+                                continue;
+                            }
                             if (!searchForumResultMessages.isEmpty()) {
                                 boolean foundDuplicate = false;
                                 for (int i = 0; i < searchForumResultMessages.size(); ++i) {

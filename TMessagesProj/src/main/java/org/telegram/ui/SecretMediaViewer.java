@@ -475,11 +475,11 @@ public class SecretMediaViewer implements NotificationCenter.NotificationCenterD
             if (scheduled) {
                 return;
             }
-            // --- AyuGram hook
-            if (AyuConfig.saveDeletedMessages) {
+            // --- AyuGram / Banana hook
+            if (org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount)) {
                 return;
             }
-            // --- AyuGram hook
+            // --- AyuGram / Banana hook
             if (currentMessageObject == null) {
                 return;
             }

@@ -41,7 +41,22 @@ public class ScamDrawable extends Drawable {
         textWidth = (int) Math.ceil(textPaint.measureText(text));
     }
 
+    /** Literal badge (SCAM, FAKE, SUPPORT, BOT). Locale swaps do not replace the text. */
+    public ScamDrawable(int textSize, String literal) {
+        super();
+        currentType = -1;
+        textPaint.setTextSize(AndroidUtilities.dp(textSize));
+        textPaint.setTypeface(AndroidUtilities.bold());
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(AndroidUtilities.dp(1));
+        text = literal == null ? "" : literal;
+        textWidth = (int) Math.ceil(textPaint.measureText(text));
+    }
+
     public void checkText() {
+        if (currentType < 0) {
+            return;
+        }
         String newText;
         if (currentType == 0) {
             newText = LocaleController.getString(R.string.ScamMessage);

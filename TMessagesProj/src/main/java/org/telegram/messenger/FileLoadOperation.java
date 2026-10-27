@@ -298,7 +298,10 @@ public class FileLoadOperation {
     }
 
     private void updateParams() {
-        if ((preloadPrefixSize > 0 || MessagesController.getInstance(currentAccount).getfileExperimentalParams) && !forceSmallChunk) {
+        // iOS MultipartFetch: files above 512 KiB use 512 KiB parts and at most 8 in flight.
+        // Animation downloads keep the stock cap of 4. No extra thread is started.
+        final boolean bananaBoost = org.telegram.messenger.banana.BananaHooks.downloadUseBoostedChunks(currentAccount);
+        if ((preloadPrefixSize > 0 || MessagesController.getInstance(currentAccount).getfileExperimentalParams || bananaBoost) && !forceSmallChunk) {
             downloadChunkSizeBig = 1024 * 512;
             maxDownloadRequests = 8;
             maxDownloadRequestsBig = 8;

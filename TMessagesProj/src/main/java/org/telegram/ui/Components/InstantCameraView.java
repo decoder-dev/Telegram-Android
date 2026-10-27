@@ -737,9 +737,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         cameraReady = false;
         selectedCamera = null;
         if (!fromPaused) {
-            if (!useCamera2) {
-                isFrontface = true;
-            }
+            isFrontface = org.telegram.messenger.banana.BananaHooks.initialRoundVideoFrontface(currentAccount);
             updateFlash();
             recordedTime = 0;
             progress = 0;
@@ -1167,6 +1165,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
             }
         }
         isFrontface = !isFrontface;
+        org.telegram.messenger.banana.BananaHooks.rememberRoundVideoFrontface(currentAccount, isFrontface);
         updateFlash();
         if (useCamera2) {
             if (bothCameras) {
@@ -3882,6 +3881,9 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
 
     public void finishZoom() {
         if (finishZoomTransition != null) {
+            return;
+        }
+        if (org.telegram.messenger.banana.BananaHooks.staticRoundVideoZoom(currentAccount)) {
             return;
         }
 
