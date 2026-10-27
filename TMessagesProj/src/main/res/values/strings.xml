@@ -11640,8 +11640,37 @@
 
     <!-- BananaGram phone features -->
 
-    <string name="BananaThemeCream">Banana Cream</string>
-    <string name="BananaThemeGraphite">Banana Graphite</string>
+    <string name="BananaThemeCream">BananaGram Cream</string>
+    <string name="BananaThemeGraphite">BananaGram Graphite</string>
+    <string name="BananaThemeClassicWhite">Classic White</string>
+    <string name="BananaThemeClassicBlack">Classic Black</string>
+    <string name="BananaArchivePasswordSection">PASSWORD</string>
+    <string name="BananaArchiveLock">Lock Archive and Saved Messages</string>
+    <string name="BananaArchiveFooter">Archive and Saved Messages are hidden. Tap Settings 10 times to reveal access, then enter the password or use biometrics. Access closes when leaving the app. Archived chats stay muted.</string>
+    <string name="BananaArchiveLockNow">Lock Now</string>
+    <string name="BananaArchiveChangePassword">Change Password</string>
+    <string name="BananaArchiveUseBiometrics">Unlock with biometrics</string>
+    <string name="BananaArchiveEnterTitle">Archive Password</string>
+    <string name="BananaArchiveEnterText">Enter the password to open Archive and Saved Messages</string>
+    <string name="BananaArchiveUnlock">Unlock</string>
+    <string name="BananaArchivePasswordHint">Password</string>
+    <string name="BananaArchiveSetTitle">Set Archive Password</string>
+    <string name="BananaArchiveSetText">Archived chats stay muted and hidden from the chat list until you unlock them</string>
+    <string name="BananaArchiveContinue">Continue</string>
+    <string name="BananaArchiveConfirmTitle">Confirm Password</string>
+    <string name="BananaArchiveConfirmText">Re-enter the Archive password</string>
+    <string name="BananaArchiveRemoveTitle">Remove Archive Password</string>
+    <string name="BananaArchiveRemoveText">Enter the current password to disable the lock</string>
+    <string name="BananaArchiveRemove">Remove</string>
+    <string name="BananaArchiveIncorrect">Incorrect password. %1$d attempts left.</string>
+    <string name="BananaArchiveCooldown">Too many incorrect attempts. Try again in %1$d s.</string>
+    <string name="BananaArchiveMismatch">Passwords did not match. Try again.</string>
+    <string name="BananaArchiveStorageError">Could not save the password change securely. Nothing was changed. Try again.</string>
+    <string name="BananaArchiveChanged">Archive password changed</string>
+    <string name="BananaArchiveRevealed">Archive and Saved Messages are visible. Enter the password to open them.</string>
+    <string name="BananaArchiveNotificationTitle">Locked chat</string>
+    <string name="BananaArchiveNotificationHidden">New message</string>
+    <string name="BananaArchiveBiometricReason">Unlock Archive and Saved Messages</string>
     <string name="BananaThemeSystem">System theme</string>
     <string name="BananaAppearanceTheme">Banana theme</string>
     <string name="BananaProfileDC">Data center</string>

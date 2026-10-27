@@ -23,7 +23,9 @@ import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.messenger.banana.BananaArchiveLock;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.Bulletin;
@@ -91,6 +93,19 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
                 settings.keep_archived_unmuted = !settings.keep_archived_unmuted;
                 ((TextCheckCell) view).setChecked(settings.keep_archived_unmuted);
                 changed = true;
+            } else if (item.id == 10) {
+                if (BananaArchiveLock.isConfigured(currentAccount)) {
+                    BananaArchiveLock.promptRemove(this, () -> updateItems(true));
+                } else {
+                    BananaArchiveLock.promptSet(this, () -> updateItems(true));
+                }
+            } else if (item.id == 11) {
+                BananaArchiveLock.promptEnableBiometrics(this, !BananaArchiveLock.isBiometricsEnabled(currentAccount), () -> updateItems(true));
+            } else if (item.id == 12) {
+                BananaArchiveLock.promptChange(this, () -> updateItems(true));
+            } else if (item.id == 13) {
+                BananaArchiveLock.lockNow(currentAccount);
+                finishFragment();
             } else if (item.id == 4) {
                 settings.keep_archived_folders = !settings.keep_archived_folders;
                 ((TextCheckCell) view).setChecked(settings.keep_archived_folders);
@@ -148,6 +163,15 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
         items.add(new ItemInner(VIEW_TYPE_CHECK, 7, LocaleController.getString("NewChatsFromNonContactsCheck")));
         items.add(new ItemInner(VIEW_TYPE_SHADOW, 8, LocaleController.getString("ArchiveAndMuteInfo")));
 
+        items.add(new ItemInner(VIEW_TYPE_HEADER, 9, LocaleController.getString(R.string.BananaArchivePasswordSection)));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, 10, LocaleController.getString(R.string.BananaArchiveLock)));
+        if (BananaArchiveLock.isConfigured(currentAccount)) {
+            items.add(new ItemInner(VIEW_TYPE_CHECK, 11, LocaleController.getString(R.string.BananaArchiveUseBiometrics)));
+            items.add(new ItemInner(VIEW_TYPE_TEXT, 12, LocaleController.getString(R.string.BananaArchiveChangePassword)));
+            items.add(new ItemInner(VIEW_TYPE_TEXT, 13, LocaleController.getString(R.string.BananaArchiveLockNow)));
+        }
+        items.add(new ItemInner(VIEW_TYPE_SHADOW, 14, LocaleController.getString(R.string.BananaArchiveFooter)));
+
         if (adapter == null) {
             return;
         }
@@ -162,6 +186,7 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
     private final static int VIEW_TYPE_HEADER = 0;
     private final static int VIEW_TYPE_CHECK = 1;
     private final static int VIEW_TYPE_SHADOW = 2;
+    private final static int VIEW_TYPE_TEXT = 3;
 
     private static class ItemInner extends AdapterWithDiffUtils.Item {
         public CharSequence text;
@@ -189,6 +214,8 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
                 view = new HeaderCell(getContext());
             } else if (viewType == VIEW_TYPE_CHECK) {
                 view = new TextCheckCell(getContext());
+            } else if (viewType == VIEW_TYPE_TEXT) {
+                view = new TextCell(getContext());
             } else {
                 view = new TextInfoPrivacyCell(getContext());
             }
@@ -225,10 +252,19 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
                 } else if (item.id == 7) {
                     checked = settings.archive_and_mute_new_noncontact_peers;
                     cell.setCheckBoxIcon(getUserConfig().isPremium() || getMessagesController().autoarchiveAvailable ? 0 : R.drawable.permission_locked);
+                } else if (item.id == 10) {
+                    checked = BananaArchiveLock.isConfigured(currentAccount);
+                    cell.setCheckBoxIcon(0);
+                } else if (item.id == 11) {
+                    checked = BananaArchiveLock.isBiometricsEnabled(currentAccount);
+                    cell.setCheckBoxIcon(0);
                 } else {
                     return;
                 }
                 cell.setTextAndCheck(item.text, checked, divider);
+            } else if (holder.getItemViewType() == VIEW_TYPE_TEXT) {
+                TextCell cell = (TextCell) holder.itemView;
+                cell.setText(item.text, divider);
             }
         }
 
@@ -239,7 +275,8 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return holder.getItemViewType() != VIEW_TYPE_SHADOW && holder.getItemViewType() != VIEW_TYPE_HEADER;
+            int type = holder.getItemViewType();
+            return type != VIEW_TYPE_SHADOW && type != VIEW_TYPE_HEADER;
         }
 
         @Override

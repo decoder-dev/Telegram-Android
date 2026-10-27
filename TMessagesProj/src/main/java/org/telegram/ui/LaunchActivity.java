@@ -7366,6 +7366,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     @Override
     protected void onPause() {
         super.onPause();
+        org.telegram.messenger.banana.BananaArchiveLock.onHostPause();
         isResumed = false;
         pipActivityHandler.onPause();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 4096);
@@ -7611,6 +7612,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     @Override
     protected void onResume() {
         super.onResume();
+        org.telegram.messenger.banana.BananaArchiveLock.onHostResume();
         isResumed = true;
         pipActivityHandler.onResume();
         if (onResumeStaticCallback != null) {

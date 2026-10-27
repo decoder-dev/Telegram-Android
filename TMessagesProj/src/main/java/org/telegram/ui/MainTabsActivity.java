@@ -329,9 +329,15 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
 
         for (int index = 0; index < tabs.length; index++) {
             final GlassTabView view = tabs[index];
+            final int tabIndex = index;
 
             final int position = indexToPosition(index);
-            tabs[index].setOnClickListener(v -> {
+            view.setOnClickListener(v -> {
+                if (tabIndex == INDEX_SETTINGS && !getUserConfig().showCallsTab) {
+                    if (org.telegram.messenger.banana.BananaArchiveLock.noteSettingsTap(currentAccount)) {
+                        org.telegram.messenger.banana.BananaArchiveLock.showRevealedHint(MainTabsActivity.this);
+                    }
+                }
                 if (viewPager.isManualScrolling() || viewPager.isTouch()) {
                     return;
                 }

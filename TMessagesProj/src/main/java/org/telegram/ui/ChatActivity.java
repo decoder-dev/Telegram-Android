@@ -2833,6 +2833,25 @@ public class ChatActivity extends BaseFragment implements
         final long chatId = arguments.getLong("chat_id", 0);
         final long userId = arguments.getLong("user_id", 0);
         final int encId = arguments.getInt("enc_id", 0);
+        final long bananaGateId = chatId != 0 ? -chatId : (userId != 0 ? userId : (encId != 0 ? org.telegram.messenger.DialogObject.makeEncryptedDialogId(encId) : 0));
+        if (bananaGateId != 0 && org.telegram.messenger.banana.BananaArchiveLock.blocksOpening(currentAccount, bananaGateId)) {
+            final Bundle reopen = arguments == null ? null : new Bundle(arguments);
+            AndroidUtilities.runOnUIThread(() -> {
+                if (parentLayout == null) {
+                    return;
+                }
+                BaseFragment host = parentLayout.getLastFragment();
+                if (host == null || host == ChatActivity.this) {
+                    return;
+                }
+                org.telegram.messenger.banana.BananaArchiveLock.promptUnlock(host, () -> {
+                    if (reopen != null) {
+                        host.presentFragment(new ChatActivity(reopen));
+                    }
+                });
+            });
+            return false;
+        }
         dialogFolderId = arguments.getInt("dialog_folder_id", 0);
         dialogFilterId = arguments.getInt("dialog_filter_id", 0);
         chatMode = arguments.getInt("chatMode", 0);
@@ -30329,6 +30348,10 @@ public class ChatActivity extends BaseFragment implements
     @Override
     public void onResume() {
         super.onResume();
+        if (org.telegram.messenger.banana.BananaArchiveLock.blocksOpening(currentAccount, dialog_id)) {
+            finishFragment();
+            return;
+        }
         org.telegram.messenger.banana.MessageFilters.addListener(currentAccount, bananaFiltersChanged);
         bananaFiltersChanged.run();
         if (getParentActivity() != null) {
