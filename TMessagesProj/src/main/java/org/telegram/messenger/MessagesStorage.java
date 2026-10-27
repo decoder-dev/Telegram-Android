@@ -4756,6 +4756,10 @@ public class MessagesStorage extends BaseController {
                         message.readAttachPath(data, getUserConfig().clientUserId);
                         data.reuse();
                         if (message.media != null) {
+                            // AyuGramDesktop d4b7546e77: saving deleted messages keeps expiring media.
+                            if (message.media.ttl_seconds != 0 && AyuConfig.saveDeletedMessageFor(currentAccount, dialogId)) {
+                                continue;
+                            }
                             if (!addFilesToDelete(message, filesToDelete, idsToDelete, namesToDelete, true)) {
                                 continue;
                             } else {

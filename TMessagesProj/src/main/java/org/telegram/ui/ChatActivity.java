@@ -15969,26 +15969,34 @@ public class ChatActivity extends BaseFragment implements
         if (messageObject == null || messageObject.isOut() || !messageObject.isSecretMedia() || messageObject.messageOwner.destroyTime != 0 || messageObject.messageOwner.ttl <= 0) {
             return null;
         }
+        // AyuGramDesktop d4b7546e77: keep incoming TTL media instead of starting local self-destruct.
+        final boolean keep = messageObject.messageOwner.media != null
+                && messageObject.messageOwner.media.ttl_seconds != 0
+                && AyuConfig.saveDeletedMessageFor(currentAccount, dialog_id);
         if (readNow) {
-            final boolean delete = messageObject.messageOwner.ttl != 0x7FFFFFFF;
+            final boolean delete = !keep && messageObject.messageOwner.ttl != 0x7FFFFFFF;
             final int ttl = messageObject.messageOwner.ttl == 0x7FFFFFFF ? 0 : messageObject.messageOwner.ttl;
-            messageObject.messageOwner.destroyTime = ttl + getConnectionsManager().getCurrentTime();
+            if (!keep) {
+                messageObject.messageOwner.destroyTime = ttl + getConnectionsManager().getCurrentTime();
+            }
             if (currentEncryptedChat != null) {
-                getMessagesController().markMessageAsRead(dialog_id, messageObject.messageOwner.random_id, ttl);
+                getMessagesController().markMessageAsRead(dialog_id, messageObject.messageOwner.random_id, keep ? Integer.MIN_VALUE : ttl);
             } else {
-                getMessagesController().markMessageAsRead2(dialog_id, messageObject.getId(), null, ttl, 0, delete);
+                getMessagesController().markMessageAsRead2(dialog_id, messageObject.getId(), null, keep ? 0 : ttl, 0, delete);
             }
             return null;
         } else {
             return () -> {
-                final boolean delete = messageObject.messageOwner.ttl != 0x7FFFFFFF;
+                final boolean delete = !keep && messageObject.messageOwner.ttl != 0x7FFFFFFF;
                 final int ttl = messageObject.messageOwner.ttl == 0x7FFFFFFF ? 0 : messageObject.messageOwner.ttl;
-                messageObject.messageOwner.destroyTime = ttl + getConnectionsManager().getCurrentTime();
-                messageObject.messageOwner.destroyTimeMillis = ttl * 1000L + getConnectionsManager().getCurrentTimeMillis();
+                if (!keep) {
+                    messageObject.messageOwner.destroyTime = ttl + getConnectionsManager().getCurrentTime();
+                    messageObject.messageOwner.destroyTimeMillis = ttl * 1000L + getConnectionsManager().getCurrentTimeMillis();
+                }
                 if (currentEncryptedChat != null) {
-                    getMessagesController().markMessageAsRead(dialog_id, messageObject.messageOwner.random_id, ttl);
+                    getMessagesController().markMessageAsRead(dialog_id, messageObject.messageOwner.random_id, keep ? Integer.MIN_VALUE : ttl);
                 } else {
-                    getMessagesController().markMessageAsRead2(dialog_id, messageObject.getId(), null, ttl, 0, delete);
+                    getMessagesController().markMessageAsRead2(dialog_id, messageObject.getId(), null, keep ? 0 : ttl, 0, delete);
                 }
             };
         }
@@ -15996,6 +16004,9 @@ public class ChatActivity extends BaseFragment implements
 
     private Runnable sendSecretMediaDelete(MessageObject messageObject) {
         if (messageObject == null || messageObject.isOut() || !messageObject.isSecretMedia() || messageObject.messageOwner.ttl != 0x7FFFFFFF) {
+            return null;
+        }
+        if (AyuConfig.saveDeletedMessageFor(currentAccount, dialog_id)) {
             return null;
         }
         final long taskId = getMessagesController().createDeleteShowOnceTask(dialog_id, messageObject.getId());
