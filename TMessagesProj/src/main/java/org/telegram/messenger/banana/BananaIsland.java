@@ -29,6 +29,7 @@ import org.telegram.ui.LauncherIconController;
  * Gates: BANANA_ISLAND_ENABLED / SHOWS_NAME / FOLLOWS_ICON.
  *
  * Supports ActionBar chips and a lightweight Activity overlay used for chat presence.
+ * The chip is shown and hidden with that presence. It does not animate or invalidate while idle.
  */
 public final class BananaIsland {
     private static final String TAG = "banana_island";
@@ -103,6 +104,7 @@ public final class BananaIsland {
         overlayHost.setTag(TAG + "_host");
         overlayHost.setClickable(false);
         overlayHost.setFocusable(false);
+        overlayHost.setWillNotDraw(true);
         FrameLayout.LayoutParams hostLp = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         root.addView(overlayHost, hostLp);
@@ -140,9 +142,14 @@ public final class BananaIsland {
                 label = LocaleController.getString(R.string.AppName);
             }
         }
+        boolean alreadyShown = overlayChip.getVisibility() == View.VISIBLE && overlayChip.getAlpha() >= 0.99f;
         overlayChip.updateLabel(label);
-        overlayChip.setVisibility(View.VISIBLE);
+        if (alreadyShown) {
+            return;
+        }
         overlayChip.animate().cancel();
+        overlayChip.setAlpha(0f);
+        overlayChip.setVisibility(View.VISIBLE);
         overlayChip.animate().alpha(1f).setDuration(180).start();
     }
 
@@ -201,16 +208,10 @@ public final class BananaIsland {
                 icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 addView(icon, LayoutHelper.createLinear(18, 18, Gravity.CENTER_VERTICAL));
             } else {
-                View dot = new View(context) {
-                    private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-                    @Override
-                    protected void onDraw(Canvas canvas) {
-                        p.setColor(0xFFFFD54F);
-                        float r = Math.min(getWidth(), getHeight()) / 2f;
-                        canvas.drawCircle(getWidth() / 2f, getHeight() / 2f, r, p);
-                    }
-                };
-                addView(dot, LayoutHelper.createLinear(10, 10, Gravity.CENTER_VERTICAL));
+                ImageView mark = new ImageView(context);
+                mark.setImageResource(R.drawable.banana_mark);
+                mark.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                addView(mark, LayoutHelper.createLinear(16, 16, Gravity.CENTER_VERTICAL));
             }
 
             labelView = new TextView(context);
@@ -250,6 +251,9 @@ public final class BananaIsland {
             if (text.length() > 24) {
                 text = text.substring(0, 23) + "…";
             }
+            if (labelView.getVisibility() == View.VISIBLE && text.equals(String.valueOf(labelView.getText()))) {
+                return;
+            }
             labelView.setText(text);
             labelView.setVisibility(View.VISIBLE);
             requestLayout();
@@ -260,6 +264,7 @@ public final class BananaIsland {
             float r = getHeight() / 2f;
             canvas.drawRoundRect(0, 0, getWidth(), getHeight(), r, r, bgPaint);
             super.onDraw(canvas);
+            // Idle chip: one draw, then stop. Do not invalidate from here.
         }
 
         @Override

@@ -1481,35 +1481,63 @@ public final class BananaHooks {
         return BananaConfig.get(account, BananaConfig.Option.BANANA_ISLAND_FOLLOWS_ICON);
     }
 
-    /** Concurrent large-file downloads when boost Extra is on. */
+    /**
+     * iOS sheds optional fork work in Low Power Mode. System power-save and the
+     * Banana power-saving extra do the same: boosts stay inside the stock queue.
+     */
+    private static boolean boostsAllowed(int account) {
+        if (powerSaving(account)) {
+            return false;
+        }
+        try {
+            android.os.PowerManager pm = (android.os.PowerManager) org.telegram.messenger.ApplicationLoader.applicationContext.getSystemService(android.content.Context.POWER_SERVICE);
+            return pm == null || !pm.isPowerSaveMode();
+        } catch (Throwable ignore) {
+            return true;
+        }
+    }
+
+    /**
+     * Concurrent downloads when the boost Extra is on.
+     * Ceiling stays 8. The queue grows by at most one step so it cannot stack
+     * on top of the per-file cap of 8 (iOS {@code MultipartFetch.parallelParts}).
+     */
     public static int downloadQueueMaxActive(int account, int base) {
-        if (!downloadSpeedBoost(account)) {
-            return Math.max(1, base);
+        int safe = Math.max(1, base);
+        if (!downloadSpeedBoost(account) || !boostsAllowed(account)) {
+            return safe;
         }
-        return Math.max(base, Math.min(8, base * 2 + 2));
+        return Math.min(8, safe + 1);
     }
 
-    /** Use larger download chunks / more parallel requests (Telegraher-style). */
+    /** Larger download chunks, still bounded by the per-file request cap. */
     public static boolean downloadUseBoostedChunks(int account) {
-        return downloadSpeedBoost(account);
+        return downloadSpeedBoost(account) && boostsAllowed(account);
     }
 
-    /** Concurrent uploads when accelerate Extra is on. */
+    /** Concurrent uploads when accelerate Extra is on. Hard cap is 3 files, matching the previous gate. */
     public static int uploadMaxConcurrent(int account) {
-        return accelerateUpload(account) ? 3 : 1;
+        if (!accelerateUpload(account) || !boostsAllowed(account)) {
+            return 1;
+        }
+        return 3;
     }
 
-    /** In-flight upload window in KiB when accelerate Extra is on. */
+    /**
+     * In-flight upload window in KiB.
+     * iOS {@code accelerateUpload} keeps {@code parallelParts} at 8. With a 256 KiB
+     * minimum part that is a 2048 KiB window, not an open-ended one.
+     */
     public static int uploadMaxKBytes(int account, boolean slowNetwork, int base) {
-        if (slowNetwork || !accelerateUpload(account)) {
+        if (slowNetwork || !accelerateUpload(account) || !boostsAllowed(account)) {
             return Math.max(1, base);
         }
-        return Math.max(base, 1024 * 4);
+        return Math.max(base, 256 * 8);
     }
 
     /** Minimum upload part size in KiB when accelerate Extra is on. */
     public static int uploadMinChunkKb(int account, boolean slowNetwork, int base) {
-        if (slowNetwork || !accelerateUpload(account)) {
+        if (slowNetwork || !accelerateUpload(account) || !boostsAllowed(account)) {
             return Math.max(1, base);
         }
         return Math.max(base, 256);

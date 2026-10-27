@@ -1,9 +1,13 @@
 package org.telegram.messenger.banana;
 
+import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.text.TextUtils;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
@@ -11,6 +15,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.ui.Components.ForegroundDetector;
 import org.telegram.utils.proxy.ProxySettings;
 
 import java.io.BufferedReader;
@@ -25,17 +30,36 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Fetches public MTProxy lists and installs them beside manually added proxies.
- * Links use the existing tg://proxy and https://t.me/proxy parser. host:port:secret
- * lines from the same lists are accepted as the same MTProto secret format.
+ * Public MTProxy list, ported from iOS {@code ManagedAutomaticMtProxy}.
+ *
+ * iOS refreshes every 10 minutes, probes at most 20 candidates, and dials at most
+ * 4 of them at a time ({@code ProxyStatusProbeQueue}). A manual route is never replaced.
+ * Android spaces those dials by {@link #PROBE_GAP_MS} as well: a burst of {@code checkProxy}
+ * wakes the radio. The refresh runnable is not re-armed while the process stays in the
+ * background, the screen is off, power save is on, or there is no network.
  */
 public final class BananaAutomaticProxy {
     private static final String ENABLED = "bananaAutomaticMtProxy";
     private static final String KEYS = "bananaAutomaticMtProxyKeys";
+    /** {@code automaticMtProxyRefreshInterval}. */
     private static final long REFRESH_MS = 10L * 60L * 1000L;
+    /** {@code automaticMtProxySelectionDelay}. */
+    private static final long SELECTION_DELAY_MS = 200L;
+    /** {@code automaticMtProxyConnectionFallbackDelay}. */
+    private static final long CONNECTION_FALLBACK_MS = 6L * 1000L;
+    /** {@code automaticMtProxyMinimumSwitchInterval}. */
     private static final long MIN_SWITCH_MS = 60L * 1000L;
+    /** {@code automaticMtProxySwitchRttFactor}. */
+    private static final double SWITCH_RTT_FACTOR = 0.7d;
     private static final int STORED_LIMIT = 40;
+    /** Candidates considered. iOS does not dial this many at once. */
     private static final int PROBE_LIMIT = 20;
+    /** {@code ProxyStatusProbeQueue(limit: 4)}. */
+    private static final int PROBE_CONCURRENCY = 4;
+    /** Extra gap so Android does not open even those four sockets in one burst. */
+    private static final long PROBE_GAP_MS = 200L;
+    /** Stop the 10-minute refresh after the UI has been gone this long. */
+    private static final long LONG_BACKGROUND_MS = 60L * 1000L;
 
     private static final String[] LIST_URLS = new String[] {
             "https://cdn.jsdelivr.net/gh/SoliSpirit/mtproto@master/all_proxies.txt",
@@ -53,8 +77,25 @@ public final class BananaAutomaticProxy {
     };
 
     private static final Runnable REFRESH = BananaAutomaticProxy::refresh;
+    private static final Runnable PROBE_KICK = BananaAutomaticProxy::kickProbe;
+    private static final Runnable SELECT = BananaAutomaticProxy::selectBest;
+    private static final Runnable FALLBACK = BananaAutomaticProxy::connectionFallback;
+
     private static long lastSwitchAt;
+    private static long lastRefreshAt;
+    private static long backgroundedAt;
     private static boolean refreshing;
+    private static int refreshGeneration;
+    private static boolean listenersInstalled;
+    private static boolean pendingProbe;
+    private static boolean failureDrivenSwitch;
+
+    private static int probeGeneration;
+    private static int probesInFlight;
+    private static int probeCursor;
+    private static int probePending;
+    private static List<SharedConfig.ProxyInfo> probeQueue;
+    private static List<SharedConfig.ProxyInfo> lastAdded = new ArrayList<>();
 
     private BananaAutomaticProxy() {}
 
@@ -65,7 +106,14 @@ public final class BananaAutomaticProxy {
     public static void setEnabled(boolean enabled) {
         MessagesController.getGlobalMainSettings().edit().putBoolean(ENABLED, enabled).apply();
         AndroidUtilities.cancelRunOnUIThread(REFRESH);
+        AndroidUtilities.cancelRunOnUIThread(FALLBACK);
+        cancelProbes();
+        refreshGeneration++;
+        refreshing = false;
+        pendingProbe = false;
         if (enabled) {
+            // iOS clears the dwell stamp when the user turns the feature on.
+            lastSwitchAt = 0L;
             refresh();
         } else {
             AndroidUtilities.runOnUIThread(BananaAutomaticProxy::removeAutomaticExceptManualCurrent);
@@ -73,7 +121,8 @@ public final class BananaAutomaticProxy {
     }
 
     public static void init() {
-        if (isEnabled()) {
+        installListeners();
+        if (isEnabled() && !backgroundedLong()) {
             AndroidUtilities.runOnUIThread(REFRESH, 1500);
         }
     }
@@ -82,38 +131,54 @@ public final class BananaAutomaticProxy {
         if (!isEnabled() || refreshing) {
             return;
         }
+        if (shouldDeferRefresh()) {
+            if (!backgroundedLong()) {
+                scheduleRefresh(REFRESH_MS);
+            }
+            return;
+        }
         refreshing = true;
+        lastRefreshAt = SystemClock.elapsedRealtime();
+        final int generation = ++refreshGeneration;
         Utilities.globalQueue.postRunnable(() -> {
-            List<ProxySettings> parsed = new ArrayList<>();
-            Set<String> seen = new HashSet<>();
+            List<List<ProxySettings>> lists = new ArrayList<>();
+            int attempts = 0;
             for (String listUrl : LIST_URLS) {
+                if (generation != refreshGeneration || !isEnabled()) {
+                    break;
+                }
+                attempts++;
                 String text = fetch(listUrl);
-                if (TextUtils.isEmpty(text)) {
-                    continue;
-                }
-                for (ProxySettings settings : parseList(text)) {
-                    String key = key(settings);
-                    if (seen.add(key)) {
-                        parsed.add(settings);
-                    }
-                    if (parsed.size() >= STORED_LIMIT) {
-                        break;
+                if (!TextUtils.isEmpty(text)) {
+                    List<ProxySettings> parsed = preferFakeTls(parseList(text));
+                    if (!parsed.isEmpty()) {
+                        lists.add(parsed);
                     }
                 }
-                if (parsed.size() >= STORED_LIMIT) {
+                List<ProxySettings> merged = mergeRoundRobin(lists);
+                // The first four URLs are the four publishers. Stop once the pool is full
+                // instead of opening every mirror in parallel the way a naive port would.
+                if (merged.size() >= STORED_LIMIT && (lists.size() >= 2 || attempts >= 4)) {
+                    break;
+                }
+                if (!merged.isEmpty() && attempts >= 4) {
                     break;
                 }
             }
-            parsed = preferFakeTls(parsed);
-            List<ProxySettings> pool = parsed;
+            List<ProxySettings> pool = mergeRoundRobin(lists);
             AndroidUtilities.runOnUIThread(() -> {
+                if (generation != refreshGeneration) {
+                    refreshing = false;
+                    return;
+                }
                 refreshing = false;
                 if (!isEnabled()) {
                     return;
                 }
                 applyPool(pool);
-                AndroidUtilities.cancelRunOnUIThread(REFRESH);
-                AndroidUtilities.runOnUIThread(REFRESH, REFRESH_MS);
+                if (!backgroundedLong()) {
+                    scheduleRefresh(REFRESH_MS);
+                }
             });
         });
     }
@@ -173,13 +238,100 @@ public final class BananaAutomaticProxy {
                 .build();
     }
 
+    private static void scheduleRefresh(long delay) {
+        AndroidUtilities.cancelRunOnUIThread(REFRESH);
+        if (!isEnabled() || backgroundedLong()) {
+            return;
+        }
+        AndroidUtilities.runOnUIThread(REFRESH, Math.max(0L, delay));
+    }
+
+    private static boolean shouldDeferRefresh() {
+        return backgroundedLong() || isPowerSave() || !hasNetwork();
+    }
+
+    private static boolean backgroundedLong() {
+        ForegroundDetector detector = ForegroundDetector.getInstance();
+        if (detector != null && detector.isForeground()) {
+            return false;
+        }
+        if (backgroundedAt == 0L) {
+            return true;
+        }
+        return SystemClock.elapsedRealtime() - backgroundedAt >= LONG_BACKGROUND_MS;
+    }
+
+    private static boolean canProbe() {
+        if (!isEnabled() || !ApplicationLoader.isScreenOn || backgroundedLong()) {
+            return false;
+        }
+        if (isPowerSave() || !hasNetwork() || manualRouteSelected()) {
+            return false;
+        }
+        return true;
+    }
+
+    /** A hand-picked SOCKS, WEB, or MTProxy route stays in charge. iOS returns before activate. */
+    private static boolean manualRouteSelected() {
+        SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
+        if (current == null || !SharedConfig.isProxyEnabled()) {
+            return false;
+        }
+        return !isAutomatic(current);
+    }
+
+    private static boolean isPowerSave() {
+        if (BananaHooks.powerSaving(UserConfig.selectedAccount)) {
+            return true;
+        }
+        try {
+            PowerManager pm = (PowerManager) ApplicationLoader.applicationContext.getSystemService(android.content.Context.POWER_SERVICE);
+            return pm != null && pm.isPowerSaveMode();
+        } catch (Throwable ignore) {
+            return false;
+        }
+    }
+
+    private static boolean hasNetwork() {
+        try {
+            NetworkInfo info = ApplicationLoader.currentNetworkInfo;
+            if (info != null) {
+                return info.isConnected();
+            }
+        } catch (Throwable ignore) {
+        }
+        int state = ConnectionsManager.getInstance(UserConfig.selectedAccount).getConnectionState();
+        return state != ConnectionsManager.ConnectionStateWaitingForNetwork;
+    }
+
     private static void applyPool(List<ProxySettings> pool) {
         SharedConfig.loadProxyList();
-        Set<String> nextKeys = new HashSet<>();
+        Set<String> previous = loadKeys();
+        Set<String> manual = new HashSet<>();
+        for (int i = 0; i < SharedConfig.proxyList.size(); i++) {
+            SharedConfig.ProxyInfo info = SharedConfig.proxyList.get(i);
+            String existing = key(info.settings);
+            if (!previous.contains(existing)) {
+                manual.add(existing);
+            }
+        }
+        List<ProxySettings> automatic = new ArrayList<>();
         for (ProxySettings settings : pool) {
+            if (!manual.contains(key(settings))) {
+                automatic.add(settings);
+            }
+        }
+        SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
+        if (current != null && previous.contains(key(current.settings)) && !containsSettings(automatic, current.settings)) {
+            automatic.add(0, current.settings);
+        }
+        if (automatic.size() > STORED_LIMIT) {
+            automatic = new ArrayList<>(automatic.subList(0, STORED_LIMIT));
+        }
+        Set<String> nextKeys = new HashSet<>();
+        for (ProxySettings settings : automatic) {
             nextKeys.add(key(settings));
         }
-        Set<String> previous = loadKeys();
         for (String oldKey : previous) {
             if (nextKeys.contains(oldKey)) {
                 continue;
@@ -190,74 +342,186 @@ public final class BananaAutomaticProxy {
             }
         }
         List<SharedConfig.ProxyInfo> added = new ArrayList<>();
-        for (ProxySettings settings : pool) {
-            SharedConfig.ProxyInfo info = SharedConfig.addProxy(new SharedConfig.ProxyInfo(settings));
-            added.add(info);
+        for (ProxySettings settings : automatic) {
+            added.add(SharedConfig.addProxy(new SharedConfig.ProxyInfo(settings)));
         }
         saveKeys(nextKeys);
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
-        probeAndMaybeSwitch(added);
+        startProbe(added);
     }
 
-    private static void probeAndMaybeSwitch(List<SharedConfig.ProxyInfo> added) {
+    private static boolean containsSettings(List<ProxySettings> list, ProxySettings settings) {
+        String wanted = key(settings);
+        for (ProxySettings item : list) {
+            if (wanted.equals(key(item))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void startProbe(List<SharedConfig.ProxyInfo> added) {
+        cancelProbes();
+        pendingProbe = false;
+        failureDrivenSwitch = false;
+        if (!isEnabled() || added == null || added.isEmpty()) {
+            return;
+        }
         int limit = Math.min(PROBE_LIMIT, added.size());
-        if (limit == 0) {
+        List<SharedConfig.ProxyInfo> probe = new ArrayList<>(added.subList(0, limit));
+        SharedConfig.ProxyInfo active = SharedConfig.currentProxy;
+        if (active != null && isAutomatic(active) && !probe.contains(active)) {
+            if (probe.size() >= PROBE_LIMIT) {
+                probe.remove(probe.size() - 1);
+            }
+            probe.add(0, active);
+        }
+        lastAdded = probe;
+        if (!canProbe()) {
+            pendingProbe = true;
             return;
         }
-        final int[] pending = new int[] {limit};
-        final List<SharedConfig.ProxyInfo> probed = new ArrayList<>(added.subList(0, limit));
-        int account = UserConfig.selectedAccount;
-        for (int i = 0; i < limit; i++) {
-            SharedConfig.ProxyInfo info = probed.get(i);
-            info.checking = true;
-            ConnectionsManager.getInstance(account).checkProxy(info.settings, time -> AndroidUtilities.runOnUIThread(() -> {
-                info.checking = false;
-                info.availableCheckTime = System.currentTimeMillis();
-                if (time == -1) {
-                    info.available = false;
-                    info.ping = 0;
-                } else {
-                    info.available = true;
-                    info.ping = time;
-                }
-                pending[0]--;
-                if (pending[0] == 0) {
-                    maybeSwitch(probed);
-                }
-            }));
+        probeQueue = probe;
+        probeCursor = 0;
+        probesInFlight = 0;
+        probePending = probe.size();
+        AndroidUtilities.cancelRunOnUIThread(PROBE_KICK);
+        AndroidUtilities.runOnUIThread(PROBE_KICK);
+    }
+
+    private static void kickProbe() {
+        if (!isEnabled() || probeQueue == null) {
+            return;
+        }
+        if (!canProbe()) {
+            pendingProbe = true;
+            cancelProbes();
+            return;
+        }
+        if (probesInFlight >= PROBE_CONCURRENCY || probeCursor >= probeQueue.size()) {
+            return;
+        }
+        final int generation = probeGeneration;
+        final SharedConfig.ProxyInfo info = probeQueue.get(probeCursor);
+        probeCursor++;
+        probesInFlight++;
+        info.checking = true;
+        final int account = UserConfig.selectedAccount;
+        ConnectionsManager.getInstance(account).checkProxy(info.settings, time -> AndroidUtilities.runOnUIThread(() -> {
+            if (generation != probeGeneration) {
+                return;
+            }
+            info.checking = false;
+            info.availableCheckTime = System.currentTimeMillis();
+            if (time == -1) {
+                info.available = false;
+                info.ping = 0;
+            } else {
+                info.available = true;
+                info.ping = time;
+            }
+            probesInFlight = Math.max(0, probesInFlight - 1);
+            probePending = Math.max(0, probePending - 1);
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxyCheckDone, info);
+            if (!isEnabled() || generation != probeGeneration) {
+                return;
+            }
+            if (probePending == 0) {
+                AndroidUtilities.cancelRunOnUIThread(SELECT);
+                AndroidUtilities.runOnUIThread(SELECT, SELECTION_DELAY_MS);
+            } else if (probeQueue != null && probeCursor < probeQueue.size()) {
+                AndroidUtilities.runOnUIThread(PROBE_KICK, PROBE_GAP_MS);
+            }
+        }));
+        if (probeQueue != null && probeCursor < probeQueue.size() && probesInFlight < PROBE_CONCURRENCY) {
+            AndroidUtilities.runOnUIThread(PROBE_KICK, PROBE_GAP_MS);
         }
     }
 
-    private static void maybeSwitch(List<SharedConfig.ProxyInfo> probed) {
-        if (!isEnabled()) {
+    private static void selectBest() {
+        if (probeQueue == null) {
             return;
         }
-        SharedConfig.ProxyInfo best = null;
-        for (SharedConfig.ProxyInfo info : probed) {
-            if (!info.available || info.ping <= 0) {
-                continue;
-            }
-            if (best == null || fakeTls(info) && !fakeTls(best) || fakeTls(info) == fakeTls(best) && info.ping < best.ping) {
-                best = info;
+        maybeSwitch(probeQueue, failureDrivenSwitch);
+    }
+
+    private static void cancelProbes() {
+        probeGeneration++;
+        if (probeQueue != null) {
+            for (int i = 0; i < probeQueue.size(); i++) {
+                probeQueue.get(i).checking = false;
             }
         }
-        if (best == null) {
+        probeQueue = null;
+        probeCursor = 0;
+        probesInFlight = 0;
+        probePending = 0;
+        AndroidUtilities.cancelRunOnUIThread(PROBE_KICK);
+        AndroidUtilities.cancelRunOnUIThread(SELECT);
+    }
+
+    private static void connectionFallback() {
+        if (!isEnabled() || !canProbe()) {
             return;
         }
         SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
         if (current != null && !isAutomatic(current)) {
             return;
         }
-        long now = System.currentTimeMillis();
-        boolean currentDown = current == null || !current.available || current.ping <= 0;
-        boolean faster = current != null && best.ping < current.ping * 0.7;
-        if (!currentDown && !faster) {
+        failureDrivenSwitch = true;
+        if (lastAdded != null && !lastAdded.isEmpty()) {
+            maybeSwitch(lastAdded, true);
             return;
         }
-        if (!currentDown && now - lastSwitchAt < MIN_SWITCH_MS) {
+        failureDrivenSwitch = false;
+    }
+
+    private static void maybeSwitch(List<SharedConfig.ProxyInfo> probed, boolean failureDriven) {
+        if (!isEnabled() || probed == null || probed.isEmpty()) {
             return;
+        }
+        if (!canProbe()) {
+            pendingProbe = true;
+            return;
+        }
+        SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
+        if (current != null && !isAutomatic(current)) {
+            return;
+        }
+        SharedConfig.ProxyInfo best = null;
+        for (int i = 0; i < probed.size(); i++) {
+            SharedConfig.ProxyInfo info = probed.get(i);
+            if (failureDriven && info == current) {
+                continue;
+            }
+            if (!info.available || info.ping <= 0) {
+                continue;
+            }
+            if (best == null || info.ping < best.ping) {
+                best = info;
+            }
+        }
+        if (best == null) {
+            if (current != null) {
+                return;
+            }
+            best = probed.get(0);
+        }
+        if (best == null || best == current) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        boolean currentDown = failureDriven || current == null || !current.available || current.ping <= 0;
+        if (!currentDown) {
+            if (now - lastSwitchAt < MIN_SWITCH_MS) {
+                return;
+            }
+            if (best.ping >= current.ping * SWITCH_RTT_FACTOR) {
+                return;
+            }
         }
         lastSwitchAt = now;
+        failureDrivenSwitch = false;
         android.content.SharedPreferences.Editor editor = MessagesController.getGlobalMainSettings().edit();
         editor.putBoolean("proxy_enabled", true);
         best.settings.toSharedPreferences(editor);
@@ -272,7 +536,9 @@ public final class BananaAutomaticProxy {
         Set<String> keys = loadKeys();
         for (String key : new ArrayList<>(keys)) {
             SharedConfig.ProxyInfo info = find(key);
-            if (info != null) {
+            if (info != null && info != SharedConfig.currentProxy) {
+                SharedConfig.deleteProxy(info);
+            } else if (info != null && info == SharedConfig.currentProxy && isAutomatic(info)) {
                 SharedConfig.deleteProxy(info);
             }
         }
@@ -323,6 +589,38 @@ public final class BananaAutomaticProxy {
         MessagesController.getGlobalMainSettings().edit().putString(KEYS, sb.toString()).apply();
     }
 
+    /** Stable round-robin across publishers, then FakeTLS first. Same shape as iOS. */
+    private static List<ProxySettings> mergeRoundRobin(List<List<ProxySettings>> lists) {
+        List<ProxySettings> result = new ArrayList<>();
+        if (lists == null || lists.isEmpty()) {
+            return result;
+        }
+        Set<String> seen = new HashSet<>();
+        int[] index = new int[lists.size()];
+        boolean progressed = true;
+        while (progressed && result.size() < STORED_LIMIT) {
+            progressed = false;
+            for (int i = 0; i < lists.size(); i++) {
+                List<ProxySettings> list = lists.get(i);
+                int at = index[i];
+                while (at < list.size()) {
+                    ProxySettings server = list.get(at);
+                    at++;
+                    if (seen.add(key(server))) {
+                        result.add(server);
+                        progressed = true;
+                        break;
+                    }
+                }
+                index[i] = at;
+                if (result.size() >= STORED_LIMIT) {
+                    break;
+                }
+            }
+        }
+        return preferFakeTls(result);
+    }
+
     private static List<ProxySettings> preferFakeTls(List<ProxySettings> input) {
         List<ProxySettings> fake = new ArrayList<>();
         List<ProxySettings> rest = new ArrayList<>();
@@ -337,11 +635,10 @@ public final class BananaAutomaticProxy {
         return fake;
     }
 
-    private static boolean fakeTls(SharedConfig.ProxyInfo info) {
-        return info != null && fakeTls(info.settings);
-    }
-
     private static boolean fakeTls(ProxySettings settings) {
+        if (settings == null || settings.getSecret() == null) {
+            return false;
+        }
         String secret = settings.getSecret().toLowerCase(Locale.US);
         return secret.startsWith("ee") && secret.length() >= 34;
     }
@@ -379,5 +676,87 @@ public final class BananaAutomaticProxy {
                 connection.disconnect();
             }
         }
+    }
+
+    private static void installListeners() {
+        if (listenersInstalled) {
+            return;
+        }
+        listenersInstalled = true;
+        NotificationCenter.getGlobalInstance().addObserver((id, account, args) -> {
+            if (!ApplicationLoader.isScreenOn) {
+                if (probeQueue != null) {
+                    pendingProbe = true;
+                }
+                cancelProbes();
+                AndroidUtilities.cancelRunOnUIThread(FALLBACK);
+            } else if (pendingProbe && isEnabled()) {
+                startProbe(lastAdded);
+            }
+        }, NotificationCenter.screenStateChanged);
+        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+            NotificationCenter.getInstance(i).addObserver((id, account, args) -> {
+                if (account != UserConfig.selectedAccount) {
+                    return;
+                }
+                AndroidUtilities.cancelRunOnUIThread(FALLBACK);
+                int state = ConnectionsManager.getInstance(account).getConnectionState();
+                if (state == ConnectionsManager.ConnectionStateWaitingForNetwork) {
+                    if (probeQueue != null) {
+                        pendingProbe = true;
+                    }
+                    cancelProbes();
+                    return;
+                }
+                if (!isEnabled()) {
+                    return;
+                }
+                if (state == ConnectionsManager.ConnectionStateConnectingToProxy) {
+                    AndroidUtilities.runOnUIThread(FALLBACK, CONNECTION_FALLBACK_MS);
+                }
+            }, NotificationCenter.didUpdateConnectionState);
+        }
+        ForegroundDetector detector = ForegroundDetector.getInstance();
+        if (detector != null) {
+            detector.addListener(new ForegroundDetector.Listener() {
+                @Override
+                public void onBecameForeground() {
+                    onForeground();
+                }
+
+                @Override
+                public void onBecameBackground() {
+                    onBackground();
+                }
+            });
+        }
+    }
+
+    private static void onForeground() {
+        backgroundedAt = 0L;
+        ApplicationLoader.startPushService();
+        if (!isEnabled()) {
+            return;
+        }
+        long elapsed = lastRefreshAt == 0L ? REFRESH_MS : SystemClock.elapsedRealtime() - lastRefreshAt;
+        if (elapsed >= REFRESH_MS) {
+            AndroidUtilities.cancelRunOnUIThread(REFRESH);
+            refresh();
+        } else {
+            scheduleRefresh(REFRESH_MS - elapsed);
+            if (pendingProbe) {
+                startProbe(lastAdded);
+            }
+        }
+    }
+
+    private static void onBackground() {
+        backgroundedAt = SystemClock.elapsedRealtime();
+        if (probeQueue != null) {
+            pendingProbe = true;
+        }
+        cancelProbes();
+        AndroidUtilities.cancelRunOnUIThread(FALLBACK);
+        ApplicationLoader.startPushService();
     }
 }

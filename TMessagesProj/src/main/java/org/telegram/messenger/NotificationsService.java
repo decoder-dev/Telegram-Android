@@ -108,6 +108,10 @@ public class NotificationsService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // Banana keep-alive re-arms at most one 15-minute inexact wakeup, and only in the background.
+        org.telegram.ui.Components.ForegroundDetector detector = org.telegram.ui.Components.ForegroundDetector.getInstance();
+        boolean background = detector == null || detector.isBackground();
+        ApplicationLoader.syncBananaKeepAlive(background);
         return START_STICKY;
     }
 
