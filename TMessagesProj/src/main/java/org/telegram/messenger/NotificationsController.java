@@ -5179,6 +5179,11 @@ public class NotificationsController extends BaseController implements Notificat
                 photoPath = null;
                 canReply = false;
             }
+            if (org.telegram.messenger.banana.BananaArchiveLock.shouldRedactNotification(currentAccount, dialogId)) {
+                name = LocaleController.getString(R.string.BananaArchiveNotificationTitle);
+                photoPath = null;
+                canReply = false;
+            }
 
             if (photoPath != null) {
                 avatarFile = getFileLoader().getPathToAttach(photoPath, true);
@@ -5346,6 +5351,10 @@ public class NotificationsController extends BaseController implements Notificat
                         continue;
                     }
                     String message = getShortStringForMessage(messageObject, senderName, preview);
+                    if (org.telegram.messenger.banana.BananaArchiveLock.shouldRedactNotification(currentAccount, dialogId)) {
+                        message = LocaleController.getString(R.string.BananaArchiveNotificationHidden);
+                        senderName[0] = null;
+                    }
                     if (dialogId == UserObject.OAUTH) {
                         senderName[0] = LocaleController.getString(R.string.BotAuthNotificationTitle);
                     } else if (dialogId == UserObject.VERIFY && messageObject.getForwardedFromId() != null) {
