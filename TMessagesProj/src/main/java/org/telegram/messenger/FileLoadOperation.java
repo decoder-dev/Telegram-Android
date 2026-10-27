@@ -298,16 +298,13 @@ public class FileLoadOperation {
     }
 
     private void updateParams() {
-        // BananaGram DOWNLOAD_SPEED_BOOST: larger chunks + more parallel connections (Telegraher/Nekogram-style).
+        // iOS MultipartFetch: files above 512 KiB use 512 KiB parts and at most 8 in flight.
+        // Animation downloads keep the stock cap of 4. No extra thread is started.
         final boolean bananaBoost = org.telegram.messenger.banana.BananaHooks.downloadUseBoostedChunks(currentAccount);
         if ((preloadPrefixSize > 0 || MessagesController.getInstance(currentAccount).getfileExperimentalParams || bananaBoost) && !forceSmallChunk) {
-            downloadChunkSizeBig = bananaBoost ? 1024 * 1024 : 1024 * 512;
-            maxDownloadRequests = bananaBoost ? 8 : 8;
-            maxDownloadRequestsBig = bananaBoost ? 8 : 8;
-            if (bananaBoost) {
-                downloadChunkSize = 1024 * 64;
-                maxDownloadRequestsAnimation = 8;
-            }
+            downloadChunkSizeBig = 1024 * 512;
+            maxDownloadRequests = 8;
+            maxDownloadRequestsBig = 8;
         } else {
             downloadChunkSizeBig = 1024 * 128;
             maxDownloadRequests = 4;

@@ -249,6 +249,9 @@ public final class BananaConfig {
 
     public static void set(int account, Option option, boolean enabled) {
         MessagesController.getMainSettings(account).edit().putBoolean(option.key, enabled).apply();
+        if (option == Option.KEEP_ALIVE_IN_BACKGROUND && account == org.telegram.messenger.UserConfig.selectedAccount) {
+            org.telegram.messenger.AndroidUtilities.runOnUIThread(org.telegram.messenger.ApplicationLoader::startPushService);
+        }
     }
 
     private static final String LAST_FOLDER_STABLE_ID = "bananaLastFolderStableId";
