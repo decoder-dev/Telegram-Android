@@ -9014,12 +9014,34 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         if (!(focusedView instanceof EditText)) {
             return false;
         }
-        Editable text = ((EditText) focusedView).getText();
+        EditText edit = (EditText) focusedView;
+        if (!edit.isEnabled() || !edit.isFocusable()) {
+            return false;
+        }
+        Editable text = edit.getText();
         if (text == null || text.length() == 0) {
             return false;
         }
-        text.delete(text.length() - 1, text.length());
-        return true;
+        try {
+            int start = edit.getSelectionStart();
+            int end = edit.getSelectionEnd();
+            if (start < 0 || end < 0) {
+                return false;
+            }
+            int from = Math.min(start, end);
+            int to = Math.max(start, end);
+            if (from != to) {
+                text.delete(from, to);
+                return true;
+            }
+            if (from == 0) {
+                return false;
+            }
+            text.delete(from - 1, from);
+            return true;
+        } catch (Throwable ignore) {
+            return false;
+        }
     }
 
     public boolean onBackPressed(boolean invoked) {

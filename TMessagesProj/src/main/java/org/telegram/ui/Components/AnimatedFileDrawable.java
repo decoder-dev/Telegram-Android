@@ -173,6 +173,11 @@ public final class AnimatedFileDrawable extends BitmapDrawable implements Animat
         }
         consecutiveNoFrames++;
         if (consecutiveNoFrames > NO_FRAME_GIVE_UP_AFTER) {
+            // Stop the choreographer too. Leaving isRunning set keeps invalidating every frame
+            // after the decoder has already given up.
+            isRunning = false;
+            AndroidUtilities.cancelRunOnUIThread(scheduleNextGetFrameRunnable);
+            checkChoreographerInternal();
             return;
         }
         if (consecutiveNoFrames <= NO_FRAME_BACKOFF_AFTER) {

@@ -4,6 +4,12 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Fixed
+
+- Auto MTProxy probes at most four candidates per pass, 200 ms apart, and only while the app is in front. A candidate that did not answer is not turned on. An enabled proxy that was added by hand stays selected. A list fetch closes its error stream, and a missing proxy address no longer crashes the refresh.
+- Saving a photo, video, or file to the gallery marks the row pending only on Android 10 and later, writes with the output stream that exists on Android 7, and deletes the row if the copy fails. A decoder that never produces a frame stops its frame callback instead of invalidating forever. Hardware Back deletes the selection or the character before the caret, and leaves the screen when the caret is already at the start.
+- Save-deleted and save-edits no longer treat a group or channel id as a user id, so a cached bot cannot turn retention off for that chat. A missing id in the auto-delete timer is skipped, and one failed history save does not abort the rest of the timer. Archive unlock checks that the host is a fragment activity before showing biometrics, and a failed password dialog does not leave the prompt stuck. The proxy list uses stable ids that cannot collide with the automatic-proxy and VLESS rows. The island chip removes its overlay only when the parent is a view group. A VLESS short id is validated as a whole value, and the error text survives a missing locale.
+
 ### Added
 
 - The BananaGram Extras hub follows the iOS ForkExtrasController sections: Ninja, Ghost, Privacy, Chat list, Tab bar, Messages, Media, and Profile. Boolean settings are stored per account in `BananaConfig`, with English and Russian labels.
