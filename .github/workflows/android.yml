@@ -28,6 +28,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
       - name: Check private credential loader
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
       - name: Verify configured API credentials
@@ -55,6 +56,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
       - name: Enable emulator acceleration for this runner
         run: sudo setfacl -m "u:$(id -un):rw" /dev/kvm
       - name: Build development APK and instrumentation
