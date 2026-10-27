@@ -381,6 +381,8 @@
     <string name="BananaThemeGraphite">BananaGram Graphite</string>
     <string name="BananaThemeClassicWhite">Classic White</string>
     <string name="BananaThemeClassicBlack">Classic Black</string>
+    <string name="BananaThemeGlass">BananaGram Стекло</string>
+    <string name="BananaThemeGlassNight">BananaGram Стекло, ночь</string>
     <string name="BananaArchivePasswordSection">ПАРОЛЬ</string>
     <string name="BananaArchiveLock">Блокировать архив и «Избранное»</string>
     <string name="BananaArchiveFooter">Архив и «Избранное» скрыты, пока вы не нажмёте «Настройки» 10 раз. Открытая строка показывает только название, пока вы не введёте пароль. Для входа нужен пароль или биометрия. Выход из архива или из приложения снова закрывает доступ. Архивированные чаты остаются без звука.</string>

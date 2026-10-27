@@ -19,6 +19,8 @@ public final class BananaTheme {
 
     public static final String THEME_CREAM = "Banana Cream";
     public static final String THEME_GRAPHITE = "Banana Graphite";
+    public static final String THEME_GLASS = "Banana Glass";
+    public static final String THEME_GLASS_NIGHT = "Banana Glass Night";
 
     /** Warm cream day palette. Hex values match iOS makeBananaGramTheme. */
     public static final class Cream {
@@ -48,13 +50,15 @@ public final class BananaTheme {
 
     /**
      * Stored ordinals stay compatible: 0 was System and now selects Classic White,
-     * 1 Cream, 2 Graphite, 3 Classic Black.
+     * 1 Cream, 2 Graphite, 3 Classic Black. Glass and Glass Night are appended.
      */
     public enum Palette {
         CLASSIC_WHITE,
         CREAM,
         GRAPHITE,
-        CLASSIC_BLACK
+        CLASSIC_BLACK,
+        GLASS,
+        GLASS_NIGHT
     }
 
     /** Keep native theme colors, adjusting secondary text only when its contrast is too low. */
@@ -62,6 +66,8 @@ public final class BananaTheme {
 
     public static final Theme.ResourcesProvider CREAM = key -> overlay(key, Palette.CREAM);
     public static final Theme.ResourcesProvider GRAPHITE = key -> overlay(key, Palette.GRAPHITE);
+    public static final Theme.ResourcesProvider GLASS = key -> org.telegram.messenger.banana.BananaThemes.extrasColor(key, false);
+    public static final Theme.ResourcesProvider GLASS_NIGHT = key -> org.telegram.messenger.banana.BananaThemes.extrasColor(key, true);
 
     public static Theme.ResourcesProvider forExtras() {
         Palette palette = selectedPalette();
@@ -70,6 +76,12 @@ public final class BananaTheme {
         }
         if (palette == Palette.GRAPHITE) {
             return GRAPHITE;
+        }
+        if (palette == Palette.GLASS) {
+            return GLASS;
+        }
+        if (palette == Palette.GLASS_NIGHT) {
+            return GLASS_NIGHT;
         }
         return COLORS;
     }
@@ -104,6 +116,12 @@ public final class BananaTheme {
         } else if (palette == Palette.CLASSIC_BLACK) {
             info = Theme.getTheme("Classic Black");
             dark = true;
+        } else if (palette == Palette.GLASS) {
+            info = Theme.getTheme(THEME_GLASS);
+            dark = false;
+        } else if (palette == Palette.GLASS_NIGHT) {
+            info = Theme.getTheme(THEME_GLASS_NIGHT);
+            dark = true;
         } else {
             info = Theme.getTheme("Classic White");
             dark = false;
@@ -121,6 +139,18 @@ public final class BananaTheme {
     /** Sparse overrides used when a Banana palette is active for chat accents. */
     public static void putBubbleOverrides(SparseIntArray into, Palette palette) {
         if (into == null || palette == Palette.CLASSIC_WHITE || palette == Palette.CLASSIC_BLACK) {
+            return;
+        }
+        if (palette == Palette.GLASS || palette == Palette.GLASS_NIGHT) {
+            boolean night = palette == Palette.GLASS_NIGHT;
+            into.put(Theme.key_chat_outBubble, night ? 0xFF1C3D66 : 0xFFE4F0FF);
+            into.put(Theme.key_chat_inBubble, night ? 0xFF243140 : 0xFFFCFDFE);
+            into.put(Theme.key_chat_messagePanelSend, night ? 0xFF8EBBFF : 0xFF3D8BFF);
+            into.put(Theme.key_actionBarDefault, night ? 0xFF171E28 : 0xFFE7EEF5);
+            into.put(Theme.key_windowBackgroundWhite, night ? 0xFF171E28 : 0xFFE7EEF5);
+            into.put(Theme.key_windowBackgroundGray, night ? 0xFF121820 : 0xFFDCE6F0);
+            into.put(Theme.key_checkbox, night ? 0xFF8EBBFF : 0xFF3D8BFF);
+            into.put(Theme.key_switchTrackChecked, night ? 0xFF8EBBFF : 0xFF3D8BFF);
             return;
         }
         if (palette == Palette.CREAM) {
