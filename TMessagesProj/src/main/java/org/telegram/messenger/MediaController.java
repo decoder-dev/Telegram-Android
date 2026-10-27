@@ -1882,7 +1882,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             ArrayList<Integer> markAsDeletedMessages = (ArrayList<Integer>) args[0];
             if (playingMessageObject != null) {
                 if (channelId == playingMessageObject.messageOwner.peer_id.channel_id) {
-                    if (markAsDeletedMessages.contains(playingMessageObject.getId()) && !AyuConfig.saveDeletedMessages) {
+                    if (markAsDeletedMessages.contains(playingMessageObject.getId())
+                            && !org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(UserConfig.selectedAccount)) {
                         cleanupPlayer(true, true);
                     }
                 }
@@ -5185,7 +5186,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                         requestRecordAudioFocus(true);
 //                        MediaDataController.getInstance(recordingCurrentAccount).pushDraftVoiceMessage(recordDialogId, recordTopicId, null);
 //
-                        audioRecorder = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
+                        int bananaMicSource = org.telegram.messenger.banana.BananaHooks.forceBuiltInMic(UserConfig.selectedAccount)
+                                ? MediaRecorder.AudioSource.MIC : MediaRecorder.AudioSource.DEFAULT;
+                        audioRecorder = new AudioRecord(bananaMicSource, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
                         recordStartTime = System.currentTimeMillis();
                         writtenFrame = 0;
                         samplesCount = 0;
@@ -5288,7 +5291,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 }
 
                 audioRecorderPaused = false;
-                audioRecorder = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
+                int bananaMicSource = org.telegram.messenger.banana.BananaHooks.forceBuiltInMic(UserConfig.selectedAccount)
+                        ? MediaRecorder.AudioSource.MIC : MediaRecorder.AudioSource.DEFAULT;
+                audioRecorder = new AudioRecord(bananaMicSource, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
                 recordStartTime = System.currentTimeMillis();
                 recordTimeCount = 0;
                 writtenFrame = 0;
@@ -6013,6 +6018,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             return;
         }
 
+        final String bananaSignedName = org.telegram.messenger.banana.BananaHooks.maybeSignDownloadedFileName(
+                UserConfig.selectedAccount, name);
         final File sourceFile = file;
         final boolean[] cancelled = new boolean[]{false};
         if (sourceFile.exists()) {
@@ -6065,15 +6072,16 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                             }
                             dir = new File(dir, com.radolyn.ayugram.AyuConstants.APP_NAME);
                             dir.mkdirs();
-                            destFile = new File(dir, name);
+                            final String destName = bananaSignedName != null ? bananaSignedName : name;
+                            destFile = new File(dir, destName);
                             if (destFile.exists()) {
-                                int idx = name.lastIndexOf('.');
+                                int idx = destName.lastIndexOf('.');
                                 for (int a = 0; a < 10; a++) {
                                     String newName;
                                     if (idx != -1) {
-                                        newName = name.substring(0, idx) + "(" + (a + 1) + ")" + name.substring(idx);
+                                        newName = destName.substring(0, idx) + "(" + (a + 1) + ")" + destName.substring(idx);
                                     } else {
-                                        newName = name + "(" + (a + 1) + ")";
+                                        newName = destName + "(" + (a + 1) + ")";
                                     }
                                     destFile = new File(dir, newName);
                                     if (!destFile.exists()) {
@@ -6347,6 +6355,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             if (extension != null) {
                 mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
             }
+            if (filename != null) {
+                filename = org.telegram.messenger.banana.BananaHooks.maybeSignDownloadedFileName(UserConfig.selectedAccount, filename);
+            }
             Uri uriToInsert = null;
             if ((type == 0 || type == 1) && mimeType != null) {
                 if (mimeType.startsWith("image")) {
@@ -6358,7 +6369,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             }
             if (selectedType == 0) {
                 if (filename == null) {
-                    filename = AndroidUtilities.generateFileName(0, extension);
+                    filename = org.telegram.messenger.banana.BananaHooks.maybeSignDownloadedFileName(
+                            UserConfig.selectedAccount, AndroidUtilities.generateFileName(0, extension));
                 }
                 uriToInsert = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                 File dirDest = new File(Environment.DIRECTORY_PICTURES, com.radolyn.ayugram.AyuConstants.APP_NAME);
@@ -6367,7 +6379,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 contentValues.put(MediaStore.Images.Media.MIME_TYPE, mimeType);
             } else if (selectedType == 1) {
                 if (filename == null) {
-                    filename = AndroidUtilities.generateFileName(1, extension);
+                    filename = org.telegram.messenger.banana.BananaHooks.maybeSignDownloadedFileName(
+                            UserConfig.selectedAccount, AndroidUtilities.generateFileName(1, extension));
                 }
                 File dirDest = new File(Environment.DIRECTORY_MOVIES, com.radolyn.ayugram.AyuConstants.APP_NAME);
                 contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, dirDest + File.separator);

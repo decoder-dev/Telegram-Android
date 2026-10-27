@@ -3637,7 +3637,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         if (message != null) {
             req.message = message;
             req.flags |= 2048;
-            req.no_webpage = !searchLinks;
+            req.no_webpage = !org.telegram.messenger.banana.BananaHooks.shouldSearchLinks(currentAccount, searchLinks);
         }
         if (messageObject.messageOwner != null && (messageObject.messageOwner.flags & 1073741824) != 0) {
             req.quick_reply_shortcut_id = messageObject.messageOwner.quick_reply_shortcut_id;
@@ -5576,7 +5576,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         if (newMsg.from_id != null) {
                             reqSend.send_as = getMessagesController().getInputPeer(newMsg.from_id);
                         }
-                        if (!searchLinks) {
+                        if (!org.telegram.messenger.banana.BananaHooks.shouldSearchLinks(currentAccount, searchLinks)) {
                             reqSend.no_webpage = true;
                         }
                         if (entities != null && !entities.isEmpty()) {
@@ -9701,7 +9701,20 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             } else {
                 document.mime_type = "application/octet-stream";
             }
-            if (!forceDocument && document.mime_type.equals("image/gif") && (editingMessageObject == null || editingMessageObject.getGroupIdForUse() == 0)) {
+            boolean bananaGifAsVideo = false;
+            if (org.telegram.messenger.banana.BananaHooks.sendBannedGifsAsVideo(accountInstance.getCurrentAccount())
+                    && document.mime_type != null && document.mime_type.equals("image/gif")) {
+                TLRPC.Chat bananaGifChat = accountInstance.getMessagesController().getChat(-dialogId);
+                if (bananaGifChat == null && dialogId < 0) {
+                    bananaGifChat = accountInstance.getMessagesController().getChat(-dialogId);
+                }
+                if (ChatObject.isChannel(bananaGifChat) && bananaGifChat.banned_rights != null && bananaGifChat.banned_rights.send_gifs) {
+                    bananaGifAsVideo = true;
+                    forceDocument = true;
+                    document.mime_type = "video/mp4";
+                }
+            }
+            if (!forceDocument && !bananaGifAsVideo && document.mime_type.equals("image/gif") && (editingMessageObject == null || editingMessageObject.getGroupIdForUse() == 0)) {
                 try {
                     Bitmap bitmap = ImageLoader.loadBitmap(f.getAbsolutePath(), null, 90, 90, true);
                     if (bitmap != null) {

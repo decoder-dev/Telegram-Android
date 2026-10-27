@@ -9339,8 +9339,8 @@ public class MessagesController extends BaseController implements NotificationCe
             return;
         }
 
-        // --- AyuGram hook
-        if (!scheduled && AyuConfig.saveDeletedMessages) {
+        // --- AyuGram hook (Ayu OR Banana SAVE_DELETED)
+        if (!scheduled && org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount)) {
             if (DialogObject.isEncryptedDialog(dialogId) && messages != null && !messages.isEmpty()) { // process TTL messages from secrets
                 for (int a = 0; a < messages.size(); a++) {
                     int id = messages.get(a);
@@ -14674,7 +14674,7 @@ public class MessagesController extends BaseController implements NotificationCe
         ArrayList<Long> randomIds = new ArrayList<>();
         randomIds.add(randomId);
         getSecretChatHelper().sendMessagesReadMessage(chat, randomIds, null);
-        if (ttl > 0 && !AyuConfig.saveDeletedMessages) {
+        if (ttl > 0 && !org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount)) {
             int time = getConnectionsManager().getCurrentTime();
             getMessagesStorage().createTaskForSecretChat(chat.id, time, time, 0, randomIds);
         }
@@ -15947,6 +15947,9 @@ public class MessagesController extends BaseController implements NotificationCe
                     getNotificationCenter().postNotificationName(NotificationCenter.joinedGroup, chatId);
                 });
             }
+            if (UserObject.isUserSelf(user)) {
+                org.telegram.messenger.banana.BananaHooks.maybePromptFolderAfterJoin(currentAccount, chatId);
+            }
         });
     }
 
@@ -16981,7 +16984,7 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     private void checkChannelError(String text, long channelId) {
-        if (AyuConfig.saveDeletedMessages) {
+        if (org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount)) {
             return;
         }
 
@@ -19903,7 +19906,7 @@ public class MessagesController extends BaseController implements NotificationCe
         }
 
         // --- AyuGram request hook
-        if (AyuConfig.saveDeletedMessages && deletedMessages != null) {
+        if (org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount) && deletedMessages != null) {
             var currentTimeS = (int)(currentTime / 1000);
             var messagesStorage = getMessagesStorage();
             var userId = getAccountInstance().getUserConfig().clientUserId;
@@ -20475,7 +20478,8 @@ public class MessagesController extends BaseController implements NotificationCe
                         if (chat != null) {
                             if (dialog == null && chat instanceof TLRPC.TL_channel && !chat.left) {
                                 Utilities.stageQueue.postRunnable(() -> getChannelDifference(update.channel_id, 1, 0, null));
-                            } else if (ChatObject.isNotInChat(chat) && dialog != null && (promoDialog == null || promoDialog.id != dialog.id)) {
+                            } else if (ChatObject.isNotInChat(chat) && dialog != null && (promoDialog == null || promoDialog.id != dialog.id)
+                                    && !org.telegram.messenger.banana.BananaHooks.keepBannedChats(currentAccount)) {
                                 deleteDialog(dialog.id, 0);
                             }
                             if (chat instanceof TLRPC.TL_channelForbidden || chat.kicked) {
@@ -20514,7 +20518,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                 }
                             }
                             TLRPC.Dialog dialog = dialogs_dict.get(-chat.id);
-                            if (dialog != null) {
+                            if (dialog != null && !org.telegram.messenger.banana.BananaHooks.keepBannedChats(currentAccount)) {
                                 deleteDialog(dialog.id, 0);
                             }
                         }

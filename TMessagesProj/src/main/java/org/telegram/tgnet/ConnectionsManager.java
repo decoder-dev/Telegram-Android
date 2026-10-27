@@ -404,6 +404,10 @@ public class ConnectionsManager extends BaseController {
 
         // --- AyuGram / BananaGram request hook
         {
+            if (BananaHooks.shouldDropAnalyticsRequest(currentAccount, object)) {
+                return;
+            }
+
             // don't send upload & typing status (Ayu prefs or Banana GHOST_DONT_SEND_TYPING)
             if ((!AyuConfig.sendUploadProgress || BananaHooks.dontSendTyping(currentAccount)) &&
                     (

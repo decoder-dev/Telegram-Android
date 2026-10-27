@@ -1531,10 +1531,33 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
         } else if (foundType == 1) {
             ArrayList<String> newResult = new ArrayList<>();
             String hashtagString = result.toString().toLowerCase();
+            if (org.telegram.messenger.banana.BananaHooks.hashtagsPreferCurrentChat(currentAccount) && messages != null) {
+                for (int m = 0; m < messages.size() && newResult.size() < 8; m++) {
+                    MessageObject msg = messages.get(m);
+                    if (msg == null || msg.messageOwner == null || TextUtils.isEmpty(msg.messageOwner.message)) {
+                        continue;
+                    }
+                    String body = msg.messageOwner.message;
+                    int idx = -1;
+                    while ((idx = body.indexOf('#', idx + 1)) >= 0) {
+                        int end = idx + 1;
+                        while (end < body.length() && (Character.isLetterOrDigit(body.charAt(end)) || body.charAt(end) == '_')) {
+                            end++;
+                        }
+                        if (end > idx + 1) {
+                            String tag = body.substring(idx, end).toLowerCase();
+                            if (tag.startsWith(hashtagString) && !newResult.contains(tag)) {
+                                newResult.add(tag);
+                            }
+                        }
+                    }
+                }
+            }
             ArrayList<SearchAdapterHelper.HashtagObject> hashtags = searchAdapterHelper.getHashtags();
             for (int a = 0; a < hashtags.size(); a++) {
                 SearchAdapterHelper.HashtagObject hashtagObject = hashtags.get(a);
-                if (hashtagObject != null && hashtagObject.hashtag != null && hashtagObject.hashtag.startsWith(hashtagString)) {
+                if (hashtagObject != null && hashtagObject.hashtag != null && hashtagObject.hashtag.startsWith(hashtagString)
+                        && !newResult.contains(hashtagObject.hashtag)) {
                     newResult.add(hashtagObject.hashtag);
                 }
             }

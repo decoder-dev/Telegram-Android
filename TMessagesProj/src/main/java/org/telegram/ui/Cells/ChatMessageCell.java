@@ -11373,6 +11373,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             total_voters = media.results.total_voters;
             timerTransitionProgress = media.poll.close_date - ConnectionsManager.getInstance(currentAccount).getCurrentTime() < 60 ? 0.0f : 1.0f;
             pollClosed = media.poll.closed;
+            if (org.telegram.messenger.banana.BananaHooks.pollResultsBeforeVoting(currentAccount)
+                    && messageObject.isPoll() && !messageObject.isVoted()) {
+                messageObject.forceShowPollResults = true;
+            }
             pollResultsPreview = messageObject.forceShowPollResults;
             pollHideResults = media.poll.hide_results_until_close;
             title = media.poll.question;
@@ -12079,14 +12083,17 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             Activity activity = AndroidUtilities.findActivity(getContext());
             Window window = activity == null ? null : activity.getWindow();
             if (window != null) {
-                flagSecure = new FlagSecureReason(window, () ->
-                    currentMessageObject != null && currentMessageObject.messageOwner != null && (
+                flagSecure = new FlagSecureReason(window, () -> {
+                    if (currentMessageObject == null || currentMessageObject.messageOwner == null) {
+                        return false;
+                    }
+                    boolean protectedContent =
                         currentMessageObject.type == MessageObject.TYPE_PAID_MEDIA && (groupMedia == null || !groupMedia.hidden) ||
                         currentMessageObject.messageOwner.noforwards && !currentMessageObject.isEphemeral() ||
                         currentMessageObject.isVoiceOnce() ||
-                        currentMessageObject.hasRevealedExtendedMedia()
-                    )
-                );
+                        currentMessageObject.hasRevealedExtendedMedia();
+                    return org.telegram.messenger.banana.BananaHooks.shouldSecureForProtected(currentAccount, protectedContent);
+                });
                 if (attachedToWindow) {
                     flagSecure.attach();
                 }
@@ -13813,7 +13820,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             if (timeTextWidth < 0) {
                 timeTextWidth = dp(10);
             }
-            if (currentTimeString != null) {
+            if (org.telegram.messenger.banana.BananaHooks.hideStickerStatus(currentAccount)
+                    && currentMessageObject != null && currentMessageObject.isAnyKindOfSticker()) {
+                currentTimeString = null;
+                timeLayout = null;
+                timeWidth = 0;
+                timeTextWidth = 0;
+                drawTime = false;
+            } else if (currentTimeString != null) {
                 timeLayout = new StaticLayout(currentTimeString, Theme.chat_timePaint, timeTextWidth + dp(100), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
             } else {
                 timeLayout = null;
@@ -18537,6 +18551,16 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 timeString = clock;
             }
             timeString = org.telegram.messenger.banana.BananaHooks.appendMessageId(currentAccount, timeString, messageObject.getId());
+            if (org.telegram.messenger.banana.BananaHooks.showOriginalForwardDate(currentAccount)
+                    && messageObject.messageOwner.fwd_from != null
+                    && messageObject.messageOwner.fwd_from.date > 0
+                    && messageObject.messageOwner.fwd_from.date != messageObject.messageOwner.date) {
+                final long fwdMs = (long) messageObject.messageOwner.fwd_from.date * 1000;
+                final String fwdClock = org.telegram.messenger.banana.BananaHooks.showMessageSeconds(currentAccount)
+                        ? LocaleController.getInstance().getFormatterDayWithSeconds().format(fwdMs)
+                        : LocaleController.getInstance().getFormatterDay().format(fwdMs);
+                timeString = timeString + " ← " + fwdClock;
+            }
         }
         if (currentMessageObject.messageOwner.video_processing_pending) {
             timeString = formatString(R.string.ScheduledTimeApprox, timeString);
@@ -18589,6 +18613,16 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         final boolean isInWelcomeMessages = delegate != null && delegate.getChatMode() == ChatActivity.MODE_WELCOME_MESSAGES;
         if ((messageObject.messageOwner.flags & TLRPC.MESSAGE_FLAG_HAS_VIEWS) != 0 && !isInWelcomeMessages) {
             currentViewsString = String.format("%s", LocaleController.formatShortNumber(Math.max(1, messageObject.messageOwner.views), null));
+            if (org.telegram.messenger.banana.BananaHooks.showChannelForwardCount(currentAccount)
+                    && messageObject.messageOwner.forwards > 0) {
+                currentViewsString = currentViewsString + " · " + LocaleController.formatShortNumber(messageObject.messageOwner.forwards, null);
+            }
+            viewsTextWidth = (int) Math.ceil(Theme.chat_timePaint.measureText(currentViewsString));
+            float drawableWidth = Theme.chat_msgInViewsDrawable.getIntrinsicWidth() * (Theme.chat_timePaint.getTextSize() - dp(2)) / Theme.chat_msgInViewsDrawable.getIntrinsicHeight();
+            timeWidth += viewsTextWidth + drawableWidth + dp(10);
+        } else if (org.telegram.messenger.banana.BananaHooks.showChannelForwardCount(currentAccount)
+                && messageObject.messageOwner != null && messageObject.messageOwner.forwards > 0 && !isInWelcomeMessages) {
+            currentViewsString = LocaleController.formatShortNumber(messageObject.messageOwner.forwards, null);
             viewsTextWidth = (int) Math.ceil(Theme.chat_timePaint.measureText(currentViewsString));
             float drawableWidth = Theme.chat_msgInViewsDrawable.getIntrinsicWidth() * (Theme.chat_timePaint.getTextSize() - dp(2)) / Theme.chat_msgInViewsDrawable.getIntrinsicHeight();
             timeWidth += viewsTextWidth + drawableWidth + dp(10);
@@ -22733,7 +22767,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 Theme.chat_replyTextPaint.linkColor = getThemedColor(Theme.key_chat_stickerReplyMessageText);
                 oldAlpha = Theme.chat_replyTextPaint.getAlpha();
                 Theme.chat_replyTextPaint.setAlpha((int) (oldAlpha * timeAlpha * replyForwardAlpha));
-                if (needDrawReplyBackground) {
+                if (needDrawReplyBackground
+                        && !org.telegram.messenger.banana.BananaHooks.hideStickerReplyBackground(currentAccount)) {
                     if (replyBounce == null) {
                         replyBounce = new ButtonBounce(this, 2.0f, 2.0f);
                     }

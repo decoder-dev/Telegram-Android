@@ -201,6 +201,14 @@ public class ApplicationLoader extends Application {
         }
         applicationInited = true;
         NativeLoader.initNativeLibs(ApplicationLoader.applicationContext);
+        try {
+            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                if (UserConfig.getInstance(a).isClientActivated()) {
+                    org.telegram.messenger.banana.BananaHooks.maybeSessionKeychainBackup(a);
+                }
+            }
+        } catch (Throwable ignore) {
+        }
 
         try {
             LocaleController.getInstance(); //TODO improve
@@ -380,14 +388,15 @@ public class ApplicationLoader extends Application {
 
     public static void startPushService() {
         SharedPreferences preferences = MessagesController.getGlobalNotificationsSettings();
+        final boolean bananaKeepAlive = org.telegram.messenger.banana.BananaHooks.keepAliveInBackground(UserConfig.selectedAccount);
         boolean enabled;
         if (preferences.contains("pushService")) {
-            enabled = preferences.getBoolean("pushService", true);
+            enabled = preferences.getBoolean("pushService", true) || bananaKeepAlive;
         } else {
-            enabled = MessagesController.getMainSettings(UserConfig.selectedAccount).getBoolean("keepAliveService", false);
+            enabled = MessagesController.getMainSettings(UserConfig.selectedAccount).getBoolean("keepAliveService", false) || bananaKeepAlive;
         }
         if (enabled) {
-            if (AyuConfig.keepAliveService) {
+            if (AyuConfig.keepAliveService || bananaKeepAlive) {
                 Log.d("TFOSS", "Trying to start push service every minute");
                 AlarmManager am = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
                 Intent i = new Intent(applicationContext, NotificationsService.class);
@@ -406,7 +415,7 @@ public class ApplicationLoader extends Application {
         } else {
             applicationContext.stopService(new Intent(applicationContext, NotificationsService.class));
 
-            if (AyuConfig.keepAliveService) {
+            if (AyuConfig.keepAliveService || bananaKeepAlive) {
                 PendingIntent pintent = PendingIntent.getService(applicationContext, 0, new Intent(applicationContext, NotificationsService.class), PendingIntent.FLAG_IMMUTABLE);
                 AlarmManager alarm = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
                 alarm.cancel(pintent);

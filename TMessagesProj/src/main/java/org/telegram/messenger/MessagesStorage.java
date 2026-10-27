@@ -4759,8 +4759,8 @@ public class MessagesStorage extends BaseController {
                             if (!addFilesToDelete(message, filesToDelete, idsToDelete, namesToDelete, true)) {
                                 continue;
                             } else {
-                                // --- AyuGram hook
-                                if (AyuConfig.saveMessagesHistory) {
+                                // --- AyuGram hook (Ayu OR Banana SAVE_EDITS)
+                                if (org.telegram.messenger.banana.BananaHooks.ayuSaveEditsEnabled(currentAccount)) {
                                     var prefs = new AyuSavePreferences(message, currentAccount);
                                     prefs.setDialogId(dialogId);
                                     AyuMessagesController.getInstance().onMessageEditedForce(prefs);

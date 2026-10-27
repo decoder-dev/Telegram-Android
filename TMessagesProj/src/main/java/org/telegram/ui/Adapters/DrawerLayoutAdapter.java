@@ -300,6 +300,9 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         // People Nearby removed upstream; keep ExteraConfig flag but do not add the drawer row.
         // if (ExteraConfig.peopleNearby && hasGps) items.add(new Item(12, ...));
         if (ExteraConfig.savedMessages) items.add(new Item(11, LocaleController.getString("SavedMessages", R.string.SavedMessages), savedIcon));
+        if (org.telegram.messenger.banana.BananaHooks.recentChatsMenu(UserConfig.selectedAccount)) {
+            items.add(new Item(AyuConstants.DRAWER_RECENT_CHATS, LocaleController.getString(R.string.BananaRecentChats), R.drawable.msg_discuss));
+        }
         items.add(new Item(8, LocaleController.getString("Settings", R.string.Settings), settingsIcon));
         if (ExteraConfig.scanQr) {
             items.add(null);

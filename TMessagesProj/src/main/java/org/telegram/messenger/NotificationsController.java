@@ -1265,6 +1265,10 @@ public class NotificationsController extends BaseController implements Notificat
                         && org.telegram.messenger.banana.BananaHooks.hidePinnedNotifications(currentAccount)) {
                     continue;
                 }
+                if (org.telegram.messenger.banana.BananaHooks.removePings(currentAccount)
+                        && (messageObject.isReactionPush || messageObject.isStoryReactionPush)) {
+                    continue;
+                }
                 if (org.telegram.messenger.banana.MessageFilters.shouldHideNotification(currentAccount, messageObject)
                         || com.radolyn.ayugram.AyuFilter.isFiltered(messageObject, null)) {
                     continue;

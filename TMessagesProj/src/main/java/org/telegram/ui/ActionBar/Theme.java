@@ -9109,9 +9109,12 @@ public class Theme {
     }
 
     private static int bananaMaybeGlassBubble(int key, int color) {
+        int account = org.telegram.messenger.UserConfig.selectedAccount;
         if (org.telegram.messenger.banana.BananaHooks.isGlassBubbleColorKey(key)) {
-            return org.telegram.messenger.banana.BananaHooks.applyGlassBubbleColor(
-                    org.telegram.messenger.UserConfig.selectedAccount, color);
+            color = org.telegram.messenger.banana.BananaHooks.applyGlassBubbleColor(account, color);
+        }
+        if (org.telegram.messenger.banana.BananaHooks.isAccentColorKey(key)) {
+            color = org.telegram.messenger.banana.BananaHooks.applyAccentSaturation(account, color);
         }
         return color;
     }
