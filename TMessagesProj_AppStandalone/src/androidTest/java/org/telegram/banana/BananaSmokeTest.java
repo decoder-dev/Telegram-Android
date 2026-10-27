@@ -21,6 +21,7 @@ import org.telegram.messenger.banana.TrackingLinks;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.BananaSettingsActivity;
 import org.telegram.ui.BananaHistoryActivity;
+import org.telegram.ui.BananaExtrasSectionActivity;
 import org.telegram.ui.BananaFiltersActivity;
 import org.telegram.ui.BananaFilterEditActivity;
 import org.telegram.ui.Components.UniversalFragment;
@@ -165,8 +166,8 @@ public class BananaSmokeTest {
                 for (String theme : new String[]{"Blue", "Night"}) {
                     BananaSettingsActivity[] screen = new BananaSettingsActivity[1];
                     instrumentation.runOnMainSync(() -> {
-                        BananaConfig.set(0, Option.CLEAN_TRACKING_LINKS, false);
-                        BananaConfig.set(1, Option.CLEAN_TRACKING_LINKS, false);
+                        BananaConfig.setGhostMode(0, false);
+                        BananaConfig.setGhostMode(1, false);
                         LocaleController.getInstance().applyLanguage(LocaleController.getInstance().languagesDict.get(language), true, true, 0);
                         Theme.applyTheme(Theme.getTheme(theme));
                         screen[0] = new BananaSettingsActivity(0);
@@ -201,10 +202,10 @@ public class BananaSmokeTest {
                     instrumentation.sendPointerSync(up);
                     down.recycle();
                     up.recycle();
-                    await(instrumentation, () -> BananaConfig.get(0, Option.CLEAN_TRACKING_LINKS), "The visible switch must change its preference");
+                    await(instrumentation, () -> BananaConfig.isGhostModeActive(0), "The visible switch must change its preference");
                     SystemClock.sleep(300);
-                    assertTrue("The visible setting must toggle account 0", BananaConfig.get(0, Option.CLEAN_TRACKING_LINKS));
-                    assertFalse("Another account must keep its own setting", BananaConfig.get(1, Option.CLEAN_TRACKING_LINKS));
+                    assertTrue("The visible setting must toggle account 0", BananaConfig.isGhostModeActive(0));
+                    assertFalse("Another account must keep its own setting", BananaConfig.isGhostModeActive(1));
                     capture(instrumentation, language + "-" + theme);
                     instrumentation.runOnMainSync(() -> {
                         assertVisibleLabelsFit(screen[0]);
@@ -224,29 +225,15 @@ public class BananaSmokeTest {
                     instrumentation.runOnMainSync(() -> assertVisibleLabelsFit(screen[0]));
                     SystemClock.sleep(400);
                     capture(instrumentation, language + "-" + theme + "-bottom");
-                    instrumentation.runOnMainSync(() -> {
-                        for (int i = 0; i < screen[0].listView.adapter.getItemCount(); i++) {
-                            if (screen[0].listView.adapter.getItem(i).id == 1002) {
-                                screen[0].listView.scrollToPosition(i);
-                                break;
-                            }
-                        }
-                    });
-                    int[] historyButton = new int[2];
+                    tapRow(instrumentation, screen[0], 2000);
+                    BananaExtrasSectionActivity[] ninja = new BananaExtrasSectionActivity[1];
                     await(instrumentation, () -> {
-                        for (int i = 0; i < screen[0].listView.adapter.getItemCount(); i++) {
-                            if (screen[0].listView.adapter.getItem(i).id != 1002) continue;
-                            View row = screen[0].listView.findViewByPosition(i);
-                            if (row == null || !row.getGlobalVisibleRect(new Rect())) return false;
-                            row.getLocationOnScreen(historyButton);
-                            historyButton[0] += row.getWidth() / 2;
-                            historyButton[1] += row.getHeight() / 2;
-                            return true;
-                        }
-                        return false;
-                    }, "History must have a reachable entry from Extras");
-                    SystemClock.sleep(300);
-                    tap(instrumentation, historyButton[0], historyButton[1]);
+                        if (!(activity.getActionBarLayout().getLastFragment() instanceof BananaExtrasSectionActivity) ||
+                                activity.getActionBarLayout().isTransitionAnimationInProgress()) return false;
+                        ninja[0] = (BananaExtrasSectionActivity) activity.getActionBarLayout().getLastFragment();
+                        return ninja[0].listView != null && ninja[0].listView.isLaidOut();
+                    }, "Ninja options must open from Extras");
+                    tapRow(instrumentation, ninja[0], 9001);
                     BananaHistoryActivity[] history = new BananaHistoryActivity[1];
                     await(instrumentation, () -> {
                         if (!(activity.getActionBarLayout().getLastFragment() instanceof BananaHistoryActivity) ||
@@ -258,8 +245,11 @@ public class BananaSmokeTest {
                     SystemClock.sleep(400);
                     capture(instrumentation, language + "-" + theme + "-history");
                     instrumentation.runOnMainSync(() -> history[0].finishFragment(false));
+                    await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == ninja[0] &&
+                            !activity.getActionBarLayout().isTransitionAnimationInProgress(), "History must finish returning to Ninja options");
+                    instrumentation.runOnMainSync(() -> ninja[0].finishFragment(false));
                     await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == screen[0] &&
-                            !activity.getActionBarLayout().isTransitionAnimationInProgress(), "History must finish returning to Extras");
+                            !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Ninja options must finish returning to Extras");
                     checkStoryPromptChoices(instrumentation, activity, language + "-" + theme);
                     checkFilters(instrumentation, activity, screen[0], language + "-" + theme);
                     instrumentation.runOnMainSync(() -> screen[0].finishFragment(false));
@@ -397,7 +387,14 @@ public class BananaSmokeTest {
     private static void checkFilters(Instrumentation instrumentation, LaunchActivity activity, BananaSettingsActivity extras, String name) throws Exception {
         FilterStore store = FilterStore.get(0);
         instrumentation.runOnMainSync(() -> { store.save(FilterRules.empty()); store.setEnabled(false); store.setSharedInChats(false); });
-        tapRow(instrumentation, extras, 1003);
+        tapRow(instrumentation, extras, 2000);
+        BananaExtrasSectionActivity[] ninja = new BananaExtrasSectionActivity[1];
+        await(instrumentation, () -> {
+            if (!(activity.getActionBarLayout().getLastFragment() instanceof BananaExtrasSectionActivity) || activity.getActionBarLayout().isTransitionAnimationInProgress()) return false;
+            ninja[0] = (BananaExtrasSectionActivity) activity.getActionBarLayout().getLastFragment();
+            return ninja[0].listView != null && ninja[0].listView.isLaidOut();
+        }, "Ninja options must open filters");
+        tapRow(instrumentation, ninja[0], 9002);
         BananaFiltersActivity[] screen = new BananaFiltersActivity[1];
         await(instrumentation, () -> {
             if (!(activity.getActionBarLayout().getLastFragment() instanceof BananaFiltersActivity) || activity.getActionBarLayout().isTransitionAnimationInProgress()) return false;
@@ -474,7 +471,9 @@ public class BananaSmokeTest {
         checkImportDialogs(instrumentation, screen[0], store, name);
         checkSelectionDraft(instrumentation, activity, screen[0], store, name);
         instrumentation.runOnMainSync(() -> { store.setEnabled(false); store.save(FilterRules.empty()); screen[0].finishFragment(false); });
-        await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == extras && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Filters must return to Extras");
+        await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == ninja[0] && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Filters must return to Ninja options");
+        instrumentation.runOnMainSync(() -> ninja[0].finishFragment(false));
+        await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == extras && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Ninja options must return to Extras");
     }
 
     private static void checkSelectionDraft(Instrumentation instrumentation, LaunchActivity activity, BananaFiltersActivity screen, FilterStore store, String name) throws Exception {

@@ -4,7 +4,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ## [13.1.1-rc.1] — 2026-10-27
 
-This is a source-only release candidate. It has not been built or functionally verified after the latest integration, and no APK is provided. Android CI is disabled for this repository; the AyuGram proprietary submodule cannot currently be fetched.
+This is a source-only release candidate pending a successful Android build and emulator smoke run. No APK is included in this release. The previous AyuGram proprietary-submodule dependency has been replaced with documented GPL-2.0 history helpers in the source tree.
 
 ### Fixed
 

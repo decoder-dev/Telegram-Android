@@ -590,6 +590,11 @@
 
     <!-- BananaGram Extras values -->
     <string name="BananaValues">Значения и метки</string>
+    <string name="BananaUpdates">Обновления</string>
+    <string name="BananaReleaseChannel">Канал обновлений</string>
+    <string name="BananaStableChannel">Стабильные</string>
+    <string name="BananaRcChannel">Релиз-кандидаты</string>
+    <string name="BananaAutoDownloadUpdates">Автозагрузка по Wi-Fi без тарификации</string>
     <string name="BananaValuesInfo">Числовые и текстовые настройки. Значения по умолчанию совпадают с BananaGram iOS, где они известны. Поведение части опций ещё подключается.</string>
     <string name="BananaValuesAppearance">Внешний вид</string>
     <string name="BananaValuesGlass">Стеклянные пузыри</string>

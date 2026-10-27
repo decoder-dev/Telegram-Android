@@ -120,6 +120,8 @@ import com.radolyn.ayugram.AyuCustomHandlers;
 import com.radolyn.ayugram.AyuUtils;
 
 import org.telegram.messenger.banana.BananaConfig;
+import com.exteragram.messenger.ExteraConfig;
+import com.exteragram.messenger.utils.UpdaterUtils;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
@@ -7697,6 +7699,12 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             showUpdateActivity(UserConfig.selectedAccount, SharedConfig.pendingAppUpdate, true);
         }
         checkAppUpdate(false, null);
+        if (passcodeDialog == null && ExteraConfig.checkUpdatesOnLaunch) {
+            BaseFragment currentFragment = getLastFragment();
+            if (currentFragment != null) {
+                UpdaterUtils.checkUpdates(currentFragment, false);
+            }
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ApplicationLoader.canDrawOverlays = Settings.canDrawOverlays(this);

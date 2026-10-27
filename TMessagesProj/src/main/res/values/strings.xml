@@ -11981,6 +11981,11 @@
 
     <!-- BananaGram Extras values -->
     <string name="BananaValues">Values and marks</string>
+    <string name="BananaUpdates">Updates</string>
+    <string name="BananaReleaseChannel">Release channel</string>
+    <string name="BananaStableChannel">Stable</string>
+    <string name="BananaRcChannel">Release candidates</string>
+    <string name="BananaAutoDownloadUpdates">Download automatically on unmetered Wi-Fi</string>
     <string name="BananaValuesInfo">Numeric and text Extras. Defaults match BananaGram iOS where known. Behavior for some options is still incremental.</string>
     <string name="BananaValuesAppearance">Appearance</string>
     <string name="BananaValuesGlass">Glass bubbles</string>

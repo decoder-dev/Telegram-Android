@@ -27,8 +27,7 @@ import androidx.core.content.FileProvider;
 
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.preferences.updater.UpdaterBottomSheet;
-import com.radolyn.ayugram.AyuConstants;
-
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -47,25 +46,32 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Objects;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class UpdaterUtils {
 
     public static final DispatchQueue otaQueue = new DispatchQueue("otaQueue");
 
-    private static String uri = "https://api.github.com/repos/" + AyuConstants.APP_GITHUB + "/releases/latest";
+    private static final String RELEASES_URI = "https://api.github.com/repos/decoder-dev/Telegram-Android/releases?per_page=20";
     private static String downloadURL = null;
+    private static String releaseDigest = null;
     public static String version, changelog, size, uploadDate;
     public static File otaPath, versionPath, apkFile;
 
-    private static long id = 1L;
-    private static final long updateCheckInterval = 3600000L; // 1 hour
+    private static long downloadId = -1L;
+    private static final long updateCheckInterval = 24 * 3600000L;
+    private static final Pattern RELEASE_VERSION = Pattern.compile("^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-rc\\.(\\d+))?$", Pattern.CASE_INSENSITIVE);
 
     private static boolean updateDownloaded;
     private static boolean checkingForUpdates;
+    private static boolean automaticDownload;
 
     public static void checkDirs() {
         otaPath = new File(ApplicationLoader.applicationContext.getExternalFilesDir(null), "ota");
@@ -94,99 +100,210 @@ public class UpdaterUtils {
         void run();
     }
 
-    public static void checkUpdates(BaseFragment fragment, boolean manual, OnUpdateNotFound onUpdateNotFound, OnUpdateFound onUpdateFound) {
+    public interface OnUpdateError {
+        void run();
+    }
 
-        if (BuildVars.PM_BUILD || checkingForUpdates || id != 1L || (System.currentTimeMillis() - ExteraConfig.updateScheduleTimestamp < updateCheckInterval && !manual))
+    public static void checkUpdates(BaseFragment fragment, boolean manual, OnUpdateNotFound onUpdateNotFound, OnUpdateFound onUpdateFound) {
+        checkUpdates(fragment, manual, onUpdateNotFound, onUpdateFound, null);
+    }
+
+    public static void checkUpdates(BaseFragment fragment, boolean manual, OnUpdateNotFound onUpdateNotFound,
+            OnUpdateFound onUpdateFound, OnUpdateError onUpdateError) {
+        long now = System.currentTimeMillis();
+        if (BuildVars.PM_BUILD || checkingForUpdates
+                || (!manual && now - ExteraConfig.lastUpdateCheckTime < updateCheckInterval)
+                || (!manual && now - ExteraConfig.updateScheduleTimestamp < 60 * 60 * 1000L))
             return;
 
         checkingForUpdates = true;
         otaQueue.postRunnable(() -> {
-            ExteraConfig.editor.putLong("lastUpdateCheckTime", ExteraConfig.lastUpdateCheckTime = System.currentTimeMillis()).apply();
+            HttpURLConnection connection = null;
             try {
-                if (BuildVars.isBetaApp())
-                    uri = uri.replace("/" + AyuConstants.APP_NAME + "/", "/" + AyuConstants.APP_NAME + "-Beta/");
-                var connection = (HttpURLConnection) new URI(uri).toURL().openConnection();
+                connection = (HttpURLConnection) new URI(RELEASES_URI).toURL().openConnection();
                 connection.setRequestMethod("GET");
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(20000);
                 connection.setRequestProperty("User-Agent", TranslatorUtils.formatUserAgent());
-                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setRequestProperty("Accept", "application/vnd.github+json");
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    throw new IllegalStateException("GitHub release check returned HTTP " + connection.getResponseCode());
+                }
 
                 var textBuilder = new StringBuilder();
                 try (Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
                     int c;
-                    while ((c = reader.read()) != -1)
-                        textBuilder.append((char) c);
-                }
-
-                var obj = new JSONObject(textBuilder.toString());
-                var arr = obj.getJSONArray("assets");
-
-                if (arr.length() == 0)
-                    return;
-
-                String link, installedApkType = getInstalledApkType();
-                String[] supportedTypes = {"arm64-v8a", "armeabi-v7a", "x86", "x86_64", "universal"};
-                loop:
-                for (int i = 0; i < arr.length(); i++) {
-                    downloadURL = link = arr.getJSONObject(i).getString("browser_download_url");
-                    size = AndroidUtilities.formatFileSize(arr.getJSONObject(i).getLong("size"));
-                    if (link.contains("beta") && BuildVars.isBetaApp()) {
-                        break;
-                    }
-                    for (String type : supportedTypes) {
-                        if (link.contains(type) && Objects.equals(installedApkType, type)) {
-                            break loop;
+                    while ((c = reader.read()) != -1) {
+                        if (textBuilder.length() >= 2_000_000) {
+                            throw new IllegalStateException("GitHub release response is too large");
                         }
+                        textBuilder.append((char) c);
                     }
                 }
-                version = obj.getString("tag_name");
-                changelog = obj.getString("body");
-                uploadDate = obj.getString("published_at").replaceAll("[TZ]", " ");
-                uploadDate = LocaleController.formatDateTime(getMillisFromDate(uploadDate, "yyyy-M-dd hh:mm:ss") / 1000, true);
-                Update update = new Update(version, changelog, size, downloadURL, uploadDate);
-                if (update.isNew() && fragment != null) {
+
+                Update update = findUpdate(new JSONArray(textBuilder.toString()));
+                ExteraConfig.editor.putLong("lastUpdateCheckTime", ExteraConfig.lastUpdateCheckTime = System.currentTimeMillis()).apply();
+                if (update != null) {
+                    version = update.version;
+                    changelog = update.changelog;
+                    size = update.size;
+                    downloadURL = update.downloadURL;
+                    releaseDigest = update.digest;
+                    uploadDate = update.uploadDate;
                     checkDirs();
-                    AndroidUtilities.runOnUIThread(() -> {
-                        (new UpdaterBottomSheet(fragment.getContext(), fragment, true, update)).show();
-                        if (onUpdateFound != null)
-                            onUpdateFound.run();
-                    });
+                    if (!manual && ExteraConfig.autoDownloadUpdates) {
+                        downloadApk(ApplicationLoader.applicationContext, update.downloadURL,
+                                "BananaGram " + update.version, update.digest, true);
+                    } else if (fragment != null) {
+                        AndroidUtilities.runOnUIThread(() -> {
+                            (new UpdaterBottomSheet(fragment.getContext(), fragment, true, update)).show();
+                            if (onUpdateFound != null) onUpdateFound.run();
+                        });
+                    }
                 } else {
-                    if (onUpdateNotFound != null)
+                    if (manual && onUpdateNotFound != null)
                         AndroidUtilities.runOnUIThread(onUpdateNotFound::run);
                 }
             } catch (Exception e) {
                 FileLog.e(e);
+                if (manual) {
+                    Runnable callback = onUpdateError != null ? onUpdateError::run
+                            : onUpdateNotFound != null ? onUpdateNotFound::run : null;
+                    if (callback != null) AndroidUtilities.runOnUIThread(callback);
+                }
+            } finally {
+                if (connection != null) connection.disconnect();
+                checkingForUpdates = false;
             }
-            checkingForUpdates = false;
         }, 200);
     }
 
-    public static void downloadApk(Context context, String link, String title) {
-        if (context != null && !updateDownloaded) {
-            var request = new DownloadManager.Request(Uri.parse(link));
-
-            request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
-            request.setTitle(title);
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            request.setDestinationInExternalFilesDir(context, "ota/" + version, "update.apk");
-
-            var manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-            id = manager.enqueue(request);
-
-            var downloadBroadcastReceiver = new DownloadReceiver();
-            var intentFilter = new IntentFilter();
-            intentFilter.addAction("android.intent.action.DOWNLOAD_COMPLETE");
-            intentFilter.addAction("android.intent.action.DOWNLOAD_NOTIFICATION_CLICKED");
-            context.registerReceiver(downloadBroadcastReceiver, intentFilter);
-        } else {
-            installApk(context, apkFile.getAbsolutePath());
+    private static Update findUpdate(JSONArray releases) throws Exception {
+        Update newest = null;
+        for (int i = 0; i < releases.length(); i++) {
+            JSONObject release = releases.getJSONObject(i);
+            if (release.optBoolean("draft", true)
+                    || (release.optBoolean("prerelease", false) && !ExteraConfig.updatePrereleaseChannel)) {
+                continue;
+            }
+            String tag = release.optString("tag_name", "");
+            Update candidate = findApkAsset(release, tag);
+            if (candidate != null && candidate.isNew()
+                    && (newest == null || compareVersions(candidate.version, newest.version) > 0)) {
+                newest = candidate;
+            }
         }
+        return newest;
+    }
+
+    private static Update findApkAsset(JSONObject release, String tag) throws Exception {
+        JSONArray assets = release.optJSONArray("assets");
+        if (assets == null || assets.length() == 0) return null;
+        String abi = getInstalledApkType();
+        if (abi == null) return null;
+        JSONObject selected = null;
+        JSONObject universal = null;
+        JSONObject onlyApk = null;
+        int apkCount = 0;
+        for (int i = 0; i < assets.length(); i++) {
+            JSONObject asset = assets.getJSONObject(i);
+            String name = asset.optString("name", "");
+            if (!name.toLowerCase(Locale.US).endsWith(".apk")) continue;
+            apkCount++;
+            onlyApk = asset;
+            String lowered = name.toLowerCase(Locale.US);
+            if (lowered.contains(abi.toLowerCase(Locale.US))) selected = asset;
+            if (lowered.contains("universal") || lowered.equals("app.apk")) universal = asset;
+        }
+        if (selected == null) selected = universal != null ? universal : (apkCount == 1 ? onlyApk : null);
+        if (selected == null) return null;
+        long bytes = selected.optLong("size", -1L);
+        String digest = selected.optString("digest", "");
+        String link = selected.optString("browser_download_url", "");
+        URL url = new URL(link);
+        if (!"https".equalsIgnoreCase(url.getProtocol())
+                || !("github.com".equalsIgnoreCase(url.getHost())
+                || "release-assets.githubusercontent.com".equalsIgnoreCase(url.getHost()))
+                || bytes <= 0 || bytes > 300L * 1024 * 1024
+                || !digest.matches("sha256:[a-fA-F0-9]{64}")) {
+            return null;
+        }
+        String published = release.optString("published_at", "").replaceAll("[TZ]", " ");
+        String formattedDate = LocaleController.formatDateTime(getMillisFromDate(published, "yyyy-M-dd hh:mm:ss") / 1000, true);
+        return new Update(tag, release.optString("body", ""), AndroidUtilities.formatFileSize(bytes),
+                link, formattedDate, digest.substring("sha256:".length()).toLowerCase(Locale.US));
+    }
+
+    static int compareVersions(String left, String right) {
+        Matcher a = RELEASE_VERSION.matcher(left);
+        Matcher b = RELEASE_VERSION.matcher(right);
+        if (!a.matches() || !b.matches()) return 0;
+        for (int i = 1; i <= 3; i++) {
+            int result = Integer.compare(Integer.parseInt(a.group(i)), Integer.parseInt(b.group(i)));
+            if (result != 0) return result;
+        }
+        boolean aRc = a.group(4) != null;
+        boolean bRc = b.group(4) != null;
+        if (aRc != bRc) return aRc ? -1 : 1;
+        if (!aRc) return 0;
+        return Integer.compare(Integer.parseInt(a.group(4)), Integer.parseInt(b.group(4)));
+    }
+
+    public static void downloadApk(Context context, String link, String title) {
+        downloadApk(context, link, title, releaseDigest, false);
     }
 
     public static void installApk(Context context, String path) {
-        var file = new File(path);
-        if (!file.exists())
+        installApk(context, path, releaseDigest);
+    }
+
+    private static synchronized void downloadApk(Context context, String link, String title, String digest, boolean automatic) {
+        if (context == null || version == null || digest == null || downloadId != -1L) return;
+        checkDirs();
+        if (updateDownloaded) {
+            if (!automatic) installApk(context, apkFile.getAbsolutePath(), digest);
             return;
+        }
+        if (!isSafeReleaseUrl(link)) return;
+        try {
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(link));
+            if (automatic) {
+                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+                request.setAllowedOverMetered(false);
+                request.setAllowedOverRoaming(false);
+            } else {
+                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+            }
+            request.setTitle(title);
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            request.setDestinationInExternalFilesDir(context, "ota/" + version, "update.apk");
+            DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+            if (manager == null) return;
+            automaticDownload = automatic;
+            releaseDigest = digest;
+            downloadId = manager.enqueue(request);
+            DownloadReceiver receiver = new DownloadReceiver();
+            IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+            filter.addAction(DownloadManager.ACTION_NOTIFICATION_CLICKED);
+            Context applicationContext = context.getApplicationContext();
+            if (Build.VERSION.SDK_INT >= 33) {
+                applicationContext.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                applicationContext.registerReceiver(receiver, filter);
+            }
+        } catch (Exception e) {
+            downloadId = -1L;
+            FileLog.e(e);
+        }
+    }
+
+    private static void installApk(Context context, String path, String digest) {
+        var file = new File(path);
+        if (context == null || !file.isFile() || digest == null || !verifyApk(file, digest, context)) {
+            if (file.exists()) file.delete();
+            updateDownloaded = false;
+            return;
+        }
         var install = new Intent(Intent.ACTION_VIEW);
         Uri fileUri;
         if (Build.VERSION.SDK_INT >= 24) {
@@ -204,6 +321,47 @@ public class UpdaterUtils {
             if (install.resolveActivity(context.getPackageManager()) != null) {
                 context.startActivity(install);
             }
+        }
+    }
+
+    private static boolean isSafeReleaseUrl(String value) {
+        try {
+            URL url = new URL(value);
+            return "https".equalsIgnoreCase(url.getProtocol())
+                    && ("github.com".equalsIgnoreCase(url.getHost())
+                    || "release-assets.githubusercontent.com".equalsIgnoreCase(url.getHost()));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean verifyApk(File file, String expectedDigest, Context context) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            try (var input = new java.io.FileInputStream(file)) {
+                byte[] buffer = new byte[64 * 1024];
+                int read;
+                while ((read = input.read(buffer)) != -1) digest.update(buffer, 0, read);
+            }
+            char[] hex = "0123456789abcdef".toCharArray();
+            StringBuilder actual = new StringBuilder(64);
+            for (byte value : digest.digest()) {
+                int unsigned = value & 0xff;
+                actual.append(hex[unsigned >>> 4]).append(hex[unsigned & 0x0f]);
+            }
+            if (!actual.toString().equalsIgnoreCase(expectedDigest)) return false;
+            var info = context.getPackageManager().getPackageArchiveInfo(file.getAbsolutePath(), 0);
+            if (info == null || version == null || info.versionName == null || !context.getPackageName().equals(info.packageName)
+                    || compareVersions(info.versionName, version) != 0) return false;
+            var installed = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            long installedVersionCode = Build.VERSION.SDK_INT >= 28
+                    ? installed.getLongVersionCode() : installed.versionCode;
+            long downloadedVersionCode = Build.VERSION.SDK_INT >= 28
+                    ? info.getLongVersionCode() : info.versionCode;
+            return downloadedVersionCode > installedVersionCode;
+        } catch (Exception e) {
+            FileLog.e(e);
+            return false;
         }
     }
 
@@ -312,23 +470,32 @@ public class UpdaterUtils {
         public void onReceive(Context context, Intent intent){
             String action = intent.getAction();
             if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
-                long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 1L);
+                long finishedId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L);
+                if (finishedId != downloadId) return;
                 DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
                 DownloadManager.Query query = new DownloadManager.Query();
-                query.setFilterById(downloadId);
+                query.setFilterById(finishedId);
                 Cursor cursor = downloadManager.query(query);
-                if (cursor.moveToFirst()) {
-                    int columnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                    int status = cursor.getInt(columnIndex);
-                    if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                        installApk(context, apkFile.getAbsolutePath());
-                        id = 1L;
-                        updateDownloaded = false;
-                    } else {
-                        // ignore for now
+                try {
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int columnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                        int status = cursor.getInt(columnIndex);
+                        downloadId = -1L;
+                        if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                            updateDownloaded = apkFile != null && apkFile.isFile()
+                                    && verifyApk(apkFile, releaseDigest, context);
+                            if (!updateDownloaded) {
+                                if (apkFile != null) apkFile.delete();
+                            } else if (!automaticDownload) {
+                                installApk(context, apkFile.getAbsolutePath(), releaseDigest);
+                            }
+                        } else {
+                            updateDownloaded = false;
+                        }
                     }
+                } finally {
+                    if (cursor != null) cursor.close();
                 }
-                cursor.close();
             } else if (DownloadManager.ACTION_NOTIFICATION_CLICKED.equals(action)) {
                 try {
                     Intent viewDownloadIntent = new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS);
@@ -342,32 +509,23 @@ public class UpdaterUtils {
     }
 
     public static class Update {
-        public final String version, size, downloadURL, uploadDate, changelog;
+        public final String version, size, downloadURL, uploadDate, changelog, digest;
 
         public Update(String version, String changelog, String size, String downloadURL, String uploadDate) {
+            this(version, changelog, size, downloadURL, uploadDate, null);
+        }
+
+        public Update(String version, String changelog, String size, String downloadURL, String uploadDate, String digest) {
             this.version = version;
             this.changelog = changelog;
             this.size = size;
             this.downloadURL = downloadURL;
             this.uploadDate = uploadDate;
+            this.digest = digest;
         }
 
-        // todo: compare by version code, not version
         public boolean isNew() {
-            String[] current = BuildVars.BUILD_VERSION_STRING.split("\\.");
-            String[] latest = version.split("\\.");
-
-            int length = Math.max(current.length, latest.length);
-            for (int i = 0; i < length; i++) {
-                int v1 = i < current.length ? Utilities.parseInt(current[i]) : 0;
-                int v2 = i < latest.length ? Utilities.parseInt(latest[i]) : 0;
-                if (v1 < v2) {
-                    return true;
-                } else if (v1 > v2) {
-                    return false;
-                }
-            }
-            return false;
+            return compareVersions(version, BuildVars.BUILD_VERSION_STRING) > 0;
         }
 
         // todo: force update

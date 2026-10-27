@@ -14,6 +14,7 @@ Adapted fixes from other Android forks:
 
 - [Nekogram: use the owning account for file path lookup](https://github.com/Nekogram/Nekogram/commit/1a9dda22f6abd4ac8da5e9b83fe6af6a440d5bc9).
 - [Nekogram: avoid mono-forum database reads on UI paths](https://github.com/Nekogram/Nekogram/commit/a2fd001a9bae88072673cf8a6195c89251368839).
+- GPL-2.0 message-history compatibility helpers (`AyuMessageUtils`, `AyuHistoryHook`) adapted from [Fun4Android/NotSoAndroidAyuGram](https://github.com/Fun4Android/NotSoAndroidAyuGram/tree/rewrite). These replace AyuGram's unavailable proprietary submodule; local capture/storage behavior remains in this repository's `AyuMessagesController` and database layer.
 
 Researched candidates (not included features until adapted and verified). Source
 credit is retained when a change is adopted:

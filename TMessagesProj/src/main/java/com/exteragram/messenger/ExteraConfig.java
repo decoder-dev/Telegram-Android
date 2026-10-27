@@ -119,6 +119,8 @@ public class ExteraConfig {
     public static long lastUpdateCheckTime;
     public static long updateScheduleTimestamp;
     public static boolean checkUpdatesOnLaunch;
+    public static boolean autoDownloadUpdates;
+    public static boolean updatePrereleaseChannel;
 
     // Other
     private static final long[] OFFICIAL_CHANNELS = {1233768168, 1524581881, 1571726392, 1632728092, 1638754701, 1779596027, 1172503281, 1877362358};
@@ -251,6 +253,8 @@ public class ExteraConfig {
             lastUpdateCheckTime = preferences.getLong("lastUpdateCheckTime", 0);
             updateScheduleTimestamp = preferences.getLong("updateScheduleTimestamp", 0);
             checkUpdatesOnLaunch = preferences.getBoolean("checkUpdatesOnLaunch", true);
+            autoDownloadUpdates = preferences.getBoolean("autoDownloadUpdates", false);
+            updatePrereleaseChannel = preferences.getBoolean("updatePrereleaseChannel", false);
 
             // Other
             channelToSave = preferences.getLong("channelToSave", 0);

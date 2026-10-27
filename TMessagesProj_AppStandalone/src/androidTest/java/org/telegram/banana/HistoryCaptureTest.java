@@ -189,12 +189,15 @@ public class HistoryCaptureTest {
 
     private List<HistoryDatabase.Record> history(int count) throws Exception {
         long deadline = SystemClock.uptimeMillis() + 10000;
+        List<HistoryDatabase.Record> last = new ArrayList<>();
         do {
             List<HistoryDatabase.Record> records = load();
+            last = records;
             if (records.size() == count && records.stream().allMatch(r -> r.attachment != null && r.attachment.storedName != null)) return records;
             SystemClock.sleep(100);
         } while (SystemClock.uptimeMillis() < deadline);
-        throw new AssertionError("Expected durable capture records with attached files: " + count);
+        throw new AssertionError("Expected " + count + " durable capture records with attached files; got " + last.size() +
+                (last.isEmpty() ? "" : ", attachment=" + last.get(0).attachment));
     }
 
     private List<HistoryDatabase.Record> load() throws Exception {

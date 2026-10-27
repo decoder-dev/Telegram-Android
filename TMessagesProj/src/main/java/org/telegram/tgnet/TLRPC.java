@@ -59559,6 +59559,7 @@ public class TLRPC {
 
         public void readParams(InputSerializedData stream, boolean exception) {
             flags = stream.readInt32(exception);
+            flags2 = stream.readInt32(exception);
             out = (flags & 2) != 0;
             mentioned = (flags & 16) != 0;
             media_unread = (flags & 32) != 0;
