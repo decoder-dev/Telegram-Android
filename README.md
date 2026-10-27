@@ -6,7 +6,7 @@ BananaGram brings together our [iOS client](https://github.com/decoder-dev/Teleg
 
 [Android source](https://github.com/decoder-dev/Telegram-Android) · [iOS source](https://github.com/decoder-dev/Telegram-iOS) · [Issues](https://github.com/decoder-dev/Telegram-Android/issues) · [Releases](https://github.com/decoder-dev/Telegram-Android/releases)
 
-> **Work in progress.** The Android port is undergoing integration after the AyuGram import. The current branch has not been built or tested after that import and is not a verified release. There is no published BananaGram Android release yet.
+> **Release candidate 13.1.1-rc.1 — source only.** This candidate has not been built or functionally tested after the latest integration. No APK is available; do not install or distribute it as a working release. Android CI is currently disabled, and the required AyuGram proprietary submodule is unavailable to this repository.
 
 ## Feature scope
 
@@ -62,7 +62,7 @@ Use the [changelog](CHANGELOG.md), [import record](docs/ayugram-upstream-import.
 
 Переносим возможности нашего iOS-клиента и AyuGram: гибкий Ghost Mode, историю правок и удалений, фильтры сообщений, инструменты отправки и управление скоростью воспроизведения.
 
-Android-порт проходит интеграцию; готового релиза пока нет. Исходники, обсуждение ошибок и будущие сборки размещаются в этом репозитории.
+**Кандидат 13.1.1-rc.1 — только исходный код.** После последнего объединения Android-порт не собран и функционально не проверен. APK нет; не устанавливайте и не распространяйте его как готовый релиз. CI Android отключён, а необходимый приватный подмодуль AyuGram недоступен этому репозиторию.
 
 ## Credits and license
 

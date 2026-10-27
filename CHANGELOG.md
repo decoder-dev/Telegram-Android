@@ -2,7 +2,9 @@
 
 Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [13.1.1-rc.1] — 2026-10-27
+
+This is a source-only release candidate. It has not been built or functionally verified after the latest integration, and no APK is provided. Android CI is disabled for this repository; the AyuGram proprietary submodule cannot currently be fetched.
 
 ### Fixed
 
