@@ -118,6 +118,7 @@ public class ManageLinksActivity extends BaseFragment implements NotificationCen
     private int revokedHeader;
     private int revokeAllDivider;
     private int revokeAllRow;
+    private int bulkRevokeRow;
     private int createLinkHelpRow;
     private int linksHeaderRow;
 
@@ -449,6 +450,7 @@ public class ManageLinksActivity extends BaseFragment implements NotificationCen
         lastDivider = -1;
         revokeAllRow = -1;
         revokeAllDivider = -1;
+        bulkRevokeRow = -1;
         createLinkHelpRow = -1;
         helpRow = -1;
         createNewLinkRow = -1;
@@ -485,6 +487,9 @@ public class ManageLinksActivity extends BaseFragment implements NotificationCen
             linksStartRow = rowCount;
             rowCount += invites.size();
             linksEndRow = rowCount;
+            if (!otherAdmin && canEdit && org.telegram.messenger.banana.BananaHooks.inviteLinksBulkRevoke(currentAccount)) {
+                bulkRevokeRow = rowCount++;
+            }
         }
 
         if (!otherAdmin && invites.isEmpty() && createNewLinkRow >= 0 && (!linksLoading || loadAdmins || loadRevoked)) {
@@ -648,6 +653,23 @@ public class ManageLinksActivity extends BaseFragment implements NotificationCen
                 });
                 builder.setNegativeButton(getString(R.string.Cancel), null);
                 showDialog(builder.create());
+            } else if (position == bulkRevokeRow) {
+                if (!org.telegram.messenger.banana.BananaHooks.inviteLinksBulkRevoke(currentAccount) || invites.isEmpty()) {
+                    return;
+                }
+                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                builder.setTitle(getString(R.string.BananaRevokeAllInviteLinks));
+                builder.setPositiveButton(getString(R.string.RevokeLink), (dialogInterface2, i2) -> {
+                    ArrayList<TLRPC.TL_chatInviteExported> copy = new ArrayList<>(invites);
+                    for (int i = 0; i < copy.size(); i++) {
+                        TLRPC.TL_chatInviteExported invite = copy.get(i);
+                        if (invite != null && !invite.revoked && !invite.permanent) {
+                            revokeLink(invite);
+                        }
+                    }
+                });
+                builder.setNegativeButton(getString(R.string.Cancel), null);
+                showDialog(builder.create());
             } else if (position >= adminsStartRow && position < adminsEndRow) {
                 int p = position - adminsStartRow;
                 TLRPC.TL_chatAdminWithInvites admin = admins.get(p);
@@ -743,7 +765,7 @@ public class ManageLinksActivity extends BaseFragment implements NotificationCen
                 return true;
             } else if (position >= revokedLinksStartRow && position < revokedLinksEndRow) {
                 return true;
-            } else if (position == revokeAllRow) {
+            } else if (position == revokeAllRow || position == bulkRevokeRow) {
                 return true;
             } else if (position >= adminsStartRow && position < adminsEndRow) {
                 return true;
@@ -806,7 +828,6 @@ public class ManageLinksActivity extends BaseFragment implements NotificationCen
                     break;
                 case 8:
                     TextSettingsCell revokeAll = new TextSettingsCell(mContext);
-                    revokeAll.setText(getString(R.string.DeleteAllRevokedLinks), false);
                     revokeAll.setTextColor(Theme.getColor(Theme.key_text_RedRegular));
                     view = revokeAll;
                     break;
@@ -878,6 +899,16 @@ public class ManageLinksActivity extends BaseFragment implements NotificationCen
 
                     textCell.setTextAndIcon(getString(R.string.CreateNewLink), combinedDrawable, !invites.isEmpty());
                     break;
+                case 8: {
+                    TextSettingsCell settingsCell = (TextSettingsCell) holder.itemView;
+                    if (position == bulkRevokeRow) {
+                        settingsCell.setText(getString(R.string.BananaRevokeAllInviteLinks), false);
+                    } else {
+                        settingsCell.setText(getString(R.string.DeleteAllRevokedLinks), false);
+                    }
+                    settingsCell.setTextColor(Theme.getColor(Theme.key_text_RedRegular));
+                    break;
+                }
                 case 5:
                     TLRPC.TL_chatInviteExported invite;
                     boolean drawDivider = true;
@@ -969,7 +1000,7 @@ public class ManageLinksActivity extends BaseFragment implements NotificationCen
                 return 6;
             } else if (position == lastDivider) {
                 return 7;
-            } else if (position == revokeAllRow) {
+            } else if (position == revokeAllRow || position == bulkRevokeRow) {
                 return 8;
             } else if (position == createLinkHelpRow) {
                 return 9;

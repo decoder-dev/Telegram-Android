@@ -617,7 +617,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     private int countWidthOld;
     private int countLeftOld;
     private boolean countAnimationIncrement;
-    private BoolAnimator animatorPollVotesMentionVisible = new BoolAnimator(this, CubicBezierInterpolator.EASE_OUT_QUINT, 320);
+    private BoolAnimator animatorPollVotesMentionVisible;
     private ValueAnimator countAnimator;
     private ValueAnimator reactionsMentionsAnimator;
     private float countChangeProgress = 1f;
@@ -1113,7 +1113,27 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         invalidate();
     }
 
+    private void redactLockedArchivePreview(TLRPC.Dialog dialog) {
+        if (dialog == null) {
+            return;
+        }
+        int folder = dialog instanceof TLRPC.TL_dialogFolder ? ((TLRPC.TL_dialogFolder) dialog).folder.id : 0;
+        if (!org.telegram.messenger.banana.BananaArchiveLock.redactsPreview(currentAccount, dialog.id, folder)) {
+            return;
+        }
+        message = null;
+        groupMessages = null;
+        unreadCount = 0;
+        mentionCount = 0;
+        reactionMentionCount = 0;
+        pollVotesMentionCount = 0;
+        markUnread = false;
+    }
+
     private CharSequence formatArchivedDialogNames() {
+        if (org.telegram.messenger.banana.BananaArchiveLock.redactsPreview(currentAccount, currentDialogId, currentDialogFolderId)) {
+            return "";
+        }
         final MessagesController messagesController = MessagesController.getInstance(currentAccount);
         ArrayList<TLRPC.Dialog> dialogs = messagesController.getDialogs(currentDialogFolderId);
         currentDialogFolderDialogsCount = dialogs.size();
@@ -1295,6 +1315,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         CharSequence buttonString = null;
         if (!isForumCell() && (isDialogCell || isTopic)) {
             printingString = MessagesController.getInstance(currentAccount).getPrintingString(currentDialogId, getTopicId(), true);
+            if (printingString != null && currentDialogId > 0
+                    && org.telegram.messenger.banana.BananaHooks.hidePrivateChatActivities(currentAccount)) {
+                printingString = null;
+            }
         }
         currentMessagePaint = Theme.dialogs_messagePaint[paintIndex];
         boolean checkMessage = true;
@@ -2249,7 +2273,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             nameString = AndroidUtilities.escape(chat.title);
                         }
                     } else {
-                        nameString = AndroidUtilities.escape(chat.title);
+                        nameString = AndroidUtilities.escape(org.telegram.messenger.banana.BananaHooks.resolveChatTitle(
+                                currentAccount, -chat.id, chat.title));
                     }
                 } else if (user != null) {
                     if (UserObject.isReplyUser(user)) {
@@ -3330,6 +3355,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             mentionCount = 0;
                         }
                         markUnread = dialog.unread_mark;
+                        redactLockedArchivePreview(dialog);
                         currentEditDate = message != null ? message.messageOwner.edit_date : 0;
                         lastMessageDate = dialog.last_message_date;
                         if (dialogsType == 7 || dialogsType == 8) {
@@ -3514,6 +3540,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             unreadCount = newCount;
                             mentionCount = newMentionCount;
                             markUnread = dialog.unread_mark;
+                            redactLockedArchivePreview(dialog);
                             reactionMentionCount = newReactionCout;
                             pollVotesMentionCount = newPollVotesCount;
                             continueUpdate = true;
@@ -3694,7 +3721,12 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 countAnimator.start();
             }
 
-            animatorPollVotesMentionVisible.setValue(pollVotesMentionCount != 0, animated);
+            if (pollVotesMentionCount != 0 || animatorPollVotesMentionVisible != null) {
+                if (animatorPollVotesMentionVisible == null) {
+                    animatorPollVotesMentionVisible = new BoolAnimator(this, CubicBezierInterpolator.EASE_OUT_QUINT, 320);
+                }
+                animatorPollVotesMentionVisible.setValue(pollVotesMentionCount != 0, animated);
+            }
             boolean newHasReactionsMentions = reactionMentionCount != 0;
             if (animated && (newHasReactionsMentions != oldHasReactionsMentions)) {
                 if (reactionsMentionsAnimator != null) {
@@ -4584,7 +4616,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 setDrawableBounds(Theme.dialogs_reorderDrawable, pinLeft, pinTop);
                 Theme.dialogs_reorderDrawable.draw(canvas);
             }
-            final float pollVotesMentionsVisibility = animatorPollVotesMentionVisible.getFloatValue();
+            final float pollVotesMentionsVisibility = animatorPollVotesMentionVisible != null ? animatorPollVotesMentionVisible.getFloatValue() : 0;
             if (drawError) {
                 Theme.dialogs_errorDrawable.setAlpha((int) ((1.0f - reorderIconProgress) * 255));
                 rect.set(errorLeft, errorTop, errorLeft + dp(BADGE_SIZE), errorTop + dp(BADGE_SIZE));
@@ -4733,7 +4765,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         thumbSpoiler.setColor(ColorUtils.setAlphaComponent(sColor, (int) (Color.alpha(sColor) * 0.325f)));
                         thumbSpoiler.setBounds((int) thumbImage[i].getImageX(), (int) thumbImage[i].getImageY(), (int) thumbImage[i].getImageX2(), (int) thumbImage[i].getImageY2());
                         thumbSpoiler.draw(canvas);
-                        invalidate();
+                        needInvalidate = true;
 
                         canvas.restore();
                     }
@@ -4794,6 +4826,13 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     storyParams.forceState = StoriesUtilities.STATE_HAS_UNREAD;
                 }
                 StoriesUtilities.drawAvatarWithStory(currentDialogId, canvas, avatarImage, storyParams);
+                android.graphics.Paint bananaAvatarGlow = org.telegram.messenger.banana.BananaHooks.glowPaint(
+                        currentAccount, true, Theme.getColor(Theme.key_avatar_backgroundBlue));
+                if (bananaAvatarGlow != null && avatarImage != null) {
+                    canvas.drawCircle(avatarImage.getCenterX(), avatarImage.getCenterY(),
+                            Math.max(avatarImage.getImageWidth(), avatarImage.getImageHeight()) / 2f + AndroidUtilities.dp(1),
+                            bananaAvatarGlow);
+                }
                 if (storyParams.drawnLive) {
                     checkTtl();
                 }
@@ -5145,7 +5184,11 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             }
             if (user != null && !MessagesController.isSupportUser(user) && !user.bot) {
                 boolean isOnline = isOnline();
-                boolean showOfflineDot = !isOnline && org.telegram.messenger.banana.BananaHooks.showsOfflineDot(currentAccount);
+                if (currentDialogId > 0 && org.telegram.messenger.banana.BananaHooks.hidePrivateChatActivities(currentAccount)) {
+                    isOnline = false;
+                }
+                boolean showOfflineDot = !isOnline && org.telegram.messenger.banana.BananaHooks.showsOfflineDot(currentAccount)
+                        && !(currentDialogId > 0 && org.telegram.messenger.banana.BananaHooks.hidePrivateChatActivities(currentAccount));
                 wasDrawnOnline = isOnline;
                 if (isOnline || onlineProgress != 0 || showOfflineDot) {
                     int top = (int) (storyParams.originalAvatarRect.bottom - dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 6 : 8));

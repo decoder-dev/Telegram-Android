@@ -65,6 +65,7 @@ import android.os.SystemClock;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextPaint;
@@ -85,6 +86,7 @@ import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -419,6 +421,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     private WindowAnimatedInsetsProvider rootAnimatedInsetsListener;
 
     public static LaunchActivity instance;
+    private FlagSecureReason archiveSecureReason;
+
+    public void invalidateArchiveSecure() {
+        if (archiveSecureReason != null) {
+            archiveSecureReason.invalidate();
+        }
+    }
 
     public boolean voipLaunchedInBackground;
 
@@ -738,6 +747,47 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.mainUserInfoChanged);
                 } else if (id == AyuConstants.DRAWER_KILL_APP) {
                     AyuUtils.killApplication(this);
+                } else if (id == AyuConstants.DRAWER_RECENT_CHATS) {
+                    ArrayList<TLRPC.Dialog> dialogs = MessagesController.getInstance(currentAccount).getDialogs(0);
+                    ArrayList<CharSequence> titles = new ArrayList<>();
+                    ArrayList<Long> ids = new ArrayList<>();
+                    for (int i = 0; i < dialogs.size() && titles.size() < 12; i++) {
+                        TLRPC.Dialog d = dialogs.get(i);
+                        if (d == null || d instanceof TLRPC.TL_dialogFolder) {
+                            continue;
+                        }
+                        long did = d.id;
+                        String title;
+                        if (DialogObject.isUserDialog(did)) {
+                            TLRPC.User u = MessagesController.getInstance(currentAccount).getUser(did);
+                            title = u != null ? UserObject.getUserName(u) : Long.toString(did);
+                        } else {
+                            TLRPC.Chat c = MessagesController.getInstance(currentAccount).getChat(-did);
+                            title = c != null ? c.title : Long.toString(did);
+                        }
+                        titles.add(title);
+                        ids.add(did);
+                    }
+                    if (!titles.isEmpty()) {
+                        CharSequence[] items = titles.toArray(new CharSequence[0]);
+                        new AlertDialog.Builder(LaunchActivity.this)
+                                .setTitle(LocaleController.getString(R.string.BananaRecentChats))
+                                .setItems(items, (dialog, which) -> {
+                                    if (which < 0 || which >= ids.size()) {
+                                        return;
+                                    }
+                                    Bundle args = new Bundle();
+                                    long did = ids.get(which);
+                                    if (DialogObject.isUserDialog(did)) {
+                                        args.putLong("user_id", did);
+                                    } else {
+                                        args.putLong("chat_id", -did);
+                                    }
+                                    presentFragment(new ChatActivity(args));
+                                })
+                                .show();
+                    }
+                    drawerLayoutContainer.closeDrawer(false);
                 }
                 // --- AyuGram hook
             }
@@ -7325,6 +7375,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     @Override
     protected void onPause() {
         super.onPause();
+        org.telegram.messenger.banana.BananaArchiveLock.onHostPause();
+        invalidateArchiveSecure();
         isResumed = false;
         pipActivityHandler.onPause();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 4096);
@@ -7570,6 +7622,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     @Override
     protected void onResume() {
         super.onResume();
+        org.telegram.messenger.banana.BananaArchiveLock.onHostResume();
+        if (archiveSecureReason == null) {
+            archiveSecureReason = new FlagSecureReason(getWindow(), () -> org.telegram.messenger.banana.BananaArchiveLock.shouldSecureWindow(currentAccount));
+            archiveSecureReason.attach();
+        } else {
+            invalidateArchiveSecure();
+        }
         isResumed = true;
         pipActivityHandler.onResume();
         if (onResumeStaticCallback != null) {
@@ -8771,7 +8830,12 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     }
                 }
             };
-            if (SharedConfig.appLocked) {
+            if (org.telegram.messenger.banana.BananaHooks.instantPasscodeLock(UserConfig.selectedAccount)) {
+                AndroidUtilities.runOnUIThread(lockRunnable, 0);
+                if (BuildVars.LOGS_ENABLED) {
+                    FileLog.d("schedule instant banana app lock");
+                }
+            } else if (SharedConfig.appLocked) {
                 AndroidUtilities.runOnUIThread(lockRunnable, 1000);
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.d("schedule app lock in " + 1000);
@@ -8938,7 +9002,30 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         }
     }
 
+    /**
+     * On devices with an exposed hardware keyboard, BACK should delete one
+     * character in the focused non-empty text field instead of leaving the screen.
+     */
+    private boolean deleteInFocusedTextField() {
+        if (getResources().getConfiguration().hardKeyboardHidden != Configuration.HARDKEYBOARDHIDDEN_NO) {
+            return false;
+        }
+        View focusedView = getCurrentFocus();
+        if (!(focusedView instanceof EditText)) {
+            return false;
+        }
+        Editable text = ((EditText) focusedView).getText();
+        if (text == null || text.length() == 0) {
+            return false;
+        }
+        text.delete(text.length() - 1, text.length());
+        return true;
+    }
+
     public boolean onBackPressed(boolean invoked) {
+        if (invoked && deleteInFocusedTextField()) {
+            return false;
+        }
         if (FloatingDebugController.onBackPressed(invoked)) {
             return false;
         }

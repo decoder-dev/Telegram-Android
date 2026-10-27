@@ -1534,6 +1534,10 @@ public class Theme {
                 return getString(R.string.BananaThemeCream);
             } else if ("Banana Graphite".equals(name)) {
                 return getString(R.string.BananaThemeGraphite);
+            } else if ("Classic White".equals(name)) {
+                return getString(R.string.BananaThemeClassicWhite);
+            } else if ("Classic Black".equals(name)) {
+                return getString(R.string.BananaThemeClassicBlack);
             }
             return info != null ? info.title : name;
         }
@@ -1650,9 +1654,9 @@ public class Theme {
             if (isDark != UNKNOWN) {
                 return isDark == DARK;
             }
-            if ("Dark Blue".equals(name) || "Night".equals(name) || "Banana Graphite".equals(name)) {
+            if ("Dark Blue".equals(name) || "Night".equals(name) || "Banana Graphite".equals(name) || "Classic Black".equals(name)) {
                 isDark = DARK;
-            } else if ("Blue".equals(name) || "Arctic Blue".equals(name) || "Day".equals(name) || "Banana Cream".equals(name)) {
+            } else if ("Blue".equals(name) || "Arctic Blue".equals(name) || "Day".equals(name) || "Banana Cream".equals(name) || "Classic White".equals(name)) {
                 isDark = LIGHT;
             }
             if (isDark == UNKNOWN) {
@@ -4078,7 +4082,9 @@ public class Theme {
             final ThemeInfo themeDarkBlue = themesDict.get("Dark Blue");
 
             String theme = preferences.getString("theme", null);
-            if ("Default".equals(theme)) {
+            if (theme == null) {
+                applyingTheme = themesDict.get("Classic White");
+            } else if ("Default".equals(theme)) {
                 applyingTheme = themesDict.get("Blue");
                 applyingTheme.currentAccentId = DEFALT_THEME_ACCENT_ID;
             } else if ("Dark".equals(theme)) {
@@ -4094,7 +4100,12 @@ public class Theme {
             }
 
             theme = preferences.getString("nighttheme", null);
-            if ("Default".equals(theme)) {
+            if (theme == null) {
+                ThemeInfo classicBlack = themesDict.get("Classic Black");
+                if (classicBlack != null) {
+                    currentNightTheme = classicBlack;
+                }
+            } else if ("Default".equals(theme)) {
                 applyingTheme = themesDict.get("Blue");
                 applyingTheme.currentAccentId = DEFALT_THEME_ACCENT_ID;
             } else if ("Dark".equals(theme)) {
@@ -4266,7 +4277,11 @@ public class Theme {
                 oldEditorNew.commit();
             }
 
-            selectedAutoNightType = preferences.getInt("selectedAutoNightType", Build.VERSION.SDK_INT >= 29 ? AUTO_NIGHT_TYPE_SYSTEM : AUTO_NIGHT_TYPE_NONE);
+            selectedAutoNightType = preferences.getInt("selectedAutoNightType", AUTO_NIGHT_TYPE_NONE);
+            if (selectedAutoNightType == AUTO_NIGHT_TYPE_SCHEDULED) {
+                selectedAutoNightType = AUTO_NIGHT_TYPE_NONE;
+                preferences.edit().putInt("selectedAutoNightType", AUTO_NIGHT_TYPE_NONE).apply();
+            }
             autoNightScheduleByLocation = preferences.getBoolean("autoNightScheduleByLocation", false);
             autoNightBrighnessThreshold = preferences.getFloat("autoNightBrighnessThreshold", 0.25f);
             autoNightDayStartTime = preferences.getInt("autoNightDayStartTime", 22 * 60);
@@ -5629,17 +5644,39 @@ public class Theme {
 
     /** BananaGram Cream (day) and Graphite (night) ThemeInfo accents. */
     private static void registerBananaBuiltInThemes() {
+        if (!themesDict.containsKey("Classic White")) {
+            ThemeInfo classicWhite = new ThemeInfo();
+            classicWhite.name = "Classic White";
+            classicWhite.assetName = "day.attheme";
+            classicWhite.previewBackgroundColor = 0xffffffff;
+            classicWhite.previewInColor = 0xffebeef4;
+            classicWhite.previewOutColor = 0xff7cb2fe;
+            classicWhite.sortIndex = -4;
+            themes.add(classicWhite);
+            themesDict.put("Classic White", classicWhite);
+        }
+        if (!themesDict.containsKey("Classic Black")) {
+            ThemeInfo classicBlack = new ThemeInfo();
+            classicBlack.name = "Classic Black";
+            classicBlack.assetName = "night.attheme";
+            classicBlack.previewBackgroundColor = 0xff121212;
+            classicBlack.previewInColor = 0xff1c1c1e;
+            classicBlack.previewOutColor = 0xff2c2c2e;
+            classicBlack.sortIndex = -3;
+            themes.add(classicBlack);
+            themesDict.put("Classic Black", classicBlack);
+        }
         if (!themesDict.containsKey("Banana Cream")) {
             ThemeInfo cream = new ThemeInfo();
             cream.name = "Banana Cream";
             cream.assetName = "day.attheme";
-            cream.setPreviewBackgroundColor(0xFFEFE6D5);
-            cream.setPreviewInColor(0xFFFFFFFF);
-            cream.setPreviewOutColor(0xFFF3D56B);
-            cream.sortIndex = 6;
-            cream.firstAccentIsDefault = true;
-            cream.currentAccentId = DEFALT_THEME_ACCENT_ID;
-            int[] creamAccents = new int[]{0xFFE0A800, 0xFFC48E00, 0xFFD4A017, 0xFF8B7355};
+            cream.setPreviewBackgroundColor(0xFFF6F0E3);
+            cream.setPreviewInColor(0xFFFFFAF2);
+            cream.setPreviewOutColor(0xFFFCF2DC);
+            cream.sortIndex = -2;
+            cream.firstAccentIsDefault = false;
+            cream.currentAccentId = 0;
+            int[] creamAccents = new int[]{0xFF8A5F1E, 0xFFC48E00, 0xFFD4A017, 0xFF8B7355};
             registerBananaThemeAccents(cream, creamAccents);
             themes.add(cream);
             themesDict.put("Banana Cream", cream);
@@ -5648,11 +5685,12 @@ public class Theme {
             ThemeInfo graphite = new ThemeInfo();
             graphite.name = "Banana Graphite";
             graphite.assetName = "night.attheme";
-            graphite.setPreviewBackgroundColor(0xFF2F333A);
-            graphite.setPreviewInColor(0xFF32363D);
-            graphite.setPreviewOutColor(0xFF4A3F1F);
-            graphite.sortIndex = 7;
-            int[] graphiteAccents = new int[]{0xFFE0A800, 0xFFB88900, 0xFFC9A227, 0xFF8A8478};
+            graphite.setPreviewBackgroundColor(0xFF1D1C1A);
+            graphite.setPreviewInColor(0xFF272522);
+            graphite.setPreviewOutColor(0xFF5E5236);
+            graphite.sortIndex = -1;
+            graphite.currentAccentId = 0;
+            int[] graphiteAccents = new int[]{0xFFEBD58F, 0xFFB88900, 0xFFC9A227, 0xFF8A8478};
             registerBananaThemeAccents(graphite, graphiteAccents);
             themes.add(graphite);
             themesDict.put("Banana Graphite", graphite);
@@ -6139,6 +6177,7 @@ public class Theme {
         }
         applyCalculatedTableColors(currentColorsNoAccent, currentColors, currentTheme.isDark());
         applyCalculatedArticleCodeColors(currentColorsNoAccent, currentColors, currentTheme.isDark());
+        org.telegram.messenger.banana.BananaThemes.apply(currentTheme, currentColors);
         if (!messages) {
             boolean async = !(LaunchActivity.getLastFragment() instanceof ChatActivity);
             reloadWallpaper(async);
@@ -9109,9 +9148,12 @@ public class Theme {
     }
 
     private static int bananaMaybeGlassBubble(int key, int color) {
+        int account = org.telegram.messenger.UserConfig.selectedAccount;
         if (org.telegram.messenger.banana.BananaHooks.isGlassBubbleColorKey(key)) {
-            return org.telegram.messenger.banana.BananaHooks.applyGlassBubbleColor(
-                    org.telegram.messenger.UserConfig.selectedAccount, color);
+            color = org.telegram.messenger.banana.BananaHooks.applyGlassBubbleColor(account, color);
+        }
+        if (org.telegram.messenger.banana.BananaHooks.isAccentColorKey(key)) {
+            color = org.telegram.messenger.banana.BananaHooks.applyAccentSaturation(account, color);
         }
         return color;
     }

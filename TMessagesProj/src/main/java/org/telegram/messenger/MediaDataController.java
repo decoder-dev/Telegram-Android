@@ -1019,7 +1019,8 @@ public class MediaDataController extends BaseController {
                     }
                 });
             }
-            maxCount = getMessagesController().maxRecentStickersCount;
+            maxCount = org.telegram.messenger.banana.BananaHooks.recentStickersMaxCount(
+                    currentAccount, getMessagesController().maxRecentStickersCount);
         }
         if (recentStickers[type].size() > maxCount || remove) {
             TLRPC.Document old = remove ? document : recentStickers[type].remove(recentStickers[type].size() - 1);
@@ -1763,10 +1764,16 @@ public class MediaDataController extends BaseController {
     }
 
     public ArrayList<TLRPC.StickerSetCovered> getFeaturedStickerSets() {
+        if (org.telegram.messenger.banana.BananaHooks.onlyAddedStickers(currentAccount)) {
+            return new ArrayList<>();
+        }
         return featuredStickerSets[0];
     }
 
     public ArrayList<TLRPC.StickerSetCovered> getFeaturedEmojiSets() {
+        if (org.telegram.messenger.banana.BananaHooks.onlyAddedStickers(currentAccount)) {
+            return new ArrayList<>();
+        }
         return featuredStickerSets[1];
     }
 
@@ -2094,7 +2101,8 @@ public class MediaDataController extends BaseController {
                         } else if (type == TYPE_FAVE) {
                             maxCount = getMessagesController().maxFaveStickersCount;
                         } else {
-                            maxCount = getMessagesController().maxRecentStickersCount;
+                            maxCount = org.telegram.messenger.banana.BananaHooks.recentStickersMaxCount(
+                                    currentAccount, getMessagesController().maxRecentStickersCount);
                         }
                     }
                     database.beginTransaction();
@@ -8775,6 +8783,18 @@ public class MediaDataController extends BaseController {
     public String getDoubleTapReaction() {
         if (doubleTapReaction != null) {
             return doubleTapReaction;
+        }
+        if (org.telegram.messenger.banana.BananaHooks.useRecentEmojiInReactions(currentAccount)
+                && Emoji.recentEmoji != null && !Emoji.recentEmoji.isEmpty()) {
+            for (int i = 0; i < Emoji.recentEmoji.size(); i++) {
+                String recent = Emoji.recentEmoji.get(i);
+                if (TextUtils.isEmpty(recent)) {
+                    continue;
+                }
+                if (recent.startsWith("animated_") || getReactionsMap().get(recent) != null) {
+                    return recent;
+                }
+            }
         }
         if (!getReactionsList().isEmpty()) {
             String savedReaction = MessagesController.getEmojiSettings(currentAccount).getString("reaction_on_double_tap", null);

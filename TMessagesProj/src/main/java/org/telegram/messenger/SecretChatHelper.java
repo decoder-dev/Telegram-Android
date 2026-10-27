@@ -125,7 +125,7 @@ public class SecretChatHelper extends BaseController {
 
             // --- AyuGram hook (secret)
 
-            if (AyuConfig.saveDeletedMessages) {
+            if (org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount)) {
                 // save before because they will be removed when `runOnUIThread` happens
                 var dialogsWithMessageIds = getMessagesStorage().getMessageIdsByRandomIds(pendingEncMessagesToDeleteCopy);
                 var dialogsWithMessages = new LongSparseArray<ArrayList<TLRPC.Message>>();

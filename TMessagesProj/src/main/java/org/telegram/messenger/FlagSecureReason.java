@@ -64,8 +64,13 @@ public class FlagSecureReason {
             return;
         }
 
-        // AyuGram: removed
-        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+        // BananaGram: callers gate secret/protected via BananaHooks.shouldSecureFor*;
+        // when no reasons remain, keep the window capturable.
+        if (!isSecuredNow(window)) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            return;
+        }
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE);
     }
 
     public static boolean isSecuredNow(Window window) {

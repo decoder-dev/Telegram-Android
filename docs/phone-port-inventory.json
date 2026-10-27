@@ -7,86 +7,86 @@
     {
       "setting": "removePings",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.REMOVE_PINGS via BananaHooks call sites"
     },
     {
       "setting": "sendTelegramStatistics",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.shouldDropAnalyticsRequest"
     },
     {
       "setting": "bananaIslandEnabled",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.BANANA_ISLAND_ENABLED via BananaHooks call sites"
     },
     {
       "setting": "bananaIslandShowsName",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.BANANA_ISLAND_SHOWS_NAME via BananaHooks call sites"
     },
     {
       "setting": "bananaIslandFollowsIcon",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.BANANA_ISLAND_FOLLOWS_ICON via BananaHooks call sites"
     },
     {
       "setting": "wideTabBar",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.filterTabPaddingDp"
     },
     {
       "setting": "integratedTabSearch",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.INTEGRATED_TAB_SEARCH via BananaHooks call sites"
     },
     {
       "setting": "tabSearchOnLeft",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.TAB_SEARCH_ON_LEFT via BananaHooks call sites"
     },
     {
       "setting": "bottomChatFoldersEnabled",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.BOTTOM_CHAT_FOLDERS_ENABLED via BananaHooks call sites"
     },
     {
       "setting": "avatarGlowEnabled",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.glowPaint"
     },
     {
       "setting": "snowEnabled",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SNOW_ENABLED via BananaHooks call sites"
     },
     {
       "setting": "showChannelForwardCount",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOW_CHANNEL_FORWARD_COUNT via BananaHooks call sites"
     },
     {
       "setting": "reactionGlowEnabled",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.glowPaint"
     },
     {
       "setting": "showContactsTab",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOW_CONTACTS_TAB via BananaHooks call sites"
     },
     {
       "setting": "ghostDontReadMessages",
@@ -121,8 +121,8 @@
     {
       "setting": "ghostReadOnInteract",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.GHOST_READ_ON_INTERACT via BananaHooks call sites"
     },
     {
       "setting": "ghostAlertBeforeOpeningStory",
@@ -133,116 +133,116 @@
     {
       "setting": "instantPasscodeLock",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.INSTANT_PASSCODE_LOCK via BananaHooks call sites"
     },
     {
       "setting": "hideMentionNotifications",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_MENTION_NOTIFICATIONS via BananaHooks call sites"
     },
     {
       "setting": "hidePinnedNotifications",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_PINNED_NOTIFICATIONS via BananaHooks call sites"
     },
     {
       "setting": "sessionKeychainBackup",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.maybeSessionKeychainBackup (Android no-op / preference gate)"
     },
     {
       "setting": "compactChatList",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.dialogCellHeightDp"
     },
     {
       "setting": "compactMessagePreview",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.COMPACT_MESSAGE_PREVIEW via BananaHooks call sites"
     },
     {
       "setting": "compactFolderNames",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.compactFolderLabel"
     },
     {
       "setting": "hideReactionsBar",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_REACTIONS_BAR via BananaHooks call sites"
     },
     {
       "setting": "useRecentEmojiInReactions",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.USE_RECENT_EMOJI_IN_REACTIONS via BananaHooks call sites"
     },
     {
       "setting": "showDC",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOW_DC via BananaHooks call sites"
     },
     {
       "setting": "showProfileId",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOW_PROFILE_ID via BananaHooks call sites"
     },
     {
       "setting": "accentColorSaturation",
       "type": "Int32",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig IntValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.applyAccentSaturation (Theme)"
     },
     {
       "setting": "confirmBeforeCall",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.CONFIRM_BEFORE_CALL via BananaHooks call sites"
     },
     {
       "setting": "sendWithReturnKey",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SEND_WITH_RETURN_KEY via BananaHooks call sites"
     },
     {
       "setting": "forceBuiltInMic",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.FORCE_BUILT_IN_MIC via BananaHooks call sites"
     },
     {
       "setting": "keepAliveInBackground",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.KEEP_ALIVE_IN_BACKGROUND via BananaHooks call sites"
     },
     {
       "setting": "translationBackend",
       "type": "ForkTranslationBackend",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig IntValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.preferAlternativeTranslation (TranslateController)"
     },
     {
       "setting": "transcriptionBackend",
       "type": "ForkTranscriptionBackend",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig IntValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.preferOnDeviceTranscription (TranscribeButton)"
     },
     {
       "setting": "scrollToNextChatDisabled",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SCROLL_TO_NEXT_CHAT_DISABLED via BananaHooks call sites"
     },
     {
       "setting": "saveDeletedMessages",
@@ -271,8 +271,8 @@
     {
       "setting": "proactiveSaveMedia",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.PROACTIVE_SAVE_MEDIA via BananaHooks call sites"
     },
     {
       "setting": "deletedMessageMark",
@@ -289,98 +289,98 @@
     {
       "setting": "ayuForward",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.AYU_FORWARD via BananaHooks call sites"
     },
     {
       "setting": "bypassDownloadRestrictions",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.BYPASS_DOWNLOAD_RESTRICTIONS via BananaHooks call sites"
     },
     {
       "setting": "localPremium",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.LOCAL_PREMIUM via BananaHooks call sites"
     },
     {
       "setting": "hideAds",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_ADS via BananaHooks call sites"
     },
     {
       "setting": "hideBlockedMessages",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.shouldHideBlockedSender"
     },
     {
       "setting": "allowSecretScreenshots",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.shouldSecureForSecret"
     },
     {
       "setting": "expireTtlButton",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.EXPIRE_TTL_BUTTON via BananaHooks call sites"
     },
     {
       "setting": "keepBannedChats",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.KEEP_BANNED_CHATS via BananaHooks call sites"
     },
     {
       "setting": "regexMessageFiltersEnabled",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.REGEX_MESSAGE_FILTERS_ENABLED via BananaHooks call sites"
     },
     {
       "setting": "regexMessageFiltersCaseInsensitive",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.REGEX_MESSAGE_FILTERS_CASE_INSENSITIVE via BananaHooks call sites"
     },
     {
       "setting": "regexMessageFilterPatterns",
       "type": "[String]",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_behavior_wired",
+      "android": "Per-dialog patterns in FilterStore and BananaFilterEditActivity. iOS stores one account string list; Android applies the same filter engine per chat."
     },
     {
       "setting": "ghostScheduleMessages",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.GHOST_SCHEDULE_MESSAGES via BananaHooks call sites"
     },
     {
       "setting": "hideAllChats",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_ALL_CHATS via BananaHooks call sites"
     },
     {
       "setting": "rememberLastFolder",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.REMEMBER_LAST_FOLDER via BananaHooks call sites"
     },
     {
       "setting": "hideTabBar",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_TAB_BAR via BananaHooks call sites"
     },
     {
       "setting": "showMessageSeconds",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOW_MESSAGE_SECONDS via BananaHooks call sites"
     },
     {
       "setting": "stripTrackingParameters",
@@ -391,44 +391,44 @@
     {
       "setting": "wideChannelPosts",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.WIDE_CHANNEL_POSTS via BananaHooks call sites"
     },
     {
       "setting": "stickerSizePercent",
       "type": "Int32",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig IntValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.stickerSizeScale (MessageObject/ChatMessageCell)"
     },
     {
       "setting": "doubleTapToEdit",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.DOUBLE_TAP_TO_EDIT via BananaHooks call sites"
     },
     {
       "setting": "quickTranslateButton",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.QUICK_TRANSLATE_BUTTON via BananaHooks call sites"
     },
     {
       "setting": "saveToCloudMenu",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SAVE_TO_CLOUD_MENU via BananaHooks call sites"
     },
     {
       "setting": "selectFromAuthor",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SELECT_FROM_AUTHOR via BananaHooks call sites"
     },
     {
       "setting": "downloadSpeedBoost",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.downloadQueueMaxActive/downloadUseBoostedChunks"
     },
     {
       "setting": "outgoingPhotoQuality",
@@ -439,164 +439,164 @@
     {
       "setting": "streamerMode",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.maybeMaskPhone/Username"
     },
     {
       "setting": "hideStickerStatus",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_STICKER_STATUS via BananaHooks call sites"
     },
     {
       "setting": "hideStickerReplyColors",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_STICKER_REPLY_COLORS via BananaHooks call sites"
     },
     {
       "setting": "chooseFolderAfterJoin",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.maybePromptFolderAfterJoin"
     },
     {
       "setting": "recentChatsMenu",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.RECENT_CHATS_MENU via BananaHooks call sites"
     },
     {
       "setting": "messageBookmarks",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.MESSAGE_BOOKMARKS via BananaHooks call sites"
     },
     {
       "setting": "localGroupAlias",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.LOCAL_GROUP_ALIAS via BananaHooks call sites"
     },
     {
       "setting": "disableStoryCameraSwipe",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.DISABLE_STORY_CAMERA_SWIPE via BananaHooks call sites"
     },
     {
       "setting": "jumpToStartInChatMenu",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.JUMP_TO_START_IN_CHAT_MENU via BananaHooks call sites"
     },
     {
       "setting": "hideServiceMessages",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.shouldHideServiceMessage"
     },
     {
       "setting": "confirmReactionsInUnjoinedChats",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.CONFIRM_REACTIONS_IN_UNJOINED_CHATS via BananaHooks call sites"
     },
     {
       "setting": "confirmTelegramLinks",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.interceptOpenUrl"
     },
     {
       "setting": "confirmShareLinks",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.interceptOpenUrl"
     },
     {
       "setting": "confirmChatPreviewEntry",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.CONFIRM_CHAT_PREVIEW_ENTRY via BananaHooks call sites"
     },
     {
       "setting": "disableGiftStarsRedirect",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.DISABLE_GIFT_STARS_REDIRECT via BananaHooks call sites"
     },
     {
       "setting": "visualLabels",
       "type": "[Int64: Int32]",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaVisualLabels for the signed-in peer. Extras Profile picker. Drawn on own profile and drawer. Server scam and fake flags win."
     },
     {
       "setting": "hideStickerReplyEmoji",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_STICKER_REPLY_EMOJI via BananaHooks call sites"
     },
     {
       "setting": "hideStickerReplyBackground",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_STICKER_REPLY_BACKGROUND via BananaHooks call sites"
     },
     {
       "setting": "hidePremiumReplyEmoji",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_PREMIUM_REPLY_EMOJI via BananaHooks call sites"
     },
     {
       "setting": "showChatCreationDate",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOW_CHAT_CREATION_DATE via BananaHooks call sites"
     },
     {
       "setting": "profileIdBotApiFormat",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.formatProfileId"
     },
     {
       "setting": "showMutualContact",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOW_MUTUAL_CONTACT via BananaHooks call sites"
     },
     {
       "setting": "hidePremiumStatuses",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_PREMIUM_STATUSES via BananaHooks call sites"
     },
     {
       "setting": "hideVerification",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_VERIFICATION via BananaHooks call sites"
     },
     {
       "setting": "hideGiftButton",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_GIFT_BUTTON via BananaHooks call sites"
     },
     {
       "setting": "visualPhoneEnabled",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.maybeMaskPhone"
     },
     {
       "setting": "visualPhoneNumber",
       "type": "String",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig StringValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.maybeMaskPhone / visualPhoneNumber"
     },
     {
       "setting": "ghostSendWithoutSound",
@@ -613,44 +613,44 @@
     {
       "setting": "hideStories",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_STORIES via BananaHooks call sites"
     },
     {
       "setting": "hideArchive",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_ARCHIVE via BananaHooks call sites"
     },
     {
       "setting": "allowProtectedScreenshots",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.shouldSecureForProtected"
     },
     {
       "setting": "accelerateUpload",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.uploadMaxConcurrent/uploadMaxKBytes"
     },
     {
       "setting": "infiniteRecentStickers",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.recentStickersMaxCount"
     },
     {
       "setting": "onlyAddedStickers",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.ONLY_ADDED_STICKERS via BananaHooks call sites"
     },
     {
       "setting": "autoPauseMediaInBackground",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.AUTO_PAUSE_MEDIA_IN_BACKGROUND via BananaHooks call sites"
     },
     {
       "setting": "doubleTapSeekSeconds",
@@ -661,212 +661,212 @@
     {
       "setting": "showMessageId",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.appendMessageId"
     },
     {
       "setting": "autoRevealSpoilers",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.AUTO_REVEAL_SPOILERS via BananaHooks call sites"
     },
     {
       "setting": "doubleTapAction",
       "type": "Int32",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig IntValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.doubleTapAction (ChatActivity)"
     },
     {
       "setting": "repeatMessageMenu",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.REPEAT_MESSAGE_MENU via BananaHooks call sites"
     },
     {
       "setting": "staticRoundVideoZoom",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.STATIC_ROUND_VIDEO_ZOOM via BananaHooks call sites"
     },
     {
       "setting": "stickerShape",
       "type": "Int32",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig IntValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.stickerRoundRadiusPx (ChatMessageCell)"
     },
     {
       "setting": "commaAfterMention",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.mentionInsertSuffix"
     },
     {
       "setting": "disableColoredReplies",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.DISABLE_COLORED_REPLIES via BananaHooks call sites"
     },
     {
       "setting": "hideStickerChecks",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_STICKER_CHECKS via BananaHooks call sites"
     },
     {
       "setting": "mentionAvatars",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.MENTION_AVATARS via BananaHooks call sites"
     },
     {
       "setting": "relativeLastSeen",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.formatUserStatusOverride"
     },
     {
       "setting": "disableCustomBackgrounds",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.DISABLE_CUSTOM_BACKGROUNDS via BananaHooks call sites"
     },
     {
       "setting": "channelBottomDiscuss",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.CHANNEL_BOTTOM_DISCUSS via BananaHooks call sites"
     },
     {
       "setting": "hideChannelBottomButton",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_CHANNEL_BOTTOM_BUTTON via BananaHooks call sites"
     },
     {
       "setting": "hideShareButton",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_SHARE_BUTTON via BananaHooks call sites"
     },
     {
       "setting": "glassBubbles",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.applyGlassBubbleColor"
     },
     {
       "setting": "glassBubbleTint",
       "type": "Int32",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig IntValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.applyGlassBubbleColor (Theme)"
     },
     {
       "setting": "glassBubbleRimTop",
       "type": "Int32",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig IntValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.applyGlassBubbleColor (Theme)"
     },
     {
       "setting": "glassBubbleRimSides",
       "type": "Int32",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig IntValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.applyGlassBubbleColor (Theme)"
     },
     {
       "setting": "glassBubbleRimBottom",
       "type": "Int32",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig IntValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.applyGlassBubbleColor (Theme)"
     },
     {
       "setting": "showDisappearedGifts",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOW_DISAPPEARED_GIFTS via BananaHooks call sites"
     },
     {
       "setting": "roundVideoStartsWithRear",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.initialRoundVideoFrontface"
     },
     {
       "setting": "roundVideoRemembersCamera",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.rememberRoundVideoFrontface"
     },
     {
       "setting": "chatListHidesConnectionStatus",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.CHAT_LIST_HIDES_CONNECTION_STATUS via BananaHooks call sites"
     },
     {
       "setting": "chatListHidesEmojiStatus",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.CHAT_LIST_HIDES_EMOJI_STATUS via BananaHooks call sites"
     },
     {
       "setting": "chatListCentersTitle",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.CHAT_LIST_CENTERS_TITLE via BananaHooks call sites"
     },
     {
       "setting": "chatListHidesSearch",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.CHAT_LIST_HIDES_SEARCH via BananaHooks call sites"
     },
     {
       "setting": "pollResultsBeforeVoting",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.POLL_RESULTS_BEFORE_VOTING via BananaHooks call sites"
     },
     {
       "setting": "exactLastSeen",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.formatUserStatusOverride"
     },
     {
       "setting": "downloadTikTok",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.maybeOpenExternalVideoForDownload"
     },
     {
       "setting": "downloadYouTubeShorts",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.maybeOpenExternalVideoForDownload"
     },
     {
       "setting": "signDownloadedMedia",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.maybeSignDownloadedFileName"
     },
     {
       "setting": "quoteRepliesToDeleted",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.QUOTE_REPLIES_TO_DELETED via BananaHooks call sites"
     },
     {
       "setting": "exactCounts",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.EXACT_COUNTS via BananaHooks call sites"
     },
     {
       "setting": "confirmVoiceSend",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.CONFIRM_VOICE_SEND via BananaHooks call sites"
     },
     {
       "setting": "hideTypingText",
@@ -889,176 +889,176 @@
     {
       "setting": "messageShot",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.MESSAGE_SHOT via BananaHooks call sites"
     },
     {
       "setting": "powerSaving",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.POWER_SAVING via BananaHooks call sites"
     },
     {
       "setting": "showsOfflineDot",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOWS_OFFLINE_DOT via BananaHooks call sites"
     },
     {
       "setting": "hidePaidReactions",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_PAID_REACTIONS via BananaHooks call sites"
     },
     {
       "setting": "hideViaBot",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_VIA_BOT via BananaHooks call sites"
     },
     {
       "setting": "removeLinkPreviews",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks (message preview gate)"
     },
     {
       "setting": "hideBirthdayNotifications",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_BIRTHDAY_NOTIFICATIONS via BananaHooks call sites"
     },
     {
       "setting": "hideBotAutomation",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_BOT_AUTOMATION via BananaHooks call sites"
     },
     {
       "setting": "showPinnedWithBot",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOW_PINNED_WITH_BOT via BananaHooks call sites"
     },
     {
       "setting": "stopAfterVoice",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.STOP_AFTER_VOICE via BananaHooks call sites"
     },
     {
       "setting": "stopAfterRoundVideo",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.STOP_AFTER_ROUND_VIDEO via BananaHooks call sites"
     },
     {
       "setting": "hideGreetingSticker",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_GREETING_STICKER via BananaHooks call sites"
     },
     {
       "setting": "hashtagsPreferCurrentChat",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HASHTAGS_PREFER_CURRENT_CHAT via BananaHooks call sites"
     },
     {
       "setting": "showOriginalForwardDate",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOW_ORIGINAL_FORWARD_DATE via BananaHooks call sites"
     },
     {
       "setting": "sendBannedGifsAsVideo",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SEND_BANNED_GIFS_AS_VIDEO via BananaHooks call sites"
     },
     {
       "setting": "showSensitiveContent",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOW_SENSITIVE_CONTENT via BananaHooks call sites"
     },
     {
       "setting": "disableStoryCreation",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.DISABLE_STORY_CREATION via BananaHooks call sites"
     },
     {
       "setting": "hideChannelPostReactions",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_CHANNEL_POST_REACTIONS via BananaHooks call sites"
     },
     {
       "setting": "defaultSendFormatting",
       "type": "Int32",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig IntValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.applyDefaultSendFormatting (ChatActivityEnterView)"
     },
     {
       "setting": "avatarLongPressMention",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.AVATAR_LONG_PRESS_MENTION via BananaHooks call sites"
     },
     {
       "setting": "fixLinkPreviews",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks (message preview gate)"
     },
     {
       "setting": "saveStickerToPhotos",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SAVE_STICKER_TO_PHOTOS via BananaHooks call sites"
     },
     {
       "setting": "showMediaInfo",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.SHOW_MEDIA_INFO via BananaHooks call sites"
     },
     {
       "setting": "inviteLinksBulkRevoke",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.INVITE_LINKS_BULK_REVOKE via BananaHooks call sites"
     },
     {
       "setting": "hideFolderUnreadCount",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_FOLDER_UNREAD_COUNT via BananaHooks call sites"
     },
     {
       "setting": "confirmUnpin",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.CONFIRM_UNPIN via BananaHooks call sites"
     },
     {
       "setting": "hidePrivateChatActivities",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.HIDE_PRIVATE_CHAT_ACTIVITIES via BananaHooks call sites"
     },
     {
       "setting": "stayAtLatestMessageAfterRefresh",
       "type": "Bool",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig.Option / Extras hub section (preference stored; behavior wiring incremental)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaConfig.Option.STAY_AT_LATEST_MESSAGE_AFTER_REFRESH via BananaHooks call sites"
     },
     {
       "setting": "defaultVideoQuality",
       "type": "Int32",
-      "status": "implemented_settings_ui_pending_behavior",
-      "android": "BananaConfig IntValue + Values UI (behavior pending)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaHooks.defaultVideoQuality (VideoPlayer)"
     }
   ]
 }

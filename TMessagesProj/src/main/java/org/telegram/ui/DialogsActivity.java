@@ -2857,6 +2857,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             checkCanWrite = arguments.getBoolean("checkCanWrite", true);
             afterSignup = arguments.getBoolean("afterSignup", false);
             folderId = arguments.getInt("folderId", 0);
+            if (folderId == 1 && org.telegram.messenger.banana.BananaArchiveLock.blocksArchiveFolder(currentAccount)) {
+                return false;
+            }
             communityId = arguments.getLong("community_id", 0);
             if (communityId != 0) {
                 community = getMessagesController().getChat(communityId);
@@ -3077,6 +3080,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public void onFragmentDestroy() {
+        INavigationLayout layout = parentLayout;
         super.onFragmentDestroy();
         if (observersGroup != null) {
             observersGroup.removeAllObservers();
@@ -3099,6 +3103,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         notificationsLocker.unlock();
         delegate = null;
         SuggestClearDatabaseBottomSheet.dismissDialog();
+        if (folderId == 1) {
+            org.telegram.messenger.banana.BananaArchiveLock.noteSurfaceClosed(currentAccount, layout, this);
+        }
+    }
+
+    public boolean isArchiveFolder() {
+        return folderId == 1;
     }
 
     @Override
@@ -3256,6 +3267,25 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         ActionBarMenu menu = actionBar.createMenu();
         menu.setTranslationX(-dp(5));
         searchItem = menu.addItem(0, R.drawable.outline_header_search).setIsSearchField(true, false);
+        if (org.telegram.messenger.banana.BananaHooks.tabSearchOnLeft(currentAccount)
+                || org.telegram.messenger.banana.BananaHooks.integratedTabSearch(currentAccount)) {
+            ImageView bananaTabSearch = new ImageView(context);
+            bananaTabSearch.setImageResource(R.drawable.outline_header_search);
+            bananaTabSearch.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarDefaultIcon), PorterDuff.Mode.MULTIPLY));
+            bananaTabSearch.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarDefaultSelector), 1));
+            bananaTabSearch.setContentDescription(getString(R.string.Search));
+            bananaTabSearch.setOnClickListener(v -> {
+                if (searchItem != null) {
+                    searchItem.callOnClick();
+                }
+            });
+            final int bananaSearchLeft = org.telegram.messenger.banana.BananaHooks.tabSearchOnLeft(currentAccount) ? 52 : 0;
+            actionBar.addView(bananaTabSearch, LayoutHelper.createFrame(48, 48, Gravity.TOP | (org.telegram.messenger.banana.BananaHooks.tabSearchOnLeft(currentAccount) ? Gravity.LEFT : Gravity.RIGHT), bananaSearchLeft, 0, org.telegram.messenger.banana.BananaHooks.tabSearchOnLeft(currentAccount) ? 0 : 52, 0));
+            if (org.telegram.messenger.banana.BananaHooks.tabSearchOnLeft(currentAccount)) {
+                searchItem.setAlpha(0f);
+                searchItem.setScaleX(0.01f);
+            }
+        }
         searchItem.setOnClickListener(v -> {
             showSearch(true, false, true);
             fragmentSearchFieldWatcher.toggleSearch(true);
@@ -5456,6 +5486,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             FilesMigrationService.checkBottomSheet(this);
         }
         actionBar.setDrawBlurBackground(contentView);
+        org.telegram.messenger.banana.BananaIsland.attachToActionBar(actionBar, currentAccount);
 
         rightSlidingDialogContainer = new RightSlidingDialogContainer(context) {
 
@@ -6113,7 +6144,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 MessagesController.getInstance(currentAccount).removeSuggestion(0, "STARS_SUBSCRIPTION_LOW_BALANCE");
                 updateDialogsHint();
             });
-        } else if (folderId == 0 && communityId == 0 && !getMessagesController().premiumPurchaseBlocked() && BirthdayController.getInstance(currentAccount).contains() && !getMessagesController().dismissedSuggestions.contains("BIRTHDAY_CONTACTS_TODAY")) {
+        } else if (folderId == 0 && communityId == 0 && !org.telegram.messenger.banana.BananaHooks.hideBirthdayNotifications(currentAccount) && !getMessagesController().premiumPurchaseBlocked() && BirthdayController.getInstance(currentAccount).contains() && !getMessagesController().dismissedSuggestions.contains("BIRTHDAY_CONTACTS_TODAY")) {
             BirthdayController.BirthdayState state = BirthdayController.getInstance(currentAccount).getState();
             ArrayList<TLRPC.User> users = state.today;
             dialogsHintCellVisible = true;
@@ -6918,7 +6949,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         }
                     } else {
                         final MessagesController.DialogFilter filter = filters.get(a);
-                        filterTabsView.addTab(a, filter.localId, filter.name, filter.entities, filter.title_noanimate, false, filters.get(a).locked);
+                        final String bananaFolderName = org.telegram.messenger.banana.BananaHooks.compactFolderLabel(currentAccount, filter.name);
+                        filterTabsView.addTab(a, filter.localId, bananaFolderName, filter.entities, filter.title_noanimate, false, filters.get(a).locked);
                     }
                 }
                 if (updateCurrentTab && org.telegram.messenger.banana.BananaHooks.rememberLastFolder(currentAccount)) {
@@ -7085,6 +7117,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onResume() {
         super.onResume();
+        if (folderId == 1 && org.telegram.messenger.banana.BananaArchiveLock.blocksArchiveFolder(currentAccount)) {
+            finishFragment();
+            return;
+        }
         if (dialogStoriesCell != null) {
             dialogStoriesCell.onResume();
         }
@@ -7953,6 +7989,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         return;
                     }
                     TLRPC.TL_dialogFolder dialogFolder = (TLRPC.TL_dialogFolder) dialog;
+                    if (dialogFolder.folder.id == 1 && org.telegram.messenger.banana.BananaArchiveLock.blocksArchiveFolder(currentAccount)) {
+                        org.telegram.messenger.banana.BananaArchiveLock.promptUnlock(DialogsActivity.this, () -> {
+                            Bundle args = new Bundle();
+                            args.putInt("folderId", 1);
+                            presentFragment(new DialogsActivity(args));
+                        });
+                        return;
+                    }
                     Bundle args = new Bundle();
                     args.putInt("folderId", dialogFolder.folder.id);
                     presentFragment(new DialogsActivity(args));
@@ -8057,6 +8101,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
 
         if (dialogId == 0) {
+            return;
+        }
+
+        if (org.telegram.messenger.banana.BananaArchiveLock.blocksOpening(currentAccount, dialogId)) {
+            final View clickView = view;
+            final int clickPosition = position;
+            final RecyclerListView.Adapter clickAdapter = adapter;
+            final float clickX = x;
+            final float clickY = y;
+            org.telegram.messenger.banana.BananaArchiveLock.promptUnlock(this, () -> onItemClick(clickView, clickPosition, clickAdapter, clickX, clickY));
             return;
         }
 
@@ -8518,7 +8572,25 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         return null;
     }
 
+    private boolean bananaPreviewConfirmSkip;
+
     public boolean showChatPreview(DialogCell cell) {
+        if (org.telegram.messenger.banana.BananaHooks.confirmChatPreviewEntry(currentAccount) && getParentActivity() != null) {
+            if (bananaPreviewConfirmSkip) {
+                bananaPreviewConfirmSkip = false;
+            } else {
+                new org.telegram.ui.ActionBar.AlertDialog.Builder(getParentActivity())
+                        .setTitle(LocaleController.getString(R.string.BananaOpt_CONFIRM_CHAT_PREVIEW_ENTRY))
+                        .setMessage(LocaleController.getString(R.string.AreYouSure))
+                        .setPositiveButton(LocaleController.getString(R.string.OK), (d, w) -> {
+                            bananaPreviewConfirmSkip = true;
+                            showChatPreview(cell);
+                        })
+                        .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+                        .show();
+                return true;
+            }
+        }
         final boolean isCommunityCell = cell.isDialogCommunity();
         if (isCommunityCell) {
         //    return false;
@@ -11056,6 +11128,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     @NonNull
     public ArrayList<TLRPC.Dialog> getDialogsArray(int currentAccount, int dialogsType, int folderId, boolean frozen) {
+        return org.telegram.messenger.banana.BananaArchiveLock.filterDialogList(currentAccount, folderId, dialogsArrayImpl(currentAccount, dialogsType, folderId, frozen));
+    }
+
+    @NonNull
+    private ArrayList<TLRPC.Dialog> dialogsArrayImpl(int currentAccount, int dialogsType, int folderId, boolean frozen) {
         if (frozen && frozenDialogsList != null) {
             return frozenDialogsList;
         }
@@ -13616,6 +13693,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void openStoriesRecorder() {
+        if (org.telegram.messenger.banana.BananaHooks.disableStoryCreation(currentAccount)) {
+            return;
+        }
         if (!storiesEnabled) {
             if (storyPremiumHint != null) {
                 if (storyPremiumHint.shown()) {
@@ -13836,11 +13916,21 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             Bundle args = new Bundle();
             presentFragment(new GroupCreateActivity(args));
         });
-        io.add(R.drawable.outline_saved_24, getString(R.string.SavedMessages), () -> {
-            Bundle args = new Bundle();
-            args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
-            presentFragment(new ChatActivity(args));
-        });
+        if (!org.telegram.messenger.banana.BananaArchiveLock.hidesSurfaces(currentAccount)) {
+            io.add(R.drawable.outline_saved_24, getString(R.string.SavedMessages), () -> {
+                long selfId = UserConfig.getInstance(currentAccount).getClientUserId();
+                Runnable open = () -> {
+                    Bundle args = new Bundle();
+                    args.putLong("user_id", selfId);
+                    presentFragment(new ChatActivity(args));
+                };
+                if (org.telegram.messenger.banana.BananaArchiveLock.blocksOpening(currentAccount, selfId)) {
+                    org.telegram.messenger.banana.BananaArchiveLock.promptUnlock(this, open);
+                } else {
+                    open.run();
+                }
+            });
+        }
         if (ApplicationLoader.applicationLoaderInstance != null) {
             ApplicationLoader.applicationLoaderInstance.addItemOptions(io);
         }
@@ -13876,6 +13966,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         if (getUserConfig().showCallsTab) {
             io.add(R.drawable.msg_settings_old, getString(R.string.Settings), () -> {
+                if (org.telegram.messenger.banana.BananaArchiveLock.noteSettingsTap(currentAccount)) {
+                    org.telegram.messenger.banana.BananaArchiveLock.showRevealedHint(DialogsActivity.this);
+                }
                 presentFragment(new SettingsActivity());
             });
         }
