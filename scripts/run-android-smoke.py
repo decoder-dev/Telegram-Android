@@ -29,14 +29,13 @@ def run(*command, timeout=180):
 
 apks = root / 'TMessagesProj_AppStandalone/build/outputs/apk'
 all_apks = sorted(apks.rglob('*.apk'))
-debug_apks = [path for path in all_apks
-              if 'androidtest' not in path.name.lower()
-              and 'androidtest' not in str(path.relative_to(apks)).lower()
-              and 'debug' in str(path.relative_to(apks)).lower()]
-if len(debug_apks) != 1:
+app_apks = [path for path in all_apks
+            if 'androidtest' not in path.name.lower()
+            and 'androidtest' not in str(path.relative_to(apks)).lower()]
+if len(app_apks) != 1:
     candidates = ', '.join(str(path.relative_to(root)) for path in all_apks) or 'none found'
-    raise SystemExit(f'Expected exactly one standalone debug APK under {apks}; found: {candidates}')
-run('install', '-t', '-r', str(debug_apks[0]))
+    raise SystemExit(f'Expected exactly one standalone app APK under {apks}; found: {candidates}')
+run('install', '-t', '-r', str(app_apks[0]))
 run('install', '-t', '-r', str(apks / 'androidTest/afat/debug/TMessagesProj_AppStandalone-afat-debug-androidTest.apk'))
 run('shell', 'rm', '-rf', '/sdcard/Android/data/org.telegram.messenger.web/files/banana-smoke')
 output = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class',
