@@ -111,7 +111,7 @@ public class MentionCell extends LinearLayout {
         } else {
             usernameTextView.setText("");
         }
-        imageView.setVisibility(VISIBLE);
+        imageView.setVisibility(org.telegram.messenger.banana.BananaHooks.mentionAvatars(UserConfig.selectedAccount) ? VISIBLE : GONE);
         usernameTextView.setVisibility(VISIBLE);
     }
 
@@ -153,7 +153,7 @@ public class MentionCell extends LinearLayout {
         } else {
             usernameTextView.setText("");
         }
-        imageView.setVisibility(VISIBLE);
+        imageView.setVisibility(org.telegram.messenger.banana.BananaHooks.mentionAvatars(UserConfig.selectedAccount) ? VISIBLE : GONE);
         usernameTextView.setVisibility(VISIBLE);
     }
 

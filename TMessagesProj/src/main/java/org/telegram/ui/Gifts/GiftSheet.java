@@ -233,6 +233,9 @@ public class GiftSheet extends BottomSheetWithRecyclerListView implements Notifi
         ScaleStateListAnimator.apply(balanceView);
         balanceView.setOnClickListener(v -> {
             if (balanceView.lastBalance <= 0) return;
+            if (org.telegram.messenger.banana.BananaHooks.disableGiftStarsRedirect(currentAccount)) {
+                return;
+            }
             final BaseFragment lastFragment = LaunchActivity.getLastFragment();
             if (lastFragment != null) {
                 final BaseFragment.BottomSheetParams bottomSheetParams = new BaseFragment.BottomSheetParams();

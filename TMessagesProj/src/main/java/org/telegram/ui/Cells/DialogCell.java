@@ -1295,6 +1295,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         CharSequence buttonString = null;
         if (!isForumCell() && (isDialogCell || isTopic)) {
             printingString = MessagesController.getInstance(currentAccount).getPrintingString(currentDialogId, getTopicId(), true);
+            if (printingString != null && currentDialogId > 0
+                    && org.telegram.messenger.banana.BananaHooks.hidePrivateChatActivities(currentAccount)) {
+                printingString = null;
+            }
         }
         currentMessagePaint = Theme.dialogs_messagePaint[paintIndex];
         boolean checkMessage = true;
@@ -2249,7 +2253,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             nameString = AndroidUtilities.escape(chat.title);
                         }
                     } else {
-                        nameString = AndroidUtilities.escape(chat.title);
+                        nameString = AndroidUtilities.escape(org.telegram.messenger.banana.BananaHooks.resolveChatTitle(
+                                currentAccount, -chat.id, chat.title));
                     }
                 } else if (user != null) {
                     if (UserObject.isReplyUser(user)) {
@@ -4794,6 +4799,13 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     storyParams.forceState = StoriesUtilities.STATE_HAS_UNREAD;
                 }
                 StoriesUtilities.drawAvatarWithStory(currentDialogId, canvas, avatarImage, storyParams);
+                android.graphics.Paint bananaAvatarGlow = org.telegram.messenger.banana.BananaHooks.glowPaint(
+                        currentAccount, true, Theme.getColor(Theme.key_avatar_backgroundBlue));
+                if (bananaAvatarGlow != null && avatarImage != null) {
+                    canvas.drawCircle(avatarImage.getCenterX(), avatarImage.getCenterY(),
+                            Math.max(avatarImage.getImageWidth(), avatarImage.getImageHeight()) / 2f + AndroidUtilities.dp(1),
+                            bananaAvatarGlow);
+                }
                 if (storyParams.drawnLive) {
                     checkTtl();
                 }
@@ -5145,7 +5157,11 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             }
             if (user != null && !MessagesController.isSupportUser(user) && !user.bot) {
                 boolean isOnline = isOnline();
-                boolean showOfflineDot = !isOnline && org.telegram.messenger.banana.BananaHooks.showsOfflineDot(currentAccount);
+                if (currentDialogId > 0 && org.telegram.messenger.banana.BananaHooks.hidePrivateChatActivities(currentAccount)) {
+                    isOnline = false;
+                }
+                boolean showOfflineDot = !isOnline && org.telegram.messenger.banana.BananaHooks.showsOfflineDot(currentAccount)
+                        && !(currentDialogId > 0 && org.telegram.messenger.banana.BananaHooks.hidePrivateChatActivities(currentAccount));
                 wasDrawnOnline = isOnline;
                 if (isOnline || onlineProgress != 0 || showOfflineDot) {
                     int top = (int) (storyParams.originalAvatarRect.bottom - dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 6 : 8));

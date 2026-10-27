@@ -404,8 +404,12 @@ public class StoryViewer implements NotificationCenter.NotificationCenterDelegat
                 // Accept once for this whole viewer session, including a queue opened on our own story.
                 if (target == owner) for (long peer : peerIds) if (peer != 0 && peer != owner) { target = peer; break; }
             }
-            if (GhostPolicy.shouldWarnStory(BananaConfig.get(account, Option.WARN_BEFORE_STORIES),
-                    BananaConfig.get(account, Option.DONT_READ_STORIES), owner, target)) {
+            if (GhostPolicy.shouldWarnStory(
+                    BananaConfig.get(account, Option.WARN_BEFORE_STORIES)
+                            || (org.telegram.messenger.banana.BananaHooks.ghostSuggestForStories(account)
+                                && !BananaConfig.isGhostModeActive(account)),
+                    BananaConfig.get(account, Option.DONT_READ_STORIES),
+                    owner, target)) {
                 if (bananaGhostPrompt != null) return;
                 ArrayList<Long> requestedPeers = peerIds == null ? null : new ArrayList<>(peerIds);
                 BaseFragment host = LaunchActivity.getLastFragment();

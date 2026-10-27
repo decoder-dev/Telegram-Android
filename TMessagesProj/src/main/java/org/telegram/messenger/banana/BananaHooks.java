@@ -1,6 +1,7 @@
 package org.telegram.messenger.banana;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.text.TextUtils;
 
@@ -15,9 +16,14 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.FilterCreateActivity;
+import org.telegram.ui.LaunchActivity;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -215,6 +221,16 @@ public final class BananaHooks {
         return BananaConfig.get(account, BananaConfig.Option.SAVE_EDITS);
     }
 
+    /** Ayu OR Banana: enable deleted-message archive path. */
+    public static boolean ayuSaveDeletedEnabled(int account) {
+        return AyuConfig.saveDeletedMessages || saveDeleted(account);
+    }
+
+    /** Ayu OR Banana: enable edit-history archive path. */
+    public static boolean ayuSaveEditsEnabled(int account) {
+        return AyuConfig.saveMessagesHistory || saveEdits(account);
+    }
+
     public static boolean saveMediaHistory(int account) {
         return BananaConfig.get(account, BananaConfig.Option.SAVE_MEDIA_HISTORY);
     }
@@ -394,6 +410,240 @@ public final class BananaHooks {
 
     public static boolean signDownloadedMedia(int account) {
         return BananaConfig.get(account, BananaConfig.Option.SIGN_DOWNLOADED_MEDIA);
+    }
+
+    public static boolean scrollToNextChatDisabled(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SCROLL_TO_NEXT_CHAT_DISABLED);
+    }
+
+    public static boolean expireTtlButton(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.EXPIRE_TTL_BUTTON);
+    }
+
+    public static boolean keepBannedChats(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.KEEP_BANNED_CHATS);
+    }
+
+    public static boolean chooseFolderAfterJoin(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.CHOOSE_FOLDER_AFTER_JOIN);
+    }
+
+    public static boolean localGroupAlias(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.LOCAL_GROUP_ALIAS);
+    }
+
+    public static boolean jumpToStartInChatMenu(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.JUMP_TO_START_IN_CHAT_MENU);
+    }
+
+    public static boolean disableGiftStarsRedirect(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.DISABLE_GIFT_STARS_REDIRECT);
+    }
+
+    public static boolean inviteLinksBulkRevoke(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.INVITE_LINKS_BULK_REVOKE);
+    }
+
+    public static boolean hidePrivateChatActivities(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_PRIVATE_CHAT_ACTIVITIES);
+    }
+
+    public static boolean stayAtLatestMessageAfterRefresh(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.STAY_AT_LATEST_MESSAGE_AFTER_REFRESH);
+    }
+
+    /**
+     * Android has no iOS Keychain. Preference is stored for parity; no crypto backup runs.
+     */
+    public static boolean sessionKeychainBackup(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SESSION_KEYCHAIN_BACKUP);
+    }
+
+    /** Documented no-op: iOS keychain session backup has no Android equivalent. */
+    public static void maybeSessionKeychainBackup(int account) {
+        if (!sessionKeychainBackup(account)) {
+            return;
+        }
+        // Intentionally empty — do not invent fake crypto/keychain backups on Android.
+    }
+
+    private static final String LOCAL_ALIAS_KEY_PREFIX = "bananaLocalGroupAlias_";
+
+    public static String getLocalGroupAlias(int account, long dialogId) {
+        if (dialogId >= 0) {
+            return null;
+        }
+        return MessagesController.getMainSettings(account).getString(LOCAL_ALIAS_KEY_PREFIX + dialogId, null);
+    }
+
+    public static void setLocalGroupAlias(int account, long dialogId, String alias) {
+        if (dialogId >= 0) {
+            return;
+        }
+        SharedPreferences.Editor editor = MessagesController.getMainSettings(account).edit();
+        if (TextUtils.isEmpty(alias)) {
+            editor.remove(LOCAL_ALIAS_KEY_PREFIX + dialogId);
+        } else {
+            editor.putString(LOCAL_ALIAS_KEY_PREFIX + dialogId, alias.trim());
+        }
+        editor.apply();
+    }
+
+    /** Chat title with optional local group alias overlay. */
+    public static String resolveChatTitle(int account, long dialogId, String fallback) {
+        if (!localGroupAlias(account) || dialogId >= 0) {
+            return fallback;
+        }
+        String alias = getLocalGroupAlias(account, dialogId);
+        return TextUtils.isEmpty(alias) ? fallback : alias;
+    }
+
+    public static boolean isTikTokUrl(String url) {
+        if (TextUtils.isEmpty(url)) {
+            return false;
+        }
+        String lower = url.toLowerCase();
+        return lower.contains("tiktok.com") || lower.contains("vm.tiktok.com") || lower.contains("vt.tiktok.com");
+    }
+
+    public static boolean isYouTubeShortsUrl(String url) {
+        if (TextUtils.isEmpty(url)) {
+            return false;
+        }
+        String lower = url.toLowerCase();
+        return lower.contains("youtube.com/shorts/") || lower.contains("youtube.com/shorts")
+                || (lower.contains("youtu.be/") && lower.contains("shorts"));
+    }
+
+    /**
+     * When TikTok / YouTube Shorts download Extras are on, prefer system open so the user
+     * can save via the external player/browser. Returns true when the URL was handed off.
+     */
+    public static boolean maybeOpenExternalVideoForDownload(Context context, int account, String url) {
+        if (context == null || TextUtils.isEmpty(url)) {
+            return false;
+        }
+        boolean tiktok = downloadTikTok(account) && isTikTokUrl(url);
+        boolean shorts = downloadYouTubeShorts(account) && isYouTubeShortsUrl(url);
+        if (!tiktok && !shorts) {
+            return false;
+        }
+        try {
+            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url));
+            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+            return true;
+        } catch (Throwable e) {
+            FileLog.e(e);
+            return false;
+        }
+    }
+
+    /** Prefix saved gallery filenames when SIGN_DOWNLOADED_MEDIA is on. */
+    public static String maybeSignDownloadedFileName(int account, String name) {
+        if (!signDownloadedMedia(account) || TextUtils.isEmpty(name)) {
+            return name;
+        }
+        if (name.startsWith("BananaGram_")) {
+            return name;
+        }
+        return "BananaGram_" + name;
+    }
+
+    /**
+     * After joining a chat/channel, optionally prompt to pick a folder.
+     * Thin AlertDialog over dialog filters — keeps preference reads here.
+     */
+    public static void maybePromptFolderAfterJoin(int account, long chatId) {
+        if (!chooseFolderAfterJoin(account) || chatId == 0) {
+            return;
+        }
+        AndroidUtilities.runOnUIThread(() -> {
+            try {
+                BaseFragment fragment = LaunchActivity.getLastFragment();
+                if (fragment == null || fragment.getParentActivity() == null) {
+                    return;
+                }
+                MessagesController controller = MessagesController.getInstance(account);
+                ArrayList<MessagesController.DialogFilter> filters = controller.getDialogFilters();
+                if (filters == null || filters.isEmpty()) {
+                    return;
+                }
+                ArrayList<CharSequence> names = new ArrayList<>();
+                ArrayList<MessagesController.DialogFilter> choices = new ArrayList<>();
+                for (int i = 0; i < filters.size(); i++) {
+                    MessagesController.DialogFilter filter = filters.get(i);
+                    if (filter == null || filter.isDefault()) {
+                        continue;
+                    }
+                    names.add(filter.name != null ? filter.name : ("#" + filter.id));
+                    choices.add(filter);
+                }
+                if (choices.isEmpty()) {
+                    return;
+                }
+                final long dialogId = -chatId;
+                AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getParentActivity());
+                builder.setTitle(LocaleController.getString(R.string.BananaChooseFolderAfterJoin));
+                builder.setItems(names.toArray(new CharSequence[0]), (dialog, which) -> {
+                    if (which < 0 || which >= choices.size()) {
+                        return;
+                    }
+                    MessagesController.DialogFilter filter = choices.get(which);
+                    if (!filter.alwaysShow.contains(dialogId)) {
+                        filter.alwaysShow.add(dialogId);
+                        filter.neverShow.remove(dialogId);
+                        FilterCreateActivity.saveFilterToServer(
+                                filter, filter.flags, filter.name, filter.entities, filter.title_noanimate,
+                                filter.color, filter.alwaysShow, filter.neverShow, filter.pinnedDialogs,
+                                false, false, true, true, false, fragment, null);
+                    }
+                });
+                builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+                fragment.showDialog(builder.create());
+            } catch (Throwable e) {
+                FileLog.e(e);
+            }
+        }, 600);
+    }
+
+    /** Prompt to set/clear a local group alias (MainSettings-backed). */
+    public static void promptLocalGroupAlias(BaseFragment fragment, int account, long dialogId, String currentTitle) {
+        if (fragment == null || fragment.getParentActivity() == null || !localGroupAlias(account) || dialogId >= 0) {
+            return;
+        }
+        final android.widget.EditText input = new android.widget.EditText(fragment.getParentActivity());
+        input.setSingleLine(true);
+        String existing = getLocalGroupAlias(account, dialogId);
+        if (!TextUtils.isEmpty(existing)) {
+            input.setText(existing);
+            input.setSelection(existing.length());
+        } else if (!TextUtils.isEmpty(currentTitle)) {
+            input.setHint(currentTitle);
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getParentActivity());
+        builder.setTitle(LocaleController.getString(R.string.BananaLocalGroupAlias));
+        builder.setView(input);
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), (d, w) -> {
+            setLocalGroupAlias(account, dialogId, input.getText() != null ? input.getText().toString() : null);
+            if (fragment instanceof org.telegram.ui.ChatActivity) {
+                ((org.telegram.ui.ChatActivity) fragment).updateTitle(true);
+            }
+            org.telegram.messenger.NotificationCenter.getInstance(account)
+                    .postNotificationName(org.telegram.messenger.NotificationCenter.updateInterfaces,
+                            MessagesController.UPDATE_MASK_NAME);
+        });
+        builder.setNeutralButton(LocaleController.getString(R.string.Delete), (d, w) -> {
+            setLocalGroupAlias(account, dialogId, null);
+            if (fragment instanceof org.telegram.ui.ChatActivity) {
+                ((org.telegram.ui.ChatActivity) fragment).updateTitle(true);
+            }
+            org.telegram.messenger.NotificationCenter.getInstance(account)
+                    .postNotificationName(org.telegram.messenger.NotificationCenter.updateInterfaces,
+                            MessagesController.UPDATE_MASK_NAME);
+        });
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        fragment.showDialog(builder.create());
     }
 
     public static boolean showChannelForwardCount(int account) {
@@ -1108,6 +1358,115 @@ public final class BananaHooks {
 
     public static boolean confirmUnpin(int account) {
         return BananaConfig.get(account, BananaConfig.Option.CONFIRM_UNPIN);
+    }
+
+    public static boolean confirmReactionsInUnjoinedChats(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.CONFIRM_REACTIONS_IN_UNJOINED_CHATS);
+    }
+
+    public static boolean confirmChatPreviewEntry(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.CONFIRM_CHAT_PREVIEW_ENTRY);
+    }
+
+    public static boolean removePings(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.REMOVE_PINGS);
+    }
+
+    /** When off (default), suppress analytics TL requests. */
+    public static boolean sendTelegramStatistics(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.SEND_TELEGRAM_STATISTICS);
+    }
+
+    public static boolean integratedTabSearch(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.INTEGRATED_TAB_SEARCH);
+    }
+
+    public static boolean tabSearchOnLeft(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.TAB_SEARCH_ON_LEFT);
+    }
+
+    public static boolean recentChatsMenu(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.RECENT_CHATS_MENU);
+    }
+
+    public static boolean messageBookmarks(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.MESSAGE_BOOKMARKS);
+    }
+
+    public static boolean compactFolderNames(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.COMPACT_FOLDER_NAMES);
+    }
+
+    public static boolean ghostSuggestForStories(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.GHOST_SUGGEST_FOR_STORIES);
+    }
+
+    public static boolean shouldSecureForSecret(int account, boolean isSecret) {
+        return isSecret && !allowSecretScreenshots(account);
+    }
+
+    public static boolean shouldSecureForProtected(int account, boolean isProtected) {
+        return isProtected && !allowProtectedScreenshots(account);
+    }
+
+    /** Truncate folder tab labels when COMPACT_FOLDER_NAMES is on. */
+    public static String compactFolderLabel(int account, String name) {
+        if (!compactFolderNames(account) || TextUtils.isEmpty(name)) {
+            return name;
+        }
+        String trimmed = name.trim();
+        if (trimmed.length() <= 10) {
+            return trimmed;
+        }
+        return trimmed.substring(0, 9) + "…";
+    }
+
+    private static final String BOOKMARKS_KEY = "bananaMessageBookmarks";
+
+    public static java.util.ArrayList<String> getBookmarks(int account) {
+        java.util.ArrayList<String> out = new java.util.ArrayList<>();
+        if (!messageBookmarks(account)) {
+            return out;
+        }
+        String raw = MessagesController.getMainSettings(account).getString(BOOKMARKS_KEY, "");
+        if (TextUtils.isEmpty(raw)) {
+            return out;
+        }
+        for (String part : raw.split(",")) {
+            if (!TextUtils.isEmpty(part)) {
+                out.add(part);
+            }
+        }
+        return out;
+    }
+
+    public static void addBookmark(int account, long dialogId, int messageId) {
+        if (!messageBookmarks(account) || messageId <= 0) {
+            return;
+        }
+        String entry = dialogId + ":" + messageId;
+        java.util.ArrayList<String> list = getBookmarks(account);
+        list.remove(entry);
+        list.add(0, entry);
+        while (list.size() > 50) {
+            list.remove(list.size() - 1);
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < list.size(); i++) {
+            if (i > 0) {
+                sb.append(',');
+            }
+            sb.append(list.get(i));
+        }
+        MessagesController.getMainSettings(account).edit().putString(BOOKMARKS_KEY, sb.toString()).apply();
+    }
+
+    public static boolean isAnalyticsRequest(TLObject object) {
+        return object instanceof TLRPC.TL_help_saveAppLog;
+    }
+
+    public static boolean shouldDropAnalyticsRequest(int account, TLObject object) {
+        return !sendTelegramStatistics(account) && isAnalyticsRequest(object);
     }
 
     public static boolean bananaIslandEnabled(int account) {

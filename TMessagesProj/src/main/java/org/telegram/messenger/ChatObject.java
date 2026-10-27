@@ -18,9 +18,6 @@ import android.util.SparseArray;
 import androidx.annotation.IntDef;
 import androidx.collection.LongSparseArray;
 
-import com.radolyn.ayugram.AyuConfig;
-
-
 import org.telegram.messenger.utils.tlutils.TlUtils;
 import org.telegram.messenger.voip.Instance;
 import org.telegram.messenger.voip.VoIPService;
@@ -1963,8 +1960,8 @@ public class ChatObject {
     }
 
     public static boolean isNotInChat(TLRPC.Chat chat) {
-        // AyuGram: keep legacy type checks when not saving deleted messages; otherwise use isForbidden helper.
-        if (!AyuConfig.saveDeletedMessages) {
+        // AyuGram / Banana: keep legacy type checks when not saving deleted messages; otherwise use isForbidden helper.
+        if (!org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(UserConfig.selectedAccount)) {
             return chat == null || chat instanceof TLRPC.TL_chatEmpty || chat instanceof TLRPC.TL_chatForbidden || chat instanceof TLRPC.TL_channelForbidden || chat.left || chat.kicked || chat.deactivated;
         }
         return chat == null || chat instanceof TLRPC.TL_chatEmpty || isForbidden(chat) || chat.left || chat.kicked || chat.deactivated;

@@ -470,6 +470,9 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
             performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
         } catch (Exception ignored) {}
         if (cell.isSelf && !storiesController.hasSelfStories()) {
+            if (overscroll && org.telegram.messenger.banana.BananaHooks.disableStoryCameraSwipe(currentAccount)) {
+                return;
+            }
             if (!MessagesController.getInstance(currentAccount).storiesEnabled()) {
                 showPremiumHint();
             } else {
@@ -1229,6 +1232,9 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
     }
 
     public void openStoryRecorder(long dialogId) {
+        if (org.telegram.messenger.banana.BananaHooks.disableStoryCreation(currentAccount)) {
+            return;
+        }
         if (dialogId == 0) {
             final StoriesController.StoryLimit storyLimit = MessagesController.getInstance(currentAccount).getStoriesController().checkStoryLimit();
             if (storyLimit != null && storyLimit.active(currentAccount)) {

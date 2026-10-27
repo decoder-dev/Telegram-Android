@@ -865,7 +865,9 @@ public class TranscribeButton {
         }
         ConnectionsManager cc = ConnectionsManager.getInstance(messageObject.currentAccount);
         MessagesController mc = MessagesController.getInstance(messageObject.currentAccount);
-        if (UserConfig.getInstance(messageObject.currentAccount).isPremium()) {
+        if (UserConfig.getInstance(messageObject.currentAccount).isPremium()
+                || org.telegram.messenger.banana.BananaHooks.preferOnDeviceTranscription(messageObject.currentAccount)
+                || org.telegram.messenger.banana.BananaHooks.localPremium(messageObject.currentAccount)) {
             return false;
         }
         return mc.transcribeAudioTrialCooldownUntil != 0 && cc.getCurrentTime() <= mc.transcribeAudioTrialCooldownUntil && mc.transcribeAudioTrialCurrentNumber <= 0;

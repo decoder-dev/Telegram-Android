@@ -461,6 +461,7 @@ public final class BananaConfig {
             case MESSAGE_SHOT:
             case AYU_FORWARD:
             case SHOW_CONTACTS_TAB:
+            case MENTION_AVATARS:
                 return true;
             default:
                 return false;

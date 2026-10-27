@@ -3256,6 +3256,25 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         ActionBarMenu menu = actionBar.createMenu();
         menu.setTranslationX(-dp(5));
         searchItem = menu.addItem(0, R.drawable.outline_header_search).setIsSearchField(true, false);
+        if (org.telegram.messenger.banana.BananaHooks.tabSearchOnLeft(currentAccount)
+                || org.telegram.messenger.banana.BananaHooks.integratedTabSearch(currentAccount)) {
+            ImageView bananaTabSearch = new ImageView(context);
+            bananaTabSearch.setImageResource(R.drawable.outline_header_search);
+            bananaTabSearch.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarDefaultIcon), PorterDuff.Mode.MULTIPLY));
+            bananaTabSearch.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarDefaultSelector), 1));
+            bananaTabSearch.setContentDescription(getString(R.string.Search));
+            bananaTabSearch.setOnClickListener(v -> {
+                if (searchItem != null) {
+                    searchItem.callOnClick();
+                }
+            });
+            final int bananaSearchLeft = org.telegram.messenger.banana.BananaHooks.tabSearchOnLeft(currentAccount) ? 52 : 0;
+            actionBar.addView(bananaTabSearch, LayoutHelper.createFrame(48, 48, Gravity.TOP | (org.telegram.messenger.banana.BananaHooks.tabSearchOnLeft(currentAccount) ? Gravity.LEFT : Gravity.RIGHT), bananaSearchLeft, 0, org.telegram.messenger.banana.BananaHooks.tabSearchOnLeft(currentAccount) ? 0 : 52, 0));
+            if (org.telegram.messenger.banana.BananaHooks.tabSearchOnLeft(currentAccount)) {
+                searchItem.setAlpha(0f);
+                searchItem.setScaleX(0.01f);
+            }
+        }
         searchItem.setOnClickListener(v -> {
             showSearch(true, false, true);
             fragmentSearchFieldWatcher.toggleSearch(true);
@@ -6114,7 +6133,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 MessagesController.getInstance(currentAccount).removeSuggestion(0, "STARS_SUBSCRIPTION_LOW_BALANCE");
                 updateDialogsHint();
             });
-        } else if (folderId == 0 && communityId == 0 && !getMessagesController().premiumPurchaseBlocked() && BirthdayController.getInstance(currentAccount).contains() && !getMessagesController().dismissedSuggestions.contains("BIRTHDAY_CONTACTS_TODAY")) {
+        } else if (folderId == 0 && communityId == 0 && !org.telegram.messenger.banana.BananaHooks.hideBirthdayNotifications(currentAccount) && !getMessagesController().premiumPurchaseBlocked() && BirthdayController.getInstance(currentAccount).contains() && !getMessagesController().dismissedSuggestions.contains("BIRTHDAY_CONTACTS_TODAY")) {
             BirthdayController.BirthdayState state = BirthdayController.getInstance(currentAccount).getState();
             ArrayList<TLRPC.User> users = state.today;
             dialogsHintCellVisible = true;
@@ -6919,7 +6938,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         }
                     } else {
                         final MessagesController.DialogFilter filter = filters.get(a);
-                        filterTabsView.addTab(a, filter.localId, filter.name, filter.entities, filter.title_noanimate, false, filters.get(a).locked);
+                        final String bananaFolderName = org.telegram.messenger.banana.BananaHooks.compactFolderLabel(currentAccount, filter.name);
+                        filterTabsView.addTab(a, filter.localId, bananaFolderName, filter.entities, filter.title_noanimate, false, filters.get(a).locked);
                     }
                 }
                 if (updateCurrentTab && org.telegram.messenger.banana.BananaHooks.rememberLastFolder(currentAccount)) {
@@ -8519,7 +8539,25 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         return null;
     }
 
+    private boolean bananaPreviewConfirmSkip;
+
     public boolean showChatPreview(DialogCell cell) {
+        if (org.telegram.messenger.banana.BananaHooks.confirmChatPreviewEntry(currentAccount) && getParentActivity() != null) {
+            if (bananaPreviewConfirmSkip) {
+                bananaPreviewConfirmSkip = false;
+            } else {
+                new org.telegram.ui.ActionBar.AlertDialog.Builder(getParentActivity())
+                        .setTitle(LocaleController.getString(R.string.BananaOpt_CONFIRM_CHAT_PREVIEW_ENTRY))
+                        .setMessage(LocaleController.getString(R.string.AreYouSure))
+                        .setPositiveButton(LocaleController.getString(R.string.OK), (d, w) -> {
+                            bananaPreviewConfirmSkip = true;
+                            showChatPreview(cell);
+                        })
+                        .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+                        .show();
+                return true;
+            }
+        }
         final boolean isCommunityCell = cell.isDialogCommunity();
         if (isCommunityCell) {
         //    return false;
@@ -13617,6 +13655,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void openStoriesRecorder() {
+        if (org.telegram.messenger.banana.BananaHooks.disableStoryCreation(currentAccount)) {
+            return;
+        }
         if (!storiesEnabled) {
             if (storyPremiumHint != null) {
                 if (storyPremiumHint.shown()) {

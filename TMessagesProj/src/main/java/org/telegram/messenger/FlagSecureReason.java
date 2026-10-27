@@ -64,9 +64,9 @@ public class FlagSecureReason {
             return;
         }
 
-        // BananaGram: screenshot Extras (and legacy Ayu clear) keep the window capturable.
-        if (org.telegram.messenger.banana.BananaHooks.allowScreenshotsOverride(org.telegram.messenger.UserConfig.selectedAccount)
-                || !isSecuredNow(window)) {
+        // BananaGram: callers gate secret/protected via BananaHooks.shouldSecureFor*;
+        // when no reasons remain, keep the window capturable.
+        if (!isSecuredNow(window)) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
             return;
         }

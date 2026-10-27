@@ -4549,11 +4549,11 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             if (scheduled) {
                 return;
             }
-            // --- AyuGram hook
-            if (AyuConfig.saveDeletedMessages) {
+            // --- AyuGram / Banana hook
+            if (org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount)) {
                 return;
             }
-            // --- AyuGram hook
+            // --- AyuGram / Banana hook
             long channelId = (Long) args[1];
             ArrayList<Integer> markAsDeletedMessages = (ArrayList<Integer>) args[0];
             boolean reset = false;
@@ -17536,17 +17536,16 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR |
                 WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM |
                 WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS;
-            if (chatActivity != null && chatActivity.getCurrentEncryptedChat() != null ||
-                avatarsDialogId != 0 && MessagesController.getInstance(currentAccount).isPeerNoForwards(avatarsDialogId) ||
-                messageObject != null && (MessagesController.getInstance(currentAccount).isPeerNoForwards(messageObject.getDialogId()) ||
-                (messageObject.messageOwner != null && messageObject.messageOwner.noforwards)) || messageObject != null && messageObject.hasRevealedExtendedMedia() ||
-                isPageBlocksNoForwards(pageBlocksAdapter)
-            ) {
-                if (org.telegram.messenger.banana.BananaHooks.allowScreenshotsOverride(currentAccount)) {
-                    windowLayoutParams.flags &= ~WindowManager.LayoutParams.FLAG_SECURE;
-                } else {
-                    windowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SECURE;
-                }
+            final boolean bananaSecret = chatActivity != null && chatActivity.getCurrentEncryptedChat() != null;
+            final boolean bananaProtected =
+                (avatarsDialogId != 0 && MessagesController.getInstance(currentAccount).isPeerNoForwards(avatarsDialogId)) ||
+                (messageObject != null && (MessagesController.getInstance(currentAccount).isPeerNoForwards(messageObject.getDialogId()) ||
+                (messageObject.messageOwner != null && messageObject.messageOwner.noforwards))) ||
+                (messageObject != null && messageObject.hasRevealedExtendedMedia()) ||
+                isPageBlocksNoForwards(pageBlocksAdapter);
+            if (org.telegram.messenger.banana.BananaHooks.shouldSecureForSecret(currentAccount, bananaSecret)
+                    || org.telegram.messenger.banana.BananaHooks.shouldSecureForProtected(currentAccount, bananaProtected)) {
+                windowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SECURE;
                 AndroidUtilities.logFlagSecure();
             } else {
                 windowLayoutParams.flags &=~ WindowManager.LayoutParams.FLAG_SECURE;

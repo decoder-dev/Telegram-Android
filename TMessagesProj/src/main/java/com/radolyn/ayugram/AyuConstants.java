@@ -36,6 +36,7 @@ public class AyuConstants {
 
     public static final int DRAWER_TOGGLE_GHOST = 1000;
     public static final int DRAWER_KILL_APP = 1001;
+    public static final int DRAWER_RECENT_CHATS = 1002;
 
     public static final int MESSAGE_EDITED_NOTIFICATION = 6968;
     public static final int MESSAGES_DELETED_NOTIFICATION = 6969;

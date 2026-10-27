@@ -224,6 +224,7 @@ public class ReplyMessageLine {
 //                emojiLoaded = false;
             }
         }
+        maybeClearReplyEmoji(messageObject);
 
         return nameColorAnimated.set(nameColor);
     }
@@ -236,8 +237,14 @@ public class ReplyMessageLine {
 
     public int check(MessageObject messageObject, TLRPC.User currentUser, TLRPC.Chat currentChat, Theme.ResourcesProvider resourcesProvider, final int type) {
         final boolean dark = resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark();
-        if (messageObject != null && !(messageObject.isOutOwner() || type == TYPE_CODE) && messageObject.overrideLinkPeerColor != null) {
-            return resolveCollectionColor(messageObject, messageObject.overrideLinkPeerColor, resourcesProvider);
+        final int bananaAccount = messageObject != null ? messageObject.currentAccount : UserConfig.selectedAccount;
+        final boolean bananaNoPeerColors = org.telegram.messenger.banana.BananaHooks.disableColoredReplies(bananaAccount)
+                || (messageObject != null && messageObject.shouldDrawWithoutBackground()
+                && org.telegram.messenger.banana.BananaHooks.hideStickerReplyColors(bananaAccount));
+        if (!bananaNoPeerColors && messageObject != null && !(messageObject.isOutOwner() || type == TYPE_CODE) && messageObject.overrideLinkPeerColor != null) {
+            int color = resolveCollectionColor(messageObject, messageObject.overrideLinkPeerColor, resourcesProvider);
+            maybeClearReplyEmoji(messageObject);
+            return color;
         }
 
         reversedOut = false;
@@ -271,7 +278,7 @@ public class ReplyMessageLine {
             resolveColor(messageObject, colorId, resourcesProvider);
             backgroundColor = Theme.multAlpha(color1, 0.10f);
             nameColor = color1;
-        } else if (type != TYPE_REPLY && (
+        } else if (!bananaNoPeerColors && type != TYPE_REPLY && (
             messageObject.overrideLinkColor >= 0 ||
             messageObject.messageOwner != null && (
                 (messageObject.isFromUser() || DialogObject.isEncryptedDialog(messageObject.getDialogId())) && currentUser != null ||
@@ -362,7 +369,7 @@ public class ReplyMessageLine {
             resolveColor(messageObject, colorId, resourcesProvider);
             backgroundColor = Theme.multAlpha(color1, 0.10f);
             nameColor = color1;
-        } else if (type == TYPE_REPLY && (
+        } else if (!bananaNoPeerColors && type == TYPE_REPLY && (
             messageObject.overrideLinkColor >= 0 ||
             messageObject.messageOwner != null &&
             messageObject.replyMessageObject != null &&
@@ -445,6 +452,7 @@ public class ReplyMessageLine {
         if ((type == TYPE_REPLY || type == TYPE_LINK || type == TYPE_CONTACT) && messageObject != null && messageObject.overrideLinkEmoji != -1) {
             emojiDocumentId = messageObject.overrideLinkEmoji;
         }
+        maybeClearReplyEmoji(messageObject);
         if (emojiDocumentId != 0 && emoji == null && parentView != null) {
             emoji = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(parentView, false, dp(20), AnimatedEmojiDrawable.CACHE_TYPE_ALERT_PREVIEW_STATIC);
             if (parentView instanceof ChatMessageCell ? ((ChatMessageCell) parentView).isCellAttachedToWindow() : parentView.isAttachedToWindow()) {
@@ -461,6 +469,25 @@ public class ReplyMessageLine {
         }
         emojiColor = getColor();
         return nameColorAnimated.set(nameColor);
+    }
+
+    private void maybeClearReplyEmoji(MessageObject messageObject) {
+        if (messageObject == null) {
+            return;
+        }
+        int account = messageObject.currentAccount;
+        if (org.telegram.messenger.banana.BananaHooks.hidePremiumReplyEmoji(account)
+                || (messageObject.shouldDrawWithoutBackground()
+                && org.telegram.messenger.banana.BananaHooks.hideStickerReplyEmoji(account))) {
+            emojiDocumentId = 0;
+            stickerDocumentId = 0;
+            if (emoji != null) {
+                emoji.set(0L, false);
+            }
+            if (sticker != null) {
+                sticker.set(0L, false);
+            }
+        }
     }
 
     public boolean hasSticker() {

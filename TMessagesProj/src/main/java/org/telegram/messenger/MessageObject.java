@@ -3828,7 +3828,14 @@ public class MessageObject {
         if (messageOwner != null && messageOwner.reply_to != null && messageOwner.reply_to.forum_topic && messageOwner.reply_to.reply_to_msg_id == messageOwner.reply_to.reply_to_top_id) {
             return false;
         }
-        return !(replyMessageObject == null || replyMessageObject.messageOwner instanceof TLRPC.TL_messageEmpty || replyMessageObject.messageOwner.action instanceof TLRPC.TL_messageActionHistoryClear || replyMessageObject.messageOwner.action instanceof TLRPC.TL_messageActionTopicCreate);
+        boolean missing = replyMessageObject == null || replyMessageObject.messageOwner instanceof TLRPC.TL_messageEmpty || replyMessageObject.messageOwner.action instanceof TLRPC.TL_messageActionHistoryClear || replyMessageObject.messageOwner.action instanceof TLRPC.TL_messageActionTopicCreate;
+        if (missing
+                && org.telegram.messenger.banana.BananaHooks.quoteRepliesToDeleted(currentAccount)
+                && messageOwner != null && messageOwner.reply_to != null
+                && !TextUtils.isEmpty(messageOwner.reply_to.quote_text)) {
+            return true;
+        }
+        return !missing;
     }
 
     @Deprecated
@@ -8557,14 +8564,16 @@ public class MessageObject {
         }
         if (maxWidth == 0) {
             final boolean needDrawAvatarInternal = needDrawAvatarInternal();
-            maxWidth = generatedWithMinSize - dp(type == TYPE_ARTICLE ? 40 : 80);
+            final boolean bananaWideChannel = org.telegram.messenger.banana.BananaHooks.wideChannelPosts(currentAccount)
+                    && isFromChannel() && !isOutOwner();
+            maxWidth = generatedWithMinSize - dp(type == TYPE_ARTICLE ? 40 : (bananaWideChannel ? 48 : 80));
             if (sideMenuEnabled) {
                 maxWidth -= dp(64);
             } else if (needDrawAvatarInternal && !isOutOwner() && !messageOwner.isThreadMessage) {
-                maxWidth -= dp(52);
+                maxWidth -= dp(bananaWideChannel ? 28 : 52);
             }
             if (needDrawShareButton() && (isSaved || !isOutOwner())) {
-                maxWidth -= dp(isSaved && isOutOwner() ? 40 : 14);
+                maxWidth -= dp(isSaved && isOutOwner() ? 40 : (bananaWideChannel ? 8 : 14));
             }
             if (getMedia(messageOwner) instanceof TLRPC.TL_messageMediaGame) {
                 maxWidth -= dp(10);
@@ -10067,7 +10076,7 @@ public class MessageObject {
     }
 
     public boolean needDrawBluredPreview() {
-        return needDrawBluredPreview(!AyuConfig.saveDeletedMessages);
+        return needDrawBluredPreview(!org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount));
     }
 
     public boolean needDrawBluredPreview(boolean really) {

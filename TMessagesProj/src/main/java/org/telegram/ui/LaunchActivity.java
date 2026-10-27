@@ -738,6 +738,47 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.mainUserInfoChanged);
                 } else if (id == AyuConstants.DRAWER_KILL_APP) {
                     AyuUtils.killApplication(this);
+                } else if (id == AyuConstants.DRAWER_RECENT_CHATS) {
+                    ArrayList<TLRPC.Dialog> dialogs = MessagesController.getInstance(currentAccount).getDialogs(0);
+                    ArrayList<CharSequence> titles = new ArrayList<>();
+                    ArrayList<Long> ids = new ArrayList<>();
+                    for (int i = 0; i < dialogs.size() && titles.size() < 12; i++) {
+                        TLRPC.Dialog d = dialogs.get(i);
+                        if (d == null || d instanceof TLRPC.TL_dialogFolder) {
+                            continue;
+                        }
+                        long did = d.id;
+                        String title;
+                        if (DialogObject.isUserDialog(did)) {
+                            TLRPC.User u = MessagesController.getInstance(currentAccount).getUser(did);
+                            title = u != null ? UserObject.getUserName(u) : Long.toString(did);
+                        } else {
+                            TLRPC.Chat c = MessagesController.getInstance(currentAccount).getChat(-did);
+                            title = c != null ? c.title : Long.toString(did);
+                        }
+                        titles.add(title);
+                        ids.add(did);
+                    }
+                    if (!titles.isEmpty()) {
+                        CharSequence[] items = titles.toArray(new CharSequence[0]);
+                        new AlertDialog.Builder(LaunchActivity.this)
+                                .setTitle(LocaleController.getString(R.string.BananaRecentChats))
+                                .setItems(items, (dialog, which) -> {
+                                    if (which < 0 || which >= ids.size()) {
+                                        return;
+                                    }
+                                    Bundle args = new Bundle();
+                                    long did = ids.get(which);
+                                    if (DialogObject.isUserDialog(did)) {
+                                        args.putLong("user_id", did);
+                                    } else {
+                                        args.putLong("chat_id", -did);
+                                    }
+                                    presentFragment(new ChatActivity(args));
+                                })
+                                .show();
+                    }
+                    drawerLayoutContainer.closeDrawer(false);
                 }
                 // --- AyuGram hook
             }
