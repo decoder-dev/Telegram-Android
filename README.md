@@ -29,7 +29,7 @@ git clone https://github.com/decoder-dev/Telegram-Android.git BananaGram
 cd BananaGram
 ```
 
-Review [.gitmodules](.gitmodules) before initializing dependencies. Imported AyuGram code references a separate proprietary component; access to that component or a compatible implementation is required for the code that depends on it. The dependency layout is part of the ongoing integration.
+Initialize the public native dependencies listed in [.gitmodules](.gitmodules) with `git submodule update --init --recursive`. The AyuGram message-history compatibility helpers are included in this source tree under GPL-2.0; their source is documented in [port sources](docs/port-sources.md).
 
 ### Telegram API credentials
 
@@ -48,7 +48,7 @@ API credentials are separate from APK signing keys and Firebase configuration. C
 
 ### Automated builds
 
-The repository contains Android checks and an inherited release workflow. The inherited release workflow is disabled on GitHub pending manual setup. Earlier check results describe the pre-import code, not the current integration snapshot.
+The Android checks workflow builds Java sources and runs unit tests, then builds an APK and runs UI smoke tests on an Android 16 emulator. GitHub Actions must be enabled for these checks. The legacy self-hosted release workflow is manual-only; releases are prepared separately. See the [update-flow plan](docs/update-flow.md) for the in-app update design.
 
 ## Contributing
 

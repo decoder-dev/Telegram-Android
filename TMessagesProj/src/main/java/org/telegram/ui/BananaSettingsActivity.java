@@ -28,6 +28,7 @@ public final class BananaSettingsActivity extends UniversalFragment {
     private static final int THEME_PALETTE = 1002;
     private static final int VALUES = 1003;
     private static final int AYU_SETTINGS = 1004;
+    private static final int UPDATES = 1005;
     private static final int SECTION_BASE = 2000;
 
     public BananaSettingsActivity(int account) {
@@ -62,6 +63,7 @@ public final class BananaSettingsActivity extends UniversalFragment {
         }
         items.add(UItem.asShadow(null));
         items.add(UItem.asButton(VALUES, LocaleController.getString(R.string.BananaValues)));
+        items.add(UItem.asButton(UPDATES, LocaleController.getString(R.string.BananaUpdates)));
         items.add(UItem.asButton(AYU_SETTINGS, LocaleController.getString(R.string.AyuPreferences)));
     }
 
@@ -72,6 +74,11 @@ public final class BananaSettingsActivity extends UniversalFragment {
                     new com.radolyn.ayugram.ui.preferences.AyuGramPreferencesActivity();
             preferences.setCurrentAccount(currentAccount);
             presentFragment(preferences);
+            return;
+        }
+        if (item.id == UPDATES) {
+            new com.exteragram.messenger.preferences.updater.UpdaterBottomSheet(
+                    getParentActivity(), this, false, null).show();
             return;
         }
         if (item.id == VALUES) {

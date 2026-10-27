@@ -26,7 +26,6 @@ import android.widget.TextView;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.utils.LocaleUtils;
 import com.exteragram.messenger.utils.UpdaterUtils;
-import com.radolyn.ayugram.AyuConstants;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildVars;
@@ -141,7 +140,7 @@ public class UpdaterBottomSheet extends BottomSheet {
             doneButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             doneButton.setText(LocaleController.getString("AppUpdateDownloadNow", R.string.AppUpdateDownloadNow));
             doneButton.setOnClickListener(v -> {
-                UpdaterUtils.downloadApk(fragment.getContext(), update.downloadURL, AyuConstants.APP_NAME + " " + update.version);
+                UpdaterUtils.downloadApk(fragment.getContext(), update.downloadURL, LocaleUtils.getAppName() + " " + update.version);
                 dismiss();
             });
             linearLayout.addView(doneButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, 0, 16, 15, 16, 5));
@@ -162,12 +161,23 @@ public class UpdaterBottomSheet extends BottomSheet {
             });
             linearLayout.addView(scheduleButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, 0, 16, 0, 16, 0));
         } else {
-            final String btype = BuildVars.isBetaApp() ? LocaleController.getString("BTBeta", R.string.BTBeta) : LocaleController.getString("BTRelease", R.string.BTRelease);
-            TextCell buildType = new TextCell(context);
-            buildType.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 100, 0));
-            buildType.setTextAndValueAndIcon(LocaleController.getString("BuildType", R.string.BuildType), btype, R.drawable.msg_customize, true);
-            buildType.setOnClickListener(v -> copyText(buildType.getTextView().getText() + ": " + buildType.getValueTextView().getText()));
-            linearLayout.addView(buildType);
+            TextCell releaseChannel = new TextCell(context);
+            releaseChannel.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 100, 0));
+            releaseChannel.setTextAndValueAndIcon(
+                    LocaleController.getString(R.string.BananaReleaseChannel),
+                    LocaleController.getString(ExteraConfig.updatePrereleaseChannel
+                            ? R.string.BananaRcChannel : R.string.BananaStableChannel),
+                    R.drawable.msg_customize, true);
+            releaseChannel.setOnClickListener(v -> {
+                ExteraConfig.updatePrereleaseChannel = !ExteraConfig.updatePrereleaseChannel;
+                ExteraConfig.editor.putBoolean("updatePrereleaseChannel", ExteraConfig.updatePrereleaseChannel).apply();
+                releaseChannel.setTextAndValueAndIcon(
+                        LocaleController.getString(R.string.BananaReleaseChannel),
+                        LocaleController.getString(ExteraConfig.updatePrereleaseChannel
+                                ? R.string.BananaRcChannel : R.string.BananaStableChannel),
+                        R.drawable.msg_customize, true);
+            });
+            linearLayout.addView(releaseChannel);
 
             TextCell checkOnLaunch = new TextCell(context);
             checkOnLaunch.setEnabled(true);
@@ -178,6 +188,17 @@ public class UpdaterBottomSheet extends BottomSheet {
                 checkOnLaunch.setChecked(!checkOnLaunch.getCheckBox().isChecked());
             });
             linearLayout.addView(checkOnLaunch);
+
+            TextCell autoDownload = new TextCell(context);
+            autoDownload.setEnabled(true);
+            autoDownload.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 100, 0));
+            autoDownload.setTextAndCheckAndIcon(LocaleController.getString(R.string.BananaAutoDownloadUpdates), ExteraConfig.autoDownloadUpdates, R.drawable.msg_download, true);
+            autoDownload.setOnClickListener(v -> {
+                ExteraConfig.autoDownloadUpdates = !ExteraConfig.autoDownloadUpdates;
+                ExteraConfig.editor.putBoolean("autoDownloadUpdates", ExteraConfig.autoDownloadUpdates).apply();
+                autoDownload.setChecked(ExteraConfig.autoDownloadUpdates);
+            });
+            linearLayout.addView(autoDownload);
 
             TextCell clearUpdates = new TextCell(context);
             clearUpdates.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 100, 0));
@@ -213,7 +234,10 @@ public class UpdaterBottomSheet extends BottomSheet {
                     timeView.setText(LocaleController.getString("LastCheck", R.string.LastCheck) + ": " + LocaleController.formatDateTime(ExteraConfig.lastUpdateCheckTime / 1000, true));
                     checkUpdates.setText(LocaleController.getString("CheckForUpdates", R.string.CheckForUpdates));
                     BulletinFactory.of(getContainer(), null).createErrorBulletin(LocaleController.getString("NoUpdates", R.string.NoUpdates)).show();
-                }, this::dismiss);
+                }, this::dismiss, () -> {
+                    checkUpdates.setText(LocaleController.getString("CheckForUpdates", R.string.CheckForUpdates));
+                    BulletinFactory.of(getContainer(), null).createErrorBulletin(LocaleController.getString(R.string.ErrorOccurred)).show();
+                });
             });
             checkUpdatesBackground.addView(checkUpdates, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER));
         }

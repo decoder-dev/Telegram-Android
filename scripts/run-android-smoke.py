@@ -27,7 +27,7 @@ def run(*command, timeout=180):
     return result.stdout
 
 
-apks = root / 'TMessagesProj_AppStandalone/build/intermediates/apk'
+apks = root / 'TMessagesProj_AppStandalone/build/outputs/apk'
 run('install', '-t', '-r', str(apks / 'afat/debug/app.apk'))
 run('install', '-t', '-r', str(apks / 'androidTest/afat/debug/TMessagesProj_AppStandalone-afat-debug-androidTest.apk'))
 run('shell', 'rm', '-rf', '/sdcard/Android/data/org.telegram.messenger.web/files/banana-smoke')
