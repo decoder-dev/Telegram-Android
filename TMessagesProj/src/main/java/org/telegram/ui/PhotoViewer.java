@@ -14362,6 +14362,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 allowCaption = cropItem.getVisibility() == View.VISIBLE;
             }
             needCaptionLayout = allowCaption && (placeProvider == null || placeProvider.allowCaption());
+            if (parentChatActivity != null) {
+                captionEdit.setChatInfo(parentChatActivity.chatInfo);
+                topCaptionEdit.setChatInfo(parentChatActivity.chatInfo);
+            }
             if (parentChatActivity != null && captionEdit.mentionContainer != null) {
                 captionEdit.mentionContainer.getAdapter().setChatInfo(parentChatActivity.chatInfo);
                 captionEdit.mentionContainer.getAdapter().setNeedUsernames(parentChatActivity.currentChat != null);
@@ -14630,6 +14634,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             } else {
                 bottomLayout.setVisibility(View.GONE);
                 bottomLayout.setTag(null);
+                setVideoPlayerControlVisible(false, animated);
             }
             if (isInvoice) {
                 setItemVisible(masksItem, false, animated);
@@ -17008,12 +17013,12 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     }
                 } else if (avatarsDialogId != 0) {
                     if (avatarsDialogId > 0) {
-                        parentObject = MessagesController.getInstance(currentAccount).getUser(avatarsDialogId);
+                        parentObject = "avatar_" + avatarsDialogId;
                     } else {
                         parentObject = MessagesController.getInstance(currentAccount).getChat(-avatarsDialogId);
-                    }
-                    if (photoObject != null) {
-                        parentObject = photoObject;
+                        if (photoObject != null) {
+                            parentObject = photoObject;
+                        }
                     }
                     if (placeHolder == null && thumbLocation instanceof TLRPC.TL_photoStrippedSize) {
                         placeHolder = new ImageReceiver.BitmapHolder(ImageLoader.getStrippedPhotoBitmap(thumbLocation.bytes, "b"));
