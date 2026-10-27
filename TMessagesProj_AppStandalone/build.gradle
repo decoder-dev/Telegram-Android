@@ -59,10 +59,14 @@ android {
         }
 
         release {
-            storeFile file("../TMessagesProj/config/release.keystore")
-            storePassword RELEASE_STORE_PASSWORD
-            keyAlias RELEASE_KEY_ALIAS
-            keyPassword RELEASE_KEY_PASSWORD
+            def releaseKeystore = System.getenv("BANANAGRAM_RELEASE_KEYSTORE")
+            storeFile file(releaseKeystore ?: "../TMessagesProj/config/release.keystore")
+            if (releaseKeystore) {
+                storeType "pkcs12"
+            }
+            storePassword System.getenv("BANANAGRAM_RELEASE_STORE_PASSWORD") ?: RELEASE_STORE_PASSWORD
+            keyAlias System.getenv("BANANAGRAM_RELEASE_KEY_ALIAS") ?: RELEASE_KEY_ALIAS
+            keyPassword System.getenv("BANANAGRAM_RELEASE_KEY_PASSWORD") ?: RELEASE_KEY_PASSWORD
         }
     }
 
@@ -163,6 +167,24 @@ android {
 
     lintOptions {
         checkReleaseBuilds false
+    }
+}
+
+def verifyBananaReleaseSigning = tasks.register("verifyBananaReleaseSigning") {
+    doLast {
+        def keystore = System.getenv("BANANAGRAM_RELEASE_KEYSTORE")
+        def storePassword = System.getenv("BANANAGRAM_RELEASE_STORE_PASSWORD")
+        def alias = System.getenv("BANANAGRAM_RELEASE_KEY_ALIAS")
+        def keyPassword = System.getenv("BANANAGRAM_RELEASE_KEY_PASSWORD")
+        if (!keystore || !storePassword || !alias || !keyPassword || !file(keystore).isFile()) {
+            throw new GradleException("Set the BananaGram release signing environment before building a distributable APK")
+        }
+    }
+}
+
+tasks.configureEach { task ->
+    if ((task.name.startsWith("validateSigning") || task.name.startsWith("package")) && task.name.endsWith("Standalone")) {
+        task.dependsOn(verifyBananaReleaseSigning)
     }
 }
 
