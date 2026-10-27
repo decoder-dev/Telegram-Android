@@ -383,7 +383,13 @@
     <string name="BananaThemeClassicBlack">Classic Black</string>
     <string name="BananaArchivePasswordSection">ПАРОЛЬ</string>
     <string name="BananaArchiveLock">Блокировать архив и «Избранное»</string>
-    <string name="BananaArchiveFooter">Архив и «Избранное» скрыты. Нажмите «Настройки» 10 раз, чтобы показать вход, затем введите пароль или используйте биометрию. При сворачивании приложения доступ закрывается. Архивированные чаты остаются без звука.</string>
+    <string name="BananaArchiveFooter">Архив и «Избранное» скрыты, пока вы не нажмёте «Настройки» 10 раз. Открытая строка показывает только название, пока вы не введёте пароль. Для входа нужен пароль или биометрия. Выход из архива или из приложения снова закрывает доступ. Архивированные чаты остаются без звука.</string>
+    <string name="BananaVisualLabel">Визуальная метка (только у вас)</string>
+    <string name="BananaVisualLabelNone">Без метки</string>
+    <string name="BananaVisualLabelScam">SCAM</string>
+    <string name="BananaVisualLabelFake">FAKE</string>
+    <string name="BananaVisualLabelSupport">SUPPORT</string>
+    <string name="BananaVisualLabelBot">BOT</string>
     <string name="BananaArchiveLockNow">Заблокировать сейчас</string>
     <string name="BananaArchiveChangePassword">Изменить пароль</string>
     <string name="BananaArchiveUseBiometrics">Разблокировать биометрией</string>

@@ -8,7 +8,9 @@
 
 package org.telegram.ui.Cells;
 
+import org.telegram.messenger.banana.BananaVisualLabels;
 import org.telegram.ui.Components.BulletinFactory;
+import org.telegram.ui.Components.ScamDrawable;
 
 import android.app.Activity;
 import android.content.Context;
@@ -696,6 +698,14 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
 
         drawPremium = false;//user.premium;
         nameTextView.setText(text);
+        String bananaBadge = user.scam || user.fake ? null : BananaVisualLabels.badgeText(account);
+        if (bananaBadge != null) {
+            ScamDrawable badge = new ScamDrawable(11, bananaBadge);
+            badge.setColor(Theme.getColor(Theme.key_chats_menuName));
+            nameTextView.setRightDrawable2(badge);
+        } else {
+            nameTextView.setRightDrawable2(null);
+        }
         statusGiftId = null;
         Long emojiStatusId = UserObject.getEmojiStatusDocumentId(user);
         if (emojiStatusId != null) {

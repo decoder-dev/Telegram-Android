@@ -1113,7 +1113,27 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         invalidate();
     }
 
+    private void redactLockedArchivePreview(TLRPC.Dialog dialog) {
+        if (dialog == null) {
+            return;
+        }
+        int folder = dialog instanceof TLRPC.TL_dialogFolder ? ((TLRPC.TL_dialogFolder) dialog).folder.id : 0;
+        if (!org.telegram.messenger.banana.BananaArchiveLock.redactsPreview(currentAccount, dialog.id, folder)) {
+            return;
+        }
+        message = null;
+        groupMessages = null;
+        unreadCount = 0;
+        mentionCount = 0;
+        reactionMentionCount = 0;
+        pollVotesMentionCount = 0;
+        markUnread = false;
+    }
+
     private CharSequence formatArchivedDialogNames() {
+        if (org.telegram.messenger.banana.BananaArchiveLock.redactsPreview(currentAccount, currentDialogId, currentDialogFolderId)) {
+            return "";
+        }
         final MessagesController messagesController = MessagesController.getInstance(currentAccount);
         ArrayList<TLRPC.Dialog> dialogs = messagesController.getDialogs(currentDialogFolderId);
         currentDialogFolderDialogsCount = dialogs.size();
@@ -3335,6 +3355,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             mentionCount = 0;
                         }
                         markUnread = dialog.unread_mark;
+                        redactLockedArchivePreview(dialog);
                         currentEditDate = message != null ? message.messageOwner.edit_date : 0;
                         lastMessageDate = dialog.last_message_date;
                         if (dialogsType == 7 || dialogsType == 8) {
@@ -3519,6 +3540,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                             unreadCount = newCount;
                             mentionCount = newMentionCount;
                             markUnread = dialog.unread_mark;
+                            redactLockedArchivePreview(dialog);
                             reactionMentionCount = newReactionCout;
                             pollVotesMentionCount = newPollVotesCount;
                             continueUpdate = true;

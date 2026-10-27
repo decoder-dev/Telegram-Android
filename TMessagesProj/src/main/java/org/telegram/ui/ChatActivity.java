@@ -3538,8 +3538,13 @@ public class ChatActivity extends BaseFragment implements
 
     @Override
     public void onFragmentDestroy() {
+        org.telegram.ui.ActionBar.INavigationLayout bananaLayout = parentLayout;
+        long bananaDialog = dialog_id;
         org.telegram.messenger.banana.MessageFilters.removeListener(currentAccount, bananaFiltersChanged);
         super.onFragmentDestroy();
+        if (bananaDialog != 0 && org.telegram.messenger.banana.BananaArchiveLock.isProtected(currentAccount, bananaDialog)) {
+            org.telegram.messenger.banana.BananaArchiveLock.noteSurfaceClosed(currentAccount, bananaLayout, this);
+        }
         if (messageMetricsView != null) {
             messageMetricsView.finish();
         }

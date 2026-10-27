@@ -11646,7 +11646,13 @@
     <string name="BananaThemeClassicBlack">Classic Black</string>
     <string name="BananaArchivePasswordSection">PASSWORD</string>
     <string name="BananaArchiveLock">Lock Archive and Saved Messages</string>
-    <string name="BananaArchiveFooter">Archive and Saved Messages are hidden. Tap Settings 10 times to reveal access, then enter the password or use biometrics. Access closes when leaving the app. Archived chats stay muted.</string>
+    <string name="BananaArchiveFooter">Archive and Saved Messages stay hidden until you tap Settings 10 times. The revealed row shows only the title until you unlock. Opening them needs the password or biometrics. Leaving the Archive or leaving the app locks them again. Archived chats stay muted.</string>
+    <string name="BananaVisualLabel">Visual label (only visible to you)</string>
+    <string name="BananaVisualLabelNone">None</string>
+    <string name="BananaVisualLabelScam">SCAM</string>
+    <string name="BananaVisualLabelFake">FAKE</string>
+    <string name="BananaVisualLabelSupport">SUPPORT</string>
+    <string name="BananaVisualLabelBot">BOT</string>
     <string name="BananaArchiveLockNow">Lock Now</string>
     <string name="BananaArchiveChangePassword">Change Password</string>
     <string name="BananaArchiveUseBiometrics">Unlock with biometrics</string>

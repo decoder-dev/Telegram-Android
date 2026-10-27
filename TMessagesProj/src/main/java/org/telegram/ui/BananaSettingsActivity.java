@@ -118,9 +118,10 @@ public final class BananaSettingsActivity extends UniversalFragment {
 
     private CharSequence[] themeLabels() {
         return new CharSequence[]{
-                LocaleController.getString(R.string.BananaThemeSystem),
+                LocaleController.getString(R.string.BananaThemeClassicWhite),
                 LocaleController.getString(R.string.BananaThemeCream),
-                LocaleController.getString(R.string.BananaThemeGraphite)
+                LocaleController.getString(R.string.BananaThemeGraphite),
+                LocaleController.getString(R.string.BananaThemeClassicBlack)
         };
     }
 

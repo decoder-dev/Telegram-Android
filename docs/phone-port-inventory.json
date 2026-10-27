@@ -349,8 +349,8 @@
     {
       "setting": "regexMessageFilterPatterns",
       "type": "[String]",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_behavior_wired",
+      "android": "Per-dialog patterns in FilterStore and BananaFilterEditActivity. iOS stores one account string list; Android applies the same filter engine per chat."
     },
     {
       "setting": "ghostScheduleMessages",
@@ -529,8 +529,8 @@
     {
       "setting": "visualLabels",
       "type": "[Int64: Int32]",
-      "status": "pending",
-      "android": "BananaConfig UI pending (non-boolean control)"
+      "status": "implemented_behavior_wired",
+      "android": "BananaVisualLabels for the signed-in peer. Extras Profile picker. Drawn on own profile and drawer. Server scam and fake flags win."
     },
     {
       "setting": "hideStickerReplyEmoji",

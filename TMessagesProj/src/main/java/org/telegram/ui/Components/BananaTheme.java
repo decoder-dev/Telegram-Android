@@ -20,36 +20,41 @@ public final class BananaTheme {
     public static final String THEME_CREAM = "Banana Cream";
     public static final String THEME_GRAPHITE = "Banana Graphite";
 
-    /** Warm cream day palette (CSS-like tokens). */
+    /** Warm cream day palette. Hex values match iOS makeBananaGramTheme. */
     public static final class Cream {
-        public static final int accent = 0xFFE0A800;
-        public static final int accentDark = 0xFFC48E00;
-        public static final int background = 0xFFF7F1E3;
-        public static final int surface = 0xFFFFFBF3;
-        public static final int bubbleOut = 0xFFF3D56B;
-        public static final int bubbleIn = 0xFFFFFFFF;
-        public static final int text = 0xFF2A2418;
-        public static final int textSecondary = 0xFF7A6F5C;
-        public static final int previewBg = 0xFFEFE6D5;
+        public static final int accent = 0xFF8A5F1E;
+        public static final int accentDark = 0xFF85591A;
+        public static final int background = 0xFFF6F0E3;
+        public static final int surface = 0xFFFFFAF2;
+        public static final int bubbleOut = 0xFFFCF2DC;
+        public static final int bubbleIn = 0xFFFFFDF8;
+        public static final int text = 0xFF3A3430;
+        public static final int textSecondary = 0xFF6A655D;
+        public static final int previewBg = 0xFFF1E8D6;
     }
 
-    /** Charcoal night palette with banana gold accent. */
+    /** Warm graphite night palette. Hex values match iOS makeBananaGramTheme. */
     public static final class Graphite {
-        public static final int accent = 0xFFE0A800;
-        public static final int accentDark = 0xFFB88900;
-        public static final int background = 0xFF1C1E22;
-        public static final int surface = 0xFF2A2D33;
-        public static final int bubbleOut = 0xFF4A3F1F;
-        public static final int bubbleIn = 0xFF32363D;
-        public static final int text = 0xFFF2EFE6;
-        public static final int textSecondary = 0xFFA39B8C;
-        public static final int previewBg = 0xFF2F333A;
+        public static final int accent = 0xFFEBD58F;
+        public static final int accentDark = 0xFFEBD58F;
+        public static final int background = 0xFF1D1C1A;
+        public static final int surface = 0xFF272522;
+        public static final int bubbleOut = 0xFF5E5236;
+        public static final int bubbleIn = 0xFF312F2B;
+        public static final int text = 0xFFEFEBE0;
+        public static final int textSecondary = 0xFFB5B0A4;
+        public static final int previewBg = 0xFF36332E;
     }
 
+    /**
+     * Stored ordinals stay compatible: 0 was System and now selects Classic White,
+     * 1 Cream, 2 Graphite, 3 Classic Black.
+     */
     public enum Palette {
-        SYSTEM,
+        CLASSIC_WHITE,
         CREAM,
-        GRAPHITE
+        GRAPHITE,
+        CLASSIC_BLACK
     }
 
     /** Keep native theme colors, adjusting secondary text only when its contrast is too low. */
@@ -71,13 +76,11 @@ public final class BananaTheme {
 
     public static Palette selectedPalette() {
         int value = BananaConfig.getThemePalette(UserConfig.selectedAccount);
-        if (value == Palette.CREAM.ordinal()) {
-            return Palette.CREAM;
+        Palette[] values = Palette.values();
+        if (value < 0 || value >= values.length) {
+            return Palette.CLASSIC_WHITE;
         }
-        if (value == Palette.GRAPHITE.ordinal()) {
-            return Palette.GRAPHITE;
-        }
-        return Palette.SYSTEM;
+        return values[value];
     }
 
     public static void setPalette(int account, Palette palette) {
@@ -86,30 +89,38 @@ public final class BananaTheme {
     }
 
     public static void applyThemeInfo(Palette palette) {
+        if (Theme.selectedAutoNightType == Theme.AUTO_NIGHT_TYPE_SCHEDULED) {
+            Theme.selectedAutoNightType = Theme.AUTO_NIGHT_TYPE_NONE;
+            Theme.saveAutoNightThemeConfig();
+        }
         Theme.ThemeInfo info;
-        boolean night;
+        boolean dark;
         if (palette == Palette.CREAM) {
             info = Theme.getTheme(THEME_CREAM);
-            night = false;
+            dark = false;
         } else if (palette == Palette.GRAPHITE) {
             info = Theme.getTheme(THEME_GRAPHITE);
-            night = true;
+            dark = true;
+        } else if (palette == Palette.CLASSIC_BLACK) {
+            info = Theme.getTheme("Classic Black");
+            dark = true;
         } else {
-            return;
+            info = Theme.getTheme("Classic White");
+            dark = false;
         }
         if (info == null) {
             return;
         }
-        if (night) {
+        if (dark) {
             Theme.setCurrentNightTheme(info);
         }
         NotificationCenter.getGlobalInstance().postNotificationName(
-                NotificationCenter.needSetDayNightTheme, info, night, null, -1);
+                NotificationCenter.needSetDayNightTheme, info, false, null, -1);
     }
 
     /** Sparse overrides used when a Banana palette is active for chat accents. */
     public static void putBubbleOverrides(SparseIntArray into, Palette palette) {
-        if (into == null || palette == Palette.SYSTEM) {
+        if (into == null || palette == Palette.CLASSIC_WHITE || palette == Palette.CLASSIC_BLACK) {
             return;
         }
         if (palette == Palette.CREAM) {

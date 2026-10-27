@@ -18,6 +18,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
@@ -27,20 +28,27 @@ import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.ActionBar.INavigationLayout;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.DialogsActivity;
+import org.telegram.ui.LaunchActivity;
+import org.telegram.ui.ProfileActivity;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -66,6 +74,10 @@ public final class BananaArchiveLock {
     private static final int[] taps = new int[ACCOUNTS];
     private static final long[] lastTap = new long[ACCOUNTS];
     private static int biometricDepth;
+    private static boolean promptOpen;
+    private static boolean closingSurfaces;
+    /** Keeps the recents snapshot blank after a background relock, until the next resume. */
+    private static boolean secureLatch;
 
     private BananaArchiveLock() {}
 
@@ -79,6 +91,32 @@ public final class BananaArchiveLock {
 
     public static boolean isBiometricsEnabled(int account) {
         return state(account).biometrics && isConfigured(account);
+    }
+
+    /**
+     * Revealing the folder does not unlock it. While the password is set and the session
+     * is locked, Archive and Saved Messages stay title-only: no peer names, previews, or badges.
+     */
+    public static boolean redactsPreview(int account, long dialogId, int folderId) {
+        if (!isConfigured(account) || isSessionOpen(account)) {
+            return false;
+        }
+        if (folderId == 1 || dialogId == DialogObject.makeFolderDialogId(1)) {
+            return true;
+        }
+        return isProtectedDialog(account, dialogId);
+    }
+
+    /** Blank the recents snapshot while Archive contents are on screen, including across onPause. */
+    public static boolean shouldSecureWindow(int account) {
+        if (secureLatch) {
+            return anyConfigured();
+        }
+        return isConfigured(account) && isSessionOpen(account);
+    }
+
+    public static boolean isProtected(int account, long dialogId) {
+        return isProtectedDialog(account, dialogId);
     }
 
     /** Hide Archive and Saved Messages rows until the ten-tap reveal or an unlock. */
@@ -188,10 +226,17 @@ public final class BananaArchiveLock {
         if (biometricDepth > 0) {
             return;
         }
+        if (anySessionOpen()) {
+            secureLatch = true;
+        }
+        closeOpenSurfaces();
         relockAll();
+        notifySecureChanged();
     }
 
     public static void onHostResume() {
+        secureLatch = false;
+        notifySecureChanged();
     }
 
     public static void lockNow(int account) {
@@ -201,11 +246,43 @@ public final class BananaArchiveLock {
         unlocked[account] = false;
         revealed[account] = false;
         taps[account] = 0;
+        closeOpenSurfaces();
         NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.dialogsNeedReload);
+        notifySecureChanged();
         try {
             NotificationsController.getInstance(account).showNotifications();
         } catch (Throwable ignore) {
         }
+    }
+
+    /**
+     * Relock when the last Archive folder, archived chat, Saved Messages, or archived profile leaves the stack.
+     * Opening a chat from inside the Archive does not relock until that folder is gone too.
+     */
+    public static void noteSurfaceClosed(int account, INavigationLayout layout, BaseFragment leaving) {
+        if (closingSurfaces || !isConfigured(account) || !isSessionOpen(account)) {
+            return;
+        }
+        if (layout != null) {
+            List<BaseFragment> stack;
+            try {
+                stack = layout.getFragmentStack();
+            } catch (Throwable t) {
+                stack = null;
+            }
+            if (stack != null) {
+                for (int i = 0; i < stack.size(); i++) {
+                    BaseFragment fragment = stack.get(i);
+                    if (fragment == null || fragment == leaving) {
+                        continue;
+                    }
+                    if (isProtectedSurface(fragment)) {
+                        return;
+                    }
+                }
+            }
+        }
+        lockNow(account);
     }
 
     public static void promptUnlock(BaseFragment fragment, Runnable onSuccess) {
@@ -248,11 +325,9 @@ public final class BananaArchiveLock {
                             return;
                         }
                         muteArchived(account);
-                        try {
-                            NotificationsController.getInstance(account).showNotifications();
-                        } catch (Throwable ignore) {
-                        }
-                        NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.dialogsNeedReload);
+                        alignKeepArchived(account);
+                        clearProtectedNotifications(account);
+                        unlock(account, null);
                         if (onDone != null) {
                             onDone.run();
                         }
@@ -395,6 +470,16 @@ public final class BananaArchiveLock {
         if (fragment == null || fragment.getParentActivity() == null) {
             return;
         }
+        if (promptOpen) {
+            return;
+        }
+        promptOpen = true;
+        PasswordCallback wrapped = password -> {
+            promptOpen = false;
+            if (callback != null) {
+                callback.onResult(password);
+            }
+        };
         EditTextBoldCursor field = new EditTextBoldCursor(fragment.getParentActivity());
         field.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 18);
         field.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
@@ -410,17 +495,18 @@ public final class BananaArchiveLock {
         builder.setTitle(title);
         builder.setMessage(message);
         builder.setView(box);
-        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dialog, which) -> callback.onResult(null));
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dialog, which) -> wrapped.onResult(null));
         builder.setPositiveButton(positive, (dialog, which) -> {
             String value = field.getText() == null ? "" : field.getText().toString().trim();
             if (value.isEmpty() || value.length() > 128) {
-                callback.onResult(null);
+                wrapped.onResult(null);
                 showMessage(fragment, LocaleController.getString(R.string.BananaArchiveMismatch));
                 return;
             }
-            callback.onResult(value);
+            wrapped.onResult(value);
         });
         AlertDialog dialog = builder.create();
+        dialog.setOnDismissListener(d -> promptOpen = false);
         fragment.showDialog(dialog);
         AndroidUtilities.runOnUIThread(() -> {
             field.requestFocus();
@@ -444,6 +530,7 @@ public final class BananaArchiveLock {
             revealed[account] = true;
         }
         NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.dialogsNeedReload);
+        notifySecureChanged();
         if (onSuccess != null) {
             onSuccess.run();
         }
@@ -568,6 +655,7 @@ public final class BananaArchiveLock {
                 finished = true;
                 biometricDepth = Math.max(0, biometricDepth - 1);
                 if (success) {
+                    clearFailures(fragment.getCurrentAccount());
                     if (onSuccess != null) {
                         onSuccess.run();
                     }
@@ -818,5 +906,134 @@ public final class BananaArchiveLock {
             return 0;
         }
         return (long) Math.ceil(left);
+    }
+
+    private static boolean anyConfigured() {
+        for (int account = 0; account < ACCOUNTS; account++) {
+            if (isConfigured(account)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean anySessionOpen() {
+        for (int account = 0; account < ACCOUNTS; account++) {
+            if (unlocked[account]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isProtectedSurface(BaseFragment fragment) {
+        if (fragment == null) {
+            return false;
+        }
+        int account = fragment.getCurrentAccount();
+        if (!isConfigured(account)) {
+            return false;
+        }
+        if (fragment instanceof DialogsActivity) {
+            return ((DialogsActivity) fragment).isArchiveFolder();
+        }
+        if (fragment instanceof ChatActivity) {
+            return isProtectedDialog(account, ((ChatActivity) fragment).getDialogId());
+        }
+        if (fragment instanceof ProfileActivity) {
+            long id = ((ProfileActivity) fragment).getArchiveGateId();
+            return id != 0 && isProtectedDialog(account, id);
+        }
+        return false;
+    }
+
+    private static void closeOpenSurfaces() {
+        if (closingSurfaces) {
+            return;
+        }
+        LaunchActivity activity = LaunchActivity.instance;
+        if (activity == null) {
+            return;
+        }
+        closingSurfaces = true;
+        try {
+            closeLayout(activity.actionBarLayout);
+            closeLayout(activity.rightActionBarLayout);
+        } catch (Throwable t) {
+            FileLog.e(t);
+        } finally {
+            closingSurfaces = false;
+        }
+    }
+
+    private static void closeLayout(INavigationLayout layout) {
+        if (layout == null) {
+            return;
+        }
+        ArrayList<BaseFragment> stack;
+        try {
+            stack = new ArrayList<>(layout.getFragmentStack());
+        } catch (Throwable t) {
+            return;
+        }
+        for (int i = stack.size() - 1; i >= 1; i--) {
+            BaseFragment fragment = stack.get(i);
+            if (!isProtectedSurface(fragment)) {
+                continue;
+            }
+            try {
+                layout.removeFragmentFromStack(fragment, true);
+            } catch (Throwable t) {
+                FileLog.e(t);
+            }
+        }
+    }
+
+    private static void notifySecureChanged() {
+        try {
+            LaunchActivity activity = LaunchActivity.instance;
+            if (activity != null) {
+                activity.invalidateArchiveSecure();
+            }
+        } catch (Throwable ignore) {
+        }
+    }
+
+    private static void alignKeepArchived(int account) {
+        try {
+            TLRPC.GlobalPrivacySettings settings = ContactsController.getInstance(account).getGlobalPrivacySettings();
+            if (settings == null || settings.keep_archived_unmuted) {
+                return;
+            }
+            settings.keep_archived_unmuted = true;
+            TL_account.setGlobalPrivacySettings req = new TL_account.setGlobalPrivacySettings();
+            req.settings = settings;
+            ConnectionsManager.getInstance(account).sendRequest(req, (response, error) -> { });
+        } catch (Throwable t) {
+            FileLog.e(t);
+        }
+    }
+
+    private static void clearProtectedNotifications(int account) {
+        try {
+            NotificationsController controller = NotificationsController.getInstance(account);
+            long self = selfId(account);
+            if (self != 0) {
+                controller.removeNotificationsForDialog(self);
+            }
+            ArrayList<TLRPC.Dialog> archived = MessagesController.getInstance(account).getDialogs(1);
+            if (archived == null) {
+                return;
+            }
+            for (int i = 0; i < archived.size(); i++) {
+                TLRPC.Dialog dialog = archived.get(i);
+                if (dialog == null || DialogObject.isFolderDialogId(dialog.id)) {
+                    continue;
+                }
+                controller.removeNotificationsForDialog(dialog.id);
+            }
+        } catch (Throwable t) {
+            FileLog.e(t);
+        }
     }
 }

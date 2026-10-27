@@ -90,6 +90,9 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
             }
             ItemInner item = items.get(position);
             if (item.id == 1) {
+                if (BananaArchiveLock.isConfigured(currentAccount)) {
+                    return;
+                }
                 settings.keep_archived_unmuted = !settings.keep_archived_unmuted;
                 ((TextCheckCell) view).setChecked(settings.keep_archived_unmuted);
                 changed = true;
@@ -168,7 +171,9 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
         if (BananaArchiveLock.isConfigured(currentAccount)) {
             items.add(new ItemInner(VIEW_TYPE_CHECK, 11, LocaleController.getString(R.string.BananaArchiveUseBiometrics)));
             items.add(new ItemInner(VIEW_TYPE_TEXT, 12, LocaleController.getString(R.string.BananaArchiveChangePassword)));
-            items.add(new ItemInner(VIEW_TYPE_TEXT, 13, LocaleController.getString(R.string.BananaArchiveLockNow)));
+            if (BananaArchiveLock.isSessionOpen(currentAccount)) {
+                items.add(new ItemInner(VIEW_TYPE_TEXT, 13, LocaleController.getString(R.string.BananaArchiveLockNow)));
+            }
         }
         items.add(new ItemInner(VIEW_TYPE_SHADOW, 14, LocaleController.getString(R.string.BananaArchiveFooter)));
 
@@ -244,8 +249,9 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
                 TextCheckCell cell = (TextCheckCell) holder.itemView;
                 boolean checked;
                 if (item.id == 1) {
-                    checked = settings.keep_archived_unmuted;
+                    checked = BananaArchiveLock.isConfigured(currentAccount) || settings.keep_archived_unmuted;
                     cell.setCheckBoxIcon(0);
+                    cell.setEnabled(!BananaArchiveLock.isConfigured(currentAccount));
                 } else if (item.id == 4) {
                     checked = settings.keep_archived_folders;
                     cell.setCheckBoxIcon(0);
