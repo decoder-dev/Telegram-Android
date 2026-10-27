@@ -149,13 +149,7 @@ public class AyuConfig {
         if (!AyuConfig.saveDeletedMessages && !banana) {
             return false;
         }
-
-        var user = MessagesController.getInstance(accountId).getUser(Math.abs(dialogId));
-        if (user == null) {
-            return true;
-        }
-
-        return !user.bot || AyuConfig.saveForBots;
+        return saveForDialog(accountId, dialogId);
     }
 
     public static boolean saveEditedMessageFor(int accountId, long dialogId) {
@@ -163,12 +157,21 @@ public class AyuConfig {
         if (!AyuConfig.saveMessagesHistory && !banana) {
             return false;
         }
+        return saveForDialog(accountId, dialogId);
+    }
 
-        var user = MessagesController.getInstance(accountId).getUser(Math.abs(dialogId));
+    /**
+     * Bot exclusion applies only to private chats. {@code Math.abs} on a group or channel id
+     * can collide with a cached user and skip retention for that whole chat.
+     */
+    private static boolean saveForDialog(int accountId, long dialogId) {
+        if (!DialogObject.isUserDialog(dialogId)) {
+            return true;
+        }
+        org.telegram.tgnet.TLRPC.User user = MessagesController.getInstance(accountId).getUser(dialogId);
         if (user == null) {
             return true;
         }
-
         return !user.bot || AyuConfig.saveForBots;
     }
 

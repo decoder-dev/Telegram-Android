@@ -106,7 +106,7 @@ public final class VlessProfile {
             throw error("fp");
         }
         String sid = param(uri, "sid", "");
-        if (!sid.isEmpty() && !sid.matches("(?i)[0-9a-f]{0,16}") || (sid.length() % 2) != 0) {
+        if (!sid.isEmpty() && (!sid.matches("(?i)[0-9a-f]{1,16}") || (sid.length() % 2) != 0)) {
             throw error("sid");
         }
         String alpn = param(uri, "alpn", "");
@@ -127,9 +127,13 @@ public final class VlessProfile {
     }
 
     public static String errorText(IllegalArgumentException error) {
-        boolean ru = LocaleController.getInstance().getCurrentLocale() != null
-                && "ru".equals(LocaleController.getInstance().getCurrentLocale().getLanguage());
-        String code = error.getMessage() == null ? "" : error.getMessage();
+        boolean ru = false;
+        try {
+            ru = LocaleController.getInstance().getCurrentLocale() != null
+                    && "ru".equals(LocaleController.getInstance().getCurrentLocale().getLanguage());
+        } catch (Throwable ignore) {
+        }
+        String code = error == null || error.getMessage() == null ? "" : error.getMessage();
         switch (code) {
             case "tooLong":
                 return ru ? "Ссылка длиннее 8192 байт." : "The link exceeds 8192 bytes.";

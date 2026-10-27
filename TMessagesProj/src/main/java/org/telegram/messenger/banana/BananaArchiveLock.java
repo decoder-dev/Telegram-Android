@@ -507,7 +507,13 @@ public final class BananaArchiveLock {
         });
         AlertDialog dialog = builder.create();
         dialog.setOnDismissListener(d -> promptOpen = false);
-        fragment.showDialog(dialog);
+        try {
+            fragment.showDialog(dialog);
+        } catch (Throwable t) {
+            promptOpen = false;
+            FileLog.e(t);
+            return;
+        }
         AndroidUtilities.runOnUIThread(() -> {
             field.requestFocus();
             AndroidUtilities.showKeyboard(field);
@@ -597,6 +603,12 @@ public final class BananaArchiveLock {
     }
 
     private static void authenticateBiometric(BaseFragment fragment, Runnable onSuccess, Runnable onFallback) {
+        if (!(fragment.getParentActivity() instanceof FragmentActivity)) {
+            if (onFallback != null) {
+                onFallback.run();
+            }
+            return;
+        }
         FragmentActivity activity = (FragmentActivity) fragment.getParentActivity();
         if (activity == null) {
             if (onFallback != null) {

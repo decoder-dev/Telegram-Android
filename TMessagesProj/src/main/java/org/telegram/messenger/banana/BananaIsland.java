@@ -160,9 +160,9 @@ public final class BananaIsland {
             overlayChip.setVisibility(View.GONE);
         }
         if (overlayHost != null) {
-            ViewGroup parent = (ViewGroup) overlayHost.getParent();
-            if (parent != null) {
-                parent.removeView(overlayHost);
+            android.view.ViewParent parent = overlayHost.getParent();
+            if (parent instanceof ViewGroup) {
+                ((ViewGroup) parent).removeView(overlayHost);
             }
         }
         overlayHost = null;
