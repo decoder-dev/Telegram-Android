@@ -110,7 +110,7 @@ jobs:
           DIAGNOSTIC_RUN: ${{ inputs.diagnostic_run }}
         run: |
           python3 - <<'PY'
-          import os, pathlib, re, subprocess
+          import os, pathlib, re, subprocess, json
           run = os.environ['DIAGNOSTIC_RUN']
           if not re.fullmatch(r'[0-9]+', run):
               raise SystemExit('Expected a numeric run ID from this repository')
@@ -183,12 +183,17 @@ jobs:
           DIAGNOSTIC_RUN: ${{ inputs.diagnostic_run }}
         run: |
           python3 - <<'PY_DOWNLOAD'
-          import os, pathlib, re, subprocess
+          import os, pathlib, re, subprocess, json
           run = os.environ['DIAGNOSTIC_RUN']
           assert re.fullmatch(r'[0-9]+', run)
           path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews'
-          result = subprocess.run(['gh', 'run', 'download', run, '--name', 'android-smoke-diagnostics-api33', '--dir', str(path)], capture_output=True)
-          if result.returncode: raise SystemExit('No completed API 33 screenshot artifact available')
+          metadata = subprocess.run(['gh', 'api', f'repos/{os.environ["GH_REPO"]}/actions/runs/{run}/artifacts?per_page=100'], capture_output=True, text=True, check=True)
+          available = {a['name'] for a in json.loads(metadata.stdout)['artifacts'] if not a['expired']}
+          name = next((f'android-smoke-diagnostics-api{api}' for api in (33, 36, 34, 35) if f'android-smoke-diagnostics-api{api}' in available), None)
+          assert name is not None, 'No completed screenshot artifact available'
+          result = subprocess.run(['gh', 'run', 'download', run, '--name', name, '--dir', str(path)], capture_output=True)
+          if result.returncode: raise SystemExit('Unable to retrieve the completed screenshot artifact')
+          print(f'::notice title=theme-preview-source::{name}')
           PY_DOWNLOAD
       - name: Read screenshot parts 1 to 10
         env:
