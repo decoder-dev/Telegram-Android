@@ -85,7 +85,7 @@ public final class BananaAutomaticProxy {
     private static long lastRefreshAt;
     private static long backgroundedAt;
     private static boolean refreshing;
-    private static int refreshGeneration;
+    private static volatile int refreshGeneration;
     private static boolean listenersInstalled;
     private static boolean pendingProbe;
     private static boolean failureDrivenSwitch;
@@ -168,7 +168,6 @@ public final class BananaAutomaticProxy {
             List<ProxySettings> pool = mergeRoundRobin(lists);
             AndroidUtilities.runOnUIThread(() -> {
                 if (generation != refreshGeneration) {
-                    refreshing = false;
                     return;
                 }
                 refreshing = false;
