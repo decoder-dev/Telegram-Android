@@ -183,8 +183,8 @@ jobs:
           run = os.environ['DIAGNOSTIC_RUN']
           assert re.fullmatch(r'[0-9]+', run)
           path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews'
-          result = subprocess.run(['gh', 'run', 'download', run, '--name', 'android-smoke-diagnostics-api36', '--dir', str(path)], capture_output=True)
-          if result.returncode: raise SystemExit('No completed API 36 screenshot artifact available')
+          result = subprocess.run(['gh', 'run', 'download', run, '--name', 'android-smoke-diagnostics-api33', '--dir', str(path)], capture_output=True)
+          if result.returncode: raise SystemExit('No completed API 33 screenshot artifact available')
           PY_DOWNLOAD
       - name: Read Banana Graphite screenshot
         env:
