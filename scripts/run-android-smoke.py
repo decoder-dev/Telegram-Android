@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run the unregistered-client smoke suite on an explicitly selected emulator."""
 import argparse
+import json
 from pathlib import Path
 import re
 import shutil
@@ -9,6 +10,8 @@ import subprocess
 parser = argparse.ArgumentParser()
 parser.add_argument('--serial', required=True)
 parser.add_argument('--voice-probe', action='store_true', help='Download the public English model and decode a public Opus fixture')
+parser.add_argument('--expected-api', type=int)
+parser.add_argument('--expected-page-size', type=int)
 parser.add_argument('--output-dir', type=Path, default=Path('build/banana-smoke'))
 args = parser.parse_args()
 if not re.fullmatch(r'emulator-\d+', args.serial):
@@ -26,6 +29,19 @@ def run(*command, timeout=180):
     if result.returncode:
         raise SystemExit(result.stdout)
     return result.stdout
+
+
+device = {
+    'api': int(run('shell', 'getprop', 'ro.build.version.sdk').strip()),
+    'page_size': int(run('shell', 'getconf', 'PAGE_SIZE').strip()),
+    'release': run('shell', 'getprop', 'ro.build.version.release').strip(),
+}
+(args.output_dir / 'device-info.json').write_text(json.dumps(device, indent=2) + '\n')
+if args.expected_api is not None and device['api'] != args.expected_api:
+    raise SystemExit(f'Wrong emulator API: {device}')
+if args.expected_page_size is not None and device['page_size'] != args.expected_page_size:
+    raise SystemExit(f'Wrong emulator page size: {device}')
+print(f'Verified emulator: {device}')
 
 
 build_dirs = [root / 'build']

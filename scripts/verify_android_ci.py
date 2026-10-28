@@ -6,7 +6,7 @@ import re
 import subprocess
 
 REQUIRED_JOBS = {'Android compilation and policy tests'} | {
-    f'Android {api} APK and UI checks' for api in (33, 34, 35, 36)
+    f'Android {api} APK and UI checks' for api in (33, 34, 35, 36, 37)
 }
 
 
@@ -45,7 +45,7 @@ def main():
         verify(run, jobs, args.repository, args.commit)
     except (ValueError, KeyError) as failure:
         raise SystemExit(str(failure))
-    print(f'Android 13–16 acceptance verified: run {args.run}, commit {args.commit}')
+    print(f'Android 13–17 acceptance verified: run {args.run}, commit {args.commit}')
 
 
 if __name__ == '__main__':

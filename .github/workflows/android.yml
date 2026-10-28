@@ -58,6 +58,10 @@ jobs:
       fail-fast: false
       matrix:
         api: [33, 34, 35, 36]
+        include:
+          - api: 37
+            sdk: '37.2'
+            image: google_apis_ps16k
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -81,13 +85,13 @@ jobs:
       - name: Check a fresh emulator without signing in
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
-          api-level: ${{ matrix.api }}
-          target: google_apis
+          api-level: ${{ matrix.sdk || matrix.api }}
+          target: ${{ matrix.image || 'google_apis' }}
           arch: x86_64
           profile: pixel_2
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: python3 scripts/run-android-smoke.py --serial emulator-5554 --voice-probe
+          script: python3 scripts/run-android-smoke.py --serial emulator-5554 --voice-probe --expected-api ${{ matrix.api }} --expected-page-size ${{ matrix.api == 37 && 16384 || 4096 }}
       - name: Save test logs and unsigned-client screenshots
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -189,7 +193,7 @@ jobs:
           path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews'
           metadata = subprocess.run(['gh', 'api', f'repos/{os.environ["GH_REPO"]}/actions/runs/{run}/artifacts?per_page=100'], capture_output=True, text=True, check=True)
           available = {a['name'] for a in json.loads(metadata.stdout)['artifacts'] if not a['expired']}
-          name = next((f'android-smoke-diagnostics-api{api}' for api in (33, 36, 34, 35) if f'android-smoke-diagnostics-api{api}' in available), None)
+          name = next((f'android-smoke-diagnostics-api{api}' for api in (33, 37, 36, 34, 35) if f'android-smoke-diagnostics-api{api}' in available), None)
           assert name is not None, 'No completed screenshot artifact available'
           result = subprocess.run(['gh', 'run', 'download', run, '--name', name, '--dir', str(path)], capture_output=True)
           if result.returncode: raise SystemExit('Unable to retrieve the completed screenshot artifact')
