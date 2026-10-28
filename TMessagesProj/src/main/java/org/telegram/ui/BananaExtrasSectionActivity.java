@@ -14,6 +14,7 @@ import org.telegram.messenger.banana.BananaVisualLabels;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.BananaSwitchCell;
+import org.telegram.ui.Cells.BananaValueCell;
 import org.telegram.ui.Components.BananaTheme;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
@@ -51,7 +52,9 @@ public final class BananaExtrasSectionActivity extends UniversalFragment {
                     BananaConfig.get(currentAccount, option)));
         }
         if ("PROFILE".equals(section)) {
-            items.add(UItem.asButton(9100, LocaleController.getString(R.string.BananaVisualLabel), BananaVisualLabels.labelName(currentAccount)));
+            items.add(BananaValueCell.Factory.of(9100,
+                    LocaleController.getString(R.string.BananaVisualLabel),
+                    BananaVisualLabels.labelName(currentAccount)));
         } else if ("GHOST".equals(section)) {
             items.add(UItem.asShadow(LocaleController.getString(R.string.BananaGhostModeInfo)));
         } else if ("NINJA".equals(section)) {
