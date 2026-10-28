@@ -18,7 +18,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: android-checks-${{ github.ref }}
+  group: android-checks-${{ github.ref }}-${{ inputs.diagnostic_run || 'acceptance' }}
   cancel-in-progress: true
 
 jobs:
@@ -124,11 +124,17 @@ jobs:
                       lines = value.splitlines()
                       indices = [i for i, line in enumerate(lines) if 'FATAL EXCEPTION' in line or 'AssertionError' in line]
                       value = '\n'.join(lines[i] for i in sorted({n for i in indices for n in range(max(0, i-2), min(len(lines), i+28))}))
+                  elif name == 'instrumentation.log':
+                      summary = value.rsplit('INSTRUMENTATION_RESULT: stream=', 1)
+                      if len(summary) == 2:
+                          value = summary[1]
+                      else:
+                          value = '\n'.join(value.splitlines()[-35:])
                   else:
-                      value = '\n'.join(value.splitlines()[-120:])
+                      value = '\n'.join(value.splitlines()[-50:])
                   if not value:
                       continue
-                  value = value[-14000:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                  value = value[-3400:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
                   label = str(file.relative_to(directory)).replace(',', '_')
                   print(f'::warning title={label}::{value}')
                   found += 1
