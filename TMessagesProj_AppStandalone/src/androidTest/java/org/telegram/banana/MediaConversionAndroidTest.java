@@ -85,7 +85,7 @@ public class MediaConversionAndroidTest {
     private BananaMediaConverter.Result convert(File source, Kind kind, double start, double end) throws Exception {
         CountDownLatch done = new CountDownLatch(1); AtomicReference<BananaMediaConverter.Result> answer = new AtomicReference<>();
         BananaMediaConverter.Job job = BananaMediaConverter.convertFile(source, kind, start, end, result -> { answer.set(result); done.countDown(); });
-        try { assertTrue("Local conversion must finish", done.await(120, TimeUnit.SECONDS)); assertNotNull("Encoder/container validation failed", answer.get()); return answer.get(); }
+        try { assertTrue("Local conversion must finish", done.await(120, TimeUnit.SECONDS)); assertNotNull("Encoder/container validation failed: " + job.diagnosticCode(), answer.get()); return answer.get(); }
         catch (Throwable failure) { job.cancel(); throw failure; }
     }
     private File fixture(String name) throws IOException {

@@ -2,6 +2,7 @@ package org.telegram.messenger.banana;
 
 import android.content.Context;
 import com.yausername.ffmpeg.FFmpeg;
+import com.yausername.youtubedl_android.YoutubeDL;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,6 +15,9 @@ public final class FFmpegNativeRuntime {
     private FFmpegNativeRuntime() { }
     public static synchronized void initialize(Context context) throws Exception {
         if (prepared) return;
+        // FFmpeg also links libcrypto/libc++/expat from the bundled Python package.
+        // Conversions can be the first use of this runtime, before the downloader runs.
+        YoutubeDL.getInstance().init(context);
         FFmpeg.getInstance().init(context);
         File destination = new File(context.getNoBackupFilesDir(), "youtubedl-android/packages/ffmpeg/usr/lib");
         if (!destination.isDirectory()) throw new IOException("FFmpeg library directory missing");

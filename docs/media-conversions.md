@@ -53,7 +53,10 @@ https://github.com/webmproject/libwebp (BSD-3-Clause; LICENSE и PATENTS в по
 Сохраняются имена библиотек, SONAME и экспортируемый ABI. Linker использует
 `max-page-size=16384` и `common-page-size=16384`.
 
-Общий FFmpegNativeRuntime атомарно устанавливает пять упакованных библиотек
+Общий FFmpegNativeRuntime сначала распаковывает Python runtime: FFmpeg также
+связан с его libcrypto, libc++, expat и поддержкой POSIX. Поэтому первый
+запуск конвертации не зависит от предварительного открытия загрузчика видео.
+Затем он атомарно устанавливает пять упакованных библиотек
 в private FFmpeg directory перед конвертацией или загрузкой видео.
 AndroidTest сравнивает байты установленных и упакованных библиотек.
 Проверка APK просматривает также ELF внутри ZIP и требует корректную
