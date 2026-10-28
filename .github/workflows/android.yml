@@ -6,10 +6,16 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      diagnostic_run:
+        description: 'Read failure reports from an earlier run without rebuilding (optional)'
+        type: string
+        required: false
   workflow_call:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: android-checks-${{ github.ref }}
@@ -17,6 +23,7 @@ concurrency:
 
 jobs:
   java:
+    if: inputs.diagnostic_run == ''
     name: Android compilation and policy tests
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -45,6 +52,7 @@ jobs:
         run: python3 scripts/build-android.py -- -Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.workers.max=2 :TMessagesProj:compileDebugJavaWithJavac :TMessagesProj:testDebugUnitTest
 
   smoke:
+    if: inputs.diagnostic_run == ''
     name: Android ${{ matrix.api }} APK and UI checks
     strategy:
       fail-fast: false
@@ -88,3 +96,42 @@ jobs:
           path: build/banana-smoke/
           if-no-files-found: ignore
           retention-days: 7
+
+  diagnostics:
+    if: github.event_name == 'workflow_dispatch' && inputs.diagnostic_run != ''
+    name: Read previous Android failure reports
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Download test reports and expose failure context in check annotations
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DIAGNOSTIC_RUN: ${{ inputs.diagnostic_run }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, re, subprocess
+          run = os.environ['DIAGNOSTIC_RUN']
+          if not re.fullmatch(r'[0-9]+', run):
+              raise SystemExit('Expected a numeric run ID from this repository')
+          directory = pathlib.Path(os.environ['RUNNER_TEMP']) / 'android-diagnostics'
+          subprocess.run(['gh', 'run', 'download', run, '--dir', str(directory)], check=True)
+          found = 0
+          for name in ('installation.log', 'instrumentation.log', 'offline-voice.log', 'logcat.log'):
+              for file in sorted(directory.rglob(name)):
+                  value = file.read_text(errors='replace')
+                  if name == 'logcat.log':
+                      lines = value.splitlines()
+                      indices = [i for i, line in enumerate(lines) if 'FATAL EXCEPTION' in line or 'AssertionError' in line]
+                      value = '\n'.join(lines[i] for i in sorted({n for i in indices for n in range(max(0, i-2), min(len(lines), i+28))}))
+                  else:
+                      value = '\n'.join(value.splitlines()[-120:])
+                  if not value:
+                      continue
+                  value = value[-14000:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                  label = str(file.relative_to(directory)).replace(',', '_')
+                  print(f'::warning title={label}::{value}')
+                  found += 1
+          if not found:
+              raise SystemExit('No Android test report files found in this run')
+          PY
