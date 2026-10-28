@@ -555,6 +555,16 @@ public class BananaSmokeTest {
                 }
             });
             assertHeaderContrast(instrumentation, screen);
+            instrumentation.runOnMainSync(() -> {
+                assertVisibleRowsUseActivePalette(screen);
+                LaunchActivity host = (LaunchActivity) screen.getParentActivity();
+                assertEquals("The rendered navigation strip must follow the current palette after the dialog closes",
+                        screen.getThemedColor(Theme.key_windowBackgroundGray), host.drawerLayoutContainer.getInternalNavbarPaint().getColor());
+            });
+            assertEveryRowFits(instrumentation, screen);
+            instrumentation.runOnMainSync(() -> screen.listView.layoutManager.scrollToPositionWithOffset(0, 0));
+            await(instrumentation, () -> screen.listView.findViewByPosition(0) != null && !screen.listView.canScrollVertically(-1),
+                    "The palette preview must return to the top after checking cached rows");
             capture(instrumentation, "live-palette-" + name);
         }
     }
@@ -578,6 +588,44 @@ public class BananaSmokeTest {
                 androidx.core.graphics.ColorUtils.calculateContrast(foreground, background) >= 4.5);
     }
 
+    private static void assertVisibleRowsUseActivePalette(UniversalFragment screen) {
+        int surface = screen.getThemedColor(Theme.key_windowBackgroundWhite);
+        for (int i = 0; i < screen.listView.getChildCount(); i++) {
+            View row = screen.listView.getChildAt(i);
+            int text = 0, textKey = Theme.key_windowBackgroundWhiteBlackText;
+            boolean cell = true;
+            if (row instanceof org.telegram.ui.Cells.HeaderCell) {
+                android.widget.TextView label = ((org.telegram.ui.Cells.HeaderCell) row).getTextView();
+                if (label == null) continue; // Animated headers have a separate drawable.
+                text = label.getCurrentTextColor();
+                textKey = label.getTag() instanceof Integer ? (Integer) label.getTag() : Theme.key_windowBackgroundWhiteBlueHeader;
+            } else if (row instanceof org.telegram.ui.Cells.TextCell) {
+                org.telegram.ui.ActionBar.SimpleTextView label = ((org.telegram.ui.Cells.TextCell) row).getTextView();
+                text = label.getTextColor();
+                textKey = label.getTag() instanceof Integer ? (Integer) label.getTag() : textKey;
+            } else if (row instanceof org.telegram.ui.Cells.TextCheckCell) {
+                text = ((org.telegram.ui.Cells.TextCheckCell) row).getTextView().getCurrentTextColor();
+            } else if (row instanceof org.telegram.ui.Cells.TextDetailSettingsCell) {
+                org.telegram.ui.Cells.TextDetailSettingsCell value = (org.telegram.ui.Cells.TextDetailSettingsCell) row;
+                text = value.getTextView().getCurrentTextColor();
+                assertEquals("The actual value label must follow the current palette",
+                        screen.getThemedColor(Theme.key_windowBackgroundWhiteGrayText2), value.getValueTextView().getCurrentTextColor());
+            } else {
+                cell = false;
+            }
+            if (!cell) continue;
+            assertTrue("A native settings row must have its palette surface: " + row.getClass().getSimpleName(),
+                    row.getBackground() instanceof android.graphics.drawable.ColorDrawable);
+            int background = ((android.graphics.drawable.ColorDrawable) row.getBackground()).getColor();
+            assertEquals("The rendered row background must change with the palette: " + row.getClass().getSimpleName(), surface, background);
+            assertEquals("The rendered row text must change with the palette: " + row.getClass().getSimpleName(), screen.getThemedColor(textKey), text);
+            if (textKey == Theme.key_windowBackgroundWhiteBlackText || textKey == Theme.key_windowBackgroundWhiteBlueHeader) {
+                assertTrue("Actual row text needs readable contrast against its actual background",
+                        androidx.core.graphics.ColorUtils.calculateContrast(text, background) >= 4.5);
+            }
+        }
+    }
+
     private static void assertEveryRowFits(Instrumentation instrumentation, UniversalFragment screen) {
         int itemCount = screen.listView.adapter.getItemCount();
         int firstUnchecked = 0;
@@ -590,6 +638,7 @@ public class BananaSmokeTest {
             int[] nextPosition = {firstUnchecked};
             instrumentation.runOnMainSync(() -> {
                 assertVisibleLabelsFit(screen);
+                assertVisibleRowsUseActivePalette(screen);
                 androidx.recyclerview.widget.LinearLayoutManager layoutManager =
                         (androidx.recyclerview.widget.LinearLayoutManager) screen.listView.getLayoutManager();
                 nextPosition[0] = layoutManager.findLastVisibleItemPosition() + 1;
