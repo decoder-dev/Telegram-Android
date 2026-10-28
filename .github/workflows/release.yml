@@ -2,6 +2,11 @@ name: Build BananaGram release APK
 
 on:
   workflow_dispatch:
+    inputs:
+      verified_run:
+        description: 'Successful full Android CI run for this exact commit (optional)'
+        type: string
+        required: false
 
 permissions:
   contents: write
@@ -9,10 +14,25 @@ permissions:
 
 jobs:
   checks:
+    if: inputs.verified_run == ''
     uses: ./.github/workflows/android.yml
     secrets: inherit
+  verified_checks:
+    if: inputs.verified_run != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate completed Android acceptance for the exact release commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFIED_RUN: ${{ inputs.verified_run }}
+        run: python3 scripts/verify_android_ci.py --run "$VERIFIED_RUN" --repository "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA"
   build:
-    needs: checks
+    needs: [checks, verified_checks]
+    if: always() && !cancelled() && (needs.checks.result == 'success' || needs.verified_checks.result == 'success')
     name: Signed BananaGram APK
     runs-on: ubuntu-24.04
     timeout-minutes: 90

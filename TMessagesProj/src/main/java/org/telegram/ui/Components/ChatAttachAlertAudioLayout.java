@@ -509,6 +509,18 @@ public class ChatAttachAlertAudioLayout extends ChatAttachAlert.AttachAlertLayou
     }
 
     private boolean onItemLongClick(UItem item, View view, int position, float x, float y) {
+        if (!parentAlert.isStoryAudioPicker && !parentAlert.isPollAttach && parentAlert.editingMessageObject == null
+                && parentAlert.baseFragment instanceof org.telegram.ui.ChatActivity && view instanceof SharedAudioCell) {
+            org.telegram.ui.ChatActivity chat = (org.telegram.ui.ChatActivity) parentAlert.baseFragment;
+            MediaController.AudioEntry entry = (MediaController.AudioEntry) view.getTag();
+            if (entry != null && entry.messageObject != null && entry.messageObject.isMusic()
+                    && chat.canSendBananaConvertedMedia(org.telegram.messenger.banana.MediaConversionPolicy.Kind.AUDIO_TO_VOICE)) {
+                new org.telegram.ui.ActionBar.AlertDialog.Builder(getContext(), resourcesProvider)
+                        .setItems(new CharSequence[]{LocaleController.getString(R.string.BananaSendAsVoice)}, (dialog, which) ->
+                                chat.sendBananaConvertedMedia(entry.messageObject, org.telegram.messenger.banana.MediaConversionPolicy.Kind.AUDIO_TO_VOICE)).show();
+                return true;
+            }
+        }
         onItemClick(item, view, position, x, y);
         return true;
     }

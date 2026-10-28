@@ -12063,4 +12063,11 @@
     <string name="BananaSessionRestart">Restart to restore</string>
     <string name="BananaSessionRestartInfo">The encrypted session is ready to restore into a free slot. Restart the app to apply it before the connection starts.</string>
     <string name="BananaVoiceDownloadModel">Download model</string>
+    <string name="BananaSendAsRound">Send as Video Message</string>
+    <string name="BananaSendAsVoice">Send as Voice Message</string>
+    <string name="BananaSendAsAudio">Send as Audio</string>
+    <string name="BananaConversionFailed">Could not convert this file. Voice conversion accepts audio up to one hour and 64 MB; video messages accept input up to 256 MB. Check that the file is downloaded and try again.</string>
+    <string name="BananaConversionSaveEdits">Save the edited video first, then select the saved file to send it as a video message.</string>
+    <string name="BananaRoundCaptionInfo">The video will be cropped to a square and limited to 60 seconds. Video messages are sent without captions. Continue?</string>
+    <string name="BananaConvertedVoiceTitle">Voice Message</string>
 </resources>
