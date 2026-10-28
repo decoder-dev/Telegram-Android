@@ -222,6 +222,7 @@ public class BananaSmokeTest {
         }, "The initial host must finish its navigation before Extras is opened");
         assertFalse("Use a fresh emulator, never a signed-in account", org.telegram.messenger.UserConfig.getInstance(0).isClientActivated());
         assertFalse("Use a fresh emulator, never a signed-in account", org.telegram.messenger.UserConfig.getInstance(1).isClientActivated());
+        checkAutomaticProxyVisibility(instrumentation, activity);
         scenario(instrumentation, "photo-viewer-initialization");
         // Regression: first initialization used to add PiP through a null menuItem.
         // Recreate the singleton as well as reusing the same Activity.
@@ -509,6 +510,124 @@ public class BananaSmokeTest {
             assertTrue("A wrapped label must fit inside its row", child.getMeasuredHeight() >=
                     text.getLayout().getHeight() + org.telegram.messenger.AndroidUtilities.dp(16));
         }
+    }
+
+    private static void checkAutomaticProxyVisibility(Instrumentation instrumentation, LaunchActivity activity) throws Exception {
+        instrumentation.runOnMainSync(() -> {
+            org.telegram.messenger.SharedConfig.loadProxyList();
+            org.telegram.tgnet.ConnectionsManager.getInstance(org.telegram.messenger.UserConfig.selectedAccount);
+        });
+        android.content.SharedPreferences prefs = org.telegram.messenger.MessagesController.getGlobalMainSettings();
+        String enabledKey = "bananaAutomaticMtProxy", poolKey = "bananaAutomaticMtProxyKeys";
+        boolean hadEnabled = prefs.contains(enabledKey), enabled = prefs.getBoolean(enabledKey, false);
+        boolean hadPool = prefs.contains(poolKey), hadProxy = prefs.contains("proxy_enabled");
+        String pool = prefs.getString(poolKey, "");
+        boolean proxyEnabled = prefs.getBoolean("proxy_enabled", false);
+        int account = org.telegram.messenger.UserConfig.selectedAccount;
+        boolean powerSaving = BananaConfig.get(account, Option.POWER_SAVING);
+        java.util.ArrayList<org.telegram.messenger.SharedConfig.ProxyInfo> saved = new java.util.ArrayList<>(org.telegram.messenger.SharedConfig.proxyList);
+        org.telegram.messenger.SharedConfig.ProxyInfo current = org.telegram.messenger.SharedConfig.currentProxy;
+        org.telegram.ui.ProxyListActivity screen = new org.telegram.ui.ProxyListActivity();
+        org.telegram.ui.Components.RecyclerListView[] list = new org.telegram.ui.Components.RecyclerListView[1];
+        java.util.ArrayList<org.telegram.messenger.SharedConfig.ProxyInfo> fixtures = new java.util.ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            org.telegram.messenger.SharedConfig.ProxyInfo info = new org.telegram.messenger.SharedConfig.ProxyInfo(
+                    org.telegram.utils.proxy.ProxySettings.builder().setAddress("127.0.0.1").setPort(12000 + i).build());
+            info.checking = true; // UI fixture: never open probe sockets.
+            fixtures.add(info);
+        }
+        try {
+            instrumentation.runOnMainSync(() -> {
+                // Automatic refresh defers in power-saving mode, so the real toggle
+                // can be exercised without fetching or connecting to public proxies.
+                BananaConfig.set(account, Option.POWER_SAVING, true);
+                prefs.edit().putBoolean(enabledKey, false).putString(poolKey, "").putBoolean("proxy_enabled", true).apply();
+                org.telegram.messenger.SharedConfig.proxyList.clear();
+                org.telegram.messenger.SharedConfig.proxyList.addAll(fixtures);
+                org.telegram.messenger.SharedConfig.currentProxy = fixtures.get(0);
+                activity.getActionBarLayout().presentFragment(new org.telegram.ui.ActionBar.INavigationLayout.NavigationParams(screen).setNoAnimation(true));
+                try {
+                    java.lang.reflect.Field field = org.telegram.ui.ProxyListActivity.class.getDeclaredField("listView");
+                    field.setAccessible(true);
+                    list[0] = (org.telegram.ui.Components.RecyclerListView) field.get(screen);
+                } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
+            });
+            await(instrumentation, () -> list[0] != null && list[0].isLaidOut() && countProxyRows(list[0]) == fixtures.size(),
+                    "Manual mode must display saved proxies");
+            instrumentation.runOnMainSync(() -> {
+                for (int i = 0; i < list[0].getChildCount(); i++) {
+                    View row = list[0].getChildAt(i);
+                    if (row instanceof org.telegram.ui.ProxyListActivity.TextDetailProxyCell) {
+                        assertTrue(list[0].longClickItem(row, list[0].getChildAdapterPosition(row)));
+                        break;
+                    }
+                }
+                assertTrue("The manual proxy selection must enter action mode", screen.getActionBar().isActionModeShowed());
+                clickAutomaticProxy(list[0]);
+            });
+            await(instrumentation, () -> org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()
+                    && countProxyRows(list[0]) == 0 && list[0].getAdapter().getItemCount() == 4 && !screen.getActionBar().isActionModeShowed()
+                    && !hasRenderedProxyRow(list[0]) && !list[0].isLayoutRequested() && !list[0].isComputingLayout()
+                    && (list[0].getItemAnimator() == null || !list[0].getItemAnimator().isRunning()),
+                    "Automatic mode must hide the list and clear manual selection immediately");
+            instrumentation.runOnMainSync(() -> {
+                for (int i = 0; i < list[0].getChildCount(); i++) assertFalse(list[0].getChildAt(i) instanceof org.telegram.ui.ProxyListActivity.TextDetailProxyCell);
+                assertEquals(fixtures, org.telegram.messenger.SharedConfig.proxyList);
+                assertSame(fixtures.get(0), org.telegram.messenger.SharedConfig.currentProxy);
+                org.telegram.messenger.NotificationCenter.getGlobalInstance().postNotificationName(org.telegram.messenger.NotificationCenter.proxySettingsChanged);
+                assertEquals("A pool refresh notification must not reveal the list", 0, countProxyRows(list[0]));
+            });
+            capture(instrumentation, "automatic-proxy-hidden-list");
+            instrumentation.runOnMainSync(() -> clickAutomaticProxy(list[0]));
+            await(instrumentation, () -> !org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()
+                    && countProxyRows(list[0]) == fixtures.size() && hasRenderedProxyRow(list[0]) && !list[0].isLayoutRequested(),
+                    "Switching back to manual mode must restore the saved list");
+            instrumentation.runOnMainSync(() -> assertEquals(fixtures, org.telegram.messenger.SharedConfig.proxyList));
+        } finally {
+            instrumentation.runOnMainSync(() -> {
+                org.telegram.messenger.banana.BananaAutomaticProxy.setEnabled(false);
+                if (activity.getActionBarLayout().getLastFragment() == screen) screen.finishFragment(false);
+                org.telegram.messenger.SharedConfig.proxyList.clear();
+                org.telegram.messenger.SharedConfig.proxyList.addAll(saved);
+                org.telegram.messenger.SharedConfig.currentProxy = current;
+                android.content.SharedPreferences.Editor editor = prefs.edit();
+                if (hadEnabled) editor.putBoolean(enabledKey, enabled); else editor.remove(enabledKey);
+                if (hadPool) editor.putString(poolKey, pool); else editor.remove(poolKey);
+                if (hadProxy) editor.putBoolean("proxy_enabled", proxyEnabled); else editor.remove("proxy_enabled");
+                editor.apply();
+                BananaConfig.set(account, Option.POWER_SAVING, powerSaving);
+            });
+        }
+        await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() != screen && !activity.getActionBarLayout().isTransitionAnimationInProgress(),
+                "Proxy settings must finish returning to the test host");
+    }
+
+    private static int countProxyRows(org.telegram.ui.Components.RecyclerListView list) {
+        androidx.recyclerview.widget.RecyclerView.Adapter adapter = list.getAdapter();
+        int count = 0;
+        for (int i = 0; i < adapter.getItemCount(); i++) {
+            if (adapter.createViewHolder(list, adapter.getItemViewType(i)).itemView instanceof org.telegram.ui.ProxyListActivity.TextDetailProxyCell) count++;
+        }
+        return count;
+    }
+
+    private static boolean hasRenderedProxyRow(org.telegram.ui.Components.RecyclerListView list) {
+        for (int i = 0; i < list.getChildCount(); i++) {
+            if (list.getChildAt(i) instanceof org.telegram.ui.ProxyListActivity.TextDetailProxyCell) return true;
+        }
+        return false;
+    }
+
+    private static void clickAutomaticProxy(org.telegram.ui.Components.RecyclerListView list) {
+        for (int i = 0; i < list.getChildCount(); i++) {
+            View row = list.getChildAt(i);
+            if (row instanceof org.telegram.ui.Cells.TextCheckCell && LocaleController.getString(R.string.BananaAutomaticProxy)
+                    .contentEquals(((org.telegram.ui.Cells.TextCheckCell) row).getTextView().getText())) {
+                list.clickItem(row, list.getChildAdapterPosition(row));
+                return;
+            }
+        }
+        fail("The automatic proxy switch must remain visible");
     }
 
     private static void assertHeaderContrast(Instrumentation instrumentation, BananaSettingsActivity screen) {

@@ -88,6 +88,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     private int currentConnectionState;
 
     private boolean useProxySettings;
+    private boolean automaticProxyMode;
 
     private int rowCount;
     @Keep
@@ -159,7 +160,11 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
             checkImageView.setScaleType(ImageView.ScaleType.CENTER);
             checkImageView.setContentDescription(getString(R.string.Edit));
             addView(checkImageView, LayoutHelper.createFrame(48, 48, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP, 8, 8, 8, 0));
-            checkImageView.setOnClickListener(v -> presentFragment(new ProxySettingsActivity(currentInfo)));
+            checkImageView.setOnClickListener(v -> {
+                if (!org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()) {
+                    presentFragment(new ProxySettingsActivity(currentInfo));
+                }
+            });
 
             checkBox = new CheckBox2(context, 21);
             checkBox.setColor(Theme.key_checkbox, Theme.key_radioBackground, Theme.key_checkboxCheck);
@@ -395,7 +400,13 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
         listView.setAdapter(listAdapter);
         listView.setOnItemClickListener((view, position) -> {
+            if (org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()
+                    && position != useProxyRow && position != automaticProxyRow && position != vlessRow) return;
             if (position == useProxyRow) {
+                if (SharedConfig.currentProxy == null && org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()) {
+                    org.telegram.messenger.banana.BananaAutomaticProxy.refresh();
+                    return;
+                }
                 if (SharedConfig.currentProxy == null) {
                     if (!proxyList.isEmpty()) {
                         SharedConfig.currentProxy = proxyList.get(0);
@@ -440,6 +451,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
+                useProxySettings = SharedConfig.isProxyEnabled();
+                updateRows(true);
             } else if (position == vlessRow) {
                 showVlessEditor();
             } else if (position == rotationRow) {
@@ -484,6 +497,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 builder.setNegativeButton(getString(R.string.Cancel), null);
                 builder.setTitle(getString(R.string.DeleteProxyTitle));
                 builder.setPositiveButton(getString(R.string.Delete), (dialog, which) -> {
+                    if (org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()) return;
                     for (SharedConfig.ProxyInfo info : proxyList) {
                         SharedConfig.deleteProxy(info);
                     }
@@ -529,6 +543,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
+                if ((id == MENU_DELETE || id == MENU_SHARE)
+                        && org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()) return;
                 switch (id) {
                     case -1:
                         if (selectedItems.isEmpty()) {
@@ -543,6 +559,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                         builder.setNegativeButton(getString(R.string.Cancel), null);
                         builder.setTitle(getString(R.string.DeleteProxyTitle));
                         builder.setPositiveButton(getString(R.string.Delete), (dialog, which) -> {
+                            if (org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()) return;
                             for (SharedConfig.ProxyInfo info : selectedItems) {
                                 SharedConfig.deleteProxy(info);
                             }
@@ -637,11 +654,14 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     }
 
     private void updateRows(boolean notify) {
+        final boolean automatic = org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled();
+        notify |= automatic != automaticProxyMode;
+        automaticProxyMode = automatic;
         rowCount = 0;
         useProxyRow = rowCount++;
         automaticProxyRow = rowCount++;
         vlessRow = rowCount++;
-        if (useProxySettings && SharedConfig.currentProxy != null && SharedConfig.proxyList.size() > 1 && IS_PROXY_ROTATION_AVAILABLE) {
+        if (!automatic && useProxySettings && SharedConfig.currentProxy != null && SharedConfig.proxyList.size() > 1 && IS_PROXY_ROTATION_AVAILABLE) {
             rotationRow = rowCount++;
             if (SharedConfig.proxyRotationEnabled) {
                 rotationTimeoutRow = rowCount++;
@@ -659,6 +679,16 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
             useProxyShadowRow = rowCount++;
         } else {
             useProxyShadowRow = -1;
+        }
+        if (automatic) {
+            // The controller owns its pool. Hide its addresses and all manual list
+            // actions without modifying the saved proxies used by the controller.
+            connectionsHeaderRow = proxyStartRow = proxyEndRow = proxyAddRow = proxyShadowRow = deleteAllRow = -1;
+            proxyList.clear();
+            selectedItems.clear();
+            if (actionBar != null && actionBar.isActionModeShowed()) actionBar.hideActionMode();
+            if (notify && listAdapter != null) listAdapter.notifyDataSetChanged();
+            return;
         }
         connectionsHeaderRow = rowCount++;
 
@@ -745,9 +775,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     @Override
     public void onResume() {
         super.onResume();
-        if (listAdapter != null) {
-            listAdapter.notifyDataSetChanged();
-        }
+        useProxySettings = SharedConfig.isProxyEnabled();
+        updateRows(true);
     }
 
     @Override
@@ -764,6 +793,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
 
             updateRows(false);
         } else if (id == NotificationCenter.proxySettingsChanged) {
+            useProxySettings = SharedConfig.isProxyEnabled();
             updateRows(true);
         } else if (id == NotificationCenter.didUpdateConnectionState) {
             int state = ConnectionsManager.getInstance(account).getConnectionState();
