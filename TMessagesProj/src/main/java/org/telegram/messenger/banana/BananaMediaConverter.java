@@ -57,6 +57,10 @@ public final class BananaMediaConverter {
         public final AtomicBoolean cancelled = new AtomicBoolean();
         private volatile Process process;
         private volatile Result result;
+        private volatile String failureCode = "none";
+        private volatile int encoderExitCode = Integer.MIN_VALUE;
+        /** Bounded diagnostics contain no paths, decoder text or user media metadata. */
+        public String diagnosticCode() { return failureCode + "/encoder=" + encoderExitCode; }
         public void cancel() {
             cancelled.set(true); Process running = process;
             if (running != null) running.destroyForcibly();
@@ -78,7 +82,7 @@ public final class BananaMediaConverter {
         Job job = new Job();
         if (!BUSY.compareAndSet(false, true)) { ApplicationLoader.applicationHandler.post(() -> done.accept(null)); return job; }
         QUEUE.postRunnable(() -> {
-            File output = null; Result result = null; TLRPC.PhotoSize thumbnail = null;
+            File output = null; Result result = null; TLRPC.PhotoSize thumbnail = null; String stage = "source";
             try {
                 long deadline = SystemClock.elapsedRealtime() + 120000;
                 while (awaitDownload && !input.isFile() && SystemClock.elapsedRealtime() < deadline) {
@@ -86,10 +90,12 @@ public final class BananaMediaConverter {
                 }
                 check(job, ownerChanged);
                 if (!input.isFile() || input.length() <= 0 || input.length() > MediaConversionPolicy.maxInputBytes(kind)) throw new IOException("Invalid source size");
+                stage = "input-metadata";
                 Metadata before = inspect(input);
                 double expected = MediaConversionPolicy.outputDuration(kind, before.duration(kind), start, end);
                 if (kind == Kind.VIDEO_TO_ROUND ? !before.video : !before.audio) throw new IOException("Required media track missing");
                 output = new File(FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE), "banana-converted-" + UUID.randomUUID() + (kind == Kind.VIDEO_TO_ROUND ? ".mp4" : ".ogg"));
+                stage = "conversion";
                 if (kind == Kind.VOICE_TO_AUDIO) {
                     if (!"audio/opus".equals(before.audioMime)) throw new IOException("Voice is not Opus");
                     try (InputStream header = new FileInputStream(input)) {
@@ -102,12 +108,15 @@ public final class BananaMediaConverter {
                 } else execute(job, input, output, kind, before.duration(kind), start, end, ownerChanged);
                 check(job, ownerChanged);
                 if (!output.isFile() || output.length() <= 0 || output.length() > MediaConversionPolicy.MAX_OUTPUT_BYTES) throw new IOException("Invalid conversion output");
+                stage = "output-validation";
                 Metadata after = inspect(output);
                 if (Math.abs(after.duration(kind) - expected) > 0.5 || kind == Kind.VIDEO_TO_ROUND &&
                         (!"video/avc".equals(after.videoMime) || after.width != MediaConversionPolicy.ROUND_SIDE || after.height != MediaConversionPolicy.ROUND_SIDE) ||
                         kind == Kind.AUDIO_TO_VOICE && (!"audio/opus".equals(after.audioMime) || after.channels != 1 || after.rate != 48000)) throw new IOException("Incomplete conversion");
+                stage = "waveform";
                 byte[] waveform = kind == Kind.AUDIO_TO_VOICE ? MediaController.getWaveform(output.getAbsolutePath()) : null;
                 check(job, ownerChanged);
+                stage = "thumbnail";
                 if (kind == Kind.VIDEO_TO_ROUND) {
                     android.graphics.Bitmap bitmap = SendMessagesHelper.createVideoThumbnailAtTime(output.getAbsolutePath(), 0);
                     if (bitmap != null) {
@@ -118,6 +127,7 @@ public final class BananaMediaConverter {
                 check(job, ownerChanged);
                 result = new Result(output, kind, kind == Kind.VIDEO_TO_ROUND ? Math.min(expected, after.duration(kind)) : after.duration(kind), waveform, thumbnail); job.result = result;
             } catch (Exception | LinkageError failure) {
+                job.failureCode = stage + ":" + failure.getClass().getSimpleName();
                 // Decoder/process errors may contain private source paths. Keep them out of exported logs.
                 if (output != null) output.delete();
                 discardThumbnail(thumbnail);
@@ -169,7 +179,8 @@ public final class BananaMediaConverter {
                 check(job, ownerChanged);
                 if (SystemClock.elapsedRealtime() > deadline || output.length() > MediaConversionPolicy.MAX_OUTPUT_BYTES) throw new IOException("Conversion budget exceeded");
             }
-            if (process.exitValue() != 0) throw new IOException("Encoder failed");
+            job.encoderExitCode = process.exitValue();
+            if (job.encoderExitCode != 0) throw new IOException("Encoder failed");
         } finally {
             process.destroyForcibly(); job.process = null;
             try { process.getInputStream().close(); } catch (IOException ignored) { }
