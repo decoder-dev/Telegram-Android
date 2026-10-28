@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -44,7 +45,11 @@ jobs:
         run: python3 scripts/build-android.py -- -Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.workers.max=2 :TMessagesProj:compileDebugJavaWithJavac :TMessagesProj:testDebugUnitTest
 
   smoke:
-    name: Android 16 APK and UI checks
+    name: Android ${{ matrix.api }} APK and UI checks
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [33, 34, 35, 36]
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -68,18 +73,18 @@ jobs:
       - name: Check a fresh emulator without signing in
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
-          api-level: 36
+          api-level: ${{ matrix.api }}
           target: google_apis
           arch: x86_64
           profile: Nexus 6
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: python3 scripts/run-android-smoke.py --serial emulator-5554
+          script: python3 scripts/run-android-smoke.py --serial emulator-5554 --voice-probe
       - name: Save test logs and unsigned-client screenshots
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: android-smoke-diagnostics
+          name: android-smoke-diagnostics-api${{ matrix.api }}
           path: build/banana-smoke/
           if-no-files-found: ignore
           retention-days: 7

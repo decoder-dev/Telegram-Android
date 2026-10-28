@@ -151,8 +151,8 @@
     {
       "setting": "sessionKeychainBackup",
       "type": "Bool",
-      "status": "unavailable_android_disabled",
-      "android": "iOS Keychain backup has no Android implementation. The switch is disabled with an explanation."
+      "status": "implemented_android_backup_pending_session_acceptance",
+      "android": "BananaSessionBackup: Android Keystore automatic copies; password-encrypted SAF export/import into an empty account slot; restore only before native startup."
     },
     {
       "setting": "compactChatList",
@@ -235,8 +235,8 @@
     {
       "setting": "transcriptionBackend",
       "type": "ForkTranscriptionBackend",
-      "status": "unavailable_local_engine_disabled",
-      "android": "Only Telegram server transcription is available. On-device choice disabled; no bypass of server trials."
+      "status": "implemented_offline_engine_pending_device_acceptance",
+      "android": "BananaOfflineVoice: Vosk RU/EN model download, MediaCodec decode, mono 16 kHz resampling; local path intercepts Telegram transcription RPC; opt-in public-fixture Android test."
     },
     {
       "setting": "scrollToNextChatDisabled",
@@ -265,14 +265,14 @@
     {
       "setting": "saveMedia",
       "type": "Bool",
-      "status": "implemented_cached_attachments_only",
-      "android": "Option.SAVE_MEDIA_HISTORY: copy already available media on edit/delete;64MiB/file,512MiB/account. No proactive download or TTL/secret retention yet."
+      "status": "implemented_proactive_retention_pending_device_acceptance",
+      "android": "Separate immutable media archive; 64 MiB/file and 512 MiB/account. FileLoader completion links pending copies. Secret/TTL media excluded."
     },
     {
       "setting": "proactiveSaveMedia",
       "type": "Bool",
-      "status": "implemented_behavior_wired",
-      "android": "BananaConfig.Option.PROACTIVE_SAVE_MEDIA via BananaHooks call sites"
+      "status": "implemented_proactive_retention_pending_device_acceptance",
+      "android": "Per-owner/backend proactive media index survives cache deletion without creating edit-history rows; clear invalidates pending copies."
     },
     {
       "setting": "deletedMessageMark",
@@ -835,14 +835,14 @@
     {
       "setting": "downloadTikTok",
       "type": "Bool",
-      "status": "partial_external_app_only",
-      "android": "Opens an allowlisted TikTok URL through ACTION_VIEW. No built-in downloader."
+      "status": "implemented_in_app_download_pending_network_acceptance",
+      "android": "BananaVideoDownloadService: yt-dlp/FFmpeg, foreground notification/cancel, bounded HTTPS input/size/time, save to gallery."
     },
     {
       "setting": "downloadYouTubeShorts",
       "type": "Bool",
-      "status": "partial_external_app_only",
-      "android": "Opens an allowlisted Shorts URL through ACTION_VIEW. No built-in downloader."
+      "status": "implemented_in_app_download_pending_network_acceptance",
+      "android": "BananaVideoDownloadService: yt-dlp/FFmpeg, foreground notification/cancel, bounded HTTPS input/size/time, save to gallery."
     },
     {
       "setting": "signDownloadedMedia",

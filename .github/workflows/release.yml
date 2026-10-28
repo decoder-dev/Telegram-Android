@@ -4,10 +4,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  checks:
+    uses: ./.github/workflows/android.yml
+    secrets: inherit
   build:
+    needs: checks
     name: Signed BananaGram APK
     runs-on: ubuntu-24.04
     timeout-minutes: 90
@@ -53,7 +57,7 @@ jobs:
 
       - name: Verify APK identity and signature
         run: |
-          apk='TMessagesProj_AppStandalone/build/outputs/apk/afat/standalone/app.apk'
+          apk="$(python3 -c 'from pathlib import Path; root=Path("TMessagesProj_AppStandalone/build"); files=list((root/"outputs/apk").rglob("app.apk")) or list((root/"intermediates/apk").rglob("app.apk")); assert len(files)==1, "Expected one release APK"; print(files[0])')"
           test -s "$apk"
           aapt="$ANDROID_HOME/build-tools/36.0.0/aapt"
           badging="$RUNNER_TEMP/bananagram-badging.txt"
@@ -69,10 +73,14 @@ jobs:
             exit 1
           fi
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$apk" > "$RUNNER_TEMP/bananagram-signature.txt"
+          grep -Fxq "sdkVersion:'33'" "$badging"
+          grep -Fxq 'Signer #1 certificate SHA-256 digest: ceed8fcb50535731aeab5d27cd75d02936b0a9e466c0285d0da0baa93d3e5634' "$RUNNER_TEMP/bananagram-signature.txt"
+          python3 scripts/check-apk-native-pages.py "$apk"
           mkdir -p build/release-output
           version="$(sed -n 's/^APP_VERSION_NAME=//p' gradle.properties)"
           cp "$apk" "build/release-output/BananaGram-${version}-release.apk"
           cp "$RUNNER_TEMP/bananagram-signature.txt" build/release-output/signature.txt
+          cp TMessagesProj_AppStandalone/build/outputs/mapping/afatStandalone/mapping.txt build/release-output/mapping.txt
           printf 'Version: %s\nCommit: %s\nPackage: org.telegram.messenger.web\n' "$version" "$GITHUB_SHA" > build/release-output/build-info.txt
           (cd build/release-output && sha256sum ./*.apk > SHA256SUMS)
 
@@ -82,3 +90,19 @@ jobs:
           path: build/release-output/
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish signed prerelease for in-app updates
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          version="$(sed -n 's/^APP_VERSION_NAME=//p' gradle.properties)"
+          printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$'
+          tag="v$version"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo 'This release already exists; refuse to replace published update assets' >&2
+            exit 1
+          fi
+          gh release create "$tag" build/release-output/* \
+            --target "$GITHUB_SHA" --title "BananaGram Android $version" \
+            --prerelease --notes-file docs/prerelease-notes.md

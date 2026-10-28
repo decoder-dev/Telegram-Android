@@ -170,3 +170,13 @@ wallpaper-only per-cell backdrops, cached effects, independent edge strengths,
 and no self-capture or extra invalidation loop. The Glassgram Compose module
 is not included. See the feature attestation for actual validation and remaining
 platform/server limitations.
+
+
+The Android feature engines added after the initial prerelease are documented in
+[`third-party-additions.md`](third-party-additions.md). Session backups use the
+Android Keystore and an authenticated password-encrypted portable format, rather
+than the iOS Keychain API. yt-dlp/FFmpeg run inside a cancellable foreground
+service. Vosk receives PCM decoded locally by MediaCodec; choosing that backend
+bypasses the server transcription request. FileLoader completion is linked to a
+bounded, owner/backend-specific proactive media index. Source integration does
+not certify live-account behavior; see the current feature attestation.
