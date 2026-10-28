@@ -60,7 +60,10 @@ jobs:
           "$aapt" dump badging "$apk" | tee "$badging"
           grep -Fq "package: name='org.telegram.messenger.web'" "$badging"
           grep -Fq "application: label='BananaGram'" "$badging"
-          grep -Fq 'ic_launcher_sa' "$badging"
+          grep -Fq 'android:icon="@mipmap/ic_launcher_sa"' TMessagesProj/config/release/AndroidManifest_standalone.xml
+          icon="$(sed -n "s/^application:.* icon='\\([^']*\\)'.*/\\1/p" "$badging")"
+          test -n "$icon"
+          unzip -Z1 "$apk" | grep -Fxq "$icon"
           if grep -Fq 'application-debuggable' "$badging"; then
             echo 'Release APK must not be debuggable' >&2
             exit 1
