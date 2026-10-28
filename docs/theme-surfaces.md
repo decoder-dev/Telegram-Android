@@ -34,4 +34,5 @@ screenshots of the four resulting screens.
 The checks inspect actual row backgrounds, text paints and navigation-strip paint
 after each live switch, including rows reached by scrolling through every section.
 They extend the existing
-Android 13–16 acceptance suite; they do not measure physical-device FPS.
+Android 13–17 acceptance suite, including Android 17 with 16 KB pages;
+they do not measure physical-device FPS.

@@ -29,3 +29,5 @@ class ReleaseCiTest(unittest.TestCase):
             run = self.run_data(); run.update(changes)
             with self.assertRaises(ValueError): verify(run, self.jobs(), 'decoder-dev/Telegram-Android', 'a' * 40)
         with self.assertRaises(ValueError): verify(self.run_data(), self.jobs()[:-1], 'decoder-dev/Telegram-Android', 'a' * 40)
+        without_latest = [job for job in self.jobs() if job['name'] != 'Android 37 APK and UI checks']
+        with self.assertRaises(ValueError): verify(self.run_data(), without_latest, 'decoder-dev/Telegram-Android', 'a' * 40)
