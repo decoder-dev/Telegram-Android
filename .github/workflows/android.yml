@@ -172,7 +172,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        palette: ['Banana Graphite', 'Banana Cream', 'Classic Black', 'Classic White']
+        palette: ['Banana Graphite', 'Banana Cream', 'Classic Black', 'Classic White', 'Automatic Proxy']
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -202,7 +202,8 @@ jobs:
           python3 - <<'PY_IMAGE'
           import os, pathlib, base64, math
           name = os.environ['PALETTE']
-          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          filename = 'automatic-proxy-hidden-list.png' if name == 'Automatic Proxy' else 'live-palette-' + name + '.png'
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob(filename))
           assert len(files) == 1, 'Expected the live-switch screenshot'
           raw = files[0].read_bytes()
           assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
@@ -220,7 +221,8 @@ jobs:
           python3 - <<'PY_IMAGE'
           import os, pathlib, base64, math
           name = os.environ['PALETTE']
-          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          filename = 'automatic-proxy-hidden-list.png' if name == 'Automatic Proxy' else 'live-palette-' + name + '.png'
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob(filename))
           assert len(files) == 1, 'Expected the live-switch screenshot'
           raw = files[0].read_bytes()
           assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
@@ -238,7 +240,8 @@ jobs:
           python3 - <<'PY_IMAGE'
           import os, pathlib, base64, math
           name = os.environ['PALETTE']
-          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          filename = 'automatic-proxy-hidden-list.png' if name == 'Automatic Proxy' else 'live-palette-' + name + '.png'
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob(filename))
           assert len(files) == 1, 'Expected the live-switch screenshot'
           raw = files[0].read_bytes()
           assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
@@ -256,7 +259,8 @@ jobs:
           python3 - <<'PY_IMAGE'
           import os, pathlib, base64, math
           name = os.environ['PALETTE']
-          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          filename = 'automatic-proxy-hidden-list.png' if name == 'Automatic Proxy' else 'live-palette-' + name + '.png'
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob(filename))
           assert len(files) == 1, 'Expected the live-switch screenshot'
           raw = files[0].read_bytes()
           assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
@@ -274,7 +278,8 @@ jobs:
           python3 - <<'PY_IMAGE'
           import os, pathlib, base64, math
           name = os.environ['PALETTE']
-          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          filename = 'automatic-proxy-hidden-list.png' if name == 'Automatic Proxy' else 'live-palette-' + name + '.png'
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob(filename))
           assert len(files) == 1, 'Expected the live-switch screenshot'
           raw = files[0].read_bytes()
           assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
