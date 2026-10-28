@@ -145,12 +145,12 @@ public final class BananaTheme {
             boolean night = palette == Palette.GLASS_NIGHT;
             into.put(Theme.key_chat_outBubble, night ? 0xFF1C3D66 : 0xFFE4F0FF);
             into.put(Theme.key_chat_inBubble, night ? 0xFF243140 : 0xFFFCFDFE);
-            into.put(Theme.key_chat_messagePanelSend, night ? 0xFF8EBBFF : 0xFF3D8BFF);
+            into.put(Theme.key_chat_messagePanelSend, night ? 0xFF8EBBFF : 0xFF1764C0);
             into.put(Theme.key_actionBarDefault, night ? 0xFF171E28 : 0xFFE7EEF5);
             into.put(Theme.key_windowBackgroundWhite, night ? 0xFF171E28 : 0xFFE7EEF5);
             into.put(Theme.key_windowBackgroundGray, night ? 0xFF121820 : 0xFFDCE6F0);
-            into.put(Theme.key_checkbox, night ? 0xFF8EBBFF : 0xFF3D8BFF);
-            into.put(Theme.key_switchTrackChecked, night ? 0xFF8EBBFF : 0xFF3D8BFF);
+            into.put(Theme.key_checkbox, night ? 0xFF8EBBFF : 0xFF1764C0);
+            into.put(Theme.key_switchTrackChecked, night ? 0xFF8EBBFF : 0xFF1764C0);
             return;
         }
         if (palette == Palette.CREAM) {

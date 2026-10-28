@@ -72,12 +72,12 @@ public final class BananaThemes {
         }
         if (key == Theme.key_windowBackgroundWhiteGrayText2 || key == Theme.key_windowBackgroundWhiteGrayText4 ||
                 key == Theme.key_windowBackgroundWhiteHintText) {
-            return night ? 0xFF9AA6B5 : 0xFF6B7684;
+            return night ? 0xFF9AA6B5 : 0xFF596574;
         }
         if (key == Theme.key_windowBackgroundWhiteBlueHeader || key == Theme.key_chat_messagePanelSend ||
                 key == Theme.key_switchTrackChecked || key == Theme.key_checkbox ||
                 key == Theme.key_featuredStickers_addButton) {
-            return night ? 0xFF8EBBFF : 0xFF3D8BFF;
+            return night ? 0xFF8EBBFF : 0xFF1764C0;
         }
         if (key == Theme.key_chat_outBubble) {
             return night ? 0xFF1C3D66 : 0xFFE4F0FF;
@@ -154,8 +154,8 @@ public final class BananaThemes {
             card = 0xFFF7FAFD;
             raised = 0xFFFCFDFE;
             foreground = 0xFF1C2430;
-            secondary = 0xFF6B7684;
-            accent = 0xFF3D8BFF;
+            secondary = 0xFF596574;
+            accent = 0xFF1764C0;
             onAccent = 0xFFFFFFFF;
             separator = 0xFFD5DEE8;
             outgoing = 0xFFE4F0FF;
