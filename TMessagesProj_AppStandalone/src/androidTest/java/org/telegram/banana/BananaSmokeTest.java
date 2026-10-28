@@ -191,6 +191,7 @@ public class BananaSmokeTest {
         }, "The initial host must finish its navigation before Extras is opened");
         assertFalse("Use a fresh emulator, never a signed-in account", org.telegram.messenger.UserConfig.getInstance(0).isClientActivated());
         assertFalse("Use a fresh emulator, never a signed-in account", org.telegram.messenger.UserConfig.getInstance(1).isClientActivated());
+        scenario(instrumentation, "photo-viewer-initialization");
         // Regression: first initialization used to add PiP through a null menuItem.
         // Recreate the singleton as well as reusing the same Activity.
         instrumentation.runOnMainSync(() -> {
@@ -227,6 +228,7 @@ public class BananaSmokeTest {
             java.lang.reflect.Field animation = org.telegram.ui.PhotoViewer.class.getDeclaredField("animationInProgress");
             animation.setAccessible(true);
             for (int repeat = 0; repeat < 2; repeat++) {
+                scenario(instrumentation, "photo-viewer-open-" + repeat);
                 instrumentation.runOnMainSync(() -> {
                     viewer.setParentActivity(activity);
                     java.util.ArrayList<Object> photos = new java.util.ArrayList<>();
@@ -760,7 +762,14 @@ public class BananaSmokeTest {
         await(instrumentation, () -> screen.getVisibleDialog() == null, "Source errors must remain dismissible");
     }
 
+    private static void scenario(Instrumentation instrumentation, String name) {
+        android.os.Bundle progress = new android.os.Bundle();
+        progress.putString("stream", "[Banana scenario] " + name + " at " + SystemClock.uptimeMillis() + "ms\n");
+        instrumentation.sendStatus(2, progress);
+    }
+
     private static void capture(Instrumentation instrumentation, String name) throws Exception {
+        scenario(instrumentation, name);
         instrumentation.waitForIdleSync();
         // Capture a rendered frame after native list/text changes, not the previous buffer.
         SystemClock.sleep(150);

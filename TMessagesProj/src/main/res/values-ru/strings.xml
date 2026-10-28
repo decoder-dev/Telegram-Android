@@ -683,4 +683,11 @@
     <string name="BananaSessionRestart">Перезапустить для восстановления</string>
     <string name="BananaSessionRestartInfo">Зашифрованная сессия подготовлена для свободного слота. Перезапустите приложение, чтобы восстановить её до запуска подключения.</string>
     <string name="BananaVoiceDownloadModel">Загрузить модель</string>
+    <string name="BananaSendAsRound">Отправить как кружок</string>
+    <string name="BananaSendAsVoice">Отправить как голосовое</string>
+    <string name="BananaSendAsAudio">Отправить как музыку</string>
+    <string name="BananaConversionFailed">Не удалось преобразовать файл. Для голосового подходит аудио до одного часа и 64 МБ, для кружка — видео до 256 МБ. Проверьте загрузку файла и попробуйте снова.</string>
+    <string name="BananaConversionSaveEdits">Сначала сохраните отредактированное видео, затем выберите сохранённый файл для отправки кружком.</string>
+    <string name="BananaRoundCaptionInfo">Видео будет обрезано до квадрата и длительности не более 60 секунд. Кружки отправляются без подписи. Продолжить?</string>
+    <string name="BananaConvertedVoiceTitle">Голосовое сообщение</string>
 </resources>

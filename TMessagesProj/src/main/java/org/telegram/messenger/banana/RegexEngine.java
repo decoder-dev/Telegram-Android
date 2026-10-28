@@ -25,6 +25,11 @@ import java.util.concurrent.ConcurrentHashMap;
 /** Bounded asynchronous bridge. A slow regex terminates its isolated worker, never the client. */
 public final class RegexEngine implements AutoCloseable {
     public static final long MATCH_TIMEOUT_MS = 250;
+    // Connecting a worker must not wait for a busy/rebuilding UI to dispatch its callback.
+    private static final ThreadPoolExecutor BIND_CALLBACKS = new ThreadPoolExecutor(0, 1, 15, TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(128), runnable -> {
+                Thread thread = new Thread(runnable, "banana-regex-bind"); thread.setDaemon(true); return thread;
+            }, new ThreadPoolExecutor.CallerRunsPolicy());
     public static final class Result {
         public final int status, workerUid, errorIndex;
         public final boolean[] matches;
@@ -90,11 +95,16 @@ public final class RegexEngine implements AutoCloseable {
     }
 
     private void evaluate(String expression, int flags, String[] inputs, Consumer<Result> callback) {
-        Connection link;
-        try { link = connect(); }
-        catch (Exception error) { deliver(callback, result(RegexProtocol.UNAVAILABLE)); return; }
-        if (link == null || closed) { deliver(callback, result(RegexProtocol.UNAVAILABLE)); return; }
+        Connection connected = null;
+        for (int attempt = 0; attempt < 2 && !closed && connected == null; attempt++) {
+            try { connected = connect(); }
+            catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); break; }
+            catch (Exception unavailable) { /* Retry a fresh binding once, not the expression itself. */ }
+        }
+        if (connected == null || closed) { deliver(callback, result(RegexProtocol.UNAVAILABLE)); return; }
+        final Connection link = connected;
         IBananaRegex remote = link.remote;
+        if (remote == null) { discard(link); deliver(callback, result(RegexProtocol.UNAVAILABLE)); return; }
         int uid;
         try {
             uid = remote.getWorkerUid();
@@ -147,7 +157,7 @@ public final class RegexEngine implements AutoCloseable {
         try {
             Intent intent = new Intent(context, IsolatedRegexService.class);
             boolean bound = Build.VERSION.SDK_INT >= 29 ? context.bindIsolatedService(intent, Context.BIND_AUTO_CREATE,
-                    instanceName, context.getMainExecutor(), created) : context.bindService(intent, created, Context.BIND_AUTO_CREATE);
+                    instanceName, BIND_CALLBACKS, created) : context.bindService(intent, created, Context.BIND_AUTO_CREATE);
             if (!bound) return null;
             if (!created.ready.await(5, TimeUnit.SECONDS) || created.remote == null || closed) return null;
             keep = true;

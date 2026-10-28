@@ -240,6 +240,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
     public final static int preview = 7;
     public final static int caption = 8;
     public final static int stars = 9;
+    public final static int banana_round_video = 10;
 
     private ActionBarMenuSubItem spoilerItem;
     private ActionBarMenuSubItem compressItem;
@@ -782,6 +783,8 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
 
         parentAlert.selectedMenuItem.addColoredGap(preview_gap);
         parentAlert.selectedMenuItem.addSubItem(open_in, R.drawable.msg_openin, LocaleController.getString(R.string.OpenInExternalApp));
+        parentAlert.selectedMenuItem.addSubItem(banana_round_video, R.drawable.msg_video, LocaleController.getString(R.string.BananaSendAsRound));
+        parentAlert.selectedMenuItem.hideSubItem(banana_round_video);
         compressItem = parentAlert.selectedMenuItem.addSubItem(compress, R.drawable.msg_filehq, LocaleController.getString(R.string.SendWithoutCompression));
         parentAlert.selectedMenuItem.addSubItem(group, R.drawable.msg_ungroup, LocaleController.getString(R.string.SendWithoutGrouping));
         parentAlert.selectedMenuItem.addColoredGap(media_gap);
@@ -3228,6 +3231,13 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
 
     @Override
     public void onMenuItemClick(int id) {
+        if (id == banana_round_video) {
+            if (selectedPhotos.size() == 1 && parentAlert.editingMessageObject == null && parentAlert.baseFragment instanceof ChatActivity) {
+                Object selected = selectedPhotos.values().iterator().next();
+                if (selected instanceof MediaController.PhotoEntry) ((ChatActivity) parentAlert.baseFragment).sendBananaRoundVideo((MediaController.PhotoEntry) selected);
+            }
+            return;
+        }
         if (id == caption) {
             parentAlert.setCaptionAbove(!parentAlert.captionAbove);
             captionItem.setState(!parentAlert.captionAbove, true);
@@ -3461,6 +3471,17 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
 
     @Override
     public void onSelectedItemsCountChanged(int count) {
+        boolean round = false;
+        if (count == 1 && selectedPhotos.size() == 1 && parentAlert.editingMessageObject == null && parentAlert.baseFragment instanceof ChatActivity
+                && ((ChatActivity) parentAlert.baseFragment).canSendBananaConvertedMedia(org.telegram.messenger.banana.MediaConversionPolicy.Kind.VIDEO_TO_ROUND)) {
+            Object selected = selectedPhotos.values().iterator().next();
+            if (selected instanceof MediaController.PhotoEntry) {
+                MediaController.PhotoEntry entry = (MediaController.PhotoEntry) selected;
+                round = entry.isVideo && entry.ttl == 0 && entry.starsAmount == 0 && !entry.hasSpoiler;
+            }
+        }
+        if (round) parentAlert.selectedMenuItem.showSubItem(banana_round_video);
+        else parentAlert.selectedMenuItem.hideSubItem(banana_round_video);
         final boolean hasCompress;
         final boolean hasGroup;
         if (count <= 1 || parentAlert.editingMessageObject != null) {

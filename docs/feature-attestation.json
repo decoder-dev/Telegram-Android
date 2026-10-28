@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "scope": "source/resources and recorded JVM results; runtime acceptance is separate",
-  "java_source_sha256": "a7d40f59a71761f383a17296a9e8ffd882bee90116b3cfe1d5f028676aeb4ed4",
+  "java_source_sha256": "83335b9f724b7c12db6fbbe629a002f0c256d33d4601bc011dff8db22eec19fa",
   "checks": {
     "known_catalog_options": true,
     "all_options_in_catalog": true,
@@ -2921,7 +2921,7 @@
   },
   "jvm": {
     "totals": {
-      "tests": 62,
+      "tests": 67,
       "failures": 0,
       "errors": 0,
       "skipped": 0
@@ -2965,6 +2965,13 @@
       {
         "name": "org.telegram.messenger.banana.GhostPolicyTest",
         "tests": "8",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      },
+      {
+        "name": "org.telegram.messenger.banana.MediaConversionPolicyTest",
+        "tests": "5",
         "failures": "0",
         "errors": "0",
         "skipped": "0"

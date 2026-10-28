@@ -63,7 +63,7 @@ run('shell', 'rm', '-rf', '/sdcard/Android/data/org.telegram.messenger.web/files
 instrumentation_failed = False
 try:
     output = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class',
-                 'org.telegram.banana.VideoEngineAndroidTest,org.telegram.banana.SessionBackupAndroidTest,org.telegram.banana.BananaSmokeTest,org.telegram.banana.HistoryDatabaseTest,org.telegram.banana.HistoryCaptureTest,org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest',
+                 'org.telegram.banana.MediaConversionAndroidTest,org.telegram.banana.VideoEngineAndroidTest,org.telegram.banana.SessionBackupAndroidTest,org.telegram.banana.BananaSmokeTest,org.telegram.banana.HistoryDatabaseTest,org.telegram.banana.HistoryCaptureTest,org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest',
                  'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner', timeout=600)
 except SystemExit as error:
     output = str(error)

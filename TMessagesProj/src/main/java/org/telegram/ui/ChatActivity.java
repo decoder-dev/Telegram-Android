@@ -175,6 +175,8 @@ import org.telegram.messenger.LanguageDetector;
 import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaController;
+import org.telegram.messenger.banana.BananaMediaConverter;
+import org.telegram.messenger.banana.MediaConversionPolicy.Kind;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.SendMessageChatArguments;
 import org.telegram.messenger.MessageObject;
@@ -1318,6 +1320,11 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_SELECT_FROM_AUTHOR = 121;
     public final static int OPTION_BOOKMARK_MESSAGE = 122;
     public final static int OPTION_EXPIRE_TTL = 123;
+    public final static int OPTION_SEND_AS_ROUND = 124;
+    public final static int OPTION_SEND_AS_VOICE = 125;
+    public final static int OPTION_SEND_AS_AUDIO = 126;
+    private BananaMediaConverter.Job bananaMediaConversion;
+    private AlertDialog bananaMediaProgress;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             AyuConstants.MESSAGES_DELETED_NOTIFICATION,
@@ -3538,6 +3545,8 @@ public class ChatActivity extends BaseFragment implements
 
     @Override
     public void onFragmentDestroy() {
+        if (bananaMediaConversion != null) { bananaMediaConversion.cancel(); bananaMediaConversion = null; }
+        if (bananaMediaProgress != null) { try { bananaMediaProgress.dismiss(); } catch (Exception ignored) { } bananaMediaProgress = null; }
         org.telegram.ui.ActionBar.INavigationLayout bananaLayout = parentLayout;
         long bananaDialog = dialog_id;
         org.telegram.messenger.banana.MessageFilters.removeListener(currentAccount, bananaFiltersChanged);
@@ -35064,6 +35073,12 @@ public class ChatActivity extends BaseFragment implements
                 }, getResourceProvider(), AlertsCreator.SUGGEST_DATE_PICKER_MODE_EDIT).show(), AmountUtils.Amount.of(suggestedPost != null ? suggestedPost.price : null), !ChatObject.canManageMonoForum(currentAccount, getDialogId()));
                 break;
             }
+            case OPTION_SEND_AS_ROUND:
+                sendBananaConvertedMedia(selectedObject, Kind.VIDEO_TO_ROUND); break;
+            case OPTION_SEND_AS_VOICE:
+                sendBananaConvertedMedia(selectedObject, Kind.AUDIO_TO_VOICE); break;
+            case OPTION_SEND_AS_AUDIO:
+                sendBananaConvertedMedia(selectedObject, Kind.VOICE_TO_AUDIO); break;
             case OPTION_MESSAGE_SHOT: {
                 View shotCell = null;
                 if (chatListView != null && selectedObject != null) {
@@ -36316,6 +36331,108 @@ public class ChatActivity extends BaseFragment implements
 
     public TLRPC.UserFull getCurrentUserInfo() {
         return userInfo;
+    }
+
+    public boolean canSendBananaConvertedMedia(Kind kind) {
+        if ((chatMode != 0 && chatMode != MODE_SCHEDULED) || getParentActivity() == null ||
+                chatActivityEnterView == null || !getUserConfig().isClientActivated() || !ChatObject.canWriteToChat(currentChat)) return false;
+        if (currentChat != null && (currentChat.left || currentChat.kicked)) return false;
+        if (currentUser != null && UserObject.isDeleted(currentUser)) return false;
+        if (kind != Kind.VOICE_TO_AUDIO && userInfo != null && userInfo.voice_messages_forbidden) return false;
+        return kind == Kind.VIDEO_TO_ROUND ? ChatObject.canSendRoundVideo(currentChat)
+                : kind == Kind.AUDIO_TO_VOICE ? ChatObject.canSendVoice(currentChat) : ChatObject.canSendMusic(currentChat);
+    }
+
+    private boolean canConvertBananaSource(MessageObject source) {
+        return source != null && source.currentAccount == currentAccount && source.messageOwner != null && source.getDocument() != null
+                && !source.isSponsored() && !source.isEphemeral() && !source.isSecretMedia() && !source.messageOwner.noforwards
+                && source.messageOwner.ttl <= 0 && source.messageOwner.ttl_period <= 0
+                && (source.messageOwner.media == null || source.messageOwner.media.ttl_seconds <= 0)
+                && !getMessagesController().isPeerNoForwards(source.getDialogId());
+    }
+
+    private void addBananaMediaConversionOption(ArrayList<CharSequence> items, ArrayList<Integer> options, ArrayList<Integer> icons, MessageObject source) {
+        if (!canConvertBananaSource(source)) return;
+        Kind kind = source.isVoice() ? Kind.VOICE_TO_AUDIO : source.isMusic() ? Kind.AUDIO_TO_VOICE
+                : source.isVideo() && !source.isRoundVideo() ? Kind.VIDEO_TO_ROUND : null;
+        if (kind == null || !canSendBananaConvertedMedia(kind)) return;
+        items.add(LocaleController.getString(bananaConversionLabel(kind)));
+        options.add(kind == Kind.VIDEO_TO_ROUND ? OPTION_SEND_AS_ROUND : kind == Kind.AUDIO_TO_VOICE ? OPTION_SEND_AS_VOICE : OPTION_SEND_AS_AUDIO);
+        icons.add(kind == Kind.VIDEO_TO_ROUND ? R.drawable.msg_video : kind == Kind.AUDIO_TO_VOICE ? R.drawable.msg_voicechat : R.drawable.msg_filled_data_music);
+    }
+
+    private static int bananaConversionLabel(Kind kind) {
+        return kind == Kind.VIDEO_TO_ROUND ? R.string.BananaSendAsRound : kind == Kind.AUDIO_TO_VOICE ? R.string.BananaSendAsVoice : R.string.BananaSendAsAudio;
+    }
+
+    public void sendBananaConvertedMedia(MessageObject source, Kind kind) {
+        if (!canConvertBananaSource(source) || kind == Kind.VIDEO_TO_ROUND && (!source.isVideo() || source.isRoundVideo())
+                || kind == Kind.AUDIO_TO_VOICE && !source.isMusic() || kind == Kind.VOICE_TO_AUDIO && !source.isVoice()) return;
+        beginBananaMediaConversion(source, null, kind, 0, 0);
+    }
+
+    public void sendBananaRoundVideo(MediaController.PhotoEntry entry) {
+        if (entry == null || !entry.isVideo || entry.path == null || entry.ttl != 0 || entry.starsAmount > 0 || entry.hasSpoiler) return;
+        VideoEditedInfo edits = entry.editedInfo;
+        if (edits != null && (edits.cropState != null || edits.filterState != null || edits.paintPath != null || edits.blurPath != null ||
+                edits.mediaEntities != null && !edits.mediaEntities.isEmpty() || !edits.mixedSoundInfos.isEmpty() || edits.muted)) {
+            new AlertDialog.Builder(getParentActivity(), getResourceProvider()).setMessage(LocaleController.getString(R.string.BananaConversionSaveEdits))
+                    .setPositiveButton(LocaleController.getString(R.string.OK), null).show(); return;
+        }
+        double start = edits == null ? 0 : Math.max(0, edits.startTime) / 1000000.0;
+        double end = edits == null || edits.endTime < 0 ? 0 : edits.endTime / 1000000.0;
+        Runnable begin = () -> beginBananaMediaConversion(null, new File(entry.path), Kind.VIDEO_TO_ROUND, start, end);
+        if (!TextUtils.isEmpty(entry.caption)) {
+            new AlertDialog.Builder(getParentActivity(), getResourceProvider()).setTitle(LocaleController.getString(R.string.BananaSendAsRound))
+                    .setMessage(LocaleController.getString(R.string.BananaRoundCaptionInfo)).setPositiveButton(LocaleController.getString(R.string.Send), (d, w) -> begin.run())
+                    .setNegativeButton(LocaleController.getString(R.string.Cancel), null).show();
+        } else begin.run();
+    }
+
+    private void beginBananaMediaConversion(MessageObject source, File file, Kind kind, double start, double end) {
+        if (!canSendBananaConvertedMedia(kind) || !checkSlowModeAlert() || bananaMediaConversion != null) return;
+        final long owner = getUserConfig().getClientUserId(), target = dialog_id;
+        final MessageObject reply = replyingMessageObject, thread = getThreadMessage();
+        final ReplyQuote quote = replyingQuote;
+        final SendMessageChatArguments arguments = getMessageChatSendParams();
+        final long monoPeer = getSendMonoForumPeerId();
+        final MessageSuggestionParams suggestion = getSendMessageSuggestionParams();
+        java.util.function.BooleanSupplier valid = () -> getUserConfig().getClientUserId() == owner && dialog_id == target && canSendBananaConvertedMedia(kind);
+        AlertsCreator.ScheduleDatePickerDelegate prepare = (notify, date, repeat) -> {
+            if (!valid.getAsBoolean()) return;
+            AlertsCreator.ensurePaidMessageConfirmation(currentAccount, target, 1, price -> {
+                if (!valid.getAsBoolean() || !checkSlowModeAlert() || bananaMediaConversion != null) return;
+                AlertDialog progress = new AlertDialog(getParentActivity(), 3); progress.setCanCancel(true);
+                final BananaMediaConverter.Job[] task = new BananaMediaConverter.Job[1];
+                progress.setOnCancelListener(ignored -> { if (task[0] != null) task[0].cancel(); });
+                bananaMediaProgress = progress; progress.show();
+                java.util.function.Consumer<BananaMediaConverter.Result> completed = result -> {
+                    try { progress.dismiss(); } catch (Exception ignored) { }
+                    if (bananaMediaConversion == task[0]) bananaMediaConversion = null;
+                    if (bananaMediaProgress == progress) bananaMediaProgress = null;
+                    if (task[0] == null || task[0].cancelled.get() || !valid.getAsBoolean() || source != null && !canConvertBananaSource(source)) {
+                        if (result != null) result.discard(); return;
+                    }
+                    if (result == null) {
+                        new AlertDialog.Builder(getParentActivity(), getResourceProvider()).setMessage(LocaleController.getString(R.string.BananaConversionFailed))
+                                .setPositiveButton(LocaleController.getString(R.string.OK), null).show(); return;
+                    }
+                    if (!checkSlowModeAlert()) { result.discard(); return; }
+                    SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(result.document(isSecretChat()), null,
+                            result.file.getAbsolutePath(), target, reply, thread, null, null, null, null, notify, date, repeat, 0, null, null, false);
+                    params.sendMessageChatArguments = arguments; params.replyQuote = quote;
+                    params.monoForumPeer = monoPeer; params.suggestionParams = suggestion; params.payStars = price;
+                    getSendMessagesHelper().sendMessage(params); result.adopt();
+                    if (chatAttachAlert != null && chatAttachAlert.isShowing()) chatAttachAlert.dismiss();
+                    afterMessageSend();
+                };
+                task[0] = source != null ? BananaMediaConverter.convertMessage(source, kind, start, end, completed)
+                        : BananaMediaConverter.convertFile(file, kind, start, end, completed);
+                bananaMediaConversion = task[0];
+            });
+        };
+        if (isInScheduleMode()) AlertsCreator.createScheduleDatePickerDialog(getParentActivity(), target, prepare, getResourceProvider());
+        else prepare.didSelectDate(true, 0, 0);
     }
 
     public void sendAudio(ArrayList<MessageObject> audios, CharSequence caption, boolean notify, int scheduleDate, int scheduleRepeatPeriod, long effectId, boolean invertMedia, long payStars) {
@@ -46824,6 +46941,7 @@ public class ChatActivity extends BaseFragment implements
                     options.add(OPTION_TRANSLATE);
                     icons.add(R.drawable.msg_translate);
                 }
+                addBananaMediaConversionOption(items, options, icons, selectedObject);
                 if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.messageShot(currentAccount) && selectedObject.contentType == 0) {
                     items.add(LocaleController.getString(R.string.BananaMessageShot));
                     options.add(OPTION_MESSAGE_SHOT);
@@ -47208,6 +47326,7 @@ public class ChatActivity extends BaseFragment implements
                     options.add(OPTION_TRANSLATE);
                     icons.add(R.drawable.msg_translate);
                 }
+                addBananaMediaConversionOption(items, options, icons, selectedObject);
                 if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.messageShot(currentAccount) && selectedObject.contentType == 0) {
                     items.add(LocaleController.getString(R.string.BananaMessageShot));
                     options.add(OPTION_MESSAGE_SHOT);
