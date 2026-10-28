@@ -122,10 +122,18 @@ jobs:
           for job in json.loads(metadata.stdout)['jobs']:
               if job.get('conclusion') != 'failure':
                   continue
-              result = subprocess.run(['gh', 'api', f'repos/{os.environ["GH_REPO"]}/actions/jobs/{job["id"]}/logs'], text=True, capture_output=True)
+              result = subprocess.run(['gh', 'api', f'repos/{os.environ["GH_REPO"]}/actions/jobs/{job["id"]}/logs'], capture_output=True)
               if result.returncode:
+                  error = re.sub(r'https?://[^\s]+', '<url>', result.stderr.decode(errors='replace'))[-500:].replace('\n', '%0A')
+                  print(f'::warning title=Log request failed::{error}')
+                  found += 1
                   continue
-              lines = result.stdout.splitlines()
+              raw = result.stdout
+              if raw.startswith(b'PK'):
+                  import io, zipfile
+                  with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+                      raw = b'\n'.join(archive.read(name) for name in archive.namelist() if not name.endswith('/'))
+              lines = raw.decode(errors='replace').splitlines()
               indices = [i for i, line in enumerate(lines) if re.search(r'FAILURE:|What went wrong|Execution failed|Could not|error:|Error:|CMake Error|No space|Caused by|fatal:|A failure occurred', line)]
               context = sorted({n for i in indices for n in range(max(0, i-2), min(len(lines), i+18))})
               value = '\n'.join(lines[n] for n in context) if context else '\n'.join(lines[-70:])
