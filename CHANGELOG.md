@@ -2,6 +2,13 @@
 
 Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Fixed
+
+- Photo viewer initialization no longer adds a duplicate PiP item through an uninitialized menu. Restore the separate delete button; PiP stays in its existing submenu.
+- Restore the current Telegram message serialization tail before local attachment metadata, including quick replies, effects, paid-message fields, summaries and rich messages. Read current-layer media and processing flags without interpreting inverted media as an older topic-start flag. Regression tests cover the `RichMessage` constructor `2001` cache failure and repeated photo viewer initialization.
+
 ## [13.1.1-rc.1] — 2026-10-27
 
 This is a source-only release candidate pending a successful Android build and emulator smoke run. No APK is included in this release. The previous AyuGram proprietary-submodule dependency has been replaced with documented GPL-2.0 history helpers in the source tree.

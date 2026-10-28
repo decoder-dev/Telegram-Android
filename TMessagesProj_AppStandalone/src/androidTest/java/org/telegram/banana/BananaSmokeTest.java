@@ -160,6 +160,19 @@ public class BananaSmokeTest {
         }, "The initial host must finish its navigation before Extras is opened");
         assertFalse("Use a fresh emulator, never a signed-in account", org.telegram.messenger.UserConfig.getInstance(0).isClientActivated());
         assertFalse("Use a fresh emulator, never a signed-in account", org.telegram.messenger.UserConfig.getInstance(1).isClientActivated());
+        // Regression: first initialization used to add PiP through a null menuItem.
+        // Recreate the singleton as well as reusing the same Activity.
+        instrumentation.runOnMainSync(() -> {
+            for (int i = 0; i < 2; i++) {
+                org.telegram.ui.PhotoViewer viewer = org.telegram.ui.PhotoViewer.getInstance();
+                try {
+                    viewer.setParentActivity(activity);
+                    viewer.setParentActivity(activity);
+                } finally {
+                    viewer.destroyPhotoViewer();
+                }
+            }
+        });
         java.util.concurrent.atomic.AtomicInteger initialDepth = new java.util.concurrent.atomic.AtomicInteger();
         instrumentation.runOnMainSync(() -> initialDepth.set(activity.getActionBarLayout().getFragmentStack().size()));
         try {
