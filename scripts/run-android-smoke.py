@@ -52,6 +52,11 @@ output = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class',
              'org.telegram.banana.BananaSmokeTest,org.telegram.banana.HistoryDatabaseTest,org.telegram.banana.HistoryCaptureTest,org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest',
              'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner')
 (args.output_dir / 'instrumentation.log').write_text(output)
+# Android's instrumentation runner may terminate its own process and return a short
+# "Process crashed" result without forwarding the Java exception to stdout. Preserve
+# recent system logs before attempting screenshot collection so CI failures are diagnosable.
+logcat = run('logcat', '-d', '-t', '4000', '-v', 'threadtime')
+(args.output_dir / 'logcat.log').write_text(logcat)
 # Preserve visual diagnostics even when another test in the same run fails.
 pull = subprocess.run([adb, '-s', args.serial, 'pull',
                        '/sdcard/Android/data/org.telegram.messenger.web/files/banana-smoke',
@@ -61,6 +66,8 @@ pull = subprocess.run([adb, '-s', args.serial, 'pull',
 passed = re.search(r'OK \((\d+) tests?\)', output)
 if not passed or int(passed.group(1)) < 22 or 'FAILURES!!!' in output:
     print(output)
+    print('\n--- Recent Android logcat ---\n')
+    print(logcat[-30000:])
     raise SystemExit('Android smoke checks failed')
 if pull.returncode:
     raise SystemExit('Tests passed but their screenshots could not be collected; see screenshots.log')
