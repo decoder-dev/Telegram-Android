@@ -46,8 +46,19 @@ if len(app_apks) != 1:
 if len(test_apks) != 1:
     candidates = ', '.join(str(path.relative_to(root)) for path in test_apks) or 'none found'
     raise SystemExit(f'Expected exactly one standalone instrumentation APK under build dirs ({build_roots}); found: {candidates}')
-run('install', '-t', '-r', str(app_apks[0]))
-run('install', '-t', '-r', str(test_apks[0]))
+installation = []
+try:
+    for apk in (app_apks[0], test_apks[0]):
+        installation.append(run('install', '-t', '-r', str(apk)))
+except (SystemExit, subprocess.TimeoutExpired) as error:
+    installation.append(str(error))
+    (args.output_dir / 'installation.log').write_text('\n'.join(installation))
+    try:
+        (args.output_dir / 'logcat.log').write_text(run('logcat', '-d', '-t', '4000', '-v', 'threadtime'))
+    except (SystemExit, subprocess.TimeoutExpired) as diagnostic_error:
+        (args.output_dir / 'logcat-error.log').write_text(str(diagnostic_error))
+    raise SystemExit('APK installation failed before tests started; see installation.log and logcat.log')
+(args.output_dir / 'installation.log').write_text('\n'.join(installation))
 run('shell', 'rm', '-rf', '/sdcard/Android/data/org.telegram.messenger.web/files/banana-smoke')
 instrumentation_failed = False
 try:
