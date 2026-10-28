@@ -80,7 +80,12 @@ public class BananaSmokeTest {
                             {Theme.key_chats_unreadCounterText, Theme.key_chats_unreadCounter},
                             {Theme.key_chat_messageTextOut, Theme.key_chat_outBubble},
                             {Theme.key_chat_outTimeText, Theme.key_chat_outBubble},
-                            {Theme.key_chat_outTimeText, Theme.key_chat_outBubbleGradient2}}) {
+                            {Theme.key_chat_outTimeText, Theme.key_chat_outBubbleGradient2},
+                            {Theme.key_chat_outTimeSelectedText, Theme.key_chat_outBubbleSelected},
+                            {Theme.key_chat_outAudioDurationSelectedText, Theme.key_chat_outBubbleSelected},
+                            {Theme.key_chat_messageLinkOut, Theme.key_chat_outBubbleSelected},
+                            {Theme.key_chat_outAudioTitleText, Theme.key_chat_outBubbleSelected},
+                            {Theme.key_chat_inTimeSelectedText, Theme.key_chat_inBubbleSelected}}) {
                         assertTrue("Unreadable palette pair " + name + ": " + pair[0] + "/" + pair[1],
                                 androidx.core.graphics.ColorUtils.calculateContrast(Theme.getColor(pair[0]), Theme.getColor(pair[1])) >= 4.5);
                     }
