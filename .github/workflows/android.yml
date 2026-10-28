@@ -115,9 +115,33 @@ jobs:
           if not re.fullmatch(r'[0-9]+', run):
               raise SystemExit('Expected a numeric run ID from this repository')
           directory = pathlib.Path(os.environ['RUNNER_TEMP']) / 'android-diagnostics'
-          subprocess.run(['gh', 'run', 'download', run, '--dir', str(directory)], check=True)
+          subprocess.run(['gh', 'run', 'download', run, '--dir', str(directory)], capture_output=True)
           found = 0
-          for name in ('installation.log', 'instrumentation.log', 'offline-voice.log', 'logcat.log'):
+          metadata = subprocess.run(['gh', 'api', f'repos/{os.environ["GH_REPO"]}/actions/runs/{run}/jobs?per_page=100'], text=True, capture_output=True, check=True)
+          import json
+          for job in json.loads(metadata.stdout)['jobs']:
+              if job.get('conclusion') != 'failure':
+                  continue
+              result = subprocess.run(['gh', 'api', '--allow-escape-sequences', f'repos/{os.environ["GH_REPO"]}/actions/jobs/{job["id"]}/logs'], capture_output=True)
+              if result.returncode:
+                  error = re.sub(r'https?://[^\s]+', '<url>', result.stderr.decode(errors='replace'))[-500:].replace('\n', '%0A')
+                  print(f'::warning title=Log request failed::{error}')
+                  found += 1
+                  continue
+              raw = result.stdout
+              if raw.startswith(b'PK'):
+                  import io, zipfile
+                  with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+                      raw = b'\n'.join(archive.read(name) for name in archive.namelist() if not name.endswith('/'))
+              lines = re.sub(r'\x1b\[[0-?]*[ -/]*[@-~]', '', raw.decode(errors='replace')).splitlines()
+              indices = [i for i, line in enumerate(lines) if re.search(r'FAILURE:|What went wrong|Execution failed|Could not|error:|Error:|CMake Error|No space|Caused by|fatal:|A failure occurred', line)]
+              context = sorted({n for i in indices for n in range(max(0, i-2), min(len(lines), i+18))})
+              value = '\n'.join(lines[n] for n in context) if context else '\n'.join(lines[-70:])
+              value = value[-3400:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              title = ('Failed job ' + job['name']).replace(',', '_')
+              print(f'::warning title={title}::{value}')
+              found += 1
+          for name in ('instrumentation.log', 'offline-voice.log', 'logcat.log'):
               for file in sorted(directory.rglob(name)):
                   value = file.read_text(errors='replace')
                   if name == 'logcat.log':
@@ -141,3 +165,96 @@ jobs:
           if not found:
               raise SystemExit('No Android test report files found in this run')
           PY
+
+  theme_previews:
+    if: github.event_name == 'workflow_dispatch' && inputs.diagnostic_run != ''
+    name: Inspect accepted theme screenshots
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Retrieve emulator screenshots
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DIAGNOSTIC_RUN: ${{ inputs.diagnostic_run }}
+        run: |
+          python3 - <<'PY_DOWNLOAD'
+          import os, pathlib, re, subprocess
+          run = os.environ['DIAGNOSTIC_RUN']
+          assert re.fullmatch(r'[0-9]+', run)
+          path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews'
+          result = subprocess.run(['gh', 'run', 'download', run, '--name', 'android-smoke-diagnostics-api36', '--dir', str(path)], capture_output=True)
+          if result.returncode: raise SystemExit('No completed API 36 screenshot artifact available')
+          PY_DOWNLOAD
+      - name: Read Banana Graphite screenshot
+        env:
+          PALETTE: Banana Graphite
+        run: |
+          python3 - <<'PY_IMAGE'
+          import os, pathlib, base64, math
+          name = os.environ['PALETTE']
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          assert len(files) == 1, 'Expected the live-switch screenshot'
+          raw = files[0].read_bytes()
+          assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
+          encoded = base64.b64encode(raw).decode('ascii')
+          size = 48000
+          count = math.ceil(len(encoded) / size)
+          assert count <= 10, 'Screenshot too large for check annotations'
+          for i in range(count):
+              print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
+          PY_IMAGE
+      - name: Read Banana Cream screenshot
+        env:
+          PALETTE: Banana Cream
+        run: |
+          python3 - <<'PY_IMAGE'
+          import os, pathlib, base64, math
+          name = os.environ['PALETTE']
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          assert len(files) == 1, 'Expected the live-switch screenshot'
+          raw = files[0].read_bytes()
+          assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
+          encoded = base64.b64encode(raw).decode('ascii')
+          size = 48000
+          count = math.ceil(len(encoded) / size)
+          assert count <= 10, 'Screenshot too large for check annotations'
+          for i in range(count):
+              print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
+          PY_IMAGE
+      - name: Read Classic Black screenshot
+        env:
+          PALETTE: Classic Black
+        run: |
+          python3 - <<'PY_IMAGE'
+          import os, pathlib, base64, math
+          name = os.environ['PALETTE']
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          assert len(files) == 1, 'Expected the live-switch screenshot'
+          raw = files[0].read_bytes()
+          assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
+          encoded = base64.b64encode(raw).decode('ascii')
+          size = 48000
+          count = math.ceil(len(encoded) / size)
+          assert count <= 10, 'Screenshot too large for check annotations'
+          for i in range(count):
+              print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
+          PY_IMAGE
+      - name: Read Classic White screenshot
+        env:
+          PALETTE: Classic White
+        run: |
+          python3 - <<'PY_IMAGE'
+          import os, pathlib, base64, math
+          name = os.environ['PALETTE']
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          assert len(files) == 1, 'Expected the live-switch screenshot'
+          raw = files[0].read_bytes()
+          assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
+          encoded = base64.b64encode(raw).decode('ascii')
+          size = 48000
+          count = math.ceil(len(encoded) / size)
+          assert count <= 10, 'Screenshot too large for check annotations'
+          for i in range(count):
+              print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
+          PY_IMAGE
