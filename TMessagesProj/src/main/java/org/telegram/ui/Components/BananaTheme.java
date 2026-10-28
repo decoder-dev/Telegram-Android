@@ -1,7 +1,6 @@
 package org.telegram.ui.Components;
 
 import android.graphics.Color;
-import android.util.SparseIntArray;
 
 import androidx.core.graphics.ColorUtils;
 
@@ -10,41 +9,12 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.ui.ActionBar.Theme;
 
-/**
- * BananaGram appearance helpers: Cream / Graphite palettes for Extras UI and
- * selectable ThemeInfo accents that tint chat bubbles via the normal Theme path.
- */
+/** BananaGram settings share the active application's palette, including live theme changes. */
 public final class BananaTheme {
     private BananaTheme() {}
 
     public static final String THEME_CREAM = "Banana Cream";
     public static final String THEME_GRAPHITE = "Banana Graphite";
-
-    /** Warm cream day palette. Hex values match iOS makeBananaGramTheme. */
-    public static final class Cream {
-        public static final int accent = 0xFF8A5F1E;
-        public static final int accentDark = 0xFF85591A;
-        public static final int background = 0xFFF6F0E3;
-        public static final int surface = 0xFFFFFAF2;
-        public static final int bubbleOut = 0xFFFCF2DC;
-        public static final int bubbleIn = 0xFFFFFDF8;
-        public static final int text = 0xFF3A3430;
-        public static final int textSecondary = 0xFF6A655D;
-        public static final int previewBg = 0xFFF1E8D6;
-    }
-
-    /** Warm graphite night palette. Hex values match iOS makeBananaGramTheme. */
-    public static final class Graphite {
-        public static final int accent = 0xFFEBD58F;
-        public static final int accentDark = 0xFFEBD58F;
-        public static final int background = 0xFF1D1C1A;
-        public static final int surface = 0xFF272522;
-        public static final int bubbleOut = 0xFF5E5236;
-        public static final int bubbleIn = 0xFF312F2B;
-        public static final int text = 0xFFEFEBE0;
-        public static final int textSecondary = 0xFFB5B0A4;
-        public static final int previewBg = 0xFF36332E;
-    }
 
     /**
      * Stored ordinals stay compatible: 0 was System and now selects Classic White,
@@ -60,17 +30,9 @@ public final class BananaTheme {
     /** Keep native theme colors, adjusting secondary text only when its contrast is too low. */
     public static final Theme.ResourcesProvider COLORS = key -> contrastFix(Theme.getColor(key), key);
 
-    public static final Theme.ResourcesProvider CREAM = key -> overlay(key, Palette.CREAM);
-    public static final Theme.ResourcesProvider GRAPHITE = key -> overlay(key, Palette.GRAPHITE);
-
     public static Theme.ResourcesProvider forExtras() {
-        Palette palette = selectedPalette();
-        if (palette == Palette.CREAM) {
-            return CREAM;
-        }
-        if (palette == Palette.GRAPHITE) {
-            return GRAPHITE;
-        }
+        // Views keep this provider for their lifetime. Resolve the active colors at lookup time
+        // instead of retaining a Cream/Graphite overlay after the user changes the palette.
         return COLORS;
     }
 
@@ -124,94 +86,6 @@ public final class BananaTheme {
         }
         NotificationCenter.getGlobalInstance().postNotificationName(
                 NotificationCenter.needSetDayNightTheme, info, false, null, -1);
-    }
-
-    /** Sparse overrides used when a Banana palette is active for chat accents. */
-    public static void putBubbleOverrides(SparseIntArray into, Palette palette) {
-        if (into == null || palette == Palette.CLASSIC_WHITE || palette == Palette.CLASSIC_BLACK) {
-            return;
-        }
-        if (palette == Palette.CREAM) {
-            into.put(Theme.key_chat_outBubble, Cream.bubbleOut);
-            into.put(Theme.key_chat_inBubble, Cream.bubbleIn);
-            into.put(Theme.key_chat_messagePanelSend, Cream.accent);
-            into.put(Theme.key_actionBarDefault, Cream.accent);
-            into.put(Theme.key_windowBackgroundWhite, Cream.surface);
-            into.put(Theme.key_windowBackgroundGray, Cream.background);
-            into.put(Theme.key_checkbox, Cream.accent);
-            into.put(Theme.key_switchTrackChecked, Cream.accent);
-        } else {
-            into.put(Theme.key_chat_outBubble, Graphite.bubbleOut);
-            into.put(Theme.key_chat_inBubble, Graphite.bubbleIn);
-            into.put(Theme.key_chat_messagePanelSend, Graphite.accent);
-            into.put(Theme.key_actionBarDefault, Graphite.surface);
-            into.put(Theme.key_windowBackgroundWhite, Graphite.surface);
-            into.put(Theme.key_windowBackgroundGray, Graphite.background);
-            into.put(Theme.key_checkbox, Graphite.accent);
-            into.put(Theme.key_switchTrackChecked, Graphite.accent);
-        }
-    }
-
-    private static int overlay(int key, Palette palette) {
-        int color = Theme.getColor(key);
-        if (palette == Palette.CREAM) {
-            if (key == Theme.key_windowBackgroundWhite || key == Theme.key_dialogBackground) {
-                return Cream.surface;
-            }
-            if (key == Theme.key_windowBackgroundGray) {
-                return Cream.background;
-            }
-            if (key == Theme.key_actionBarDefault || key == Theme.key_checkboxSquareBackground ||
-                    key == Theme.key_switchTrackChecked || key == Theme.key_radioBackgroundChecked ||
-                    key == Theme.key_chat_messagePanelSend || key == Theme.key_featuredStickers_addButton) {
-                return Cream.accent;
-            }
-            if (key == Theme.key_chat_outBubble) {
-                return Cream.bubbleOut;
-            }
-            if (key == Theme.key_chat_inBubble) {
-                return Cream.bubbleIn;
-            }
-            if (key == Theme.key_windowBackgroundWhiteBlackText) {
-                return Cream.text;
-            }
-            if (key == Theme.key_windowBackgroundWhiteGrayText2 || key == Theme.key_windowBackgroundWhiteGrayText4 ||
-                    key == Theme.key_windowBackgroundWhiteHintText) {
-                return Cream.textSecondary;
-            }
-            if (key == Theme.key_windowBackgroundWhiteBlueHeader) {
-                return Cream.accentDark;
-            }
-        } else if (palette == Palette.GRAPHITE) {
-            if (key == Theme.key_windowBackgroundWhite || key == Theme.key_dialogBackground) {
-                return Graphite.surface;
-            }
-            if (key == Theme.key_windowBackgroundGray) {
-                return Graphite.background;
-            }
-            if (key == Theme.key_actionBarDefault || key == Theme.key_checkboxSquareBackground ||
-                    key == Theme.key_switchTrackChecked || key == Theme.key_radioBackgroundChecked ||
-                    key == Theme.key_chat_messagePanelSend || key == Theme.key_featuredStickers_addButton) {
-                return Graphite.accent;
-            }
-            if (key == Theme.key_chat_outBubble) {
-                return Graphite.bubbleOut;
-            }
-            if (key == Theme.key_chat_inBubble) {
-                return Graphite.bubbleIn;
-            }
-            if (key == Theme.key_windowBackgroundWhiteBlackText) {
-                return Graphite.text;
-            }
-            if (key == Theme.key_windowBackgroundWhiteGrayText2 || key == Theme.key_windowBackgroundWhiteGrayText4 ||
-                    key == Theme.key_windowBackgroundWhiteHintText) {
-                return Graphite.textSecondary;
-            }
-            if (key == Theme.key_windowBackgroundWhiteBlueHeader) {
-                return Graphite.accent;
-            }
-        }
-        return contrastFix(color, key);
     }
 
     private static int contrastFix(int color, int key) {

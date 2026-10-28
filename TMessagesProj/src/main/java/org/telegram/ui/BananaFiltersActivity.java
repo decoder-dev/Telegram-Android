@@ -20,10 +20,10 @@ import org.telegram.ui.Components.BananaTheme;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
-import org.telegram.ui.Components.UniversalFragment;
+import org.telegram.ui.Components.BananaSettingsFragment;
 
 /** Native shared/per-chat rule management; imported data always receives a separate preview. */
-public final class BananaFiltersActivity extends UniversalFragment {
+public final class BananaFiltersActivity extends BananaSettingsFragment {
     private final long dialogId;
     private FilterStore store;
     private final String sourceLink;

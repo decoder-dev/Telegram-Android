@@ -23,10 +23,10 @@ import org.telegram.ui.Components.BananaTheme;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
-import org.telegram.ui.Components.UniversalFragment;
+import org.telegram.ui.Components.BananaSettingsFragment;
 
 /** Regex compilation and preview stay asynchronous, including when pressing Save. */
-public final class BananaFilterEditActivity extends UniversalFragment {
+public final class BananaFilterEditActivity extends BananaSettingsFragment {
     private final long dialogId;
     private final String id, initial;
     private String initialSample = "";

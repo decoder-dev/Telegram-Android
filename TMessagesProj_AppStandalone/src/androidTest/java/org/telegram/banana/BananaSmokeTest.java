@@ -54,11 +54,37 @@ public class BananaSmokeTest {
         instrumentation.runOnMainSync(() -> {
             org.telegram.messenger.ApplicationLoader.postInitApplication();
             assertFalse("Use a fresh emulator", org.telegram.messenger.UserConfig.getInstance(0).isClientActivated());
+            Theme.ResourcesProvider retainedProvider = org.telegram.ui.Components.BananaTheme.forExtras();
             for (String name : new String[]{"Classic White", "Banana Cream", "Banana Graphite", "Classic Black"}) {
                 Theme.ThemeInfo allowed = Theme.getTheme(name);
                 assertTrue(Theme.isBananaTheme(allowed));
                 Theme.applyTheme(allowed);
                 assertSame(allowed, Theme.getActiveTheme());
+                for (int key : new int[]{Theme.key_actionBarDefault, Theme.key_actionBarDefaultTitle,
+                        Theme.key_actionBarDefaultIcon, Theme.key_windowBackgroundWhite,
+                        Theme.key_dialogBackground, Theme.key_chat_messagePanelBackground}) {
+                    assertEquals("Retained Extras providers must follow " + name, Theme.getColor(key), retainedProvider.getColor(key));
+                }
+                if (name.startsWith("Banana")) {
+                    for (int[] pair : new int[][]{
+                            {Theme.key_actionBarDefaultTitle, Theme.key_actionBarDefault},
+                            {Theme.key_actionBarDefaultIcon, Theme.key_actionBarDefault},
+                            {Theme.key_dialogTextBlack, Theme.key_dialogBackground},
+                            {Theme.key_dialogButton, Theme.key_dialogBackground},
+                            {Theme.key_windowBackgroundWhiteBlueButton, Theme.key_windowBackgroundWhite},
+                            {Theme.key_windowBackgroundWhiteGrayText4, Theme.key_windowBackgroundGray},
+                            {Theme.key_chat_messagePanelText, Theme.key_chat_messagePanelBackground},
+                            {Theme.key_chat_messagePanelHint, Theme.key_chat_messagePanelBackground},
+                            {Theme.key_chat_messagePanelVoicePressed, Theme.key_chat_messagePanelSend},
+                            {Theme.key_checkboxCheck, Theme.key_checkbox},
+                            {Theme.key_chats_unreadCounterText, Theme.key_chats_unreadCounter},
+                            {Theme.key_chat_messageTextOut, Theme.key_chat_outBubble},
+                            {Theme.key_chat_outTimeText, Theme.key_chat_outBubble},
+                            {Theme.key_chat_outTimeText, Theme.key_chat_outBubbleGradient2}}) {
+                        assertTrue("Unreadable palette pair " + name + ": " + pair[0] + "/" + pair[1],
+                                androidx.core.graphics.ColorUtils.calculateContrast(Theme.getColor(pair[0]), Theme.getColor(pair[1])) >= 4.5);
+                    }
+                }
                 Theme.applyTheme(Theme.getTheme("Blue"));
                 assertSame(allowed, Theme.getActiveTheme());
                 Theme.ThemeInfo spoofed = new Theme.ThemeInfo(allowed);
@@ -268,6 +294,10 @@ public class BananaSmokeTest {
                     SystemClock.sleep(400);
                     assertEquals(language.equals("ru") ? "Возможности BananaGram" : "BananaGram Extras",
                             LocaleController.getString(R.string.BananaExtras));
+                    assertHeaderContrast(instrumentation, screen[0]);
+                    if (language.equals("en") && theme.equals("Classic White")) {
+                        checkLivePaletteChooser(instrumentation, screen[0]);
+                    }
                     assertTrue("Footer text needs readable contrast in both themes",
                             androidx.core.graphics.ColorUtils.calculateContrast(
                                     screen[0].getThemedColor(Theme.key_windowBackgroundWhiteGrayText4),
@@ -474,6 +504,66 @@ public class BananaSmokeTest {
             assertTrue("A wrapped label must fit inside its row", child.getMeasuredHeight() >=
                     text.getLayout().getHeight() + org.telegram.messenger.AndroidUtilities.dp(16));
         }
+    }
+
+    private static void assertHeaderContrast(Instrumentation instrumentation, BananaSettingsActivity screen) {
+        instrumentation.runOnMainSync(() -> {
+            int background = screen.getActionBar().getBackgroundColor();
+            int title = screen.getActionBar().getTitleTextView().getTextColor();
+            assertEquals("Extras must use the application's header surface", Theme.getColor(Theme.key_actionBarDefault), background);
+            assertEquals(Theme.getColor(Theme.key_actionBarDefaultTitle), title);
+            assertTrue("The actual rendered header must keep WCAG AA contrast",
+                    androidx.core.graphics.ColorUtils.calculateContrast(title, background) >= 4.5);
+        });
+    }
+
+    private static void checkLivePaletteChooser(Instrumentation instrumentation, BananaSettingsActivity screen) throws Exception {
+        String[] names = {"Banana Graphite", "Banana Cream", "Classic Black", "Classic White"};
+        int[] choices = {2, 1, 3, 0};
+        int[] labels = {R.string.BananaThemeGraphite, R.string.BananaThemeCream, R.string.BananaThemeClassicBlack, R.string.BananaThemeClassicWhite};
+        View originalView = screen.getFragmentView();
+        for (int i = 0; i < names.length; i++) {
+            final String name = names[i];
+            final int choice = choices[i];
+            final int label = labels[i];
+            tapRow(instrumentation, screen, 1002);
+            await(instrumentation, () -> screen.getVisibleDialog() instanceof AlertDialog && screen.getVisibleDialog().isShowing(),
+                    "The native palette chooser must open");
+            instrumentation.runOnMainSync(() -> {
+                AlertDialog dialog = (AlertDialog) screen.getVisibleDialog();
+                assertEquals("Only the four bundled themes may be offered", 4, dialog.getItemsCount());
+                View item = findPaletteItem(dialog.getWindow().getDecorView(), choice);
+                assertNotNull("Missing palette choice", item);
+                assertTrue(item.performClick());
+            });
+            await(instrumentation, () -> name.equals(Theme.getActiveTheme().name)
+                    && screen.getActionBar().getTitleTextView().getTextColor() == Theme.getColor(Theme.key_actionBarDefaultTitle)
+                    && screen.getParentLayout().getThemeAnimationValue() >= .999f,
+                    "The open Extras screen must finish applying " + name);
+            instrumentation.waitForIdleSync();
+            instrumentation.runOnMainSync(() -> {
+                assertSame("Changing a palette must repaint the existing view", originalView, screen.getFragmentView());
+                assertEquals(choice, BananaConfig.getThemePalette(screen.getCurrentAccount()));
+                for (int row = 0; row < screen.listView.adapter.getItemCount(); row++) {
+                    org.telegram.ui.Components.UItem item = screen.listView.adapter.getItem(row);
+                    if (item.id == 1002) assertEquals(LocaleController.getString(label), item.textValue.toString());
+                }
+            });
+            assertHeaderContrast(instrumentation, screen);
+            capture(instrumentation, "live-palette-" + name);
+        }
+    }
+
+    private static View findPaletteItem(View view, int choice) {
+        if (view instanceof AlertDialog.AlertDialogCell && Integer.valueOf(choice).equals(view.getTag())) return view;
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View found = findPaletteItem(group.getChildAt(i), choice);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private static void assertPaletteContrast(int foregroundKey, int backgroundKey) {

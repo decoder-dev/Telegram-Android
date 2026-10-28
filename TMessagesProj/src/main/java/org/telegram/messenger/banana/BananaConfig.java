@@ -237,7 +237,7 @@ public final class BananaConfig {
 
     public static int getThemePalette(int account) {
         SharedPreferences prefs = MessagesController.getMainSettings(account);
-        int stored = prefs.getInt("bananaThemePalette", 0);
+        int stored = prefs.getInt("bananaThemePalette", 1); // Banana Cream on a fresh install.
         int palette = BananaThemePolicy.paletteOrdinal(stored);
         if (stored != palette) {
             SharedPreferences.Editor editor = prefs.edit().putInt("bananaThemePalette", palette);

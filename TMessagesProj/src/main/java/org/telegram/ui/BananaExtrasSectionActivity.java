@@ -18,12 +18,12 @@ import org.telegram.ui.Cells.BananaValueCell;
 import org.telegram.ui.Components.BananaTheme;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
-import org.telegram.ui.Components.UniversalFragment;
+import org.telegram.ui.Components.BananaSettingsFragment;
 
 import java.util.ArrayList;
 
 /** One BananaGram Extras section (Ghost, Ninja, Privacy, …). */
-public final class BananaExtrasSectionActivity extends UniversalFragment {
+public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
     private final String section;
 
     public BananaExtrasSectionActivity(int account, String section) {

@@ -18,12 +18,12 @@ import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
-import org.telegram.ui.Components.UniversalFragment;
+import org.telegram.ui.Components.BananaSettingsFragment;
 
 import java.util.ArrayList;
 
 /** Non-boolean BananaGram Extras (ints, marks, backends). */
-public final class BananaExtrasValuesActivity extends UniversalFragment {
+public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     private static final int ID_ACCENT = 1;
     private static final int ID_STICKER_SIZE = 2;
     private static final int ID_PHOTO_QUALITY = 3;

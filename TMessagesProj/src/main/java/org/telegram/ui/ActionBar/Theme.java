@@ -4057,7 +4057,7 @@ public class Theme {
 
             String theme = preferences.getString("theme", null);
             if (theme == null) {
-                applyingTheme = themesDict.get("Classic White");
+                applyingTheme = themesDict.get("Banana Cream");
             } else if ("Default".equals(theme)) {
                 applyingTheme = themesDict.get("Blue");
                 applyingTheme.currentAccentId = DEFALT_THEME_ACCENT_ID;
@@ -4075,9 +4075,9 @@ public class Theme {
 
             theme = preferences.getString("nighttheme", null);
             if (theme == null) {
-                ThemeInfo classicBlack = themesDict.get("Classic Black");
-                if (classicBlack != null) {
-                    currentNightTheme = classicBlack;
+                ThemeInfo graphite = themesDict.get("Banana Graphite");
+                if (graphite != null) {
+                    currentNightTheme = graphite;
                 }
             } else if ("Default".equals(theme)) {
                 applyingTheme = themesDict.get("Blue");
@@ -4323,7 +4323,7 @@ public class Theme {
         }
         org.telegram.messenger.banana.BananaConfig.getThemePalette(UserConfig.selectedAccount);
         // Migrate stored selections before the first frame and auto-night check.
-        defaultTheme = themesDict.get("Classic White");
+        defaultTheme = themesDict.get("Banana Cream");
         applyingTheme = themesDict.get(org.telegram.messenger.banana.BananaThemePolicy.migrate(
                 applyingTheme != null ? applyingTheme.name : preferences.getString("theme", null),
                 applyingTheme != null && applyingTheme.isDark()));
@@ -5659,6 +5659,9 @@ public class Theme {
             intensities[i] = 0;
         }
         themeInfo.setAccentColorOptions(accents, accents, null, null, null, null, null, ids, slugs, rotations, intensities);
+        // The source files still contain Telegram blue. Retint inherited controls from
+        // that source accent; using the new gold as the source leaves those controls blue.
+        themeInfo.accentBaseColor = themesDict.get(themeInfo.isDark() ? "Night" : "Day").accentBaseColor;
         sortAccents(themeInfo);
     }
 
@@ -6125,9 +6128,9 @@ public class Theme {
         if (accent != null) {
             shouldDrawGradientIcons = accent.fillAccentColors(currentColorsNoAccent, currentColors);
         }
+        org.telegram.messenger.banana.BananaThemes.apply(currentTheme, currentColors);
         applyCalculatedTableColors(currentColorsNoAccent, currentColors, currentTheme.isDark());
         applyCalculatedArticleCodeColors(currentColorsNoAccent, currentColors, currentTheme.isDark());
-        org.telegram.messenger.banana.BananaThemes.apply(currentTheme, currentColors);
         if (!messages) {
             boolean async = !(LaunchActivity.getLastFragment() instanceof ChatActivity);
             reloadWallpaper(async);

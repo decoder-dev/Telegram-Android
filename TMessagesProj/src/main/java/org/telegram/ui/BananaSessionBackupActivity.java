@@ -14,7 +14,7 @@ import org.telegram.ui.Components.*;
 import java.util.ArrayList;
 
 /** Explicit password export/import; automatic copies stay in app-private encrypted storage. */
-public final class BananaSessionBackupActivity extends UniversalFragment {
+public final class BananaSessionBackupActivity extends BananaSettingsFragment {
     private static final int EXPORT = 810, IMPORT = 811;
     public BananaSessionBackupActivity(int account) { setCurrentAccount(account); }
     @Override public Theme.ResourcesProvider getResourceProvider() { return BananaTheme.forExtras(); }
