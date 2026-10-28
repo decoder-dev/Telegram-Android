@@ -141,7 +141,7 @@ jobs:
               title = ('Failed job ' + job['name']).replace(',', '_')
               print(f'::warning title={title}::{value}')
               found += 1
-          for name in ('installation.log', 'instrumentation.log', 'offline-voice.log', 'logcat.log'):
+          for name in ('instrumentation.log', 'offline-voice.log', 'logcat.log'):
               for file in sorted(directory.rglob(name)):
                   value = file.read_text(errors='replace')
                   if name == 'logcat.log':
