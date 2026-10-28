@@ -50,7 +50,7 @@ def check_apk(path):
                         except ValueError:
                             replacement = str(PurePosixPath(name).parent / PurePosixPath(entry).name)
                             # FFmpegNativeRuntime atomically installs exactly these packaged builds.
-                            if PurePosixPath(name).name != 'libffmpeg.zip.so' or PurePosixPath(entry).name not in WEBP_OVERRIDES or replacement not in files:
+                            if PurePosixPath(name).name != 'libffmpeg.zip.so' or PurePosixPath(entry).parent != PurePosixPath('usr/lib') or PurePosixPath(entry).name not in WEBP_OVERRIDES or replacement not in files:
                                 raise
                             check_elf(archive.read(replacement), replacement)
                             overrides += 1

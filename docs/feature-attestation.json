@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "scope": "source/resources and recorded JVM results; runtime acceptance is separate",
-  "java_source_sha256": "e590f36af3bc5a672a0f566681ed4e985c995d137db894f6e1fca34a81701aa2",
+  "java_source_sha256": "2adcd7c10db5065251345ecf717156b4f02dfa4e714ac5fdd4fbe654b98fb4f6",
   "checks": {
     "known_catalog_options": true,
     "all_options_in_catalog": true,

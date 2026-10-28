@@ -75,6 +75,13 @@ public class MediaConversionAndroidTest {
             assertTrue(done.await(30, TimeUnit.SECONDS)); assertNull(answer.get()); assertArrayEquals(original, digest(music));
         } finally { music.delete(); }
     }
+    @Test public void missingLocalFileFailsPromptlyWithoutWaitingForANetworkDownload() throws Exception {
+        initialize(); File absent = new File(InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir(), "absent-" + UUID.randomUUID());
+        CountDownLatch done = new CountDownLatch(1); AtomicReference<BananaMediaConverter.Result> answer = new AtomicReference<>();
+        BananaMediaConverter.Job job = BananaMediaConverter.convertFile(absent, Kind.AUDIO_TO_VOICE, 0, 0, result -> { answer.set(result); done.countDown(); });
+        try { assertTrue("Local files must not wait for Telegram downloads", done.await(10, TimeUnit.SECONDS)); assertNull(answer.get()); }
+        finally { job.cancel(); }
+    }
     private BananaMediaConverter.Result convert(File source, Kind kind, double start, double end) throws Exception {
         CountDownLatch done = new CountDownLatch(1); AtomicReference<BananaMediaConverter.Result> answer = new AtomicReference<>();
         BananaMediaConverter.Job job = BananaMediaConverter.convertFile(source, kind, start, end, result -> { answer.set(result); done.countDown(); });
