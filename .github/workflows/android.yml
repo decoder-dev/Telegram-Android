@@ -168,11 +168,15 @@ jobs:
 
   theme_previews:
     if: github.event_name == 'workflow_dispatch' && inputs.diagnostic_run != ''
-    name: Inspect accepted theme screenshots
+    name: Inspect ${{ matrix.palette }} screenshot
+    strategy:
+      fail-fast: false
+      matrix:
+        palette: ['Banana Graphite', 'Banana Cream', 'Classic Black', 'Classic White']
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Retrieve emulator screenshots
+      - name: Retrieve emulator screenshot
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -186,9 +190,9 @@ jobs:
           result = subprocess.run(['gh', 'run', 'download', run, '--name', 'android-smoke-diagnostics-api33', '--dir', str(path)], capture_output=True)
           if result.returncode: raise SystemExit('No completed API 33 screenshot artifact available')
           PY_DOWNLOAD
-      - name: Read Banana Graphite screenshot
+      - name: Read screenshot parts 1 to 10
         env:
-          PALETTE: Banana Graphite
+          PALETTE: ${{ matrix.palette }}
         run: |
           python3 - <<'PY_IMAGE'
           import os, pathlib, base64, math
@@ -198,15 +202,15 @@ jobs:
           raw = files[0].read_bytes()
           assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
           encoded = base64.b64encode(raw).decode('ascii')
-          size = 48000
+          size = 4000
           count = math.ceil(len(encoded) / size)
-          assert count <= 10, 'Screenshot too large for check annotations'
-          for i in range(count):
+          assert count <= 50, 'Screenshot too large for check annotations'
+          for i in range(0, min(10, count)):
               print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
           PY_IMAGE
-      - name: Read Banana Cream screenshot
+      - name: Read screenshot parts 11 to 20
         env:
-          PALETTE: Banana Cream
+          PALETTE: ${{ matrix.palette }}
         run: |
           python3 - <<'PY_IMAGE'
           import os, pathlib, base64, math
@@ -216,15 +220,15 @@ jobs:
           raw = files[0].read_bytes()
           assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
           encoded = base64.b64encode(raw).decode('ascii')
-          size = 48000
+          size = 4000
           count = math.ceil(len(encoded) / size)
-          assert count <= 10, 'Screenshot too large for check annotations'
-          for i in range(count):
+          assert count <= 50, 'Screenshot too large for check annotations'
+          for i in range(10, min(20, count)):
               print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
           PY_IMAGE
-      - name: Read Classic Black screenshot
+      - name: Read screenshot parts 21 to 30
         env:
-          PALETTE: Classic Black
+          PALETTE: ${{ matrix.palette }}
         run: |
           python3 - <<'PY_IMAGE'
           import os, pathlib, base64, math
@@ -234,15 +238,15 @@ jobs:
           raw = files[0].read_bytes()
           assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
           encoded = base64.b64encode(raw).decode('ascii')
-          size = 48000
+          size = 4000
           count = math.ceil(len(encoded) / size)
-          assert count <= 10, 'Screenshot too large for check annotations'
-          for i in range(count):
+          assert count <= 50, 'Screenshot too large for check annotations'
+          for i in range(20, min(30, count)):
               print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
           PY_IMAGE
-      - name: Read Classic White screenshot
+      - name: Read screenshot parts 31 to 40
         env:
-          PALETTE: Classic White
+          PALETTE: ${{ matrix.palette }}
         run: |
           python3 - <<'PY_IMAGE'
           import os, pathlib, base64, math
@@ -252,9 +256,27 @@ jobs:
           raw = files[0].read_bytes()
           assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
           encoded = base64.b64encode(raw).decode('ascii')
-          size = 48000
+          size = 4000
           count = math.ceil(len(encoded) / size)
-          assert count <= 10, 'Screenshot too large for check annotations'
-          for i in range(count):
+          assert count <= 50, 'Screenshot too large for check annotations'
+          for i in range(30, min(40, count)):
+              print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
+          PY_IMAGE
+      - name: Read screenshot parts 41 to 50
+        env:
+          PALETTE: ${{ matrix.palette }}
+        run: |
+          python3 - <<'PY_IMAGE'
+          import os, pathlib, base64, math
+          name = os.environ['PALETTE']
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          assert len(files) == 1, 'Expected the live-switch screenshot'
+          raw = files[0].read_bytes()
+          assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
+          encoded = base64.b64encode(raw).decode('ascii')
+          size = 4000
+          count = math.ceil(len(encoded) / size)
+          assert count <= 50, 'Screenshot too large for check annotations'
+          for i in range(40, min(50, count)):
               print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
           PY_IMAGE
