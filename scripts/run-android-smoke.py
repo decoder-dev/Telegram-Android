@@ -27,16 +27,22 @@ def run(*command, timeout=180):
     return result.stdout
 
 
-apks = root / 'TMessagesProj_AppStandalone/build/outputs/apk'
-all_apks = sorted(apks.rglob('*.apk'))
+build_dir = root / 'TMessagesProj_AppStandalone/build'
+all_apks = sorted(build_dir.rglob('*.apk'))
 app_apks = [path for path in all_apks
             if 'androidtest' not in path.name.lower()
-            and 'androidtest' not in str(path.relative_to(apks)).lower()]
+            and 'androidtest' not in str(path.relative_to(build_dir)).lower()]
+test_apks = [path for path in all_apks
+             if 'androidtest' in path.name.lower()
+             or 'androidtest' in str(path.relative_to(build_dir)).lower()]
 if len(app_apks) != 1:
     candidates = ', '.join(str(path.relative_to(root)) for path in all_apks) or 'none found'
-    raise SystemExit(f'Expected exactly one standalone app APK under {apks}; found: {candidates}')
+    raise SystemExit(f'Expected exactly one standalone app APK under {build_dir}; found: {candidates}')
+if len(test_apks) != 1:
+    candidates = ', '.join(str(path.relative_to(root)) for path in test_apks) or 'none found'
+    raise SystemExit(f'Expected exactly one standalone instrumentation APK under {build_dir}; found: {candidates}')
 run('install', '-t', '-r', str(app_apks[0]))
-run('install', '-t', '-r', str(apks / 'androidTest/afat/debug/TMessagesProj_AppStandalone-afat-debug-androidTest.apk'))
+run('install', '-t', '-r', str(test_apks[0]))
 run('shell', 'rm', '-rf', '/sdcard/Android/data/org.telegram.messenger.web/files/banana-smoke')
 output = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class',
              'org.telegram.banana.BananaSmokeTest,org.telegram.banana.HistoryDatabaseTest,org.telegram.banana.HistoryCaptureTest,org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest',
