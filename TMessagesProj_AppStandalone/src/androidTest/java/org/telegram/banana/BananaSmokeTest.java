@@ -22,6 +22,7 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.BananaSettingsActivity;
 import org.telegram.ui.BananaHistoryActivity;
 import org.telegram.ui.BananaExtrasSectionActivity;
+import org.telegram.ui.BananaExtrasValuesActivity;
 import org.telegram.ui.BananaFiltersActivity;
 import org.telegram.ui.BananaFilterEditActivity;
 import org.telegram.ui.Components.UniversalFragment;
@@ -232,6 +233,7 @@ public class BananaSmokeTest {
                         ninja[0] = (BananaExtrasSectionActivity) activity.getActionBarLayout().getLastFragment();
                         return ninja[0].listView != null && ninja[0].listView.isLaidOut();
                     }, "Ninja options must open from Extras");
+                    assertEveryRowFits(instrumentation, ninja[0]);
                     tapRow(instrumentation, ninja[0], 9001);
                     BananaHistoryActivity[] history = new BananaHistoryActivity[1];
                     await(instrumentation, () -> {
@@ -251,6 +253,36 @@ public class BananaSmokeTest {
                             !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Ninja options must finish returning to Extras");
                     checkStoryPromptChoices(instrumentation, activity, language + "-" + theme);
                     checkFilters(instrumentation, activity, screen[0], language + "-" + theme);
+                    for (int sectionIndex = 1; sectionIndex < org.telegram.messenger.banana.BananaExtrasCatalog.HUB_ORDER.length; sectionIndex++) {
+                        tapRow(instrumentation, screen[0], 2000 + sectionIndex);
+                        final int selectedSection = sectionIndex;
+                        BananaExtrasSectionActivity[] sectionScreen = new BananaExtrasSectionActivity[1];
+                        await(instrumentation, () -> {
+                            if (!(activity.getActionBarLayout().getLastFragment() instanceof BananaExtrasSectionActivity) ||
+                                    activity.getActionBarLayout().isTransitionAnimationInProgress()) return false;
+                            sectionScreen[0] = (BananaExtrasSectionActivity) activity.getActionBarLayout().getLastFragment();
+                            return sectionScreen[0].listView != null && sectionScreen[0].listView.isLaidOut();
+                        }, "Extras category " + selectedSection + " must open");
+                        assertEveryRowFits(instrumentation, sectionScreen[0]);
+                        capture(instrumentation, language + "-" + theme + "-section-" + selectedSection);
+                        instrumentation.runOnMainSync(() -> sectionScreen[0].finishFragment(false));
+                        await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == screen[0] &&
+                                !activity.getActionBarLayout().isTransitionAnimationInProgress(),
+                                "Extras category must return to the hub");
+                    }
+                    tapRow(instrumentation, screen[0], 1003);
+                    BananaExtrasValuesActivity[] valuesScreen = new BananaExtrasValuesActivity[1];
+                    await(instrumentation, () -> {
+                        if (!(activity.getActionBarLayout().getLastFragment() instanceof BananaExtrasValuesActivity) ||
+                                activity.getActionBarLayout().isTransitionAnimationInProgress()) return false;
+                        valuesScreen[0] = (BananaExtrasValuesActivity) activity.getActionBarLayout().getLastFragment();
+                        return valuesScreen[0].listView != null && valuesScreen[0].listView.isLaidOut();
+                    }, "Extras Values must open from the hub");
+                    assertEveryRowFits(instrumentation, valuesScreen[0]);
+                    capture(instrumentation, language + "-" + theme + "-values");
+                    instrumentation.runOnMainSync(() -> valuesScreen[0].finishFragment(false));
+                    await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == screen[0] &&
+                            !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Values must return to the Extras hub");
                     instrumentation.runOnMainSync(() -> screen[0].finishFragment(false));
                     await(instrumentation, () -> activity.getActionBarLayout().getFragmentStack().size() == initialDepth.get() &&
                             !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Extras must finish returning to the original host");
