@@ -69,19 +69,19 @@ public final class BananaMediaConverter {
         long owner = UserConfig.getInstance(account).getClientUserId();
         File file = locate(source);
         if (!file.isFile()) FileLoader.getInstance(account).loadFile(source.getDocument(), source, FileLoader.PRIORITY_HIGH, 0);
-        return submit(file, kind, start, end, () -> UserConfig.getInstance(account).getClientUserId() != owner, done);
+        return submit(file, kind, start, end, true, () -> UserConfig.getInstance(account).getClientUserId() != owner, done);
     }
     public static Job convertFile(File file, Kind kind, double start, double end, Consumer<Result> done) {
-        return submit(file, kind, start, end, () -> false, done);
+        return submit(file, kind, start, end, false, () -> false, done);
     }
-    private static Job submit(File input, Kind kind, double start, double end, java.util.function.BooleanSupplier ownerChanged, Consumer<Result> done) {
+    private static Job submit(File input, Kind kind, double start, double end, boolean awaitDownload, java.util.function.BooleanSupplier ownerChanged, Consumer<Result> done) {
         Job job = new Job();
         if (!BUSY.compareAndSet(false, true)) { ApplicationLoader.applicationHandler.post(() -> done.accept(null)); return job; }
         QUEUE.postRunnable(() -> {
             File output = null; Result result = null; TLRPC.PhotoSize thumbnail = null;
             try {
                 long deadline = SystemClock.elapsedRealtime() + 120000;
-                while (!input.isFile() && SystemClock.elapsedRealtime() < deadline) {
+                while (awaitDownload && !input.isFile() && SystemClock.elapsedRealtime() < deadline) {
                     check(job, ownerChanged); Thread.sleep(200);
                 }
                 check(job, ownerChanged);

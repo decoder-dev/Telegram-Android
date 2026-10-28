@@ -87,14 +87,14 @@ pull = subprocess.run([adb, '-s', args.serial, 'pull',
                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=60)
 (args.output_dir / 'screenshots.log').write_text(pull.stdout)
 passed = re.search(r'OK \((\d+) tests?\)', output)
-if instrumentation_failed or not passed or int(passed.group(1)) < 22 or 'FAILURES!!!' in output:
+if instrumentation_failed or not passed or int(passed.group(1)) < 30 or 'FAILURES!!!' in output:
     print(output)
     print('\n--- Recent Android logcat ---\n')
     print(logcat[-30000:])
     raise SystemExit('Android smoke checks failed')
 if pull.returncode:
     raise SystemExit('Tests passed but their screenshots could not be collected; see screenshots.log')
-print('Android smoke checks passed: native player/history/filters, account isolation and headless Bluetooth setup')
+print('Android smoke checks passed: media conversions, native player/history/filters, account isolation and headless Bluetooth setup')
 
 if args.voice_probe:
     voice = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'banana_voice_probe', 'YES',

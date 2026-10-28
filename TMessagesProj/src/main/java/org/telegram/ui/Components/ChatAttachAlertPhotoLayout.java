@@ -3234,7 +3234,10 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
         if (id == banana_round_video) {
             if (selectedPhotos.size() == 1 && parentAlert.editingMessageObject == null && parentAlert.baseFragment instanceof ChatActivity) {
                 Object selected = selectedPhotos.values().iterator().next();
-                if (selected instanceof MediaController.PhotoEntry) ((ChatActivity) parentAlert.baseFragment).sendBananaRoundVideo((MediaController.PhotoEntry) selected);
+                if (selected instanceof MediaController.PhotoEntry) {
+                    parentAlert.applyCaption();
+                    ((ChatActivity) parentAlert.baseFragment).sendBananaRoundVideo((MediaController.PhotoEntry) selected);
+                }
             }
             return;
         }
