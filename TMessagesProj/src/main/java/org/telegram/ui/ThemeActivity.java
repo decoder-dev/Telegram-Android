@@ -615,6 +615,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         darkThemes.clear();
         for (int a = 0, N = Theme.themes.size(); a < N; a++) {
             Theme.ThemeInfo themeInfo = Theme.themes.get(a);
+            if (!Theme.isBananaTheme(themeInfo)) continue;
             if (currentType != THEME_TYPE_BASIC && currentType != THEME_TYPE_THEMES_BROWSER) {
                 if (themeInfo.isLight() || themeInfo.info != null && themeInfo.info.document == null) {
                     continue;
@@ -650,7 +651,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             if (themeInfo.themeAccents != null && !themeInfo.themeAccents.isEmpty() && accent != null && accent.id >= 100) {
                 editThemeRow = rowCount++;
             }
-            createNewThemeRow = rowCount++;
+            // Only bundled BananaGram palettes are available.
             lastShadowRow = rowCount++;
         } else if (currentType == THEME_TYPE_BASIC) {
             textSizeHeaderRow = rowCount++;
@@ -957,8 +958,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             menuItem = menu.addItem(0, R.drawable.ic_ab_other);
             menuItem.setContentDescription(getString("AccDescrMoreOptions", R.string.AccDescrMoreOptions));
             menuItem.addSubItem(share_theme, R.drawable.msg_share, getString("ShareTheme", R.string.ShareTheme));
-            menuItem.addSubItem(edit_theme, R.drawable.msg_edit, getString("EditThemeColors", R.string.EditThemeColors));
-            menuItem.addSubItem(create_theme, R.drawable.msg_palette, getString("CreateNewThemeMenu", R.string.CreateNewThemeMenu));
+
+
             menuItem.addSubItem(reset_settings, R.drawable.msg_reset, getString("ThemeResetToDefaults", R.string.ThemeResetToDefaults));
 
             if (getMessagesController().getContentSettings() == null) {
@@ -2086,6 +2087,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         }
 
         private void showOptionsForTheme(Theme.ThemeInfo themeInfo) {
+            if (Theme.isBananaTheme(themeInfo)) return;
             if (getParentActivity() == null || themeInfo.info != null && !themeInfo.themeLoaded || currentType == THEME_TYPE_NIGHT) {
                 return;
             }

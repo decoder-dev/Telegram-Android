@@ -784,7 +784,8 @@ public final class BananaHooks {
     }
 
     public static boolean preferOnDeviceTranscription(int account) {
-        return transcriptionBackend(account) == 1;
+        // No local recognizer is connected; never send a server request as "on device".
+        return false;
     }
 
     public static int accentColorSaturation(int account) {
@@ -961,20 +962,13 @@ public final class BananaHooks {
 
     /**
      * Soften bubble color when glass bubbles are enabled.
-     * Tint lowers fill alpha; rim top/sides/bottom average slightly restores edge opacity.
+     * Tint controls the fill; MessageDrawable renders the three edge strengths independently.
      */
     public static int applyGlassBubbleColor(int account, int color) {
         if (!glassBubbles(account)) {
             return color;
         }
-        int tint = BananaConfig.glassBubbleTint(account);
-        int rim = (BananaConfig.glassBubbleRimTop(account)
-                + BananaConfig.glassBubbleRimSides(account)
-                + BananaConfig.glassBubbleRimBottom(account)) / 3;
-        float base = (100 - tint * 0.55f) / 100f;
-        float rimBoost = rim / 100f * 0.18f;
-        int alpha = Math.max(40, Math.min(255, Math.round(255 * Math.min(1f, base + rimBoost))));
-        return (color & 0x00FFFFFF) | (alpha << 24);
+        return BananaGlassStyle.fillColor(color, BananaConfig.glassBubbleTint(account));
     }
 
     public static boolean isGlassBubbleColorKey(int key) {

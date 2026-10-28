@@ -49,6 +49,37 @@ import static org.junit.Assert.*;
 /** Runs without a signed-in user; never sends messages or changes a real account. */
 public class BananaSmokeTest {
     @Test
+    public void externalThemesCannotReplaceAnyAllowedPalette() {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        instrumentation.runOnMainSync(() -> {
+            org.telegram.messenger.ApplicationLoader.postInitApplication();
+            assertFalse("Use a fresh emulator", org.telegram.messenger.UserConfig.getInstance(0).isClientActivated());
+            for (String name : new String[]{"Classic White", "Banana Cream", "Banana Graphite", "Classic Black"}) {
+                Theme.ThemeInfo allowed = Theme.getTheme(name);
+                assertTrue(Theme.isBananaTheme(allowed));
+                Theme.applyTheme(allowed);
+                assertSame(allowed, Theme.getActiveTheme());
+                Theme.applyTheme(Theme.getTheme("Blue"));
+                assertSame(allowed, Theme.getActiveTheme());
+                Theme.ThemeInfo spoofed = new Theme.ThemeInfo(allowed);
+                spoofed.name = name;
+                spoofed.assetName = "night.attheme";
+                assertFalse(Theme.isBananaTheme(spoofed));
+                Theme.applyThemeTemporary(spoofed, false);
+                assertSame(allowed, Theme.getActiveTheme());
+                AtomicBoolean callback = new AtomicBoolean();
+                Theme.applyThemeInBackground(spoofed, false, () -> callback.set(true));
+                assertTrue(callback.get());
+                assertSame(allowed, Theme.getActiveTheme());
+                assertNull(Theme.applyThemeFile(new File("missing.attheme"), name, null, true));
+                assertSame(allowed, Theme.getActiveTheme());
+            }
+            assertEquals(4, Theme.themes.size());
+            for (Theme.ThemeInfo theme : Theme.themes) assertTrue(Theme.isBananaTheme(theme));
+        });
+    }
+
+    @Test
     public void ghostPresetAndSilentSendingStayInsideTheirAccount() {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> org.telegram.messenger.ApplicationLoader.postInitApplication());
@@ -177,7 +208,7 @@ public class BananaSmokeTest {
         instrumentation.runOnMainSync(() -> initialDepth.set(activity.getActionBarLayout().getFragmentStack().size()));
         try {
             for (String language : new String[]{"en", "ru"}) {
-                for (String theme : new String[]{"Blue", "Night"}) {
+                for (String theme : new String[]{"Classic White", "Banana Cream", "Banana Graphite", "Classic Black"}) {
                     BananaSettingsActivity[] screen = new BananaSettingsActivity[1];
                     instrumentation.runOnMainSync(() -> {
                         BananaConfig.setGhostMode(0, false);
@@ -198,9 +229,9 @@ public class BananaSmokeTest {
                             androidx.core.graphics.ColorUtils.calculateContrast(
                                     screen[0].getThemedColor(Theme.key_windowBackgroundWhiteGrayText4),
                                     screen[0].getThemedColor(Theme.key_windowBackgroundGray)) >= 4.5);
-                    assertGlassPaletteContrast(Theme.key_windowBackgroundWhiteBlueHeader,
+                    assertPaletteContrast(Theme.key_windowBackgroundWhiteBlueHeader,
                             Theme.key_windowBackgroundWhite);
-                    assertGlassPaletteContrast(Theme.key_windowBackgroundWhiteGrayText2,
+                    assertPaletteContrast(Theme.key_windowBackgroundWhiteGrayText2,
                             Theme.key_windowBackgroundWhite);
                     Rect bounds = new Rect();
                     instrumentation.runOnMainSync(() -> {
@@ -402,10 +433,10 @@ public class BananaSmokeTest {
         }
     }
 
-    private static void assertGlassPaletteContrast(int foregroundKey, int backgroundKey) {
-        int foreground = org.telegram.messenger.banana.BananaThemes.extrasColor(foregroundKey, false);
-        int background = org.telegram.messenger.banana.BananaThemes.extrasColor(backgroundKey, false);
-        assertTrue("Banana Glass day palette must keep labels readable at WCAG AA contrast",
+    private static void assertPaletteContrast(int foregroundKey, int backgroundKey) {
+        int foreground = org.telegram.ui.Components.BananaTheme.forExtras().getColor(foregroundKey);
+        int background = org.telegram.ui.Components.BananaTheme.forExtras().getColor(backgroundKey);
+        assertTrue("Every allowed palette must keep labels readable at WCAG AA contrast",
                 androidx.core.graphics.ColorUtils.calculateContrast(foreground, background) >= 4.5);
     }
 

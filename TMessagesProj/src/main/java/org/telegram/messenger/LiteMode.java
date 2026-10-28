@@ -157,7 +157,9 @@ public class LiteMode {
             // always enabled for tablets
             return true;
         }
-        return (getValue() & preprocessFlag(flag)) > 0;
+        int enabled = getValue();
+        if (!org.telegram.messenger.banana.BananaThemes.glassChrome()) enabled &= ~FLAG_LIQUID_GLASS;
+        return (enabled & preprocessFlag(flag)) > 0;
     }
 
     public static boolean isEnabledSetting(int flag) {

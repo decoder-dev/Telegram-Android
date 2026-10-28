@@ -47,9 +47,11 @@ public final class BananaExtrasSectionActivity extends UniversalFragment {
         Option[] options = BananaExtrasCatalog.optionsFor(section);
         for (Option option : options) {
             int label = optionLabel(option);
+            boolean supported = option != Option.SESSION_KEYCHAIN_BACKUP;
             items.add(BananaSwitchCell.Factory.of(option.ordinal() + 1,
                     label != 0 ? LocaleController.getString(label) : option.name(),
-                    BananaConfig.get(currentAccount, option)));
+                    supported && BananaConfig.get(currentAccount, option)).setEnabled(supported));
+            if (!supported) items.add(UItem.asShadow(LocaleController.getString(R.string.BananaKeychainUnavailable)));
         }
         if ("PROFILE".equals(section)) {
             items.add(BananaValueCell.Factory.of(9100,
@@ -96,6 +98,7 @@ public final class BananaExtrasSectionActivity extends UniversalFragment {
         }
         if (item.id > 0 && item.id <= Option.values().length) {
             Option option = Option.values()[item.id - 1];
+            if (option == Option.SESSION_KEYCHAIN_BACKUP) return;
             boolean next = !BananaConfig.get(currentAccount, option);
             BananaConfig.set(currentAccount, option, next);
             if (option == Option.GHOST_DONT_SEND_TYPING) {
@@ -149,6 +152,11 @@ public final class BananaExtrasSectionActivity extends UniversalFragment {
             }
             if (option == Option.HIDE_ONLINE || option == Option.OFFLINE_AFTER_ACTIVITY) {
                 Utilities.stageQueue.postRunnable(() -> getMessagesController().updateTimerProc());
+            }
+            if (option == Option.GLASS_BUBBLES) {
+                Theme.reloadAllResources(getParentActivity());
+                if (parentLayout != null) parentLayout.rebuildAllFragmentViews(true, true);
+                return;
             }
             listView.adapter.update(true);
         }

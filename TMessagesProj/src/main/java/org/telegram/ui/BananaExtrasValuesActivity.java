@@ -86,7 +86,9 @@ public final class BananaExtrasValuesActivity extends UniversalFragment {
 
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaValuesBackends)));
         items.add(cell(ID_TRANSLATION, R.string.BananaVal_TranslationBackend, translationLabel(BananaConfig.translationBackend(currentAccount))));
-        items.add(cell(ID_TRANSCRIPTION, R.string.BananaVal_TranscriptionBackend, transcriptionLabel(BananaConfig.transcriptionBackend(currentAccount))));
+        items.add(cell(ID_TRANSCRIPTION, R.string.BananaVal_TranscriptionBackend,
+                LocaleController.getString(R.string.BananaVal_BackendDefault)).setEnabled(false));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.BananaTranscriptionUnavailable)));
         items.add(UItem.asShadow(null));
 
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaValuesProfile)));
@@ -176,12 +178,8 @@ public final class BananaExtrasValuesActivity extends UniversalFragment {
                         }, new int[]{0, 1});
                 break;
             case ID_TRANSCRIPTION:
-                pickFrom(R.string.BananaVal_TranscriptionBackend, IntValue.TRANSCRIPTION_BACKEND,
-                        new CharSequence[]{
-                                LocaleController.getString(R.string.BananaVal_BackendDefault),
-                                LocaleController.getString(R.string.BananaVal_BackendOnDevice)
-                        }, new int[]{0, 1});
-                break;
+                return;
+
             case ID_DELETED_MARK:
                 editString(R.string.BananaVal_DeletedMessageMark, StringValue.DELETED_MESSAGE_MARK, "🧹");
                 break;

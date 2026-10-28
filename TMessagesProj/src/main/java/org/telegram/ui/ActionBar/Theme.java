@@ -4046,37 +4046,7 @@ public class Theme {
             }
         }
         themeConfig.edit().putInt("remote_version", appRemoteThemesVersion).apply();
-        if (!TextUtils.isEmpty(themesString)) {
-            try {
-                JSONArray jsonArray = new JSONArray(themesString);
-                for (int a = 0; a < jsonArray.length(); a++) {
-                    themeInfo = ThemeInfo.createWithJson(jsonArray.getJSONObject(a));
-                    if (themeInfo != null) {
-                        otherThemes.add(themeInfo);
-                        themes.add(themeInfo);
-                        themesDict.put(themeInfo.getKey(), themeInfo);
-                        themeInfo.loadWallpapers(themeConfig);
-                    }
-                }
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-        } else {
-            themesString = themeConfig.getString("themes", null);
-            if (!TextUtils.isEmpty(themesString)) {
-                String[] themesArr = themesString.split("&");
-                for (int a = 0; a < themesArr.length; a++) {
-                    themeInfo = ThemeInfo.createWithString(themesArr[a]);
-                    if (themeInfo != null) {
-                        otherThemes.add(themeInfo);
-                        themes.add(themeInfo);
-                        themesDict.put(themeInfo.getKey(), themeInfo);
-                    }
-                }
-                saveOtherThemes(true, true);
-                themeConfig.edit().remove("themes").commit();
-            }
-        }
+        // Preserve old theme files/preferences, but do not restore external palettes.
 
         sortThemes();
 
@@ -4345,6 +4315,27 @@ public class Theme {
             }
             preferences.edit().remove("overrideThemeWallpaper").remove("selectedBackground2").commit();
         }
+
+        String retiredPalette = preferences.getString("theme", null);
+        if ("Banana Glass".equals(retiredPalette) || "Banana Glass Night".equals(retiredPalette)) {
+            org.telegram.messenger.banana.BananaConfig.set(UserConfig.selectedAccount,
+                    org.telegram.messenger.banana.BananaConfig.Option.GLASS_BUBBLES, true);
+        }
+        org.telegram.messenger.banana.BananaConfig.getThemePalette(UserConfig.selectedAccount);
+        // Migrate stored selections before the first frame and auto-night check.
+        defaultTheme = themesDict.get("Classic White");
+        applyingTheme = themesDict.get(org.telegram.messenger.banana.BananaThemePolicy.migrate(
+                applyingTheme != null ? applyingTheme.name : preferences.getString("theme", null),
+                applyingTheme != null && applyingTheme.isDark()));
+        currentDayTheme = applyingTheme;
+        currentNightTheme = themesDict.get(org.telegram.messenger.banana.BananaThemePolicy.migrate(
+                currentNightTheme != null ? currentNightTheme.name : null, true));
+        if (selectedAutoNightType == AUTO_NIGHT_TYPE_SCHEDULED) {
+            selectedAutoNightType = AUTO_NIGHT_TYPE_NONE;
+            saveAutoNightThemeConfig();
+        }
+        preferences.edit().putString("theme", currentDayTheme.getKey())
+                .putString("nighttheme", currentNightTheme.getKey()).apply();
 
         int switchToTheme = needSwitchToTheme();
         if (switchToTheme == 2) {
@@ -5468,7 +5459,14 @@ public class Theme {
         previousTheme = null;
     }
 
+    public static boolean isBananaTheme(ThemeInfo theme) {
+        return theme != null && org.telegram.messenger.banana.BananaThemePolicy.isAllowed(theme.name)
+                && theme.pathToFile == null && theme.info == null
+                && themesDict.get(theme.name) == theme;
+    }
+
     private static void sortThemes() {
+        themes.removeIf(theme -> !isBananaTheme(theme));
         Collections.sort(themes, (o1, o2) -> {
             if (o1.pathToFile == null && o1.assetName == null) {
                 return -1;
@@ -5480,6 +5478,7 @@ public class Theme {
     }
 
     public static void applyThemeTemporary(ThemeInfo themeInfo, boolean accent) {
+        if (!isBananaTheme(themeInfo)) return;
         previousTheme = getCurrentTheme();
         hasPreviousTheme = true;
         isApplyingAccent = accent;
@@ -5585,60 +5584,7 @@ public class Theme {
     }
 
     public static ThemeInfo applyThemeFile(File file, String themeName, TLRPC.TL_theme theme, boolean temporary) {
-        try {
-            if (!themeName.toLowerCase().endsWith(".attheme")) {
-                themeName += ".attheme";
-            }
-            if (temporary) {
-                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.goingToPreviewTheme);
-                ThemeInfo themeInfo = new ThemeInfo();
-                themeInfo.name = themeName;
-                themeInfo.info = theme;
-                themeInfo.pathToFile = file.getAbsolutePath();
-                themeInfo.account = UserConfig.selectedAccount;
-                applyThemeTemporary(themeInfo, false);
-                return themeInfo;
-            } else {
-                String key;
-                File finalFile;
-                if (theme != null) {
-                    key = "remote" + theme.id;
-                    finalFile = new File(ApplicationLoader.getFilesDirFixed(), key + ".attheme");
-                } else {
-                    key = themeName;
-                    finalFile = new File(ApplicationLoader.getFilesDirFixed(), key);
-                }
-                if (!AndroidUtilities.copyFile(file, finalFile)) {
-                    applyPreviousTheme();
-                    return null;
-                }
-
-                previousTheme = null;
-                hasPreviousTheme = false;
-                isApplyingAccent = false;
-
-                ThemeInfo themeInfo = themesDict.get(key);
-                if (themeInfo == null) {
-                    themeInfo = new ThemeInfo();
-                    themeInfo.name = themeName;
-                    themeInfo.account = UserConfig.selectedAccount;
-                    themes.add(themeInfo);
-                    otherThemes.add(themeInfo);
-                    sortThemes();
-                } else {
-                    themesDict.remove(key);
-                }
-                themeInfo.info = theme;
-                themeInfo.pathToFile = finalFile.getAbsolutePath();
-                themesDict.put(themeInfo.getKey(), themeInfo);
-                saveOtherThemes(true);
-
-                applyTheme(themeInfo, true, true, false);
-                return themeInfo;
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
+        // External themes cannot replace the bundled BananaGram palettes.
         return null;
     }
 
@@ -5699,35 +5645,6 @@ public class Theme {
             themes.add(graphite);
             themesDict.put("Banana Graphite", graphite);
         }
-        if (!themesDict.containsKey("Banana Glass")) {
-            ThemeInfo glass = new ThemeInfo();
-            glass.name = "Banana Glass";
-            glass.assetName = "day.attheme";
-            glass.setPreviewBackgroundColor(0xFFE7EEF5);
-            glass.setPreviewInColor(0xFFFCFDFE);
-            glass.setPreviewOutColor(0xFFE4F0FF);
-            glass.sortIndex = 1;
-            glass.firstAccentIsDefault = false;
-            glass.currentAccentId = 0;
-            int[] glassAccents = new int[]{0xFF3D8BFF, 0xFF5B6CFF, 0xFF2F9B8A, 0xFF7A8BA0};
-            registerBananaThemeAccents(glass, glassAccents);
-            themes.add(glass);
-            themesDict.put("Banana Glass", glass);
-        }
-        if (!themesDict.containsKey("Banana Glass Night")) {
-            ThemeInfo glassNight = new ThemeInfo();
-            glassNight.name = "Banana Glass Night";
-            glassNight.assetName = "night.attheme";
-            glassNight.setPreviewBackgroundColor(0xFF171E28);
-            glassNight.setPreviewInColor(0xFF243140);
-            glassNight.setPreviewOutColor(0xFF1C3D66);
-            glassNight.sortIndex = 2;
-            glassNight.currentAccentId = 0;
-            int[] glassNightAccents = new int[]{0xFF8EBBFF, 0xFFA9B8FF, 0xFF7ED0C0, 0xFFC5D0DC};
-            registerBananaThemeAccents(glassNight, glassNightAccents);
-            themes.add(glassNight);
-            themesDict.put("Banana Glass Night", glassNight);
-        }
     }
 
     private static void registerBananaThemeAccents(ThemeInfo themeInfo, int[] accents) {
@@ -5762,7 +5679,7 @@ public class Theme {
     }
 
     private static void applyTheme(ThemeInfo themeInfo, boolean save, boolean removeWallpaperOverride, final boolean nightTheme) {
-        if (themeInfo == null) {
+        if (!isBananaTheme(themeInfo)) {
             return;
         }
         ThemeEditorView editorView = ThemeEditorView.getInstance();
@@ -5887,7 +5804,7 @@ public class Theme {
     }
 
     private static void applyThemeInBackground(ThemeInfo themeInfo, boolean save, boolean removeWallpaperOverride, final boolean nightTheme, Runnable onDone) {
-        if (themeInfo == null) {
+        if (!isBananaTheme(themeInfo)) {
             if (onDone != null) {
                 onDone.run();
             }
@@ -6622,6 +6539,7 @@ public class Theme {
     };
 
     public static void setCurrentNightTheme(ThemeInfo theme) {
+        if (!isBananaTheme(theme)) return;
         boolean apply = currentTheme == currentNightTheme;
         currentNightTheme = theme;
         if (apply) {
@@ -6804,7 +6722,7 @@ public class Theme {
             currentThemeDeleted = true;
         }
         if (themeInfo == currentNightTheme) {
-            currentNightTheme = themesDict.get("Dark Blue");
+            currentNightTheme = themesDict.get("Classic Black");
         }
 
         themeInfo.removeObservers();
@@ -6821,13 +6739,7 @@ public class Theme {
     }
 
     public static ThemeInfo createNewTheme(String name) {
-        ThemeInfo newTheme = new ThemeInfo();
-        newTheme.pathToFile = new File(ApplicationLoader.getFilesDirFixed(), "theme" + Utilities.random.nextLong() + ".attheme").getAbsolutePath();
-        newTheme.name = name;
-        themedWallpaperLink = getWallpaperUrl(currentTheme.overrideWallpaper);
-        newTheme.account = UserConfig.selectedAccount;
-        saveCurrentTheme(newTheme, true, true, false);
-        return newTheme;
+        return null;
     }
 
     private static String getWallpaperUrl(OverrideWallpaperInfo wallpaperInfo) {
@@ -6871,6 +6783,7 @@ public class Theme {
     }
 
     public static void saveCurrentTheme(ThemeInfo themeInfo, boolean finalSave, boolean newTheme, boolean upload) {
+        if (newTheme || !isBananaTheme(themeInfo)) return;
         String wallpaperLink;
         OverrideWallpaperInfo wallpaperInfo = themeInfo.overrideWallpaper;
         if (wallpaperInfo != null) {
@@ -7190,7 +7103,7 @@ public class Theme {
                         if (currentDayTheme == info) {
                             currentDayTheme = defaultTheme;
                         } else if (currentNightTheme == info) {
-                            currentNightTheme = themesDict.get("Dark Blue");
+                            currentNightTheme = themesDict.get("Classic Black");
                             isNightTheme = true;
                         }
                         if (currentTheme == info) {

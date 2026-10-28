@@ -11918,7 +11918,7 @@
     <string name="BananaOpt_CHANNEL_BOTTOM_DISCUSS">Channel Bottom Discuss</string>
     <string name="BananaOpt_HIDE_CHANNEL_BOTTOM_BUTTON">Hide Channel Bottom Button</string>
     <string name="BananaOpt_HIDE_SHARE_BUTTON">Hide Share Button</string>
-    <string name="BananaOpt_GLASS_BUBBLES">Glass Bubbles</string>
+    <string name="BananaOpt_GLASS_BUBBLES">Enable Liquid Glass</string>
     <string name="BananaOpt_SHOW_DISAPPEARED_GIFTS">Show Disappeared Gifts</string>
     <string name="BananaOpt_ROUND_VIDEO_STARTS_WITH_REAR">Round Video Starts With Rear</string>
     <string name="BananaOpt_ROUND_VIDEO_REMEMBERS_CAMERA">Round Video Remembers Camera</string>
@@ -11928,8 +11928,8 @@
     <string name="BananaOpt_CHAT_LIST_HIDES_SEARCH">Chat List Hides Search</string>
     <string name="BananaOpt_POLL_RESULTS_BEFORE_VOTING">Poll Results Before Voting</string>
     <string name="BananaOpt_EXACT_LAST_SEEN">Exact Last Seen</string>
-    <string name="BananaOpt_DOWNLOAD_TIK_TOK">Download Tik Tok</string>
-    <string name="BananaOpt_DOWNLOAD_YOU_TUBE_SHORTS">Download You Tube Shorts</string>
+    <string name="BananaOpt_DOWNLOAD_TIK_TOK">Open TikTok videos in an external app</string>
+    <string name="BananaOpt_DOWNLOAD_YOU_TUBE_SHORTS">Open YouTube Shorts in an external app</string>
     <string name="BananaOpt_SIGN_DOWNLOADED_MEDIA">Sign Downloaded Media</string>
     <string name="BananaOpt_QUOTE_REPLIES_TO_DELETED">Quote Replies To Deleted</string>
     <string name="BananaOpt_EXACT_COUNTS">Exact Counts</string>
@@ -12037,4 +12037,6 @@
     <string name="BananaVal_BackendOnDevice">On-device</string>
 
     <string name="appearance">Appearance</string>
+    <string name="BananaKeychainUnavailable">Session backup through iOS Keychain is unavailable on Android.</string>
+    <string name="BananaTranscriptionUnavailable">Local transcription is unavailable in this build. Transcription uses Telegram servers.</string>
 </resources>

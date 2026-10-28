@@ -39790,6 +39790,16 @@ public class ChatActivity extends BaseFragment implements
 
     private class ChatMessageCellDelegate implements ChatMessageCell.ChatMessageCellDelegate {
         @Override
+        public BlurredBackgroundSource getBananaWallpaperSource() {
+            return navbarContentSourceWallpaper;
+        }
+
+        @Override
+        public View getBananaWallpaperRoot() {
+            return parentChatActivity != null ? parentChatActivity.contentView : contentView;
+        }
+
+        @Override
         public boolean isReplyOrSelf() {
             return UserObject.isReplyUser(currentUser) || UserObject.isUserSelf(currentUser);
         }
@@ -44175,27 +44185,7 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private void showChatThemeBottomSheet() {
-        if (currentChat != null) {
-            if (ChatObject.isMegagroup(currentChat)) {
-                if (ChatObject.hasAdminRights(currentChat)) {
-                    presentFragment(new GroupColorActivity(getDialogId()).setOnApplied(ChatActivity.this));
-                }
-            } else {
-                if (ChatObject.canChangeChatInfo(currentChat)) {
-                    presentFragment(new ChannelColorActivity(getDialogId()).setOnApplied(ChatActivity.this));
-                }
-            }
-            return;
-        }
-        chatThemeBottomSheet = new ChatThemeBottomSheet(ChatActivity.this, themeDelegate);
-        chatListView.setOnInterceptTouchListener(event -> true);
-        setChildrenEnabled(contentView, false);
-        showDialog(chatThemeBottomSheet, dialogInterface -> {
-            chatThemeBottomSheet = null;
-            chatListView.setOnInterceptTouchListener(null);
-            setChildrenEnabled(contentView, true);
-            ChatThemeController.getInstance(currentAccount).clearWallpaperThumbImages();
-        });
+        presentFragment(new BananaSettingsActivity(currentAccount));
     }
 
     private void setChildrenEnabled(View view, boolean isEnabled) {
@@ -44444,7 +44434,7 @@ public class ChatActivity extends BaseFragment implements
             if (parentLayout == null || parentThemeDelegate != null) {
                 return;
             }
-            final EmojiThemes chatTheme = org.telegram.messenger.banana.BananaHooks.disableCustomBackgrounds(currentAccount) ? null : chatThemeIn;
+            final EmojiThemes chatTheme = null; // Per-chat palettes cannot override BananaGram themes.
             final TLRPC.WallPaper newWallpaper = org.telegram.messenger.banana.BananaHooks.disableCustomBackgrounds(currentAccount) ? null : newWallpaperIn;
             final EmojiThemes prevTheme = this.chatTheme;
             boolean newIsDark = forceDark != null ? forceDark : this.isDark;//Theme.getActiveTheme().isDark();

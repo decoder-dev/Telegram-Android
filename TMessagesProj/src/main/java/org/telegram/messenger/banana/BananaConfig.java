@@ -236,11 +236,19 @@ public final class BananaConfig {
     }
 
     public static int getThemePalette(int account) {
-        return MessagesController.getMainSettings(account).getInt("bananaThemePalette", 0);
+        SharedPreferences prefs = MessagesController.getMainSettings(account);
+        int stored = prefs.getInt("bananaThemePalette", 0);
+        int palette = BananaThemePolicy.paletteOrdinal(stored);
+        if (stored != palette) {
+            SharedPreferences.Editor editor = prefs.edit().putInt("bananaThemePalette", palette);
+            if (stored == 4 || stored == 5) editor.putBoolean(Option.GLASS_BUBBLES.key, true);
+            editor.apply();
+        }
+        return palette;
     }
 
     public static void setThemePalette(int account, int palette) {
-        MessagesController.getMainSettings(account).edit().putInt("bananaThemePalette", palette).apply();
+        MessagesController.getMainSettings(account).edit().putInt("bananaThemePalette", BananaThemePolicy.paletteOrdinal(palette)).apply();
     }
 
     public static boolean get(int account, Option option) {

@@ -128,9 +128,7 @@ public final class BananaSettingsActivity extends UniversalFragment {
                 LocaleController.getString(R.string.BananaThemeClassicWhite),
                 LocaleController.getString(R.string.BananaThemeCream),
                 LocaleController.getString(R.string.BananaThemeGraphite),
-                LocaleController.getString(R.string.BananaThemeClassicBlack),
-                LocaleController.getString(R.string.BananaThemeGlass),
-                LocaleController.getString(R.string.BananaThemeGlassNight)
+                LocaleController.getString(R.string.BananaThemeClassicBlack)
         };
     }
 
