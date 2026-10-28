@@ -27,20 +27,24 @@ def run(*command, timeout=180):
     return result.stdout
 
 
-build_dir = root / 'TMessagesProj_AppStandalone/build'
-all_apks = sorted(build_dir.rglob('*.apk'))
+build_dirs = [root / 'build']
+build_dirs.extend(path / 'build' for path in root.iterdir()
+                   if path.is_dir() and (path / 'build').is_dir())
+all_apks = sorted({apk for build_dir in build_dirs if build_dir.is_dir()
+                   for apk in build_dir.rglob('*.apk')})
+build_roots = ', '.join(str(path.relative_to(root)) for path in build_dirs)
 app_apks = [path for path in all_apks
             if 'androidtest' not in path.name.lower()
-            and 'androidtest' not in str(path.relative_to(build_dir)).lower()]
+            and 'androidtest' not in str(path.relative_to(root)).lower()]
 test_apks = [path for path in all_apks
              if 'androidtest' in path.name.lower()
-             or 'androidtest' in str(path.relative_to(build_dir)).lower()]
+             or 'androidtest' in str(path.relative_to(root)).lower()]
 if len(app_apks) != 1:
     candidates = ', '.join(str(path.relative_to(root)) for path in all_apks) or 'none found'
-    raise SystemExit(f'Expected exactly one standalone app APK under {build_dir}; found: {candidates}')
+    raise SystemExit(f'Expected exactly one standalone app APK under build dirs ({build_roots}); found: {candidates}')
 if len(test_apks) != 1:
     candidates = ', '.join(str(path.relative_to(root)) for path in test_apks) or 'none found'
-    raise SystemExit(f'Expected exactly one standalone instrumentation APK under {build_dir}; found: {candidates}')
+    raise SystemExit(f'Expected exactly one standalone instrumentation APK under build dirs ({build_roots}); found: {candidates}')
 run('install', '-t', '-r', str(app_apks[0]))
 run('install', '-t', '-r', str(test_apks[0]))
 run('shell', 'rm', '-rf', '/sdcard/Android/data/org.telegram.messenger.web/files/banana-smoke')
