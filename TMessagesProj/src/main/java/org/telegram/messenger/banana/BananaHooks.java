@@ -32,8 +32,7 @@ import java.util.Date;
 public final class BananaHooks {
     private BananaHooks() {}
 
-    private static String lastConfirmedUrl;
-    private static long lastConfirmedAt;
+    private static final ThreadLocal<String> confirmedUrlBypass = new ThreadLocal<>();
 
     public static boolean hideAds(int account) {
         return BananaConfig.get(account, BananaConfig.Option.HIDE_ADS) || AyuConfig.disableAds;
@@ -499,20 +498,34 @@ public final class BananaHooks {
     }
 
     public static boolean isTikTokUrl(String url) {
-        if (TextUtils.isEmpty(url)) {
-            return false;
-        }
-        String lower = url.toLowerCase();
-        return lower.contains("tiktok.com") || lower.contains("vm.tiktok.com") || lower.contains("vt.tiktok.com");
+        java.net.URI parsed = parseHttpUri(url);
+        if (parsed == null || parsed.getHost() == null) return false;
+        String host = parsed.getHost().toLowerCase(java.util.Locale.ROOT);
+        return isHostOrSubdomain(host, "tiktok.com");
     }
 
     public static boolean isYouTubeShortsUrl(String url) {
-        if (TextUtils.isEmpty(url)) {
-            return false;
+        java.net.URI parsed = parseHttpUri(url);
+        if (parsed == null || parsed.getHost() == null || parsed.getPath() == null) return false;
+        String host = parsed.getHost().toLowerCase(java.util.Locale.ROOT);
+        String path = parsed.getPath();
+        return isHostOrSubdomain(host, "youtube.com")
+                && (path.equals("/shorts") || path.startsWith("/shorts/"));
+    }
+
+    private static java.net.URI parseHttpUri(String url) {
+        if (url == null || url.trim().isEmpty()) return null;
+        try {
+            java.net.URI uri = new java.net.URI(url.trim());
+            String scheme = uri.getScheme();
+            return ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) ? uri : null;
+        } catch (java.net.URISyntaxException e) {
+            return null;
         }
-        String lower = url.toLowerCase();
-        return lower.contains("youtube.com/shorts/") || lower.contains("youtube.com/shorts")
-                || (lower.contains("youtu.be/") && lower.contains("shorts"));
+    }
+
+    private static boolean isHostOrSubdomain(String host, String domain) {
+        return host.equals(domain) || host.endsWith("." + domain);
     }
 
     /**
@@ -1144,7 +1157,8 @@ public final class BananaHooks {
         if (proceed == null) {
             return false;
         }
-        if (url != null && url.equals(lastConfirmedUrl) && System.currentTimeMillis() - lastConfirmedAt < 4000) {
+        if (url != null && url.equals(confirmedUrlBypass.get())) {
+            confirmedUrlBypass.remove();
             return false;
         }
         int titleRes = confirmationTitleResForUrl(account, url);
@@ -1156,9 +1170,12 @@ public final class BananaHooks {
                     .setTitle(LocaleController.getString(titleRes))
                     .setMessage(url)
                     .setPositiveButton(LocaleController.getString(R.string.Open), (d, w) -> {
-                        lastConfirmedUrl = url;
-                        lastConfirmedAt = System.currentTimeMillis();
-                        proceed.run();
+                        confirmedUrlBypass.set(url);
+                        try {
+                            proceed.run();
+                        } finally {
+                            confirmedUrlBypass.remove();
+                        }
                     })
                     .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
                     .show();
