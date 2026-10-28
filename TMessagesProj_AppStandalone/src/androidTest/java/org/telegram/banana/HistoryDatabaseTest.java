@@ -154,6 +154,26 @@ public class HistoryDatabaseTest {
         } finally { remove(dir); }
     }
 
+    @Test
+    public void versionTwoMigrationPreservesHistoryAndCreatesProactiveIndex() {
+        File dir = directory();
+        try {
+            try (HistoryDatabase db = new HistoryDatabase(context(), dir, 1, false)) {
+                assertTrue(db.append(record(7, true, "before upgrade")));
+                android.database.sqlite.SQLiteDatabase sqlite = db.getWritableDatabase();
+                sqlite.execSQL("DROP TABLE retained_media");
+                sqlite.setVersion(2);
+            }
+            try (HistoryDatabase db = new HistoryDatabase(context(), dir, 1, false)) {
+                assertEquals(1, db.count());
+                assertEquals("before upgrade", db.recent("", 0, 1).get(0).text);
+                try (android.database.Cursor cursor = db.getReadableDatabase().rawQuery("SELECT COUNT(*) FROM retained_media", null)) {
+                    assertTrue(cursor.moveToFirst()); assertEquals(0, cursor.getInt(0));
+                }
+            }
+        } finally { remove(dir); }
+    }
+
     private void remove(File file) {
         if (file.isDirectory()) {
             File[] children = file.listFiles();

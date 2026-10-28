@@ -463,7 +463,7 @@ public final class BananaHooks {
         if (!sessionKeychainBackup(account)) {
             return;
         }
-        // Intentionally empty — do not invent fake crypto/keychain backups on Android.
+        BananaSessionBackup.schedule(account);
     }
 
     private static final String LOCAL_ALIAS_KEY_PREFIX = "bananaLocalGroupAlias_";
@@ -518,14 +518,13 @@ public final class BananaHooks {
         if (!tiktok && !shorts) {
             return false;
         }
+        if (!VideoDownloadPolicy.accepts(url)) return false;
         try {
-            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url));
-            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
+            BananaVideoDownloadService.start(context, account, url);
             return true;
-        } catch (Throwable e) {
-            FileLog.e(e);
-            return false;
+        } catch (RuntimeException startFailed) {
+            android.widget.Toast.makeText(context, LocaleController.getString(R.string.BananaVideoFailed), android.widget.Toast.LENGTH_LONG).show();
+            return true;
         }
     }
 
@@ -784,8 +783,7 @@ public final class BananaHooks {
     }
 
     public static boolean preferOnDeviceTranscription(int account) {
-        // No local recognizer is connected; never send a server request as "on device".
-        return false;
+        return BananaOfflineVoice.useFor(account);
     }
 
     public static int accentColorSaturation(int account) {

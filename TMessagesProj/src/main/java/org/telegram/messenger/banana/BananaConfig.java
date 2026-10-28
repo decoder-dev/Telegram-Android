@@ -432,8 +432,9 @@ public final class BananaConfig {
             case STICKER_SHAPE:
             case DEFAULT_VIDEO_QUALITY:
                 return Math.max(0, Math.min(2, raw));
-            case TRANSLATION_BACKEND:
             case TRANSCRIPTION_BACKEND:
+                return Math.max(0, Math.min(2, raw));
+            case TRANSLATION_BACKEND:
                 return Math.max(0, Math.min(1, raw));
             case DEFAULT_SEND_FORMATTING:
                 return Math.max(0, Math.min(5, raw));

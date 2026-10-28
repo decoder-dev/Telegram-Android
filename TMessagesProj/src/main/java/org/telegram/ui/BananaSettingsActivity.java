@@ -29,6 +29,7 @@ public final class BananaSettingsActivity extends UniversalFragment {
     private static final int VALUES = 1003;
     private static final int AYU_SETTINGS = 1004;
     private static final int UPDATES = 1005;
+    private static final int SESSION_BACKUP = 1006;
     private static final int SECTION_BASE = 2000;
 
     public BananaSettingsActivity(int account) {
@@ -63,12 +64,14 @@ public final class BananaSettingsActivity extends UniversalFragment {
         }
         items.add(UItem.asShadow(null));
         items.add(UItem.asButton(VALUES, LocaleController.getString(R.string.BananaValues)));
+        items.add(UItem.asButton(SESSION_BACKUP, LocaleController.getString(R.string.BananaSessionBackup)));
         items.add(UItem.asButton(UPDATES, LocaleController.getString(R.string.BananaUpdates)));
         items.add(UItem.asButton(AYU_SETTINGS, LocaleController.getString(R.string.AyuPreferences)));
     }
 
     @Override
     protected void onClick(UItem item, View view, int position, float x, float y) {
+        if (item.id == SESSION_BACKUP) { presentFragment(new BananaSessionBackupActivity(currentAccount)); return; }
         if (item.id == AYU_SETTINGS) {
             com.radolyn.ayugram.ui.preferences.AyuGramPreferencesActivity preferences =
                     new com.radolyn.ayugram.ui.preferences.AyuGramPreferencesActivity();

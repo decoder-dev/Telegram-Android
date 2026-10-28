@@ -361,6 +361,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
     private RadialProgressView radialProgressView;
 
     private ImageView proxyButtonView;
+    private ImageView sessionBackupButton;
     private ProxyDrawable proxyDrawable;
 
     // Open animation stuff
@@ -581,6 +582,10 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                 marginLayoutParams = (MarginLayoutParams) backButtonView.getLayoutParams();
                 marginLayoutParams.topMargin = AndroidUtilities.dp(16) + statusBarHeight;
 
+                marginLayoutParams = (MarginLayoutParams) sessionBackupButton.getLayoutParams();
+                marginLayoutParams.topMargin = AndroidUtilities.dp(8) + statusBarHeight;
+                sessionBackupButton.setVisibility(activityMode == MODE_LOGIN && currentViewNum == VIEW_PHONE_INPUT ? View.VISIBLE : View.GONE);
+
                 marginLayoutParams = (MarginLayoutParams) proxyButtonView.getLayoutParams();
                 marginLayoutParams.topMargin = AndroidUtilities.dp(16) + statusBarHeight;
 
@@ -771,6 +776,12 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         proxyButtonView.setAlpha(0f);
         proxyButtonView.setVisibility(View.GONE);
         sizeNotifierFrameLayout.addView(proxyButtonView, LayoutHelper.createFrame(32, 32, Gravity.RIGHT | Gravity.TOP, 16, 16, 16, 16));
+        sessionBackupButton = new ImageView(context);
+        sessionBackupButton.setImageResource(R.drawable.msg_download);
+        sessionBackupButton.setPadding(dp(12), dp(12), dp(12), dp(12));
+        sessionBackupButton.setContentDescription(LocaleController.getString(R.string.BananaSessionBackup));
+        sessionBackupButton.setOnClickListener(v -> presentFragment(new BananaSessionBackupActivity(currentAccount)));
+        sizeNotifierFrameLayout.addView(sessionBackupButton, LayoutHelper.createFrame(48, 48, Gravity.RIGHT | Gravity.TOP, 0, 8, 56, 0));
         updateProxyButton(false, true);
 
         radialProgressView = new RadialProgressView(context);
@@ -8479,6 +8490,9 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 
         backButtonView.setColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         backButtonView.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector)));
+
+        sessionBackupButton.setColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        sessionBackupButton.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector)));
 
         proxyDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText), PorterDuff.Mode.SRC_IN));
         proxyButtonView.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector)));

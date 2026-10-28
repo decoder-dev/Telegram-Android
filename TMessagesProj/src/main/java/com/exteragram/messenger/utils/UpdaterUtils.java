@@ -224,7 +224,7 @@ public class UpdaterUtils {
         if (!"https".equalsIgnoreCase(url.getProtocol())
                 || !("github.com".equalsIgnoreCase(url.getHost())
                 || "release-assets.githubusercontent.com".equalsIgnoreCase(url.getHost()))
-                || bytes <= 0 || bytes > 300L * 1024 * 1024
+                || bytes <= 0 || bytes > 512L * 1024 * 1024
                 || !digest.matches("sha256:[a-fA-F0-9]{64}")) {
             return null;
         }
@@ -350,10 +350,18 @@ public class UpdaterUtils {
                 actual.append(hex[unsigned >>> 4]).append(hex[unsigned & 0x0f]);
             }
             if (!actual.toString().equalsIgnoreCase(expectedDigest)) return false;
-            var info = context.getPackageManager().getPackageArchiveInfo(file.getAbsolutePath(), 0);
+            int signingFlags = Build.VERSION.SDK_INT >= 28 ? android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES : android.content.pm.PackageManager.GET_SIGNATURES;
+            var info = context.getPackageManager().getPackageArchiveInfo(file.getAbsolutePath(), signingFlags);
             if (info == null || version == null || info.versionName == null || !context.getPackageName().equals(info.packageName)
                     || compareVersions(info.versionName, version) != 0) return false;
-            var installed = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            var installed = context.getPackageManager().getPackageInfo(context.getPackageName(), signingFlags);
+            android.content.pm.Signature[] candidateSigners = Build.VERSION.SDK_INT >= 28 && info.signingInfo != null ? info.signingInfo.getApkContentsSigners() : info.signatures;
+            android.content.pm.Signature[] installedSigners = Build.VERSION.SDK_INT >= 28 && installed.signingInfo != null ? installed.signingInfo.getApkContentsSigners() : installed.signatures;
+            if (candidateSigners == null || installedSigners == null) return false;
+            byte[][] candidateBytes = new byte[candidateSigners.length][], installedBytes = new byte[installedSigners.length][];
+            for (int n = 0; n < candidateSigners.length; n++) candidateBytes[n] = candidateSigners[n].toByteArray();
+            for (int n = 0; n < installedSigners.length; n++) installedBytes[n] = installedSigners[n].toByteArray();
+            if (!org.telegram.messenger.banana.ApkSigningPolicy.sameSigners(candidateBytes, installedBytes)) return false;
             long installedVersionCode = Build.VERSION.SDK_INT >= 28
                     ? installed.getLongVersionCode() : installed.versionCode;
             long downloadedVersionCode = Build.VERSION.SDK_INT >= 28

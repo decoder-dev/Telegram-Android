@@ -65,6 +65,10 @@ dependencies {
     implementation 'com.google.android.recaptcha:recaptcha:18.7.1'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     testImplementation 'junit:junit:4.13.2'
+    implementation 'com.alphacephei:vosk-android:0.3.75@aar'
+    implementation 'net.java.dev.jna:jna:5.18.1@aar'
+    implementation 'io.github.junkfood02.youtubedl-android:library:0.18.1'
+    implementation 'io.github.junkfood02.youtubedl-android:ffmpeg:0.18.1'
 
     // AyuGram local message archive.
     implementation "androidx.room:room-runtime:2.4.3"
@@ -221,7 +225,7 @@ android {
         buildConfigField 'int', 'APP_ID', resolvedAppId
         buildConfigField 'String', 'APP_HASH', resolvedAppHash
         buildConfigField 'String', 'AYU_VERSION', resolvedAyuVersion
-        minSdkVersion 24
+        minSdkVersion 33
         targetSdkVersion 36
 
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']

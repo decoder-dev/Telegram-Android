@@ -44,30 +44,21 @@ public final class MessageHistory {
      */
     public static void proactiveDownloads(int account, List<TLRPC.Message> messages) {
         if (!BananaHooks.proactiveSaveMedia(account) || messages == null || messages.isEmpty()) return;
-        FileLoader loader = FileLoader.getInstance(account);
+        long owner = UserConfig.getInstance(account).getClientUserId();
+        if (owner <= 0) return;
+        boolean test = ConnectionsManager.getInstance(account).isTestBackend();
+        long generation = generation(account);
         int started = 0;
         for (TLRPC.Message message : messages) {
-            if (message == null || message.id <= 0 || message.media == null || message.ttl > 0 || message.ttl_period > 0) continue;
-            if (message.media.ttl_seconds > 0) continue;
-            try {
-                if (message.media instanceof TLRPC.TL_messageMediaDocument && message.media.document != null) {
-                    File existing = loader.getPathToMessage(message);
-                    if (existing != null && existing.isFile() && existing.length() > 0) continue;
-                    loader.loadFile(message.media.document, message, FileLoader.PRIORITY_LOW, 0);
-                    if (++started >= 8) return;
-                } else if (message.media instanceof TLRPC.TL_messageMediaPhoto && message.media.photo != null) {
-                    TLRPC.PhotoSize size = FileLoader.getClosestPhotoSizeWithSize(
-                            message.media.photo.sizes, org.telegram.messenger.AndroidUtilities.getPhotoSize());
-                    if (size == null) continue;
-                    File existing = loader.getPathToAttach(size, true);
-                    if (existing != null && existing.isFile() && existing.length() > 0) continue;
-                    loader.loadFile(org.telegram.messenger.ImageLocation.getForPhoto(size, message.media.photo),
-                            message, null, FileLoader.PRIORITY_LOW, 0);
-                    if (++started >= 8) return;
-                }
-            } catch (Exception error) {
-                FileLog.e(error);
-            }
+            long dialog = message == null ? 0 : org.telegram.messenger.MessageObject.getDialogId(message);
+            if (message == null || message.id <= 0 || dialog == 0 || DialogObject.isEncryptedDialog(dialog) ||
+                    message.media == null || message.ttl > 0 || message.ttl_period > 0 || message.media.ttl_seconds > 0) continue;
+            HistoryDatabase.Attachment media = describeMedia(message);
+            if (media == null) continue;
+            Worker.QUEUE.postRunnable(() -> {
+                if (generation == generation(account)) deferAttachment(account, owner, test, 0, message, media);
+            });
+            if (++started >= 8) return;
         }
     }
 
@@ -193,18 +184,6 @@ public final class MessageHistory {
             catch (Exception error) { FileLog.e(error); }
         });
         if (media == null) return;
-        if (BananaHooks.proactiveSaveMedia(account)) {
-            try {
-                File local = FileLoader.getInstance(account).getPathToMessage(message);
-                if (local == null || !local.isFile() || local.length() == 0) {
-                    if (message.media instanceof TLRPC.TL_messageMediaDocument && message.media.document != null) {
-                        FileLoader.getInstance(account).loadFile(message.media.document, message, FileLoader.PRIORITY_LOW, 0);
-                    }
-                }
-            } catch (Exception error) {
-                FileLog.e(error);
-            }
-        }
         if (!pendingCopies.tryAcquire()) return;
         // FileLoader.deleteFiles uses this same queue. Open before its later unlink;
         // copy on our IO queue so large files do not stall Telegram's download queue.
@@ -215,7 +194,14 @@ public final class MessageHistory {
             try {
                 File file = loader.getPathToMessage(message);
                 size = file.length();
-                if (!file.isFile() || size > SavedAttachments.MAX_FILE_BYTES) { pendingCopies.release(); return; }
+                if (!file.isFile() || size == 0) {
+                    pendingCopies.release();
+                    if (BananaHooks.proactiveSaveMedia(account)) {
+                        Worker.QUEUE.postRunnable(() -> deferAttachment(account, owner, test, rowId.get(), message, media));
+                    }
+                    return;
+                }
+                if (size > SavedAttachments.MAX_FILE_BYTES) { pendingCopies.release(); return; }
                 opened = new FileInputStream(file);
             } catch (Exception error) { pendingCopies.release(); FileLog.e(error); return; }
             final long expectedSize = size;
@@ -232,6 +218,98 @@ public final class MessageHistory {
                 finally { pendingCopies.release(); }
             });
         });
+    }
+
+    private static final java.util.concurrent.atomic.AtomicLongArray generations = new java.util.concurrent.atomic.AtomicLongArray(UserConfig.MAX_ACCOUNT_COUNT);
+    private static long generation(int account) { return generations.get(account); }
+    private static final java.util.Map<String, java.util.ArrayList<PendingAttachment>> pendingDownloads = new java.util.HashMap<>();
+    private static final class PendingAttachment {
+        final int account; final long owner, row, generation; final boolean test; final HistoryDatabase.Attachment media;
+        PendingAttachment(int account, long owner, boolean test, long row, HistoryDatabase.Attachment media) {
+            this.account = account; this.owner = owner; this.test = test; this.row = row; this.media = media; this.generation = generation(account);
+        }
+    }
+
+    /** Worker queue: subscribe before starting, then recheck the local file to close the completion race. */
+    private static void deferAttachment(int account, long owner, boolean test, long row, TLRPC.Message message,
+                                        HistoryDatabase.Attachment media) {
+        try {
+            if (!BananaHooks.proactiveSaveMedia(account) ||
+                    UserConfig.getInstance(account).getClientUserId() != owner ||
+                    ConnectionsManager.getInstance(account).isTestBackend() != test ||
+                    row != 0 && !database(owner, test).canLinkAttachment(row)) return;
+            if (row == 0 && database(owner, test).storedMedia(media.mediaKey) != null) return;
+            TLRPC.Document document = message.media != null ? message.media.document : null;
+            TLRPC.Photo photo = message.media != null ? message.media.photo : null;
+            TLRPC.PhotoSize size = photo == null ? null : FileLoader.getClosestPhotoSizeWithSize(photo.sizes, AndroidUtilities.getPhotoSize());
+            if (document == null && size == null || document != null && document.size > SavedAttachments.MAX_FILE_BYTES ||
+                    size != null && size.size > SavedAttachments.MAX_FILE_BYTES) return;
+            String name = FileLoader.getAttachFileName(document != null ? document : size);
+            String key = account + ":" + name;
+            PendingAttachment pending = new PendingAttachment(account, owner, test, row, media);
+            synchronized (pendingDownloads) {
+                int count = 0;
+                for (java.util.List<PendingAttachment> entries : pendingDownloads.values()) count += entries.size();
+                if (count >= 64) return;
+                java.util.ArrayList<PendingAttachment> entries = pendingDownloads.computeIfAbsent(key, ignored -> new java.util.ArrayList<>());
+                for (PendingAttachment old : entries) if (old.owner == owner && old.row == row && old.test == test && old.generation == pending.generation) return;
+                entries.add(pending);
+            }
+            Worker.QUEUE.postRunnable(() -> {
+                synchronized (pendingDownloads) {
+                    java.util.List<PendingAttachment> entries = pendingDownloads.get(key);
+                    if (entries != null) { entries.remove(pending); if (entries.isEmpty()) pendingDownloads.remove(key); }
+                }
+            }, 10 * 60 * 1000);
+            FileLoader loader = FileLoader.getInstance(account);
+            File local = loader.getPathToMessage(message);
+            if (local != null && local.isFile() && local.length() > 0) { onFileLoaded(account, name, local); return; }
+            if (document != null) loader.loadFile(document, message, FileLoader.PRIORITY_LOW, 0);
+            else loader.loadFile(org.telegram.messenger.ImageLocation.getForPhoto(size, photo), message, "jpg", FileLoader.PRIORITY_LOW, 0);
+        } catch (Exception failure) { FileLog.e(failure); }
+    }
+
+    /** FileLoader completion path: open while the completed cache file still exists. */
+    public static void onFileLoaded(int account, String name, File file) {
+        java.util.List<PendingAttachment> entries;
+        synchronized (pendingDownloads) { entries = pendingDownloads.remove(account + ":" + name); }
+        if (entries == null) return;
+        for (PendingAttachment pending : entries) {
+            if (!pendingCopies.tryAcquire()) continue;
+            try {
+                long bytes = file.length();
+                if (bytes <= 0 || bytes > SavedAttachments.MAX_FILE_BYTES) { pendingCopies.release(); continue; }
+                InputStream input = new FileInputStream(file);
+                Worker.QUEUE.postRunnable(() -> {
+                    try (InputStream opened = input) {
+                        if (UserConfig.getInstance(pending.account).getClientUserId() != pending.owner ||
+                                ConnectionsManager.getInstance(pending.account).isTestBackend() != pending.test ||
+                                !BananaHooks.proactiveSaveMedia(pending.account) || pending.generation != generation(pending.account) ||
+                                pending.row != 0 && !database(pending.owner, pending.test).canLinkAttachment(pending.row)) return;
+                        SavedAttachments store = new SavedAttachments(attachmentDirectory(pending.owner, pending.test));
+                        HistoryDatabase.Attachment reused = database(pending.owner, pending.test).storedMedia(pending.media.mediaKey);
+                        if (reused != null) {
+                            File retained = store.resolve(reused.storedName);
+                            if (retained != null && retained.isFile() && retained.length() == reused.bytes) {
+                                if (pending.row != 0) database(pending.owner, pending.test).linkAttachment(pending.row, reused.storedName, reused.bytes);
+                                return;
+                            }
+                        }
+                        String display = pending.media.displayName;
+                        String extension = display.contains(".") ? display.substring(display.lastIndexOf('.') + 1) : "bin";
+                        File saved = store.save(opened, extension, bytes);
+                        boolean linked = pending.row == 0 ? database(pending.owner, pending.test).rememberMedia(pending.media, saved.getName(), saved.length())
+                                : database(pending.owner, pending.test).linkAttachment(pending.row, saved.getName(), saved.length());
+                        if (!linked) store.delete(saved.getName());
+                    } catch (Exception failure) { FileLog.e(failure); }
+                    finally { pendingCopies.release(); }
+                });
+            } catch (Exception failure) { pendingCopies.release(); FileLog.e(failure); }
+        }
+    }
+
+    public static void onFileFailed(int account, String name) {
+        synchronized (pendingDownloads) { pendingDownloads.remove(account + ":" + name); }
     }
 
     private static String mediaKey(TLRPC.Message message) {
@@ -308,6 +386,9 @@ public final class MessageHistory {
     }
 
     public static void clear(int account, Consumer<Boolean> callback) {
+        generations.incrementAndGet(account);
+        synchronized (pendingDownloads) { pendingDownloads.entrySet().removeIf(e -> e.getKey().startsWith(account + ":")); }
+
         long owner = UserConfig.getInstance(account).getClientUserId();
         boolean test = ConnectionsManager.getInstance(account).isTestBackend();
         Worker.QUEUE.postRunnable(() -> {

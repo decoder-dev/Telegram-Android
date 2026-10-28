@@ -23,6 +23,8 @@ dependencies {
     implementation files('../TMessagesProj/libs/libgsaverification-client.aar')
     androidTestImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test:runner:1.7.0'
+    androidTestImplementation 'io.github.junkfood02.youtubedl-android:library:0.18.1'
+    androidTestImplementation 'io.github.junkfood02.youtubedl-android:ffmpeg:0.18.1'
 }
 
 android {
@@ -71,6 +73,7 @@ android {
     }
 
     packagingOptions {
+        jniLibs.keepDebugSymbols += ["**/libpython.zip.so", "**/libffmpeg.zip.so"]
         jniLibs {
             useLegacyPackaging = true
         }
@@ -142,7 +145,7 @@ android {
 
     defaultConfig {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        minSdkVersion 24
+        minSdkVersion 33
         targetSdkVersion 36
         versionName APP_VERSION_NAME
         ndkVersion "27.2.12479018"

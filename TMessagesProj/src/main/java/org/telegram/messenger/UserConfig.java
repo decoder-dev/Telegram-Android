@@ -225,6 +225,9 @@ public class UserConfig extends BaseController {
                     }
 
                     editor.apply();
+                    if (org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.SESSION_KEYCHAIN_BACKUP)) {
+                        org.telegram.messenger.banana.BananaSessionBackup.schedule(currentAccount);
+                    }
                 } catch (Exception e) {
                     FileLog.e(e);
                 }
@@ -461,6 +464,7 @@ public class UserConfig extends BaseController {
     }
 
     public void clearConfig() {
+        org.telegram.messenger.banana.BananaSessionBackup.clear(currentAccount);
         getPreferences().edit().clear().apply();
 
         sharingMyLocationUntil = 0;

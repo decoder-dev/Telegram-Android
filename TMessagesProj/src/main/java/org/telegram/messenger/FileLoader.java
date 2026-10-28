@@ -1012,6 +1012,7 @@ public class FileLoader extends BaseController {
                     checkDownloadQueue(operation, operation.getQueue(), 0);
                     return;
                 }
+                if (!operation.isPreloadVideoOperation()) org.telegram.messenger.banana.MessageHistory.onFileLoaded(currentAccount, fileName, finalFile);
                 FilePathDatabase.FileMeta fileMeta = getFileMetadataFromParent(currentAccount, parentObject);
                 if (fileMeta != null) {
                     getFileLoader().getFileDatabase().saveFileDialogId(finalFile, fileMeta);
@@ -1035,6 +1036,7 @@ public class FileLoader extends BaseController {
 
             @Override
             public void didFailedLoadingFile(FileLoadOperation operation, int reason) {
+                org.telegram.messenger.banana.MessageHistory.onFileFailed(currentAccount, fileName);
                 loadOperationPathsUI.remove(fileName);
                 checkDownloadQueue(operation, operation.getQueue());
                 if (delegate != null) {

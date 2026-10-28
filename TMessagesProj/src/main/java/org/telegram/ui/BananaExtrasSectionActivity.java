@@ -47,7 +47,7 @@ public final class BananaExtrasSectionActivity extends UniversalFragment {
         Option[] options = BananaExtrasCatalog.optionsFor(section);
         for (Option option : options) {
             int label = optionLabel(option);
-            boolean supported = option != Option.SESSION_KEYCHAIN_BACKUP;
+            boolean supported = true;
             items.add(BananaSwitchCell.Factory.of(option.ordinal() + 1,
                     label != 0 ? LocaleController.getString(label) : option.name(),
                     supported && BananaConfig.get(currentAccount, option)).setEnabled(supported));
@@ -98,9 +98,13 @@ public final class BananaExtrasSectionActivity extends UniversalFragment {
         }
         if (item.id > 0 && item.id <= Option.values().length) {
             Option option = Option.values()[item.id - 1];
-            if (option == Option.SESSION_KEYCHAIN_BACKUP) return;
+
             boolean next = !BananaConfig.get(currentAccount, option);
             BananaConfig.set(currentAccount, option, next);
+            if (option == Option.SESSION_KEYCHAIN_BACKUP) {
+                if (next) org.telegram.messenger.banana.BananaSessionBackup.schedule(currentAccount);
+                else org.telegram.messenger.banana.BananaSessionBackup.clear(currentAccount);
+            }
             if (option == Option.GHOST_DONT_SEND_TYPING) {
                 if (next) {
                     BananaConfig.set(currentAccount, Option.HIDE_TYPING, true);
