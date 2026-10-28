@@ -80,10 +80,16 @@ jobs:
         run: |
           apk="$(python3 -c 'from pathlib import Path; root=Path("TMessagesProj_AppStandalone/build"); files=list((root/"outputs/apk").rglob("app.apk")) or list((root/"intermediates/apk").rglob("app.apk")); assert len(files)==1, "Expected one release APK"; print(files[0])')"
           test -s "$apk"
+          # rc.1's in-app updater accepts APKs up to 300 MiB.
+          test "$(stat -c %s "$apk")" -le 314572800
+          version="$(sed -n 's/^APP_VERSION_NAME=//p' gradle.properties)"
+          base_code="$(sed -n 's/^APP_VERSION_CODE=//p' gradle.properties)"
           aapt="$ANDROID_HOME/build-tools/36.0.0/aapt"
           badging="$RUNNER_TEMP/bananagram-badging.txt"
           "$aapt" dump badging "$apk" | tee "$badging"
           grep -Fq "package: name='org.telegram.messenger.web'" "$badging"
+          grep -Fq "versionName='$version'" "$badging"
+          grep -Fq "versionCode='$((base_code * 10 + 9))'" "$badging"
           grep -Fq "application: label='BananaGram'" "$badging"
           grep -Fq 'android:icon="@mipmap/ic_launcher_sa"' TMessagesProj/config/release/AndroidManifest_standalone.xml
           icon="$(sed -n "s/^application:.* icon='\\([^']*\\)'.*/\\1/p" "$badging")"
@@ -95,6 +101,7 @@ jobs:
           fi
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$apk" > "$RUNNER_TEMP/bananagram-signature.txt"
           grep -Fxq "sdkVersion:'33'" "$badging"
+          grep -Fxq "targetSdkVersion:'36'" "$badging"
           grep -Fxq 'Signer #1 certificate SHA-256 digest: ceed8fcb50535731aeab5d27cd75d02936b0a9e466c0285d0da0baa93d3e5634' "$RUNNER_TEMP/bananagram-signature.txt"
           python3 scripts/check-apk-native-pages.py "$apk"
           mkdir -p build/release-output

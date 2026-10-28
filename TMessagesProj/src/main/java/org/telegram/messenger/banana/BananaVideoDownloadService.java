@@ -6,7 +6,6 @@ import android.os.*;
 import androidx.core.app.NotificationCompat;
 import com.yausername.youtubedl_android.YoutubeDL;
 import com.yausername.youtubedl_android.YoutubeDLRequest;
-import com.yausername.ffmpeg.FFmpeg;
 import org.telegram.messenger.*;
 import java.io.File;
 import java.util.concurrent.*;
@@ -79,7 +78,7 @@ public final class BananaVideoDownloadService extends Service {
         boolean handedOff = false;
         try {
             if (!directory.mkdirs()) throw new java.io.IOException("Cannot create download directory");
-            YoutubeDL dl = YoutubeDL.getInstance(); dl.init(this); FFmpeg.getInstance().init(this);
+            YoutubeDL dl = YoutubeDL.getInstance(); dl.init(this); FFmpegNativeRuntime.initialize(this);
             if (cancelled.get()) return;
             // Keep site extractors current. An update failure may still leave a working bundled extractor.
             long updated = getSharedPreferences(CHANNEL, 0).getLong("updated", 0);

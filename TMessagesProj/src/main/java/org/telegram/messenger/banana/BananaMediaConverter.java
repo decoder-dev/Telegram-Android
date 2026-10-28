@@ -4,7 +4,6 @@ import android.content.Context;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.os.SystemClock;
-import com.yausername.ffmpeg.FFmpeg;
 import org.telegram.messenger.*;
 import org.telegram.tgnet.TLRPC;
 import java.io.*;
@@ -149,7 +148,7 @@ public final class BananaMediaConverter {
     }
     private static void execute(Job job, File input, File output, Kind kind, double duration, double start, double end, java.util.function.BooleanSupplier ownerChanged) throws Exception {
         Context context = ApplicationLoader.applicationContext;
-        FFmpeg.getInstance().init(context);
+        FFmpegNativeRuntime.initialize(context);
         List<String> command = new ArrayList<>();
         command.add(new File(context.getApplicationInfo().nativeLibraryDir, "libffmpeg.so").getAbsolutePath());
         command.addAll(MediaConversionPolicy.arguments(kind, input.getAbsolutePath(), output.getAbsolutePath(), duration, start, end));

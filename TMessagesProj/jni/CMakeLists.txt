@@ -332,3 +332,21 @@ target_link_libraries(${NATIVE_LIB}
 
 include(AndroidNdkModules)
 android_ndk_import_module_cpufeatures()
+
+# FFmpeg 0.18.1 ships five WebP DSOs with 4 KiB LOAD alignment inside its ZIP.
+# Build ABI-compatible replacements from pinned upstream sources for every ABI.
+# Keep BUILD_SHARED_LIBS scoped so existing Telegram dependencies stay static.
+function(banana_add_ffmpeg_webp)
+    set(BUILD_SHARED_LIBS ON)
+    foreach(option ANIM_UTILS CWEBP DWEBP GIF2WEBP IMG2WEBP VWEBP WEBPINFO WEBPMUX EXTRAS WEBP_JS FUZZTEST)
+        set(WEBP_BUILD_${option} OFF CACHE BOOL "Disable unused WebP tools" FORCE)
+    endforeach()
+    set(WEBP_BUILD_LIBWEBPMUX ON CACHE BOOL "FFmpeg mux dependency" FORCE)
+    set(WEBP_LINK_STATIC OFF CACHE BOOL "Build FFmpeg shared dependencies" FORCE)
+    add_subdirectory(third_party/banana-libwebp banana-libwebp)
+    foreach(library sharpyuv webpdecoder webp webpdemux libwebpmux)
+        set_target_properties(${library} PROPERTIES VERSION "" SOVERSION "")
+        target_link_options(${library} PRIVATE "-Wl,-z,max-page-size=16384" "-Wl,-z,common-page-size=16384")
+    endforeach()
+endfunction()
+banana_add_ffmpeg_webp()
