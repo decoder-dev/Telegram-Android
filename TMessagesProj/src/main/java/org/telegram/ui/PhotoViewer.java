@@ -5792,8 +5792,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         menu = actionBar.createMenu();
         menu.setOnLayoutListener(this::updateActionBarTitlePadding);
 
-        // PiP is a submenu item (ActionBarMenuSubItem), not a top-level ActionBarMenuItem.
-        pipItem = menuItem.addSubItem(gallery_menu_pip, R.drawable.ic_goinline, LocaleController.getString("AccDescrPipMode", R.string.AccDescrPipMode)).setColors(0xfffafafa, 0xfffafafa);
+        deleteItem = menu.addItem(gallery_menu_delete2, R.drawable.menu_delete_old);
+        deleteItem.setContentDescription(getString(R.string.Delete));
+        ScaleStateListAnimator.apply(deleteItem);
+        setItemVisible(deleteItem, false, false);
         masksItem = menu.addItem(gallery_menu_masks, R.drawable.msg_mask);
         masksItem.setContentDescription(getString(R.string.Masks));
         editItem = menu.addItem(gallery_menu_paint, R.drawable.msg_header_draw);
