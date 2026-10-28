@@ -14,7 +14,7 @@ import org.telegram.ui.Cells.BananaValueCell;
 import org.telegram.ui.Components.BananaTheme;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
-import org.telegram.ui.Components.UniversalFragment;
+import org.telegram.ui.Components.BananaSettingsFragment;
 
 import java.util.ArrayList;
 
@@ -22,7 +22,7 @@ import java.util.ArrayList;
  * BananaGram Extras hub — sections mirror ForkExtrasController on iOS.
  * Ghost preset and silent-sending stay on the hub for quick access.
  */
-public final class BananaSettingsActivity extends UniversalFragment {
+public final class BananaSettingsActivity extends BananaSettingsFragment {
     private static final int GHOST_PRESET = 1000;
     private static final int SILENT_SENDING = 1001;
     private static final int THEME_PALETTE = 1002;

@@ -17,7 +17,7 @@ public final class BananaThemePolicy {
         if (isAllowed(name)) return name;
         if ("Banana Glass Night".equals(name)) return BLACK;
         if ("Banana Glass".equals(name)) return WHITE;
-        return night ? BLACK : WHITE;
+        return night ? GRAPHITE : CREAM;
     }
 
     /** Retains the four published ordinals and migrates the retired glass palettes. */

@@ -25,8 +25,10 @@ public class BananaThemePolicyTest {
         assertEquals(0, BananaThemePolicy.paletteOrdinal(Integer.MAX_VALUE));
     }
 
-    @Test public void unsupportedStoredThemeHasDeterministicFallback() {
-        assertEquals("Classic White", BananaThemePolicy.migrate("remote123", false));
-        assertEquals("Classic Black", BananaThemePolicy.migrate("remote123", true));
+    @Test public void freshAndUnsupportedThemesUseBrandedDefaults() {
+        assertEquals("Banana Cream", BananaThemePolicy.migrate(null, false));
+        assertEquals("Banana Graphite", BananaThemePolicy.migrate(null, true));
+        assertEquals("Banana Cream", BananaThemePolicy.migrate("remote123", false));
+        assertEquals("Banana Graphite", BananaThemePolicy.migrate("remote123", true));
     }
 }

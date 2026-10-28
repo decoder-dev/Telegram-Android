@@ -17,13 +17,13 @@ import org.telegram.ui.Cells.BananaValueCell;
 import org.telegram.ui.Components.BananaTheme;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
-import org.telegram.ui.Components.UniversalFragment;
+import org.telegram.ui.Components.BananaSettingsFragment;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /** Local-only archive. It never restores deleted messages to Telegram or sends read receipts. */
-public final class BananaHistoryActivity extends UniversalFragment {
+public final class BananaHistoryActivity extends BananaSettingsFragment {
     private List<HistoryDatabase.Record> records = new ArrayList<>();
     private String query = "";
     private boolean loading = true, failed, destroyed;
