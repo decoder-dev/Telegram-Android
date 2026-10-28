@@ -207,8 +207,8 @@ public class BananaSmokeTest {
                     assertTrue("The visible setting must toggle account 0", BananaConfig.isGhostModeActive(0));
                     assertFalse("Another account must keep its own setting", BananaConfig.isGhostModeActive(1));
                     capture(instrumentation, language + "-" + theme);
+                    assertEveryRowFits(instrumentation, screen[0]);
                     instrumentation.runOnMainSync(() -> {
-                        assertVisibleLabelsFit(screen[0]);
                         screen[0].listView.scrollToPosition(screen[0].listView.adapter.getItemCount() - 1);
                     });
                     await(instrumentation, () -> {
@@ -222,7 +222,6 @@ public class BananaSmokeTest {
 
                     },
                             "The last options and footer must be reachable by scrolling");
-                    instrumentation.runOnMainSync(() -> assertVisibleLabelsFit(screen[0]));
                     SystemClock.sleep(400);
                     capture(instrumentation, language + "-" + theme + "-bottom");
                     tapRow(instrumentation, screen[0], 2000);
@@ -351,6 +350,27 @@ public class BananaSmokeTest {
             }
             assertTrue("A wrapped label must fit inside its row", child.getMeasuredHeight() >=
                     text.getLayout().getHeight() + org.telegram.messenger.AndroidUtilities.dp(16));
+        }
+    }
+
+    private static void assertEveryRowFits(Instrumentation instrumentation, UniversalFragment screen) {
+        int itemCount = screen.listView.adapter.getItemCount();
+        int firstUnchecked = 0;
+        while (firstUnchecked < itemCount) {
+            final int requestedPosition = firstUnchecked;
+            instrumentation.runOnMainSync(() -> screen.listView.scrollToPosition(requestedPosition));
+            await(instrumentation, () -> !screen.listView.isComputingLayout()
+                            && screen.listView.findViewByPosition(requestedPosition) != null,
+                    "Extras row " + requestedPosition + " must be laid out while checking long labels");
+            int[] nextPosition = {firstUnchecked};
+            instrumentation.runOnMainSync(() -> {
+                assertVisibleLabelsFit(screen);
+                androidx.recyclerview.widget.LinearLayoutManager layoutManager =
+                        (androidx.recyclerview.widget.LinearLayoutManager) screen.listView.getLayoutManager();
+                nextPosition[0] = layoutManager.findLastVisibleItemPosition() + 1;
+            });
+            assertTrue("Scrolling the Extras list must make progress", nextPosition[0] > firstUnchecked);
+            firstUnchecked = nextPosition[0];
         }
     }
 
