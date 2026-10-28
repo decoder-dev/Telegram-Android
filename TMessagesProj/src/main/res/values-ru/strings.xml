@@ -454,7 +454,7 @@
     <string name="BananaOpt_INSTANT_PASSCODE_LOCK">Мгновенная блокировка кодом-паролем</string>
     <string name="BananaOpt_HIDE_MENTION_NOTIFICATIONS">Скрывать уведомления об упоминаниях</string>
     <string name="BananaOpt_HIDE_PINNED_NOTIFICATIONS">Скрывать уведомления о закреплении</string>
-    <string name="BananaOpt_SESSION_KEYCHAIN_BACKUP">Резервная копия сессий</string>
+    <string name="BananaOpt_SESSION_KEYCHAIN_BACKUP">Хранить зашифрованную копию сессии Android</string>
     <string name="BananaOpt_COMPACT_CHAT_LIST">Компактный список чатов</string>
     <string name="BananaOpt_COMPACT_MESSAGE_PREVIEW">Компактное превью сообщений</string>
     <string name="BananaOpt_COMPACT_FOLDER_NAMES">Компактные названия папок</string>
@@ -551,8 +551,8 @@
     <string name="BananaOpt_CHAT_LIST_HIDES_SEARCH">Скрывать поиск в списке чатов</string>
     <string name="BananaOpt_POLL_RESULTS_BEFORE_VOTING">Результаты опроса до голосования</string>
     <string name="BananaOpt_EXACT_LAST_SEEN">Точное время последнего посещения</string>
-    <string name="BananaOpt_DOWNLOAD_TIK_TOK">Открывать видео TikTok во внешнем приложении</string>
-    <string name="BananaOpt_DOWNLOAD_YOU_TUBE_SHORTS">Открывать YouTube Shorts во внешнем приложении</string>
+    <string name="BananaOpt_DOWNLOAD_TIK_TOK">Загружать видео TikTok</string>
+    <string name="BananaOpt_DOWNLOAD_YOU_TUBE_SHORTS">Загружать YouTube Shorts</string>
     <string name="BananaOpt_SIGN_DOWNLOADED_MEDIA">Подписывать загруженные медиа</string>
     <string name="BananaOpt_QUOTE_REPLIES_TO_DELETED">Цитировать удалённое сообщение в ответе</string>
     <string name="BananaOpt_EXACT_COUNTS">Точные значения счётчиков</string>
@@ -659,4 +659,28 @@
 
     <string name="BananaKeychainUnavailable">Резервная копия сессий через Keychain недоступна на Android.</string>
     <string name="BananaTranscriptionUnavailable">Локальная расшифровка в этой сборке недоступна. Расшифровка выполняется на серверах Telegram.</string>
+    <string name="BananaOfflineVoice">Локальная расшифровка</string>
+    <string name="BananaVoiceModelDownload">Загрузить выбранную языковую модель (около 45 МБ)? После установки распознавание работает на устройстве без отправки звука на сервер.</string>
+    <string name="BananaVoiceFailed">Не удалось расшифровать локально. Проверьте загрузку модели и сообщения и повторите попытку.</string>
+    <string name="BananaVoiceRussian">На устройстве — русский</string>
+    <string name="BananaVoiceEnglish">На устройстве — английский</string>
+    <string name="BananaVideoDownload">Загрузка видео</string>
+    <string name="BananaVideoPreparing">Подготовка загрузчика видео…</string>
+    <string name="BananaVideoDownloading">Загрузка видео…</string>
+    <string name="BananaVideoBusy">Видео уже загружается. Дождитесь завершения или отмените загрузку в уведомлении.</string>
+    <string name="BananaVideoSaved">Видео сохранено в галерею</string>
+    <string name="BananaVideoFailed">Не удалось загрузить видео. Возможно, оно недоступно или сайту требуется обновление загрузчика.</string>
+    <string name="BananaSessionBackup">Резервные копии сессий</string>
+    <string name="BananaSessionAutomatic">Хранить зашифрованную копию на устройстве</string>
+    <string name="BananaSessionExport">Экспорт зашифрованной сессии</string>
+    <string name="BananaSessionImport">Восстановить сессию из файла</string>
+    <string name="BananaSessionLocal">Восстановить копию устройства из слота %1$d</string>
+    <string name="BananaSessionInfo">Автоматические копии шифруются ключом Android Keystore и остаются на устройстве. Экспорт защищён отдельным паролем и подходит для восстановления после переустановки или на другом устройстве. Для восстановления нужен свободный слот аккаунта и перезапуск. Выход из аккаунта удаляет автоматическую копию.</string>
+    <string name="BananaSessionPassword">Пароль резервной копии</string>
+    <string name="BananaSessionPasswordInfo">Минимум 10 символов. Копия содержит доступ к аккаунту: имея файл и пароль, можно восстановить сессию.</string>
+    <string name="BananaSessionFailed">Операция не выполнена. Проверьте пароль, файл и наличие свободного слота. Уже добавленный аккаунт нельзя восстановить повторно.</string>
+    <string name="BananaSessionSaved">Зашифрованная копия сохранена</string>
+    <string name="BananaSessionRestart">Перезапустить для восстановления</string>
+    <string name="BananaSessionRestartInfo">Зашифрованная сессия подготовлена для свободного слота. Перезапустите приложение, чтобы восстановить её до запуска подключения.</string>
+    <string name="BananaVoiceDownloadModel">Загрузить модель</string>
 </resources>

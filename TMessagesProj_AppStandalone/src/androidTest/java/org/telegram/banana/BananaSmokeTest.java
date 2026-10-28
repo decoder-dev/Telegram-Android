@@ -199,11 +199,52 @@ public class BananaSmokeTest {
                 try {
                     viewer.setParentActivity(activity);
                     viewer.setParentActivity(activity);
+                    try {
+                        java.lang.reflect.Field caption = org.telegram.ui.PhotoViewer.class.getDeclaredField("captionTextViewSwitcher");
+                        java.lang.reflect.Field container = org.telegram.ui.PhotoViewer.class.getDeclaredField("containerView");
+                        caption.setAccessible(true); container.setAccessible(true);
+                        Object saved = caption.get(viewer);
+                        View content = (View) container.get(viewer);
+                        try {
+                            caption.set(viewer, null);
+                            content.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+                                    View.MeasureSpec.makeMeasureSpec(1920, View.MeasureSpec.EXACTLY));
+                        } finally { caption.set(viewer, saved); }
+                    } catch (ReflectiveOperationException failed) { throw new AssertionError(failed); }
                 } finally {
                     viewer.destroyPhotoViewer();
                 }
             }
         });
+        File galleryPhoto = new File(instrumentation.getTargetContext().getCacheDir(), "banana-gallery-fixture.png");
+        Bitmap fixtureBitmap = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
+        fixtureBitmap.eraseColor(0xff9fc7e8);
+        try (FileOutputStream output = new FileOutputStream(galleryPhoto)) {
+            assertTrue(fixtureBitmap.compress(Bitmap.CompressFormat.PNG, 100, output));
+        } finally { fixtureBitmap.recycle(); }
+        org.telegram.ui.PhotoViewer viewer = org.telegram.ui.PhotoViewer.getInstance();
+        try {
+            java.lang.reflect.Field animation = org.telegram.ui.PhotoViewer.class.getDeclaredField("animationInProgress");
+            animation.setAccessible(true);
+            for (int repeat = 0; repeat < 2; repeat++) {
+                instrumentation.runOnMainSync(() -> {
+                    viewer.setParentActivity(activity);
+                    java.util.ArrayList<Object> photos = new java.util.ArrayList<>();
+                    photos.add(new org.telegram.messenger.MediaController.PhotoEntry(0, 1, 1, galleryPhoto.getAbsolutePath(), 0, false, 64, 64, galleryPhoto.length()));
+                    assertTrue(viewer.openPhotoForSelect(photos, 0, 0, false, new org.telegram.ui.PhotoViewer.EmptyPhotoViewerProvider(), null));
+                });
+                await(instrumentation, () -> {
+                    try { return viewer.isVisible() && viewer.centerImage.getBitmap() != null && animation.getInt(viewer) == 0; }
+                    catch (IllegalAccessException error) { throw new AssertionError(error); }
+                }, "Local gallery image must decode and finish opening");
+                capture(instrumentation, "local-photo-" + repeat);
+                instrumentation.runOnMainSync(() -> viewer.closePhoto(false, false));
+                await(instrumentation, () -> !viewer.isVisible(), "Photo viewer must close before reopening");
+            }
+        } finally {
+            instrumentation.runOnMainSync(viewer::destroyPhotoViewer);
+            galleryPhoto.delete();
+        }
         java.util.concurrent.atomic.AtomicInteger initialDepth = new java.util.concurrent.atomic.AtomicInteger();
         instrumentation.runOnMainSync(() -> initialDepth.set(activity.getActionBarLayout().getFragmentStack().size()));
         try {

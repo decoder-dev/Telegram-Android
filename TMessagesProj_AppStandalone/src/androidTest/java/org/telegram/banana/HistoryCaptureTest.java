@@ -137,6 +137,44 @@ public class HistoryCaptureTest {
             assertEquals("", mediaOnly.get(0).text);
             assertNotNull(mediaOnly.get(0).attachment.storedName);
             assertEquals(3, mediaOnly.get(0).attachment.bytes);
+
+            clear();
+            BananaConfig.set(ACCOUNT, BananaConfig.Option.PROACTIVE_SAVE_MEDIA, true);
+            File late = new File(root, "late.txt");
+            TLRPC.Document lateDocument = document(documentId + 2);
+            loader.setLocalPathTo(lateDocument, late.getAbsolutePath());
+            loader.getFileDatabase().getPath(lateDocument.id, 2, FileLoader.MEDIA_DIR_DOCUMENT, true);
+            TLRPC.Message live = message(504, lateDocument, "download completes later");
+            put(source, live);
+            MessageHistory.proactiveDownloads(ACCOUNT, Collections.singletonList(live));
+            awaitPending(lateDocument);
+            try (FileOutputStream out = new FileOutputStream(late)) { out.write(new byte[]{4, 5, 6}); }
+            MessageHistory.onFileLoaded(ACCOUNT, FileLoader.getAttachFileName(lateDocument), late);
+            assertTrue(late.delete());
+            assertEquals("Proactive copies must not create fake edit-history rows", 0, load().size());
+            MessageHistory.onFileLoaded(ACCOUNT, FileLoader.getAttachFileName(lateDocument), late);
+            MessageHistory.captureDeletes(source, ACCOUNT, 42, Collections.singletonList(504));
+            List<HistoryDatabase.Record> completed = history(1);
+            assertEquals(3, completed.get(0).attachment.bytes);
+            CountDownLatch lateOpened = new CountDownLatch(1);
+            AtomicReference<File> completedFile = new AtomicReference<>();
+            MessageHistory.attachment(ACCOUNT, completed.get(0), file -> { completedFile.set(file); lateOpened.countDown(); });
+            assertTrue(lateOpened.await(5, TimeUnit.SECONDS));
+            try (FileInputStream in = new FileInputStream(completedFile.get())) { assertEquals(4, in.read()); }
+
+            clear();
+            TLRPC.Document abandonedDocument = document(documentId + 3);
+            File abandoned = new File(root, "abandoned.txt");
+            loader.setLocalPathTo(abandonedDocument, abandoned.getAbsolutePath());
+            loader.getFileDatabase().getPath(abandonedDocument.id, 2, FileLoader.MEDIA_DIR_DOCUMENT, true);
+            MessageHistory.proactiveDownloads(ACCOUNT, Collections.singletonList(message(505, abandonedDocument, "cancelled")));
+            awaitPending(abandonedDocument);
+            clear();
+            try (FileOutputStream out = new FileOutputStream(abandoned)) { out.write(new byte[]{1, 2, 3}); }
+            MessageHistory.onFileLoaded(ACCOUNT, FileLoader.getAttachFileName(abandonedDocument), abandoned);
+            assertEquals("A late download must not resurrect a cleared archive", 0, load().size());
+            assertFalse("Clear removes proactive retained media", completedFile.get().exists());
+
         } finally {
             release.countDown();
             try { if (config.getClientUserId() == fixture.id) clear(); }
@@ -148,6 +186,8 @@ public class HistoryCaptureTest {
                 });
                 loader.getFileDatabase().putPath(documentId, 2, FileLoader.MEDIA_DIR_DOCUMENT, 0, null);
                 loader.getFileDatabase().putPath(documentId + 1, 2, FileLoader.MEDIA_DIR_DOCUMENT, 0, null);
+                loader.getFileDatabase().putPath(documentId + 2, 2, FileLoader.MEDIA_DIR_DOCUMENT, 0, null);
+                loader.getFileDatabase().putPath(documentId + 3, 2, FileLoader.MEDIA_DIR_DOCUMENT, 0, null);
                 manager.cleanup(true);
                 if (!wasTest && manager.isTestBackend()) manager.switchBackend(false);
                 manager.checkConnection();
@@ -156,6 +196,17 @@ public class HistoryCaptureTest {
                 remove(root);
             }
         }
+    }
+
+    private void awaitPending(TLRPC.Document document) throws Exception {
+        Field field = MessageHistory.class.getDeclaredField("pendingDownloads"); field.setAccessible(true);
+        java.util.Map<?, ?> pending = (java.util.Map<?, ?>) field.get(null);
+        long deadline = SystemClock.uptimeMillis() + 5000;
+        do {
+            synchronized (pending) { if (pending.containsKey(ACCOUNT + ":" + FileLoader.getAttachFileName(document))) return; }
+            SystemClock.sleep(50);
+        } while (SystemClock.uptimeMillis() < deadline);
+        fail("Download completion subscription was not registered");
     }
 
     private TLRPC.Document document(long id) {

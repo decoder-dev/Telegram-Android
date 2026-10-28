@@ -37,6 +37,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
@@ -638,6 +639,7 @@ public class TranscribeButton {
     private static HashMap<Long, MessageObject> transcribeOperationsById;
     private static HashMap<Integer, MessageObject> transcribeOperationsByDialogPosition;
     private static ArrayList<Integer> videoTranscriptionsOpen;
+    private static final HashMap<Integer, android.os.CancellationSignal> localOperations = new HashMap<>();
 
     public static void openVideoTranscription(MessageObject messageObject) {
         if (messageObject == null || isVideoTranscriptionOpen(messageObject)) {
@@ -671,6 +673,48 @@ public class TranscribeButton {
             return;
         }
         int account = messageObject.currentAccount;
+        android.os.CancellationSignal closing = !open ? localOperations.remove(reqInfoHash(messageObject)) : null;
+        if (closing != null) {
+            closing.cancel();
+            if (transcribeOperationsByDialogPosition != null) transcribeOperationsByDialogPosition.remove((Integer) reqInfoHash(messageObject));
+            messageObject.messageOwner.voiceTranscriptionOpen = false;
+            NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.voiceTranscriptionUpdate, messageObject);
+            return;
+        }
+        if (open && org.telegram.messenger.banana.BananaOfflineVoice.useFor(account)) {
+            if (messageObject.messageOwner.voiceTranscriptionFinal && messageObject.messageOwner.voiceTranscription != null) {
+                messageObject.messageOwner.voiceTranscriptionOpen = true;
+                NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.voiceTranscriptionUpdate, messageObject, null, null, true, true);
+                return;
+            }
+            if (isTranscribing(messageObject)) return;
+            org.telegram.ui.ActionBar.BaseFragment host = org.telegram.ui.LaunchActivity.getLastFragment();
+            if (host == null || host.getParentActivity() == null) return;
+            final long transcriptionOwner = UserConfig.getInstance(account).getClientUserId();
+            org.telegram.messenger.banana.BananaOfflineVoice.ensureModel(account, host.getParentActivity(), () -> {
+                if (UserConfig.getInstance(account).getClientUserId() != transcriptionOwner || host.getParentActivity() == null) return;
+                if (transcribeOperationsByDialogPosition == null) transcribeOperationsByDialogPosition = new HashMap<>();
+                transcribeOperationsByDialogPosition.put((Integer) reqInfoHash(messageObject), messageObject);
+                android.os.CancellationSignal operation = new android.os.CancellationSignal();
+                localOperations.put(reqInfoHash(messageObject), operation);
+                NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.voiceTranscriptionUpdate, messageObject);
+                org.telegram.messenger.banana.BananaOfflineVoice.transcribe(messageObject, operation, text -> {
+                    if (localOperations.get(reqInfoHash(messageObject)) != operation) return;
+                    localOperations.remove(reqInfoHash(messageObject));
+                    if (transcribeOperationsByDialogPosition != null) transcribeOperationsByDialogPosition.remove((Integer) reqInfoHash(messageObject));
+                    if (UserConfig.getInstance(account).getClientUserId() != transcriptionOwner) return;
+                    if (text == null) {
+                        NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.voiceTranscriptionUpdate, messageObject);
+                        android.widget.Toast.makeText(org.telegram.messenger.ApplicationLoader.applicationContext, LocaleController.getString(R.string.BananaVoiceFailed), android.widget.Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    messageObject.messageOwner.voiceTranscriptionOpen = true;
+                    openVideoTranscription(messageObject);
+                    finishTranscription(messageObject, 0, text);
+                });
+            }, () -> NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.voiceTranscriptionUpdate, messageObject));
+            return;
+        }
         final long start = SystemClock.elapsedRealtime(), minDuration = 350;
         TLRPC.InputPeer peer = MessagesController.getInstance(account).getInputPeer(messageObject.messageOwner.peer_id);
         long dialogId = DialogObject.getPeerDialogId(peer);
@@ -822,6 +866,7 @@ public class TranscribeButton {
         if (messageObject == null || messageObject.messageOwner == null) {
             return false;
         }
+        if (org.telegram.messenger.banana.BananaOfflineVoice.useFor(messageObject.currentAccount)) return true;
         ConnectionsManager cc = ConnectionsManager.getInstance(messageObject.currentAccount);
         MessagesController mc = MessagesController.getInstance(messageObject.currentAccount);
         if (isFreeTranscribeInChat(messageObject)) {

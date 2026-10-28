@@ -71,6 +71,7 @@ android {
     }
 
     packagingOptions {
+        jniLibs.keepDebugSymbols += ["**/libpython.zip.so", "**/libffmpeg.zip.so"]
         jniLibs {
             useLegacyPackaging = true
         }
@@ -143,7 +144,7 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 24
+        minSdkVersion 33
         targetSdkVersion 36
         versionName APP_VERSION_NAME
         ndkVersion "27.2.12479018"

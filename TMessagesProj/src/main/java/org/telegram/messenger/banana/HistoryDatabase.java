@@ -79,7 +79,7 @@ public final class HistoryDatabase extends SQLiteOpenHelper {
 
     /** The caller supplies a private app directory; account slot numbers are never file identities. */
     public HistoryDatabase(Context context, File directory, long ownerId, boolean testBackend) {
-        super(context, archivePath(directory, ownerId, testBackend), null, 2);
+        super(context, archivePath(directory, ownerId, testBackend), null, 3);
         requireWorker();
     }
 
@@ -105,12 +105,33 @@ public final class HistoryDatabase extends SQLiteOpenHelper {
                 "saved_at INTEGER NOT NULL, byte_size INTEGER NOT NULL, search_text TEXT NOT NULL)");
         db.execSQL("CREATE INDEX message_revisions ON records(dialog_id,message_id,deleted,id)");
         addAttachmentColumns(db);
+        addRetainedMedia(db);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion == 1 && newVersion == 2) addAttachmentColumns(db);
-        else throw new IllegalStateException("Unsupported history schema migration");
+        if (oldVersion < 2) addAttachmentColumns(db);
+        if (oldVersion < 3) addRetainedMedia(db);
+    }
+
+    private static void addRetainedMedia(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE retained_media (media_key TEXT PRIMARY KEY, media_kind INTEGER NOT NULL, " +
+                "mime_type TEXT NOT NULL, display_name TEXT NOT NULL, attachment_name TEXT NOT NULL, " +
+                "attachment_size INTEGER NOT NULL, saved_at INTEGER NOT NULL)");
+    }
+
+    boolean rememberMedia(Attachment media, String storedName, long bytes) {
+        requireWorker();
+        if (media == null || storedName == null || !storedName.matches("[a-f0-9]{32}\\.[a-z0-9]{1,10}") || bytes <= 0) return false;
+        ContentValues values = new ContentValues();
+        values.put("media_key", media.mediaKey); values.put("media_kind", media.kind);
+        values.put("mime_type", media.mimeType); values.put("display_name", media.displayName);
+        values.put("attachment_name", storedName); values.put("attachment_size", bytes);
+        values.put("saved_at", System.currentTimeMillis());
+        SQLiteDatabase db = getWritableDatabase();
+        db.insertWithOnConflict("retained_media", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        db.execSQL("DELETE FROM retained_media WHERE media_key NOT IN (SELECT media_key FROM retained_media ORDER BY saved_at DESC LIMIT 5000)");
+        return true;
     }
 
     private static void addAttachmentColumns(SQLiteDatabase db) {
@@ -230,6 +251,7 @@ public final class HistoryDatabase extends SQLiteOpenHelper {
         requireWorker();
         SQLiteDatabase db = getWritableDatabase();
         db.delete("records", null, null);
+        db.delete("retained_media", null, null);
         db.execSQL("VACUUM");
     }
 
@@ -254,7 +276,8 @@ public final class HistoryDatabase extends SQLiteOpenHelper {
     Attachment storedMedia(String mediaKey) {
         requireWorker();
         try (Cursor cursor = getReadableDatabase().rawQuery("SELECT media_kind,mime_type,display_name,attachment_name,attachment_size " +
-                "FROM records WHERE media_key=? AND attachment_name IS NOT NULL ORDER BY id DESC LIMIT 1", new String[]{mediaKey})) {
+                "FROM retained_media WHERE media_key=? UNION ALL SELECT media_kind,mime_type,display_name,attachment_name,attachment_size " +
+                "FROM records WHERE media_key=? AND attachment_name IS NOT NULL LIMIT 1", new String[]{mediaKey, mediaKey})) {
             return cursor.moveToFirst() ? new Attachment(mediaKey, cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getLong(4)) : null;
         }
     }
@@ -262,7 +285,7 @@ public final class HistoryDatabase extends SQLiteOpenHelper {
     Set<String> referencedAttachments() {
         requireWorker();
         HashSet<String> names = new HashSet<>();
-        try (Cursor cursor = getReadableDatabase().rawQuery("SELECT attachment_name FROM records WHERE attachment_name IS NOT NULL", null)) {
+        try (Cursor cursor = getReadableDatabase().rawQuery("SELECT attachment_name FROM records WHERE attachment_name IS NOT NULL UNION SELECT attachment_name FROM retained_media", null)) {
             while (cursor.moveToNext()) names.add(cursor.getString(0));
         }
         return names;

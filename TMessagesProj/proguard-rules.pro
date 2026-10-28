@@ -72,3 +72,9 @@
 # Use -keep to explicitly keep any other classes shrinking would remove
 #-dontoptimize
 #-dontobfuscate
+# JNA resolves Vosk native functions and structure fields by their Java names.
+-keep class com.sun.jna.** { *; }
+-dontwarn com.sun.jna.**
+-keep class org.vosk.** { *; }
+# Preserve extractor metadata DTOs used by Jackson and the executable loader.
+-keep class com.yausername.** { *; }

@@ -3089,7 +3089,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
 
             setMeasuredDimension(widthSize, heightSize);
 
-            if (!isCurrentVideo) {
+            if (!isCurrentVideo && captionTextViewSwitcher != null
+                    && captionTextViewSwitcher.getCurrentView() != null && captionTextViewSwitcher.getNextView() != null) {
                 ignoreLayout = true;
                 if (needCaptionLayout) {
                     final int maxLines = AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y ? 5 : 10;
@@ -3898,14 +3899,15 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         }
 
         public int calculateNewContainerMarginTop(int width, int height) {
-            if (width == 0 || height == 0) {
+            if (width == 0 || height == 0 || captionTextViewSwitcher == null
+                    || captionTextViewSwitcher.getCurrentView() == null) {
                 return -1;
             }
 
             final TextView textView = captionTextViewSwitcher.getCurrentView();
             final CharSequence text = textView.getText();
 
-            final int textHash = text.hashCode();
+            final int textHash = text != null ? text.hashCode() : 0;
             final boolean isLandscape = AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y;
 
             if (this.textHash == textHash && this.isLandscape == isLandscape && this.prevHeight == height) {

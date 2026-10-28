@@ -254,7 +254,7 @@ public class ExteraConfig {
             updateScheduleTimestamp = preferences.getLong("updateScheduleTimestamp", 0);
             checkUpdatesOnLaunch = preferences.getBoolean("checkUpdatesOnLaunch", true);
             autoDownloadUpdates = preferences.getBoolean("autoDownloadUpdates", false);
-            updatePrereleaseChannel = preferences.getBoolean("updatePrereleaseChannel", false);
+            updatePrereleaseChannel = preferences.getBoolean("updatePrereleaseChannel", org.telegram.messenger.BuildVars.BUILD_VERSION_STRING.contains("-rc."));
 
             // Other
             channelToSave = preferences.getLong("channelToSave", 0);

@@ -86,9 +86,7 @@ public final class BananaExtrasValuesActivity extends UniversalFragment {
 
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaValuesBackends)));
         items.add(cell(ID_TRANSLATION, R.string.BananaVal_TranslationBackend, translationLabel(BananaConfig.translationBackend(currentAccount))));
-        items.add(cell(ID_TRANSCRIPTION, R.string.BananaVal_TranscriptionBackend,
-                LocaleController.getString(R.string.BananaVal_BackendDefault)).setEnabled(false));
-        items.add(UItem.asShadow(LocaleController.getString(R.string.BananaTranscriptionUnavailable)));
+        items.add(cell(ID_TRANSCRIPTION, R.string.BananaVal_TranscriptionBackend, transcriptionLabel(BananaConfig.transcriptionBackend(currentAccount))));
         items.add(UItem.asShadow(null));
 
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaValuesProfile)));
@@ -178,7 +176,10 @@ public final class BananaExtrasValuesActivity extends UniversalFragment {
                         }, new int[]{0, 1});
                 break;
             case ID_TRANSCRIPTION:
-                return;
+                pickFrom(R.string.BananaVal_TranscriptionBackend, IntValue.TRANSCRIPTION_BACKEND,
+                        new CharSequence[]{LocaleController.getString(R.string.BananaVal_BackendDefault),
+                                LocaleController.getString(R.string.BananaVoiceRussian), LocaleController.getString(R.string.BananaVoiceEnglish)}, new int[]{0, 1, 2});
+                break;
 
             case ID_DELETED_MARK:
                 editString(R.string.BananaVal_DeletedMessageMark, StringValue.DELETED_MESSAGE_MARK, "🧹");
@@ -329,6 +330,6 @@ public final class BananaExtrasValuesActivity extends UniversalFragment {
     }
 
     private static String transcriptionLabel(int value) {
-        return LocaleController.getString(value == 1 ? R.string.BananaVal_BackendOnDevice : R.string.BananaVal_BackendDefault);
+        return LocaleController.getString(value == 1 ? R.string.BananaVoiceRussian : value == 2 ? R.string.BananaVoiceEnglish : R.string.BananaVal_BackendDefault);
     }
 }
