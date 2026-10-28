@@ -6,15 +6,15 @@
 
 - XML ресурсов разбирается; у каждого переключателя есть английская и русская подпись.
 - Каждый переключатель включён в каталог Extras; неизвестных пунктов в каталоге нет.
-- Записанные результаты JVM: 50 тестов; ошибок 0, падений 0, пропусков 0.
+- Записанные результаты JVM: 62 тестов; ошибок 0, падений 0, пропусков 0.
 - Результаты сборки и ограничения среды зафиксированы в `feature-attestation-validation.md`.
 
 ## Реальные ограничения
 
-- Резервная копия Keychain: Android-реализации нет; переключатель отключён с пояснением.
-- Локальная расшифровка: локального движка нет; выбор отключён, серверный запрос не называется локальным.
-- TikTok/Shorts: реализовано открытие внешнего приложения, встроенного загрузчика нет.
-- Сохранение медиа: доступные вложения копируются; завершение проактивной загрузки требует отдельной проверки.
+- Сессии Android: Keystore для локальных копий, пароль для экспорта; перенос настоящей сессии требует отдельной приёмки.
+- Локальная расшифровка: Vosk RU/EN, без серверного запроса; выполнение MediaCodec/Vosk проверяется отдельным Android-сценарием.
+- TikTok/Shorts: встроенный yt-dlp/FFmpeg; реальные сайты, отмена и сохранение в галерею требуют сетевой приёмки.
+- Сохранение медиа: завершение загрузки связано с отдельным архивом; сценарий кеш/удаление/очистка включён в AndroidTest.
 - Ghost, серверные удаления/правки и истории требуют приёмки на авторизованном тестовом аккаунте.
 - GPU-стекло, читаемость и частота кадров требуют проверки на устройстве. JVM-тесты не измеряют FPS.
 
@@ -54,7 +54,7 @@
 | `instantPasscodeLock` | `implemented_behavior_wired` | BananaConfig.Option.INSTANT_PASSCODE_LOCK via BananaHooks call sites |
 | `hideMentionNotifications` | `implemented_behavior_wired` | BananaConfig.Option.HIDE_MENTION_NOTIFICATIONS via BananaHooks call sites |
 | `hidePinnedNotifications` | `implemented_behavior_wired` | BananaConfig.Option.HIDE_PINNED_NOTIFICATIONS via BananaHooks call sites |
-| `sessionKeychainBackup` | `unavailable_android_disabled` | iOS Keychain backup has no Android implementation. The switch is disabled with an explanation. |
+| `sessionKeychainBackup` | `implemented_android_backup_pending_session_acceptance` | BananaSessionBackup: Android Keystore automatic copies; password-encrypted SAF export/import into an empty account slot; restore only before native startup. |
 | `compactChatList` | `implemented_behavior_wired` | BananaHooks.dialogCellHeightDp |
 | `compactMessagePreview` | `implemented_behavior_wired` | BananaConfig.Option.COMPACT_MESSAGE_PREVIEW via BananaHooks call sites |
 | `compactFolderNames` | `implemented_behavior_wired` | BananaHooks.compactFolderLabel |
@@ -68,13 +68,13 @@
 | `forceBuiltInMic` | `implemented_behavior_wired` | BananaConfig.Option.FORCE_BUILT_IN_MIC via BananaHooks call sites |
 | `keepAliveInBackground` | `implemented_behavior_wired` | BananaConfig.Option.KEEP_ALIVE_IN_BACKGROUND via BananaHooks call sites |
 | `translationBackend` | `implemented_behavior_wired` | BananaHooks.preferAlternativeTranslation (TranslateController) |
-| `transcriptionBackend` | `unavailable_local_engine_disabled` | Only Telegram server transcription is available. On-device choice disabled; no bypass of server trials. |
+| `transcriptionBackend` | `implemented_offline_engine_pending_device_acceptance` | BananaOfflineVoice: Vosk RU/EN model download, MediaCodec decode, mono 16 kHz resampling; local path intercepts Telegram transcription RPC; opt-in public-fixture Android test. |
 | `scrollToNextChatDisabled` | `implemented_behavior_wired` | BananaConfig.Option.SCROLL_TO_NEXT_CHAT_DISABLED via BananaHooks call sites |
 | `saveDeletedMessages` | `implemented_local_capture_verified_pending_live_server_acceptance` | Opt-in previous/deleted text and downloaded photo/document snapshots. Native cache replacement, unlink, shared-file reuse, media-only rows and pending-clear verified. No live server acceptance yet; inline anti-recall and import/export pending. |
 | `saveMessagesHistory` | `implemented_local_capture_verified_pending_live_server_acceptance` | Opt-in previous/deleted text and downloaded photo/document snapshots. Native cache replacement, unlink, shared-file reuse, media-only rows and pending-clear verified. No live server acceptance yet; inline anti-recall and import/export pending. |
 | `saveForBots` | `implemented_local_capture_verified_pending_live_server_acceptance` | Opt-in previous/deleted text and downloaded photo/document snapshots. Native cache replacement, unlink, shared-file reuse, media-only rows and pending-clear verified. No live server acceptance yet; inline anti-recall and import/export pending. |
-| `saveMedia` | `implemented_cached_attachments_only` | Option.SAVE_MEDIA_HISTORY: copy already available media on edit/delete;64MiB/file,512MiB/account. No proactive download or TTL/secret retention yet. |
-| `proactiveSaveMedia` | `implemented_behavior_wired` | BananaConfig.Option.PROACTIVE_SAVE_MEDIA via BananaHooks call sites |
+| `saveMedia` | `implemented_proactive_retention_pending_device_acceptance` | Separate immutable media archive; 64 MiB/file and 512 MiB/account. FileLoader completion links pending copies. Secret/TTL media excluded. |
+| `proactiveSaveMedia` | `implemented_proactive_retention_pending_device_acceptance` | Per-owner/backend proactive media index survives cache deletion without creating edit-history rows; clear invalidates pending copies. |
 | `deletedMessageMark` | `implemented_wired` | BananaConfig + history/UI labels via AyuConfig marks |
 | `editedMessageMark` | `implemented_wired` | BananaConfig + history/UI labels via AyuConfig marks |
 | `ayuForward` | `implemented_behavior_wired` | BananaConfig.Option.AYU_FORWARD via BananaHooks call sites |
@@ -168,8 +168,8 @@
 | `chatListHidesSearch` | `implemented_behavior_wired` | BananaConfig.Option.CHAT_LIST_HIDES_SEARCH via BananaHooks call sites |
 | `pollResultsBeforeVoting` | `implemented_behavior_wired` | BananaConfig.Option.POLL_RESULTS_BEFORE_VOTING via BananaHooks call sites |
 | `exactLastSeen` | `implemented_behavior_wired` | BananaHooks.formatUserStatusOverride |
-| `downloadTikTok` | `partial_external_app_only` | Opens an allowlisted TikTok URL through ACTION_VIEW. No built-in downloader. |
-| `downloadYouTubeShorts` | `partial_external_app_only` | Opens an allowlisted Shorts URL through ACTION_VIEW. No built-in downloader. |
+| `downloadTikTok` | `implemented_in_app_download_pending_network_acceptance` | BananaVideoDownloadService: yt-dlp/FFmpeg, foreground notification/cancel, bounded HTTPS input/size/time, save to gallery. |
+| `downloadYouTubeShorts` | `implemented_in_app_download_pending_network_acceptance` | BananaVideoDownloadService: yt-dlp/FFmpeg, foreground notification/cancel, bounded HTTPS input/size/time, save to gallery. |
 | `signDownloadedMedia` | `implemented_behavior_wired` | BananaHooks.maybeSignDownloadedFileName |
 | `quoteRepliesToDeleted` | `implemented_behavior_wired` | BananaConfig.Option.QUOTE_REPLIES_TO_DELETED via BananaHooks call sites |
 | `exactCounts` | `implemented_behavior_wired` | BananaConfig.Option.EXACT_COUNTS via BananaHooks call sites |

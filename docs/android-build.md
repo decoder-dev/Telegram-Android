@@ -22,7 +22,7 @@ repository's pinned submodules recursively before building. Gradle options such
 as `-Dorg.gradle.workers.max=2` go after `--`.
 
 The current workflow checks the credential loader, Java compilation, policy
-unit tests, a complete x86_64 development APK and smoke tests on Android 16.
+unit tests, a complete x86_64 development APK and smoke tests on Android 13, 14, 15 and 16. The minimum SDK is 33 and target/compile SDK is 36; no maximum SDK blocks newer Android versions.
 The smoke suite uses an emulator without a signed-in account and checks the platform URL detector,
 the Extras screen in English/Russian and light/dark themes, real switch taps and
 account preference isolation, Ghost preset scope, silent-send mode selection and
@@ -30,21 +30,24 @@ story privacy prompt choices (including Back and exactly-once cancellation).
 Navigation checks wait for the actual initial and nested transitions to finish.
 A failure saves its screenshot and current stack state, rather than relaxing the
 layout or transition assertions.
-The current suite has 24 JVM policy/file IO tests, 7 credential-loader tests and 11 Android
-smoke tests. Archive tests use synthetic private databases and verify persistence, duplicate
-handling, limits, search, deletion and account/backend isolation. A local native-cache fixture also verifies edit/delete capture, copied files
-surviving cache unlink, shared-file reuse, media-only rows and clearing while a
-copy is pending. That fixture temporarily supplies a synthetic capture owner in
-an otherwise unregistered emulator; it does not initialize a login or native user
-ID, and networking is disabled on its test backend. This is not live-server Ghost
-or message-update acceptance.
+The suite includes JVM policy/file IO checks, seven credential-loader checks, and
+native Android smoke checks. Archive fixtures verify persistence, duplicate
+handling, limits, migration, search, deletion and account/backend isolation. A
+local native-cache fixture verifies edit/delete capture, copied files surviving
+cache unlink, proactive download completion, shared-file reuse and clearing
+pending work. It supplies a synthetic capture owner in an unregistered emulator,
+without initializing a login or native user ID; networking is disabled on its
+test backend. A separate public Opus fixture exercises MediaCodec, resampling and
+Vosk. AndroidKeyStore encryption is checked using synthetic bytes and a temporary
+key. These are separate from authenticated Telegram-server acceptance and from
+physical-device GPU/FPS measurements. The attestation records actual results.
 
 For a local smoke run, build the standalone debug APK and its AndroidTest APK with
 `-Pandroid.injected.build.abi=x86_64`, then run `scripts/run-android-smoke.py` with
 `--serial emulator-PORT`. The script refuses physical devices, and the test refuses
 signed-in accounts. Screenshots and the test log go to `build/banana-smoke`.
 
-The workflow does not publish an APK. Telegram API credentials are separate from APK signing
+The checks workflow does not publish an APK. `release.yml` waits for the checks, uses the existing private signing key, verifies certificate continuity and 16 KiB ELF alignment, then publishes a prerelease with its APK and R8 mapping. The required signing secrets are `BANANAGRAM_RELEASE_KEYSTORE_BASE64`, `BANANAGRAM_RELEASE_STORE_PASSWORD`, `BANANAGRAM_RELEASE_KEY_ALIAS` and `BANANAGRAM_RELEASE_KEY_PASSWORD`. Telegram API credentials are separate from APK signing
 keys, Firebase configuration and store distribution credentials. The upstream
 sample signing key must be replaced before distributing a BananaGram release.
 

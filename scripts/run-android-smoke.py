@@ -8,6 +8,7 @@ import subprocess
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--serial', required=True)
+parser.add_argument('--voice-probe', action='store_true', help='Download the public English model and decode a public Opus fixture')
 parser.add_argument('--output-dir', type=Path, default=Path('build/banana-smoke'))
 args = parser.parse_args()
 if not re.fullmatch(r'emulator-\d+', args.serial):
@@ -51,7 +52,7 @@ run('shell', 'rm', '-rf', '/sdcard/Android/data/org.telegram.messenger.web/files
 instrumentation_failed = False
 try:
     output = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class',
-                 'org.telegram.banana.BananaSmokeTest,org.telegram.banana.HistoryDatabaseTest,org.telegram.banana.HistoryCaptureTest,org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest',
+                 'org.telegram.banana.VideoEngineAndroidTest,org.telegram.banana.SessionBackupAndroidTest,org.telegram.banana.BananaSmokeTest,org.telegram.banana.HistoryDatabaseTest,org.telegram.banana.HistoryCaptureTest,org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest',
                  'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner', timeout=600)
 except SystemExit as error:
     output = str(error)
@@ -83,3 +84,13 @@ if instrumentation_failed or not passed or int(passed.group(1)) < 22 or 'FAILURE
 if pull.returncode:
     raise SystemExit('Tests passed but their screenshots could not be collected; see screenshots.log')
 print('Android smoke checks passed: native player/history/filters, account isolation and headless Bluetooth setup')
+
+if args.voice_probe:
+    voice = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'banana_voice_probe', 'YES',
+                '-e', 'class', 'org.telegram.banana.OfflineVoiceTest',
+                'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner', timeout=600)
+    (args.output_dir / 'offline-voice.log').write_text(voice)
+    (args.output_dir / 'offline-voice-logcat.log').write_text(run('logcat', '-d', '-t', '2000', '-v', 'threadtime'))
+    if 'OK (1 test)' not in voice or 'FAILURES!!!' in voice:
+        raise SystemExit(voice)
+    print('Offline Opus decoding and Vosk recognition passed')
