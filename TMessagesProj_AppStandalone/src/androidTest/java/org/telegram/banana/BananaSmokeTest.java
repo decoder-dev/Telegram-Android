@@ -185,6 +185,10 @@ public class BananaSmokeTest {
                             androidx.core.graphics.ColorUtils.calculateContrast(
                                     screen[0].getThemedColor(Theme.key_windowBackgroundWhiteGrayText4),
                                     screen[0].getThemedColor(Theme.key_windowBackgroundGray)) >= 4.5);
+                    assertGlassPaletteContrast(Theme.key_windowBackgroundWhiteBlueHeader,
+                            Theme.key_windowBackgroundWhite);
+                    assertGlassPaletteContrast(Theme.key_windowBackgroundWhiteGrayText2,
+                            Theme.key_windowBackgroundWhite);
                     Rect bounds = new Rect();
                     instrumentation.runOnMainSync(() -> {
                         View row = screen[0].listView.findViewByPosition(1);
@@ -383,6 +387,13 @@ public class BananaSmokeTest {
             assertTrue("A wrapped label must fit inside its row", child.getMeasuredHeight() >=
                     text.getLayout().getHeight() + org.telegram.messenger.AndroidUtilities.dp(16));
         }
+    }
+
+    private static void assertGlassPaletteContrast(int foregroundKey, int backgroundKey) {
+        int foreground = org.telegram.messenger.banana.BananaThemes.extrasColor(foregroundKey, false);
+        int background = org.telegram.messenger.banana.BananaThemes.extrasColor(backgroundKey, false);
+        assertTrue("Banana Glass day palette must keep labels readable at WCAG AA contrast",
+                androidx.core.graphics.ColorUtils.calculateContrast(foreground, background) >= 4.5);
     }
 
     private static void assertEveryRowFits(Instrumentation instrumentation, UniversalFragment screen) {
