@@ -75,6 +75,7 @@ public class ReactionsLayoutInBubble {
     public float drawServiceShaderBackground;
 
     private static final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint bananaReactionGlow;
     private static final Paint tagPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private static final Paint cutTagPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private static final TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
@@ -470,9 +471,9 @@ public class ReactionsLayoutInBubble {
                 alpha = animationProgress;
                 canvas.scale(s, s, totalX + x + reactionButton.width / 2f, totalY + y + reactionButton.height / 2f);
             }
-            android.graphics.Paint bananaReactionGlow = org.telegram.messenger.banana.BananaHooks.glowPaint(
+            bananaReactionGlow = org.telegram.messenger.banana.BananaHooks.glowPaint(
                     messageObject != null ? messageObject.currentAccount : UserConfig.selectedAccount,
-                    false, Theme.getColor(Theme.key_chat_inReactionButtonBackground));
+                    false, Theme.getColor(Theme.key_chat_inReactionButtonBackground), bananaReactionGlow);
             if (bananaReactionGlow != null) {
                 canvas.drawRoundRect(
                         totalX + x, totalY + y,

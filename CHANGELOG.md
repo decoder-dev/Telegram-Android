@@ -6,6 +6,8 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- Translate 118 remaining English Extras and theme labels in the Russian resources. All 157 Extras switches now have Russian labels.
+- Reuse each dialog/reaction layout's glow paint and rebuild its shadow only when color or density changes, avoiding paint and shadow allocation on every draw while glow is enabled. Device frame-rate improvement has not been measured.
 - Photo viewer initialization no longer adds a duplicate PiP item through an uninitialized menu. Restore the separate delete button; PiP stays in its existing submenu.
 - Restore the current Telegram message serialization tail before local attachment metadata, including quick replies, effects, paid-message fields, summaries and rich messages. Read current-layer media and processing flags without interpreting inverted media as an older topic-start flag. Regression tests cover the `RichMessage` constructor `2001` cache failure and repeated photo viewer initialization.
 

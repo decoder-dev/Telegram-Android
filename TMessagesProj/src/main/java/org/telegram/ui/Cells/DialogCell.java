@@ -182,6 +182,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     private boolean twoLinesForName;
     private boolean nameIsEllipsized;
     private Paint topicCounterPaint;
+    private Paint bananaAvatarGlow;
     private Paint counterPaintOutline;
     public float chekBoxPaddingTop = 42;
     private boolean needEmoji;
@@ -4836,8 +4837,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     storyParams.forceState = StoriesUtilities.STATE_HAS_UNREAD;
                 }
                 StoriesUtilities.drawAvatarWithStory(currentDialogId, canvas, avatarImage, storyParams);
-                android.graphics.Paint bananaAvatarGlow = org.telegram.messenger.banana.BananaHooks.glowPaint(
-                        currentAccount, true, Theme.getColor(Theme.key_avatar_backgroundBlue));
+                bananaAvatarGlow = org.telegram.messenger.banana.BananaHooks.glowPaint(
+                        currentAccount, true, Theme.getColor(Theme.key_avatar_backgroundBlue), bananaAvatarGlow);
                 if (bananaAvatarGlow != null && avatarImage != null) {
                     canvas.drawCircle(avatarImage.getCenterX(), avatarImage.getCenterY(),
                             Math.max(avatarImage.getImageWidth(), avatarImage.getImageHeight()) / 2f + AndroidUtilities.dp(1),
