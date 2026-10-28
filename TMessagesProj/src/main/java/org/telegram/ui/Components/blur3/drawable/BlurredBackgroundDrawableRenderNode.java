@@ -56,7 +56,15 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
 
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     public void setLiquidGlassEffectAllowed() {
-        liquidGlassEffect = new LiquidGlassEffect(renderNodeFill);
+        if (!org.telegram.messenger.banana.BananaThemes.glassChrome()
+                || !org.telegram.messenger.LiteMode.isEnabled(org.telegram.messenger.LiteMode.FLAG_LIQUID_GLASS)) return;
+        try {
+            liquidGlassEffect = new LiquidGlassEffect(renderNodeFill);
+        } catch (RuntimeException unsupportedShader) {
+            // Broken/unsupported GPU drivers keep the normal blurred backdrop.
+            renderNodeFill.setRenderEffect(null);
+            org.telegram.messenger.FileLog.e(unsupportedShader);
+        }
     }
 
 
@@ -129,7 +137,7 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
             );
         }
         source.draw(c, sL, sT, sR, sB);
-        c.save();
+        c.restore();
         renderNodeFill.endRecording();
 
 

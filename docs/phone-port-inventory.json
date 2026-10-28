@@ -151,8 +151,8 @@
     {
       "setting": "sessionKeychainBackup",
       "type": "Bool",
-      "status": "implemented_behavior_wired",
-      "android": "BananaHooks.maybeSessionKeychainBackup (Android no-op / preference gate)"
+      "status": "unavailable_android_disabled",
+      "android": "iOS Keychain backup has no Android implementation. The switch is disabled with an explanation."
     },
     {
       "setting": "compactChatList",
@@ -235,8 +235,8 @@
     {
       "setting": "transcriptionBackend",
       "type": "ForkTranscriptionBackend",
-      "status": "implemented_behavior_wired",
-      "android": "BananaHooks.preferOnDeviceTranscription (TranscribeButton)"
+      "status": "unavailable_local_engine_disabled",
+      "android": "Only Telegram server transcription is available. On-device choice disabled; no bypass of server trials."
     },
     {
       "setting": "scrollToNextChatDisabled",
@@ -751,32 +751,32 @@
     {
       "setting": "glassBubbles",
       "type": "Bool",
-      "status": "implemented_behavior_wired",
-      "android": "BananaHooks.applyGlassBubbleColor"
+      "status": "implemented_pending_gpu_acceptance",
+      "android": "Extras switch drives glass chrome/refraction, bubble tint and independent rims on any of four allowed palettes. Device GPU acceptance pending."
     },
     {
       "setting": "glassBubbleTint",
       "type": "Int32",
-      "status": "implemented_behavior_wired",
-      "android": "BananaHooks.applyGlassBubbleColor (Theme)"
+      "status": "implemented_pending_gpu_acceptance",
+      "android": "BananaGlassStyle.fillColor; independent of edge strengths."
     },
     {
       "setting": "glassBubbleRimTop",
       "type": "Int32",
-      "status": "implemented_behavior_wired",
-      "android": "BananaHooks.applyGlassBubbleColor (Theme)"
+      "status": "implemented_pending_gpu_acceptance",
+      "android": "MessageDrawable directional highlight; independent top/sides/bottom."
     },
     {
       "setting": "glassBubbleRimSides",
       "type": "Int32",
-      "status": "implemented_behavior_wired",
-      "android": "BananaHooks.applyGlassBubbleColor (Theme)"
+      "status": "implemented_pending_gpu_acceptance",
+      "android": "MessageDrawable directional highlight; independent top/sides/bottom."
     },
     {
       "setting": "glassBubbleRimBottom",
       "type": "Int32",
-      "status": "implemented_behavior_wired",
-      "android": "BananaHooks.applyGlassBubbleColor (Theme)"
+      "status": "implemented_pending_gpu_acceptance",
+      "android": "MessageDrawable directional highlight; independent top/sides/bottom."
     },
     {
       "setting": "showDisappearedGifts",
@@ -835,14 +835,14 @@
     {
       "setting": "downloadTikTok",
       "type": "Bool",
-      "status": "implemented_behavior_wired",
-      "android": "BananaHooks.maybeOpenExternalVideoForDownload"
+      "status": "partial_external_app_only",
+      "android": "Opens an allowlisted TikTok URL through ACTION_VIEW. No built-in downloader."
     },
     {
       "setting": "downloadYouTubeShorts",
       "type": "Bool",
-      "status": "implemented_behavior_wired",
-      "android": "BananaHooks.maybeOpenExternalVideoForDownload"
+      "status": "partial_external_app_only",
+      "android": "Opens an allowlisted Shorts URL through ACTION_VIEW. No built-in downloader."
     },
     {
       "setting": "signDownloadedMedia",

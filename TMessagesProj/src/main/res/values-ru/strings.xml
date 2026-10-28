@@ -541,7 +541,7 @@
     <string name="BananaOpt_CHANNEL_BOTTOM_DISCUSS">Кнопка «Обсудить» внизу канала</string>
     <string name="BananaOpt_HIDE_CHANNEL_BOTTOM_BUTTON">Скрывать нижнюю кнопку канала</string>
     <string name="BananaOpt_HIDE_SHARE_BUTTON">Скрывать кнопку «Поделиться»</string>
-    <string name="BananaOpt_GLASS_BUBBLES">Стеклянные пузыри сообщений</string>
+    <string name="BananaOpt_GLASS_BUBBLES">Включить жидкое стекло</string>
     <string name="BananaOpt_SHOW_DISAPPEARED_GIFTS">Показывать исчезнувшие подарки</string>
     <string name="BananaOpt_ROUND_VIDEO_STARTS_WITH_REAR">Начинать запись кружка с задней камеры</string>
     <string name="BananaOpt_ROUND_VIDEO_REMEMBERS_CAMERA">Запоминать камеру для кружков</string>
@@ -551,8 +551,8 @@
     <string name="BananaOpt_CHAT_LIST_HIDES_SEARCH">Скрывать поиск в списке чатов</string>
     <string name="BananaOpt_POLL_RESULTS_BEFORE_VOTING">Результаты опроса до голосования</string>
     <string name="BananaOpt_EXACT_LAST_SEEN">Точное время последнего посещения</string>
-    <string name="BananaOpt_DOWNLOAD_TIK_TOK">Загружать видео из TikTok</string>
-    <string name="BananaOpt_DOWNLOAD_YOU_TUBE_SHORTS">Загружать видео из YouTube Shorts</string>
+    <string name="BananaOpt_DOWNLOAD_TIK_TOK">Открывать видео TikTok во внешнем приложении</string>
+    <string name="BananaOpt_DOWNLOAD_YOU_TUBE_SHORTS">Открывать YouTube Shorts во внешнем приложении</string>
     <string name="BananaOpt_SIGN_DOWNLOADED_MEDIA">Подписывать загруженные медиа</string>
     <string name="BananaOpt_QUOTE_REPLIES_TO_DELETED">Цитировать удалённое сообщение в ответе</string>
     <string name="BananaOpt_EXACT_COUNTS">Точные значения счётчиков</string>
@@ -657,4 +657,6 @@
     <string name="BananaVlessRuntimeMissing">Ссылка сохранена. В этой сборке Android нет встроенного Xray, поэтому VLESS не подменяет активный SOCKS5, MTProto или WEB. Ссылки tg://proxy и t.me/proxy работают как раньше.</string>
     <string name="BananaVlessSaved">Ссылка VLESS сохранена</string>
 
+    <string name="BananaKeychainUnavailable">Резервная копия сессий через Keychain недоступна на Android.</string>
+    <string name="BananaTranscriptionUnavailable">Локальная расшифровка в этой сборке недоступна. Расшифровка выполняется на серверах Telegram.</string>
 </resources>

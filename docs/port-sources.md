@@ -155,3 +155,18 @@ chat or shared scope. Selected text is quoted as a literal (including embedded
 limit. It opens an editable draft with the original text as a sample; no rule is
 saved and no filter switch is enabled until the user explicitly saves. Leaving
 the scope dialog or draft cancels without altering current rules.
+
+
+Appearance verification (2026-10-28): only the four BananaGram iOS palettes are
+selectable/applicable. Glass is an account option, not an additional palette.
+The Glassgram implementation at
+[`b30831c800ab`](https://github.com/shashachkaaa/Glassgram/commit/b30831c800ab)
+was inspected, especially the backdrop-position and lifetime fixes in
+[`81a3f21c3c8e`](https://github.com/shashachkaaa/Glassgram/commit/81a3f21c3c8e)
+and the transition work in
+[`1515331380cd`](https://github.com/shashachkaaa/Glassgram/commit/1515331380cd).
+The implementation here uses the existing Telegram blur3/RuntimeShader pipeline:
+wallpaper-only per-cell backdrops, cached effects, independent edge strengths,
+and no self-capture or extra invalidation loop. The Glassgram Compose module
+is not included. See the feature attestation for actual validation and remaining
+platform/server limitations.

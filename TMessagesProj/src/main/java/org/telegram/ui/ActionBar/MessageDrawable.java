@@ -36,6 +36,9 @@ public class MessageDrawable extends Drawable {
     private int currentBackgroundHeight;
     public Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint selectedPaint;
+    private Paint glassRimPaint;
+    private int glassRimTop = -1, glassRimSides = -1, glassRimBottom = -1;
+    private int glassRimY1, glassRimY2;
     private int currentColor;
     private int currentGradientColor1;
     private int currentGradientColor2;
@@ -559,6 +562,35 @@ public class MessageDrawable extends Drawable {
     }
 
     public void draw(Canvas canvas, Paint paintToUse) {
+        drawInternal(canvas, paintToUse);
+        if (paintToUse != null || currentType != TYPE_TEXT || !BananaThemes.glassChrome()) return;
+        Rect bounds = getBounds();
+        if (bounds.isEmpty()) return;
+        int account = org.telegram.messenger.UserConfig.selectedAccount;
+        int top = org.telegram.messenger.banana.BananaConfig.glassBubbleRimTop(account);
+        int sides = org.telegram.messenger.banana.BananaConfig.glassBubbleRimSides(account);
+        int bottom = org.telegram.messenger.banana.BananaConfig.glassBubbleRimBottom(account);
+        if (top == 0 && sides == 0 && bottom == 0) return;
+        if (glassRimPaint == null) {
+            glassRimPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            glassRimPaint.setStyle(Paint.Style.STROKE);
+        }
+        if (top != glassRimTop || sides != glassRimSides || bottom != glassRimBottom
+                || glassRimY1 != bounds.top || glassRimY2 != bounds.bottom) {
+            glassRimTop = top; glassRimSides = sides; glassRimBottom = bottom;
+            glassRimY1 = bounds.top; glassRimY2 = bounds.bottom;
+            glassRimPaint.setShader(new LinearGradient(0, bounds.top, 0, bounds.bottom,
+                    new int[]{org.telegram.messenger.banana.BananaGlassStyle.highlightColor(top),
+                            org.telegram.messenger.banana.BananaGlassStyle.highlightColor(sides),
+                            org.telegram.messenger.banana.BananaGlassStyle.highlightColor(bottom)},
+                    new float[]{0f, 0.5f, 1f}, Shader.TileMode.CLAMP));
+        }
+        glassRimPaint.setStrokeWidth(Math.max(1f, AndroidUtilities.dpf2(0.8f)));
+        glassRimPaint.setAlpha(alpha);
+        canvas.drawPath(makePath(), glassRimPaint);
+    }
+
+    private void drawInternal(Canvas canvas, Paint paintToUse) {
         Rect bounds = getBounds();
         if (paintToUse == null && paint.getStyle() == Paint.Style.FILL && gradientShader == null && overrideRoundRadius == 0 && overrideRounding <= 0) {
             Drawable background = getBackgroundDrawable();
@@ -810,6 +842,11 @@ public class MessageDrawable extends Drawable {
 
     public void setDrawFullBubble(boolean drawFullBuble) {
         this.drawFullBubble = drawFullBuble;
+    }
+
+    @Override
+    public int getAlpha() {
+        return alpha;
     }
 
     @Override

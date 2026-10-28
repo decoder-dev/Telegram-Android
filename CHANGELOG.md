@@ -6,10 +6,17 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- Limit selectable and applicable themes to the four BananaGram iOS palettes, including imported files, previews, background transitions and per-chat overrides. Migrate retired Glass palettes to Classic White/Black and retain glass as a separate Extras switch.
+- Wire the glass switch to native refraction and chrome on every allowed palette. Text bubbles use cell-owned wallpaper-only GPU backdrops on Android 13+, release their RenderNodes on detach, respect drawable alpha, and fall back without a redraw loop. Tint and top/side/bottom highlights are independent. Shader initialization failures retain the ordinary blurred backdrop.
+- Disable the nonfunctional Keychain-backup and local-transcription choices with an explanation; the latter no longer bypasses server transcription limits. Label TikTok/Shorts controls according to their implemented external-app behavior.
 - Translate 118 remaining English Extras and theme labels in the Russian resources. All 157 Extras switches now have Russian labels.
 - Reuse each dialog/reaction layout's glow paint and rebuild its shadow only when color or density changes, avoiding paint and shadow allocation on every draw while glow is enabled. Device frame-rate improvement has not been measured.
 - Photo viewer initialization no longer adds a duplicate PiP item through an uninitialized menu. Restore the separate delete button; PiP stays in its existing submenu.
 - Restore the current Telegram message serialization tail before local attachment metadata, including quick replies, effects, paid-message fields, summaries and rich messages. Read current-layer media and processing flags without interpreting inverted media as an older topic-start flag. Regression tests cover the `RichMessage` constructor `2001` cache failure and repeated photo viewer initialization.
+
+### Validation
+
+- Main Android Java sources and AndroidTest sources compile; all 50 JVM tests pass. The per-setting [feature attestation](docs/feature-attestation.md) covers 176 iOS settings, 157 Android switches, known implementation gaps, and unperformed GPU/device/authenticated-server acceptance.
 
 ## [13.1.1-rc.1] — 2026-10-27
 
