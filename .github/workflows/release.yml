@@ -88,7 +88,7 @@ jobs:
           grep -Fq 'android:icon="@mipmap/ic_launcher_sa"' TMessagesProj/config/release/AndroidManifest_standalone.xml
           icon="$(sed -n "s/^application:.* icon='\\([^']*\\)'.*/\\1/p" "$badging")"
           test -n "$icon"
-          unzip -Z1 "$apk" | grep -Fxq "$icon"
+          python3 -c 'import sys, zipfile; assert sys.argv[2] in zipfile.ZipFile(sys.argv[1]).namelist(), "Missing launcher icon"' "$apk" "$icon"
           if grep -Fq 'application-debuggable' "$badging"; then
             echo 'Release APK must not be debuggable' >&2
             exit 1
