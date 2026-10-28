@@ -48,9 +48,20 @@ if len(test_apks) != 1:
 run('install', '-t', '-r', str(app_apks[0]))
 run('install', '-t', '-r', str(test_apks[0]))
 run('shell', 'rm', '-rf', '/sdcard/Android/data/org.telegram.messenger.web/files/banana-smoke')
-output = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class',
-             'org.telegram.banana.BananaSmokeTest,org.telegram.banana.HistoryDatabaseTest,org.telegram.banana.HistoryCaptureTest,org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest',
-             'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner')
+instrumentation_failed = False
+try:
+    output = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class',
+                 'org.telegram.banana.BananaSmokeTest,org.telegram.banana.HistoryDatabaseTest,org.telegram.banana.HistoryCaptureTest,org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest',
+                 'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner', timeout=600)
+except SystemExit as error:
+    output = str(error)
+    instrumentation_failed = True
+except subprocess.TimeoutExpired as error:
+    output = error.stdout or ''
+    if isinstance(output, bytes):
+        output = output.decode(errors='replace')
+    output += f'\nInstrumentation timed out: {error}\n'
+    instrumentation_failed = True
 (args.output_dir / 'instrumentation.log').write_text(output)
 # Android's instrumentation runner may terminate its own process and return a short
 # "Process crashed" result without forwarding the Java exception to stdout. Preserve
@@ -64,7 +75,7 @@ pull = subprocess.run([adb, '-s', args.serial, 'pull',
                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=60)
 (args.output_dir / 'screenshots.log').write_text(pull.stdout)
 passed = re.search(r'OK \((\d+) tests?\)', output)
-if not passed or int(passed.group(1)) < 22 or 'FAILURES!!!' in output:
+if instrumentation_failed or not passed or int(passed.group(1)) < 22 or 'FAILURES!!!' in output:
     print(output)
     print('\n--- Recent Android logcat ---\n')
     print(logcat[-30000:])
