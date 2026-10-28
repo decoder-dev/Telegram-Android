@@ -119,11 +119,12 @@ public final class BananaThemes {
         final int outgoingSecondary = dark ? 0xFFD5CBBA : 0xFF85591A;
         final int outgoingAccent = dark ? accent : 0xFF85591A;
         final int selectionOverlay = (accent & 0x00FFFFFF) | 0x18000000;
+        final int outgoingSelectionOverlay = (accent & 0x00FFFFFF) | (dark ? 0x0C000000 : 0x18000000);
         put(colors, Theme.key_chat_inBubbleSelectedOverlay, selectionOverlay);
-        put(colors, Theme.key_chat_outBubbleSelectedOverlay, selectionOverlay);
-        put(colors, Theme.key_chat_outBubbleGradientSelectedOverlay, selectionOverlay);
+        put(colors, Theme.key_chat_outBubbleSelectedOverlay, outgoingSelectionOverlay);
+        put(colors, Theme.key_chat_outBubbleGradientSelectedOverlay, outgoingSelectionOverlay);
         put(colors, Theme.key_chat_inBubbleSelected, Theme.blendOver(raised, selectionOverlay));
-        put(colors, Theme.key_chat_outBubbleSelected, Theme.blendOver(outgoing, selectionOverlay));
+        put(colors, Theme.key_chat_outBubbleSelected, Theme.blendOver(outgoing, outgoingSelectionOverlay));
 
         putAll(colors, surface,
                 Theme.key_actionBarDefaultArchived, Theme.key_actionBarDefaultSubmenuBackground, Theme.key_actionBarActionModeDefault,
@@ -155,7 +156,8 @@ public final class BananaThemes {
                 Theme.key_chat_emojiSearchIcon, Theme.key_chat_emojiPanelEmptyText, Theme.key_chat_emojiPanelIcon,
                 Theme.key_chat_emojiBottomPanelIcon, Theme.key_chat_emojiPanelBackspace, Theme.key_chat_emojiPanelStickerSetName,
                 Theme.key_chat_emojiPanelStickerSetNameIcon, Theme.key_chat_emojiPanelTrendingDescription,
-                Theme.key_player_actionBarSubtitle, Theme.key_player_time, Theme.key_player_button);
+                Theme.key_player_actionBarSubtitle, Theme.key_player_time, Theme.key_player_button,
+                Theme.key_chat_inTimeSelectedText);
         putAll(colors, accent,
                 Theme.key_windowBackgroundWhiteBlueText3, Theme.key_windowBackgroundWhiteBlueText4, Theme.key_windowBackgroundWhiteBlueText5,
                 Theme.key_windowBackgroundWhiteBlueText6, Theme.key_windowBackgroundWhiteBlueText7, Theme.key_windowBackgroundWhiteBlueIcon,
@@ -192,6 +194,12 @@ public final class BananaThemes {
                 Theme.key_chat_outTimeText, Theme.key_chat_outTimeSelectedText, Theme.key_chat_outViews,
                 Theme.key_chat_outViewsSelected, Theme.key_chat_outAudioPerformerText, Theme.key_chat_outAudioPerformerSelectedText,
                 Theme.key_chat_outAudioDurationText, Theme.key_chat_outAudioDurationSelectedText);
+        // Selection lightens the outgoing gold fill. Its small captions need the
+        // primary foreground in Graphite to retain 4.5:1 contrast in that state.
+        if (dark) {
+            putAll(colors, foreground, Theme.key_chat_outTimeSelectedText, Theme.key_chat_outViewsSelected,
+                    Theme.key_chat_outAudioPerformerSelectedText, Theme.key_chat_outAudioDurationSelectedText);
+        }
         putAll(colors, outgoingAccent,
                 Theme.key_chat_outSentCheck, Theme.key_chat_outSentCheckRead, Theme.key_chat_outSentCheckSelected,
                 Theme.key_chat_outSentCheckReadSelected, Theme.key_chat_outReplyLine, Theme.key_chat_outReplyNameText,
