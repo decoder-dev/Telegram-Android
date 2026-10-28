@@ -25,6 +25,27 @@
 -keep class org.telegram.tgnet.RequestTimeDelegate { *; }
 -keep class org.telegram.tgnet.RequestDelegate { *; }
 -keep class org.telegram.ui.Stories.recorder.FfmpegAudioWaveformLoader { *; }
+# ThemeDescription resolves these Extras row fields by their Java names.
+# Preserve the members as well as their names in the signed, minified APK.
+-keepclassmembers class org.telegram.ui.Cells.HeaderCell {
+    *** textView;
+}
+-keepclassmembers class org.telegram.ui.Cells.TextCheckCell {
+    *** textView;
+    *** valueTextView;
+    *** checkBox;
+}
+-keepclassmembers class org.telegram.ui.Cells.TextSettingsCell {
+    *** textView;
+    *** valueTextView;
+}
+-keepclassmembers class org.telegram.ui.Cells.TextDetailSettingsCell {
+    *** textView;
+    *** valueTextView;
+}
+-keepclassmembers class org.telegram.ui.Cells.TextInfoPrivacyCell {
+    *** textView;
+}
 -keep class androidx.mediarouter.app.MediaRouteButton { *; }
 -keepclassmembers class ** {
     @android.webkit.JavascriptInterface <methods>;

@@ -104,6 +104,7 @@ jobs:
           grep -Fxq "targetSdkVersion:'36'" "$badging"
           grep -Fxq 'Signer #1 certificate SHA-256 digest: ceed8fcb50535731aeab5d27cd75d02936b0a9e466c0285d0da0baa93d3e5634' "$RUNNER_TEMP/bananagram-signature.txt"
           python3 scripts/check-apk-native-pages.py "$apk"
+          python3 scripts/check-theme-reflection.py TMessagesProj_AppStandalone/build/outputs/mapping/afatStandalone/mapping.txt
           mkdir -p build/release-output
           version="$(sed -n 's/^APP_VERSION_NAME=//p' gradle.properties)"
           cp "$apk" "build/release-output/BananaGram-${version}-release.apk"

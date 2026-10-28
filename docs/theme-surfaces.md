@@ -17,6 +17,9 @@ Row backgrounds use native cell-background bindings (rather than the fragment
 background flag). A native theme-animation delegate refreshes visible and cached
 text rows, preserving their semantic text/icon color tags. Closing a palette dialog
 also refreshes the gesture-navigation strip for the current palette.
+The nine row fields addressed by these bindings are explicitly kept by R8.
+`scripts/check-theme-reflection.py` verifies their actual names in the signed
+build's mapping before the release workflow can publish it.
 
 New installations default to Banana Cream (day) and Banana Graphite (night).
 Existing explicit selections of any of the four permitted palettes are preserved.
