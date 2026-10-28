@@ -110,7 +110,7 @@ jobs:
           DIAGNOSTIC_RUN: ${{ inputs.diagnostic_run }}
         run: |
           python3 - <<'PY'
-          import os, pathlib, re, subprocess
+          import os, pathlib, re, subprocess, json
           run = os.environ['DIAGNOSTIC_RUN']
           if not re.fullmatch(r'[0-9]+', run):
               raise SystemExit('Expected a numeric run ID from this repository')
@@ -165,3 +165,123 @@ jobs:
           if not found:
               raise SystemExit('No Android test report files found in this run')
           PY
+
+  theme_previews:
+    if: github.event_name == 'workflow_dispatch' && inputs.diagnostic_run != ''
+    name: Inspect ${{ matrix.palette }} screenshot
+    strategy:
+      fail-fast: false
+      matrix:
+        palette: ['Banana Graphite', 'Banana Cream', 'Classic Black', 'Classic White']
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Retrieve emulator screenshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DIAGNOSTIC_RUN: ${{ inputs.diagnostic_run }}
+        run: |
+          python3 - <<'PY_DOWNLOAD'
+          import os, pathlib, re, subprocess, json
+          run = os.environ['DIAGNOSTIC_RUN']
+          assert re.fullmatch(r'[0-9]+', run)
+          path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews'
+          metadata = subprocess.run(['gh', 'api', f'repos/{os.environ["GH_REPO"]}/actions/runs/{run}/artifacts?per_page=100'], capture_output=True, text=True, check=True)
+          available = {a['name'] for a in json.loads(metadata.stdout)['artifacts'] if not a['expired']}
+          name = next((f'android-smoke-diagnostics-api{api}' for api in (33, 36, 34, 35) if f'android-smoke-diagnostics-api{api}' in available), None)
+          assert name is not None, 'No completed screenshot artifact available'
+          result = subprocess.run(['gh', 'run', 'download', run, '--name', name, '--dir', str(path)], capture_output=True)
+          if result.returncode: raise SystemExit('Unable to retrieve the completed screenshot artifact')
+          print(f'::notice title=theme-preview-source::{name}')
+          PY_DOWNLOAD
+      - name: Read screenshot parts 1 to 10
+        env:
+          PALETTE: ${{ matrix.palette }}
+        run: |
+          python3 - <<'PY_IMAGE'
+          import os, pathlib, base64, math
+          name = os.environ['PALETTE']
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          assert len(files) == 1, 'Expected the live-switch screenshot'
+          raw = files[0].read_bytes()
+          assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
+          encoded = base64.b64encode(raw).decode('ascii')
+          size = 4000
+          count = math.ceil(len(encoded) / size)
+          assert count <= 50, 'Screenshot too large for check annotations'
+          for i in range(0, min(10, count)):
+              print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
+          PY_IMAGE
+      - name: Read screenshot parts 11 to 20
+        env:
+          PALETTE: ${{ matrix.palette }}
+        run: |
+          python3 - <<'PY_IMAGE'
+          import os, pathlib, base64, math
+          name = os.environ['PALETTE']
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          assert len(files) == 1, 'Expected the live-switch screenshot'
+          raw = files[0].read_bytes()
+          assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
+          encoded = base64.b64encode(raw).decode('ascii')
+          size = 4000
+          count = math.ceil(len(encoded) / size)
+          assert count <= 50, 'Screenshot too large for check annotations'
+          for i in range(10, min(20, count)):
+              print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
+          PY_IMAGE
+      - name: Read screenshot parts 21 to 30
+        env:
+          PALETTE: ${{ matrix.palette }}
+        run: |
+          python3 - <<'PY_IMAGE'
+          import os, pathlib, base64, math
+          name = os.environ['PALETTE']
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          assert len(files) == 1, 'Expected the live-switch screenshot'
+          raw = files[0].read_bytes()
+          assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
+          encoded = base64.b64encode(raw).decode('ascii')
+          size = 4000
+          count = math.ceil(len(encoded) / size)
+          assert count <= 50, 'Screenshot too large for check annotations'
+          for i in range(20, min(30, count)):
+              print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
+          PY_IMAGE
+      - name: Read screenshot parts 31 to 40
+        env:
+          PALETTE: ${{ matrix.palette }}
+        run: |
+          python3 - <<'PY_IMAGE'
+          import os, pathlib, base64, math
+          name = os.environ['PALETTE']
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          assert len(files) == 1, 'Expected the live-switch screenshot'
+          raw = files[0].read_bytes()
+          assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
+          encoded = base64.b64encode(raw).decode('ascii')
+          size = 4000
+          count = math.ceil(len(encoded) / size)
+          assert count <= 50, 'Screenshot too large for check annotations'
+          for i in range(30, min(40, count)):
+              print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
+          PY_IMAGE
+      - name: Read screenshot parts 41 to 50
+        env:
+          PALETTE: ${{ matrix.palette }}
+        run: |
+          python3 - <<'PY_IMAGE'
+          import os, pathlib, base64, math
+          name = os.environ['PALETTE']
+          files = list((pathlib.Path(os.environ['RUNNER_TEMP']) / 'theme-previews').rglob('live-palette-' + name + '.png'))
+          assert len(files) == 1, 'Expected the live-switch screenshot'
+          raw = files[0].read_bytes()
+          assert raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Expected PNG data'
+          encoded = base64.b64encode(raw).decode('ascii')
+          size = 4000
+          count = math.ceil(len(encoded) / size)
+          assert count <= 50, 'Screenshot too large for check annotations'
+          for i in range(40, min(50, count)):
+              print(f'::notice title=theme-png-{name}-part-{i+1}-of-{count}::{encoded[i*size:(i+1)*size]}')
+          PY_IMAGE
