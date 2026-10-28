@@ -498,34 +498,11 @@ public final class BananaHooks {
     }
 
     public static boolean isTikTokUrl(String url) {
-        java.net.URI parsed = parseHttpUri(url);
-        if (parsed == null || parsed.getHost() == null) return false;
-        String host = parsed.getHost().toLowerCase(java.util.Locale.ROOT);
-        return isHostOrSubdomain(host, "tiktok.com");
+        return ExternalVideoUrl.isTikTok(url);
     }
 
     public static boolean isYouTubeShortsUrl(String url) {
-        java.net.URI parsed = parseHttpUri(url);
-        if (parsed == null || parsed.getHost() == null || parsed.getPath() == null) return false;
-        String host = parsed.getHost().toLowerCase(java.util.Locale.ROOT);
-        String path = parsed.getPath();
-        return isHostOrSubdomain(host, "youtube.com")
-                && (path.equals("/shorts") || path.startsWith("/shorts/"));
-    }
-
-    private static java.net.URI parseHttpUri(String url) {
-        if (url == null || url.trim().isEmpty()) return null;
-        try {
-            java.net.URI uri = new java.net.URI(url.trim());
-            String scheme = uri.getScheme();
-            return ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) ? uri : null;
-        } catch (java.net.URISyntaxException e) {
-            return null;
-        }
-    }
-
-    private static boolean isHostOrSubdomain(String host, String domain) {
-        return host.equals(domain) || host.endsWith("." + domain);
+        return ExternalVideoUrl.isYouTubeShorts(url);
     }
 
     /**
