@@ -817,16 +817,23 @@ public final class BananaHooks {
      * Soft glow paint for avatar / reaction accents when the matching Extra is on.
      * Returns null when glow is disabled.
      */
-    public static android.graphics.Paint glowPaint(int account, boolean avatar, int color) {
+    public static android.graphics.Paint glowPaint(int account, boolean avatar, int color, android.graphics.Paint paint) {
         if (avatar ? !avatarGlowEnabled(account) : !reactionGlowEnabled(account)) {
             return null;
         }
-        android.graphics.Paint paint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
-        paint.setStyle(android.graphics.Paint.Style.STROKE);
-        paint.setStrokeWidth(AndroidUtilities.dp(3));
         int alpha = avatar ? 0x66 : 0x55;
-        paint.setColor((color & 0x00FFFFFF) | (alpha << 24));
-        paint.setShadowLayer(AndroidUtilities.dp(6), 0, 0, (color & 0x00FFFFFF) | 0x88000000);
+        int glowColor = (color & 0x00FFFFFF) | (alpha << 24);
+        float strokeWidth = AndroidUtilities.dp(3);
+        boolean update = paint == null || paint.getColor() != glowColor || paint.getStrokeWidth() != strokeWidth;
+        if (paint == null) {
+            paint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        }
+        if (update) {
+            paint.setStyle(android.graphics.Paint.Style.STROKE);
+            paint.setStrokeWidth(strokeWidth);
+            paint.setColor(glowColor);
+            paint.setShadowLayer(AndroidUtilities.dp(6), 0, 0, (color & 0x00FFFFFF) | 0x88000000);
+        }
         return paint;
     }
 
