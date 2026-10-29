@@ -408,12 +408,9 @@ public class ConnectionsManager extends BaseController {
                 return;
             }
 
-            // don't send upload & typing status (Ayu prefs or Banana GHOST_DONT_SEND_TYPING)
-            if ((!AyuConfig.sendUploadProgress || BananaHooks.dontSendTyping(currentAccount)) &&
-                    (
-                            object instanceof TLRPC.TL_messages_setTyping ||
-                            object instanceof TLRPC.TL_messages_setEncryptedTyping
-                    )
+            // don't send upload & typing status (Ayu prefs, or the matching Banana ghost toggle)
+            if ((object instanceof TLRPC.TL_messages_setTyping || object instanceof TLRPC.TL_messages_setEncryptedTyping) &&
+                    (!AyuConfig.sendUploadProgress || BananaHooks.suppressTypingRequest(currentAccount, object))
             ) {
                 // no need to run `onComplete`
                 return;

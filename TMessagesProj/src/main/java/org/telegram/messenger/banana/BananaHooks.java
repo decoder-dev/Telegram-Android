@@ -264,11 +264,44 @@ public final class BananaHooks {
         return BananaConfig.get(account, BananaConfig.Option.HIDE_ONLINE);
     }
 
-    /** Typing / upload progress suppression (ghost + dedicated toggles). */
-    public static boolean dontSendTyping(int account) {
-        return BananaConfig.get(account, BananaConfig.Option.GHOST_DONT_SEND_TYPING)
-                || BananaConfig.get(account, BananaConfig.Option.HIDE_TYPING)
-                || BananaConfig.get(account, BananaConfig.Option.HIDE_UPLOAD);
+    /**
+     * Typing / recording / upload suppression for every outgoing activity request, including ones
+     * built outside MessagesController.sendTyping (emoji taps, calls, secret chats). Each kind follows
+     * its own toggle; a cancellation is never dropped.
+     */
+    public static boolean suppressTypingRequest(int account, TLObject request) {
+        int code;
+        if (request instanceof TLRPC.TL_messages_setEncryptedTyping) {
+            code = ((TLRPC.TL_messages_setEncryptedTyping) request).typing ? 0 : 2;
+        } else if (request instanceof TLRPC.TL_messages_setTyping) {
+            code = activityCode(((TLRPC.TL_messages_setTyping) request).action);
+        } else {
+            return false;
+        }
+        if (code == 2) {
+            return false;
+        }
+        if (BananaConfig.get(account, BananaConfig.Option.GHOST_DONT_SEND_TYPING)) {
+            return true;
+        }
+        return code >= 0 && BananaConfig.suppressActivity(account, code);
+    }
+
+    /** MessagesController.sendTyping action codes; -1 for kinds without a dedicated toggle. */
+    private static int activityCode(TLRPC.SendMessageAction action) {
+        if (action instanceof TLRPC.TL_sendMessageTypingAction || action instanceof TLRPC.TL_sendMessageEmojiInteraction) return 0;
+        if (action instanceof TLRPC.TL_sendMessageRecordAudioAction) return 1;
+        if (action instanceof TLRPC.TL_sendMessageCancelAction) return 2;
+        if (action instanceof TLRPC.TL_sendMessageUploadDocumentAction) return 3;
+        if (action instanceof TLRPC.TL_sendMessageUploadPhotoAction) return 4;
+        if (action instanceof TLRPC.TL_sendMessageUploadVideoAction) return 5;
+        if (action instanceof TLRPC.TL_sendMessageGamePlayAction) return 6;
+        if (action instanceof TLRPC.TL_sendMessageRecordRoundAction) return 7;
+        if (action instanceof TLRPC.TL_sendMessageUploadRoundAction) return 8;
+        if (action instanceof TLRPC.TL_sendMessageUploadAudioAction) return 9;
+        if (action instanceof TLRPC.TL_sendMessageChooseStickerAction) return 10;
+        if (action instanceof TLRPC.TL_sendMessageEmojiInteractionSeen) return 11;
+        return -1;
     }
 
     public static boolean hideTabBar(int account) {
