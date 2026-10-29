@@ -1554,10 +1554,10 @@ public final class BananaHooks {
             //noinspection ResultOfMethodCallIgnored
             dir.mkdirs();
             java.io.File out = new java.io.File(dir, "msg_" + System.currentTimeMillis() + ".png");
-            java.io.FileOutputStream fos = new java.io.FileOutputStream(out);
-            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos);
-            fos.flush();
-            fos.close();
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(out)) {
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos);
+                fos.flush();
+            }
             android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_SEND);
             intent.setType("image/png");
             android.net.Uri uri;
