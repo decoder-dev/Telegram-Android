@@ -21747,7 +21747,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 if (res.peers.isEmpty()) {
                     result = null;
                 } else {
-                    if (!AyuConfig.localPremium) { // для даунов, потом мб уберу
+                    if (!org.telegram.messenger.banana.BananaHooks.localPremium(currentAccount)) {
                         res.peers.removeIf(element -> element.premium_required);
                     }
                     result = res;
