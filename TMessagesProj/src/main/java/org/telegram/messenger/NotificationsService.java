@@ -56,12 +56,16 @@ public class NotificationsService extends Service {
             "(＾• ω •＾)"
     };
 
+    private boolean foreground;
+
     @Override
     public void onCreate() {
         super.onCreate();
         ApplicationLoader.postInitApplication();
+    }
 
-        if (AyuConfig.keepAliveService && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    private void promoteToForeground() {
+        if (!foreground && AyuConfig.keepAliveService && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String CHANNEL_ID = "bananagram_push";
             NotificationChannelCompat channel = new NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
                     .setName("BananaGram")
@@ -102,12 +106,25 @@ public class NotificationsService extends Service {
                         .build();
             }
 
-            startForeground(9999, notification);
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    startForeground(9999, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+                } else {
+                    startForeground(9999, notification);
+                }
+                foreground = true;
+            } catch (IllegalStateException | SecurityException e) {
+                // Android 12+ refuses foreground promotion when the start came from the background
+                // (the repeating alarm or the restart broadcast). Stay a plain service instead of
+                // crashing; the next start while the app is on screen promotes it.
+                FileLog.e(e);
+            }
         }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        promoteToForeground();
         // Banana keep-alive re-arms at most one 15-minute inexact wakeup, and only in the background.
         org.telegram.ui.Components.ForegroundDetector detector = org.telegram.ui.Components.ForegroundDetector.getInstance();
         boolean background = detector == null || detector.isBackground();
