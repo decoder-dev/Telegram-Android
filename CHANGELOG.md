@@ -21,6 +21,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- BananaGram Cream draws switched-off controls at 3:1 contrast, the WCAG minimum; they were at 2.6:1. The gallery background in attachments and inline code in incoming messages no longer stay Telegram blue in Cream and Graphite. Both palettes live in BananaPalette, and a JVM test keeps every text and control pair at WCAG AA.
 - Automatic proxy waits at least 20 s after a switch before a failure-driven switch, and only switches while the app is still connecting through the proxy. On slow mobile links it used to hop to a new proxy every 6 s and reconnect every account.
 - Changing or removing the archive password now shows the lockout countdown after the fifth wrong attempt, like unlocking does, instead of "0 attempts left".
 - The exteraGram appearance settings no longer show a dead "People Nearby" drawer switch labelled "Or choose a venue"; Telegram removed the feature.

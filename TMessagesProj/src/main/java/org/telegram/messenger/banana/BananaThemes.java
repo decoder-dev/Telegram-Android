@@ -37,34 +37,18 @@ public final class BananaThemes {
     }
 
     private static void applyCream(SparseIntArray colors) {
-        final int background = 0xFFF6F0E3;
-        final int surface = 0xFFFFFAF2;
-        final int raised = 0xFFFFFDF8;
-        final int foreground = 0xFF3A3430;
-        final int secondary = 0xFF6A655D;
-        final int accent = 0xFF8A5F1E;
-        final int onAccent = 0xFFFFFFFF;
-        final int separator = 0xFFE6DDCC;
-        final int outgoing = 0xFFFCF2DC;
-        final int pinned = 0xFFFBF6EA;
-        paint(colors, background, surface, raised, foreground, secondary, accent, onAccent, separator, outgoing, pinned, false);
+        paint(colors, BananaPalette.CREAM);
     }
 
     private static void applyGraphite(SparseIntArray colors) {
-        final int background = 0xFF1D1C1A;
-        final int surface = 0xFF272522;
-        final int raised = 0xFF312F2B;
-        final int foreground = 0xFFEFEBE0;
-        final int secondary = 0xFFB5B0A4;
-        final int accent = 0xFFEBD58F;
-        final int onAccent = 0xFF1B1A16;
-        final int separator = 0xFF3A3733;
-        final int outgoing = 0xFF5E5236;
-        final int pinned = 0xFF2B2926;
-        paint(colors, background, surface, raised, foreground, secondary, accent, onAccent, separator, outgoing, pinned, true);
+        paint(colors, BananaPalette.GRAPHITE);
     }
 
-    private static void paint(SparseIntArray colors, int background, int surface, int raised, int foreground, int secondary, int accent, int onAccent, int separator, int outgoing, int pinned, boolean dark) {
+    private static void paint(SparseIntArray colors, BananaPalette p) {
+        final boolean dark = p.dark;
+        final int background = p.background, surface = p.surface, raised = p.raised, foreground = p.foreground;
+        final int secondary = p.secondary, accent = p.accent, onAccent = p.onAccent, separator = p.separator;
+        final int outgoing = p.outgoing, pinned = p.pinned;
         put(colors, Theme.key_windowBackgroundWhite, surface);
         put(colors, Theme.key_windowBackgroundGray, background);
         put(colors, Theme.key_windowBackgroundWhiteBlackText, foreground);
@@ -74,13 +58,13 @@ public final class BananaThemes {
         put(colors, Theme.key_windowBackgroundWhiteBlueText2, accent);
         put(colors, Theme.key_windowBackgroundWhiteHintText, secondary);
         put(colors, Theme.key_divider, separator);
-        put(colors, Theme.key_listSelector, dark ? 0xFF36332E : 0xFFF1E8D6);
+        put(colors, Theme.key_listSelector, p.highlighted);
         put(colors, Theme.key_switchTrackChecked, accent);
         put(colors, Theme.key_actionBarDefault, surface);
         put(colors, Theme.key_actionBarDefaultIcon, accent);
         put(colors, Theme.key_actionBarDefaultTitle, foreground);
         put(colors, Theme.key_actionBarDefaultSubtitle, secondary);
-        put(colors, Theme.key_actionBarDefaultSelector, dark ? 0xFF36332E : 0xFFF1E8D6);
+        put(colors, Theme.key_actionBarDefaultSelector, p.highlighted);
         put(colors, Theme.key_chats_menuBackground, surface);
         put(colors, Theme.key_chats_name, foreground);
         put(colors, Theme.key_chats_nameMessage, foreground);
@@ -94,17 +78,17 @@ public final class BananaThemes {
         put(colors, Theme.key_chat_inBubble, raised);
         put(colors, Theme.key_chat_outBubble, outgoing);
         put(colors, Theme.key_chat_outBubbleGradient1, outgoing);
-        put(colors, Theme.key_chat_outBubbleGradient2, dark ? 0xFF4A4029 : 0xFFF8EBCB);
+        put(colors, Theme.key_chat_outBubbleGradient2, p.outgoingGradient);
         put(colors, Theme.key_chat_outBubbleGradient3, outgoing);
         put(colors, Theme.key_chat_outBubbleGradientAnimated, 0);
         put(colors, Theme.key_chat_messageTextIn, foreground);
-        put(colors, Theme.key_chat_messageTextOut, dark ? foreground : 0xFF3A3430);
+        put(colors, Theme.key_chat_messageTextOut, p.outgoingText);
         put(colors, Theme.key_chat_inTimeText, secondary);
-        put(colors, Theme.key_chat_outTimeText, dark ? secondary : 0xFF85591A);
+        put(colors, Theme.key_chat_outTimeText, p.outgoingSecondary);
         put(colors, Theme.key_chat_wallpaper, background);
-        put(colors, Theme.key_chat_wallpaper_gradient_to1, dark ? 0xFF34312B : 0xFFF4E7C9);
-        put(colors, Theme.key_chat_wallpaper_gradient_to2, dark ? 0xFF2A2824 : 0xFFFCF6E8);
-        put(colors, Theme.key_chat_wallpaper_gradient_to3, dark ? 0xFF1D1C1A : 0xFFF0E2C2);
+        put(colors, Theme.key_chat_wallpaper_gradient_to1, p.wallpaperTo1);
+        put(colors, Theme.key_chat_wallpaper_gradient_to2, p.wallpaperTo2);
+        put(colors, Theme.key_chat_wallpaper_gradient_to3, p.wallpaperTo3);
         put(colors, Theme.key_avatar_backgroundSaved, accent);
         put(colors, Theme.key_featuredStickers_addButton, accent);
         put(colors, Theme.key_profile_actionBackground, accent);
@@ -113,11 +97,11 @@ public final class BananaThemes {
 
         // Complete the stock Day/Night surfaces. Otherwise the composer, sheets and
         // selection controls keep cold blue/grey colors while Extras uses warm colors.
-        final int highlighted = dark ? 0xFF36332E : 0xFFF1E8D6;
-        final int search = dark ? 0xFF302E2A : 0xFFF0E9DB;
-        final int disabled = dark ? 0xFF77726A : 0xFFA39C8E;
-        final int outgoingSecondary = dark ? 0xFFD5CBBA : 0xFF85591A;
-        final int outgoingAccent = dark ? accent : 0xFF85591A;
+        final int highlighted = p.highlighted;
+        final int search = p.search;
+        final int disabled = p.disabled;
+        final int outgoingSecondary = p.outgoingSecondary;
+        final int outgoingAccent = p.outgoingAccent;
         final int selectionOverlay = (accent & 0x00FFFFFF) | 0x18000000;
         final int outgoingSelectionOverlay = (accent & 0x00FFFFFF) | (dark ? 0x0C000000 : 0x18000000);
         put(colors, Theme.key_chat_inBubbleSelectedOverlay, selectionOverlay);
@@ -136,7 +120,10 @@ public final class BananaThemes {
                 Theme.key_settings_listSelector, Theme.key_actionBarDefaultArchivedSelector, Theme.key_actionBarActionModeDefaultSelector,
                 Theme.key_chat_botKeyboardButtonBackgroundPressed);
         putAll(colors, search,
-                Theme.key_dialogSearchBackground, Theme.key_chat_emojiSearchBackground);
+                Theme.key_dialogSearchBackground, Theme.key_chat_emojiSearchBackground,
+                // Left in Telegram blue: the accent retint skips colours this far from its source hue.
+                Theme.key_chat_attachGalleryBackground);
+        put(colors, Theme.key_chat_inCodeBackground, (secondary & 0x00FFFFFF) | 0x1A000000);
         putAll(colors, foreground,
                 Theme.key_actionBarDefaultArchivedTitle, Theme.key_actionBarDefaultSearch, Theme.key_actionBarDefaultSubmenuItem,
                 Theme.key_actionBarActionModeDefaultIcon, Theme.key_dialogSearchText, Theme.key_chat_messagePanelText,
