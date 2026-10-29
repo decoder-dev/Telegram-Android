@@ -240,6 +240,70 @@ public final class BananaConfig {
         global.edit().putBoolean(GHOST_SCOPE_MIGRATED, true).apply();
     }
 
+    private static final String AYU_DUPLICATES_MIGRATED = "bananaAyuDuplicatesMigrated";
+
+    /**
+     * The AyuGram screen no longer offers ghost mode, read after send, scheduled sending, the push
+     * service or local Premium: they duplicated BananaGram Extras switches, and the two were ORed.
+     * Once per install, carry any value set there into every account's BananaGram switch, then put
+     * the AyuGram flag back to neutral so nothing hidden keeps acting on its own. Behaviour is the
+     * same afterwards; it is just controlled from one place.
+     */
+    public static void migrateAyuDuplicates() {
+        SharedPreferences global = accountPreferences(0);
+        if (global.getBoolean(AYU_DUPLICATES_MIGRATED, false) || AyuConfig.editor == null) {
+            return;
+        }
+        boolean ghostRead = !AyuConfig.sendReadPackets;
+        boolean ghostOnline = !AyuConfig.sendOnlinePackets;
+        boolean ghostTyping = !AyuConfig.sendUploadProgress;
+        boolean offlineAfter = AyuConfig.sendOfflinePacketAfterOnline;
+        // Ayu's read-after-send only acted while Ayu itself suppressed reads.
+        boolean readOnInteract = ghostRead && AyuConfig.markReadAfterSend;
+        boolean scheduled = AyuConfig.useScheduledMessages;
+        boolean premium = AyuConfig.localPremium;
+        boolean keepAlive = AyuConfig.keepAliveService;
+        for (int account = 0; account < org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT; account++) {
+            SharedPreferences.Editor editor = accountPreferences(account).edit();
+            if (ghostRead) editor.putBoolean(Option.DONT_READ_MESSAGES.key, true);
+            if (readOnInteract) editor.putBoolean(Option.GHOST_READ_ON_INTERACT.key, true);
+            if (ghostOnline) editor.putBoolean(Option.HIDE_ONLINE.key, true);
+            if (ghostTyping) {
+                editor.putBoolean(Option.GHOST_DONT_SEND_TYPING.key, true);
+                editor.putBoolean(Option.HIDE_TYPING.key, true);
+                editor.putBoolean(Option.HIDE_RECORDING.key, true);
+                editor.putBoolean(Option.HIDE_UPLOAD.key, true);
+            }
+            if (offlineAfter) editor.putBoolean(Option.OFFLINE_AFTER_ACTIVITY.key, true);
+            if (scheduled) editor.putBoolean(Option.GHOST_SCHEDULE_MESSAGES.key, true);
+            if (premium) editor.putBoolean(Option.LOCAL_PREMIUM.key, true);
+            if (keepAlive) editor.putBoolean(Option.KEEP_ALIVE_IN_BACKGROUND.key, true);
+            editor.apply();
+        }
+        AyuConfig.editor
+                .putBoolean("sendReadPackets", AyuConfig.sendReadPackets = true)
+                .putBoolean("sendOnlinePackets", AyuConfig.sendOnlinePackets = true)
+                .putBoolean("sendUploadProgress", AyuConfig.sendUploadProgress = true)
+                .putBoolean("sendOfflinePacketAfterOnline", AyuConfig.sendOfflinePacketAfterOnline = false)
+                .putBoolean("useScheduledMessages", AyuConfig.useScheduledMessages = false)
+                .putBoolean("localPremium", AyuConfig.localPremium = false)
+                .apply();
+        // keepAliveService stays: it now mirrors the BananaGram switch (see syncAyuKeepAlive).
+        global.edit().putBoolean(AYU_DUPLICATES_MIGRATED, true).apply();
+    }
+
+    /**
+     * The push service is process-wide. AyuGram's foreground keep-alive runs while any account
+     * has BananaGram's "Keep alive in background" on, so that switch is the only control.
+     */
+    public static void syncAyuKeepAlive() {
+        if (AyuConfig.editor == null) return;
+        boolean any = anyAccount(Option.KEEP_ALIVE_IN_BACKGROUND);
+        if (AyuConfig.keepAliveService != any) {
+            AyuConfig.editor.putBoolean("keepAliveService", AyuConfig.keepAliveService = any).apply();
+        }
+    }
+
     private static boolean anyAccount(Option option) {
         for (int account = 0; account < org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT; account++) {
             if (accountPreferences(account).getBoolean(option.key, defaultFor(option))) {
@@ -301,7 +365,8 @@ public final class BananaConfig {
             editor.putInt(IntValue.DOUBLE_TAP_ACTION.key, enabled ? 6 : action == 6 ? IntValue.DOUBLE_TAP_ACTION.defaultValue : action);
         }
         editor.apply();
-        if (option == Option.KEEP_ALIVE_IN_BACKGROUND && account == org.telegram.messenger.UserConfig.selectedAccount) {
+        if (option == Option.KEEP_ALIVE_IN_BACKGROUND) {
+            syncAyuKeepAlive();
             org.telegram.messenger.AndroidUtilities.runOnUIThread(org.telegram.messenger.ApplicationLoader::startPushService);
         }
     }
