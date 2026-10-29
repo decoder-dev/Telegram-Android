@@ -56,7 +56,17 @@ def wait_for_system(timeout=180):
     print(f'System services were still not ready after {timeout} seconds; continuing anyway')
 
 
+def hide_system_error_dialogs():
+    # A slow emulator's own launcher can ANR; its "isn't responding" dialog takes window focus
+    # from the app under test and fails focus-dependent UI checks that have nothing to do with it.
+    try:
+        run('shell', 'settings', 'put', 'global', 'hide_error_dialogs', '1', timeout=30)
+    except (SystemExit, subprocess.TimeoutExpired) as error:
+        print(f'Could not hide system error dialogs, continuing: {error}')
+
+
 wait_for_system()
+hide_system_error_dialogs()
 device = {
     'api': int(run('shell', 'getprop', 'ro.build.version.sdk').strip()),
     'page_size': int(run('shell', 'getconf', 'PAGE_SIZE').strip()),
@@ -195,6 +205,12 @@ if not suite_passed(output, instrumentation_failed):
     (args.output_dir / 'logcat-attempt1.log').write_text(run('logcat', '-d', '-t', '4000', '-v', 'threadtime'))
     print('Android smoke suite failed on the first attempt; retrying once from a cleared app state')
     wait_for_system()
+    hide_system_error_dialogs()
+    # Close a system dialog that is already on screen; the setting only stops new ones.
+    try:
+        run('shell', 'am', 'broadcast', '-a', 'android.intent.action.CLOSE_SYSTEM_DIALOGS', timeout=30)
+    except (SystemExit, subprocess.TimeoutExpired):
+        pass
     try:
         installed = 'package:' in run('shell', 'pm', 'path', PACKAGE, timeout=60)
     except (SystemExit, subprocess.TimeoutExpired):
