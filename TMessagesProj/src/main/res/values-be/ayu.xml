@@ -2,9 +2,6 @@
 <resources>
   <string name="AyuPreferences">Пашыраныя налады</string>
   <string name="GhostEssentialsHeader">Налады рэжыму Прывіду</string>
-  <string name="SendReadPackets">Адпраўляць статус "прачытана"</string>
-  <string name="SendOnlinePackets">Адпраўляць статус "анлайн"</string>
-  <string name="SendUploadProgress">Адпраўляць статус друкавання і загрузкі</string>
   <string name="SendOfflinePacketAfterOnline">Неадкладны пераход у рэжым афлайн пасля статусу анлайн</string>
   <string name="MarkReadAfterSend">Адпраўляць статус "прачытана" пасля адказу</string>
   <string name="UseScheduledMessages">Адкладваць адпраўку паведамленняў</string>
@@ -24,9 +21,7 @@
   <string name="MessageSavingSaveReactions">Захоўваць рэакцыі</string>
   <string name="MessageSavingSaveForBots">Захоўваць паведамленні ботаў</string>
   <string name="QoLTogglesHeader">Карысныя функцыі</string>
-  <string name="ShowFromChannel">Паказваць адзнаку «канал»</string>
   <string name="KeepAliveService">Пуш-сэрвіс BananaGram</string>
-  <string name="EnableAds">Уключыць рэкламу</string>
   <string name="LocalPremium">Лакальны Telegram Premium</string>
   <string name="CustomizationHeader">Наладжваньне</string>
   <string name="DeletedMarkText">Аддаленая адзнака</string>
@@ -79,7 +74,6 @@
   <string name="EnableGhostMode">Уключыць рэжым Прывіду</string>
   <string name="DisableGhostMode">Адключыць рэжым Прывіду</string>
   <string name="KillApp">Забіць праграму</string>
-  <string name="DrawerGhostModeToggle">Рэжым Прывіду</string>
   <string name="GhostModeEnabled">Рэжым Прывіду ўключаны</string>
   <string name="GhostModeDisabled">Рэжым Прывіду адключаны</string>
   <string name="EditsHistoryTitle">Гісторыя рэдагавання</string>

@@ -2,9 +2,6 @@
 <resources>
   <string name="AyuPreferences">Preferências avançadas</string>
   <string name="GhostEssentialsHeader">Essenciais do fantasma</string>
-  <string name="SendReadPackets">Enviar status de leitura</string>
-  <string name="SendOnlinePackets">Enviar status online</string>
-  <string name="SendUploadProgress">Enviar digitação e estado de carregamento</string>
   <string name="SendOfflinePacketAfterOnline">Imediato offline após online</string>
   <string name="MarkReadAfterSend">Enviar status da leitura após a resposta</string>
   <string name="UseScheduledMessages">Agendar mensagens</string>
@@ -24,9 +21,7 @@
   <string name="MessageSavingSaveReactions">Salvar reações</string>
   <string name="MessageSavingSaveForBots">Save in bot dialogs</string>
   <string name="QoLTogglesHeader">Funcionalidades úteis</string>
-  <string name="ShowFromChannel">Mostrar rótulo «canal»</string>
   <string name="KeepAliveService">Serviço push do BananaGram</string>
-  <string name="EnableAds">Habilitar anúncios</string>
   <string name="LocalPremium">Local Telegram Premium</string>
   <string name="CustomizationHeader">Personalização</string>
   <string name="DeletedMarkText">Marca da exclusão</string>
@@ -80,7 +75,6 @@ Você também pode usar texto simples, mas não se esqueça de escapar de parên
   <string name="EnableGhostMode">Ativar o fantasma</string>
   <string name="DisableGhostMode">Desativar o fantasma</string>
   <string name="KillApp">Fechar aplicativo</string>
-  <string name="DrawerGhostModeToggle">Modo fantasma</string>
   <string name="GhostModeEnabled">Modo fantasma ativado</string>
   <string name="GhostModeDisabled">Modo fantasma desativado</string>
   <string name="EditsHistoryTitle">Histórico de edições</string>

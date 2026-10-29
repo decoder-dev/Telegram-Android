@@ -2,9 +2,6 @@
 <resources>
   <string name="AyuPreferences">Розширені налаштування</string>
   <string name="GhostEssentialsHeader">Налаштування режиму привида</string>
-  <string name="SendReadPackets">Відправляти статус «прочитано»</string>
-  <string name="SendOnlinePackets">Відправляти статус «онлайн»</string>
-  <string name="SendUploadProgress">Статуси «друкую» та «відвантажую»</string>
   <string name="SendOfflinePacketAfterOnline">Офлайн одразу після онлайну</string>
   <string name="MarkReadAfterSend">Відправляти статус «прочитано» тільки після відповіді</string>
   <string name="UseScheduledMessages">Планувати повідомлення</string>
@@ -24,9 +21,7 @@
   <string name="MessageSavingSaveReactions">Зберігати реакції</string>
   <string name="MessageSavingSaveForBots">Зберегти в діалогах з ботами</string>
   <string name="QoLTogglesHeader">Корисні функції</string>
-  <string name="ShowFromChannel">Показувати надпис «канал»</string>
   <string name="KeepAliveService">Push-сервіс BananaGram</string>
-  <string name="EnableAds">Увімкнути рекламу</string>
   <string name="LocalPremium">Локальний Telegram Преміум</string>
   <string name="CustomizationHeader">Персоналізація</string>
   <string name="DeletedMarkText">Позначка на видаленому повідомленні</string>
@@ -80,7 +75,6 @@
   <string name="EnableGhostMode">Увімкнути режим привида</string>
   <string name="DisableGhostMode">Вимкнути режим привида</string>
   <string name="KillApp">Закрити додаток</string>
-  <string name="DrawerGhostModeToggle">Режим привида</string>
   <string name="GhostModeEnabled">Режим привида ввімкнено</string>
   <string name="GhostModeDisabled">Режим привида вимкнено</string>
   <string name="EditsHistoryTitle">Історія редагувань</string>

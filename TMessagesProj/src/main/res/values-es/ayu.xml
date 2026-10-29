@@ -2,9 +2,6 @@
 <resources>
   <string name="AyuPreferences">Preferencias avanzadas</string>
   <string name="GhostEssentialsHeader">Lo esencial del modo fantasma</string>
-  <string name="SendReadPackets">Enviar estado de «mensaje leído»</string>
-  <string name="SendOnlinePackets">Enviar estado «en línea»</string>
-  <string name="SendUploadProgress">Enviar estado de «escribiendo» y «subiendo»</string>
   <string name="SendOfflinePacketAfterOnline">En línea y luego fuera de línea</string>
   <string name="MarkReadAfterSend">Enviar estado de lectura tras responder</string>
   <string name="UseScheduledMessages">Programar mensajes</string>
@@ -24,9 +21,7 @@
   <string name="MessageSavingSaveReactions">Guardar reacciones</string>
   <string name="MessageSavingSaveForBots">Save in bot dialogs</string>
   <string name="QoLTogglesHeader">Funciones útiles</string>
-  <string name="ShowFromChannel">Mostrar etiqueta de «canal»</string>
   <string name="KeepAliveService">Servicio push de BananaGram</string>
-  <string name="EnableAds">Habilitar anuncios</string>
   <string name="LocalPremium">Telegram Premium local</string>
   <string name="CustomizationHeader">Personalización</string>
   <string name="DeletedMarkText">Marca de «eliminado»</string>
@@ -80,7 +75,6 @@ También puede utilizar texto sin formato, pero no olvide escapar los paréntesi
   <string name="EnableGhostMode">Activar fantasma</string>
   <string name="DisableGhostMode">Desactivar fantasma</string>
   <string name="KillApp">Matar app</string>
-  <string name="DrawerGhostModeToggle">Modo fantasma</string>
   <string name="GhostModeEnabled">Modo fantasma activado</string>
   <string name="GhostModeDisabled">Modo fantasma desactivado</string>
   <string name="EditsHistoryTitle">Historial de ediciones</string>
