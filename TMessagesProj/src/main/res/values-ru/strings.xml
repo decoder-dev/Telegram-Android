@@ -298,6 +298,7 @@
     <string name="BananaHistoryClear">Очистить локальную историю</string>
     <string name="BananaHistoryClearInfo">Удалить сохранённую историю текста этого аккаунта с устройства без возможности восстановления? Сообщения в Telegram останутся прежними. Чтобы прекратить сохранение новых версий, также выключите настройки истории в возможностях BananaGram.</string>
     <string name="BananaHistoryPeer">Чат %1$d · сообщение %2$d</string>
+    <string name="BananaHistoryPeerNamed">%1$s · сообщение %2$d</string>
     <string name="BananaHistoryIntro">Сохранённый текст остаётся на этом устройстве. Поиск показывает 100 последних совпадений.</string>
     <string name="BananaHistoryNoMatches">Сохранённых сообщений по этому запросу нет.</string>
     <string name="BananaSaveMediaHistory">Сохранять скачанные вложения</string>

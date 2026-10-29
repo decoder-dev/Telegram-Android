@@ -1,15 +1,18 @@
 package org.telegram.ui;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserObject;
 import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.messenger.banana.HistoryDatabase;
 import org.telegram.messenger.banana.MessageHistory;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
@@ -103,10 +106,12 @@ public final class BananaHistoryActivity extends BananaSettingsFragment {
         } else if (item.id >= 100 && item.id - 100 < records.size()) {
             HistoryDatabase.Record record = records.get(item.id - 100);
             AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider())
-                    .setTitle(LocaleController.formatString(R.string.BananaHistoryPeer, record.dialogId, record.messageId))
+                    .setTitle(peerTitle(record))
                     .setMessage(display(record))
-                    .setNegativeButton(LocaleController.getString(R.string.Close), null)
-                    .setPositiveButton(LocaleController.getString(R.string.Copy), (dialog, which) -> AndroidUtilities.addToClipboard(record.text));
+                    .setNegativeButton(LocaleController.getString(R.string.Close), null);
+            // Media-only records have no text to copy.
+            if (!record.text.isEmpty()) builder.setPositiveButton(LocaleController.getString(R.string.Copy),
+                    (dialog, which) -> AndroidUtilities.addToClipboard(record.text));
             if (record.attachment != null) builder.setNeutralButton(LocaleController.getString(R.string.BananaHistoryOpenAttachment),
                     (dialog, which) -> MessageHistory.attachment(currentAccount, record, file -> {
                         if (destroyed || getParentActivity() == null) return;
@@ -120,6 +125,20 @@ public final class BananaHistoryActivity extends BananaSettingsFragment {
                     }));
             showDialog(builder.create());
         }
+    }
+
+    /** Chat name when Telegram already knows the peer; the raw id only as a fallback. */
+    private String peerTitle(HistoryDatabase.Record record) {
+        String name = null;
+        if (record.dialogId > 0) {
+            TLRPC.User user = getMessagesController().getUser(record.dialogId);
+            if (user != null) name = UserObject.getUserName(user);
+        } else {
+            TLRPC.Chat chat = getMessagesController().getChat(-record.dialogId);
+            if (chat != null) name = chat.title;
+        }
+        return TextUtils.isEmpty(name) ? LocaleController.formatString(R.string.BananaHistoryPeer, record.dialogId, record.messageId)
+                : LocaleController.formatString(R.string.BananaHistoryPeerNamed, name, record.messageId);
     }
 
     private String historyMark(boolean deleted) {
