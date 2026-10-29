@@ -47,12 +47,15 @@ public class BananaOfflineVoice {
                 .setMessage(LocaleController.getString(R.string.BananaVoiceModelDownload))
                 .setPositiveButton(LocaleController.getString(R.string.BananaVoiceDownloadModel), (d, w) -> {
                     org.telegram.ui.ActionBar.AlertDialog progress = new org.telegram.ui.ActionBar.AlertDialog(context, 3);
-                    progress.setOnCancelListener(ignored -> { cancelDownload(); aborted.run(); });
+                    // Both callbacks run on the UI thread. A user cancel already reported abort.
+                    final boolean[] userCancelled = {false};
+                    progress.setOnCancelListener(ignored -> { userCancelled[0] = true; cancelDownload(); aborted.run(); });
                     progress.show();
                     download(lang, new DownloadListener() {
                         public void onProgress(long done, long total) { }
                         public void onDone(boolean ok) {
                             try { progress.dismiss(); } catch (Exception ignored) { }
+                            if (userCancelled[0]) return;
                             if (ok) ready.run();
                             else {
                                 aborted.run();
