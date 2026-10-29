@@ -375,6 +375,8 @@ public class ApplicationLoader extends Application {
         applicationHandler = new Handler(applicationContext.getMainLooper());
 
         org.telegram.messenger.banana.BananaConfig.migrateGhostScope();
+        org.telegram.messenger.banana.BananaConfig.migrateAyuDuplicates();
+        org.telegram.messenger.banana.BananaConfig.syncAyuKeepAlive();
         AndroidUtilities.runOnUIThread(ApplicationLoader::startPushService);
 
         LauncherIconController.tryFixLauncherIconIfNeeded();

@@ -81,22 +81,17 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     protected void updateRowsId() {
         super.updateRowsId();
 
-        ghostEssentialsHeaderRow = newRow();
-        ghostModeToggleRow = newRow();
-        if (ghostModeMenuExpanded) {
-            sendReadPacketsRow = newRow();
-            sendOnlinePacketsRow = newRow();
-            sendUploadProgressRow = newRow();
-            sendOfflinePacketAfterOnlineRow = newRow();
-        } else {
-            sendReadPacketsRow = -1;
-            sendOnlinePacketsRow = -1;
-            sendUploadProgressRow = -1;
-            sendOfflinePacketAfterOnlineRow = -1;
-        }
-        markReadAfterSendRow = newRow();
-        useScheduledMessagesRow = newRow();
-        ghostDividerRow = newRow();
+        // Ghost mode, read after send and scheduled sending live in BananaGram Extras per account.
+        // BananaConfig.migrateAyuDuplicates moved the old global values there once.
+        ghostEssentialsHeaderRow = -1;
+        ghostModeToggleRow = -1;
+        sendReadPacketsRow = -1;
+        sendOnlinePacketsRow = -1;
+        sendUploadProgressRow = -1;
+        sendOfflinePacketAfterOnlineRow = -1;
+        markReadAfterSendRow = -1;
+        useScheduledMessagesRow = -1;
+        ghostDividerRow = -1;
 
         spyHeaderRow = newRow();
         saveDeletedMessagesRow = newRow();
@@ -106,15 +101,17 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         spyDivider2Row = newRow();
 
         qolHeaderRow = newRow();
-        keepAliveServiceRow = newRow();
-        disableAdsRow = newRow();
-        localPremiumRow = newRow();
+        // Push service, ad hiding and local Premium are BananaGram Extras switches.
+        keepAliveServiceRow = -1;
+        disableAdsRow = -1;
+        localPremiumRow = -1;
         filtersRow = newRow();
         qolDividerRow = newRow();
 
         customizationHeaderRow = newRow();
-        deletedMarkTextRow = newRow();
-        editedMarkTextRow = newRow();
+        // Deleted and edited marks are set per account under BananaGram Extras → Values.
+        deletedMarkTextRow = -1;
+        editedMarkTextRow = -1;
         showGhostToggleInDrawerRow = newRow();
         showKillButtonInDrawerRow = newRow();
         customizationDividerRow = newRow();
