@@ -8,12 +8,12 @@ import android.text.TextUtils;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.DispatchQueue;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
-import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.ui.Components.ForegroundDetector;
 import org.telegram.utils.proxy.ProxySettings;
@@ -75,6 +75,9 @@ public final class BananaAutomaticProxy {
             "https://raw.githubusercontent.com/dubblebyte/free-mtproto-proxies/main/all_proxies.txt",
             "https://raw.githubusercontent.com/Chumbayoumba/free-telegram-proxy-russia-2026/main/proxies.txt",
     };
+
+    /** Blocking list downloads must not stall Telegram's shared global queue. */
+    private static final DispatchQueue FETCH_QUEUE = new DispatchQueue("banana-proxy-fetch");
 
     private static final Runnable REFRESH = BananaAutomaticProxy::refresh;
     private static final Runnable PROBE_KICK = BananaAutomaticProxy::kickProbe;
@@ -140,7 +143,7 @@ public final class BananaAutomaticProxy {
         refreshing = true;
         lastRefreshAt = SystemClock.elapsedRealtime();
         final int generation = ++refreshGeneration;
-        Utilities.globalQueue.postRunnable(() -> {
+        FETCH_QUEUE.postRunnable(() -> {
             List<List<ProxySettings>> lists = new ArrayList<>();
             int attempts = 0;
             for (String listUrl : LIST_URLS) {
