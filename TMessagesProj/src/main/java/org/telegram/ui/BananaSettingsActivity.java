@@ -161,8 +161,7 @@ public final class BananaSettingsActivity extends BananaSettingsFragment {
     /** Section icons, as next to each hub row on iOS. */
     private static int hubIcon(String section) {
         switch (section) {
-            case "NINJA": return R.drawable.msg_saved;
-            case "GHOST": return R.drawable.ayu_ghost;
+            case "NINJA": return R.drawable.ayu_ghost;
             case "PRIVACY": return R.drawable.msg2_secret;
             case "APPEARANCE": return R.drawable.msg_theme;
             case "CHAT_LIST": return R.drawable.msg_folders;
