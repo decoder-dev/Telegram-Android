@@ -105,41 +105,18 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
                 if (next) org.telegram.messenger.banana.BananaSessionBackup.schedule(currentAccount);
                 else org.telegram.messenger.banana.BananaSessionBackup.clear(currentAccount);
             }
+            // Ghost switches stay on this account. Mirroring them into AyuGram's process-wide
+            // flags used to switch ghost behavior on or off for every other account too.
             if (option == Option.GHOST_DONT_SEND_TYPING) {
-                if (next) {
-                    BananaConfig.set(currentAccount, Option.HIDE_TYPING, true);
-                    BananaConfig.set(currentAccount, Option.HIDE_RECORDING, true);
-                    BananaConfig.set(currentAccount, Option.HIDE_UPLOAD, true);
-                }
-                // Keep Ayu sendUploadProgress / typing suppression in sync
-                com.radolyn.ayugram.AyuConfig.sendUploadProgress = !next;
-                com.radolyn.ayugram.AyuConfig.editor.putBoolean("sendUploadProgress", !next).apply();
+                // The master switch drives its three kinds both ways, so turning it off really
+                // lets typing, recording and upload status through again.
+                BananaConfig.set(currentAccount, Option.HIDE_TYPING, next);
+                BananaConfig.set(currentAccount, Option.HIDE_RECORDING, next);
+                BananaConfig.set(currentAccount, Option.HIDE_UPLOAD, next);
             }
             if (option == Option.HIDE_ADS) {
                 com.radolyn.ayugram.AyuConfig.disableAds = next;
                 com.radolyn.ayugram.AyuConfig.editor.putBoolean("disableAds", next).apply();
-            }
-            if (option == Option.LOCAL_PREMIUM) {
-                com.radolyn.ayugram.AyuConfig.localPremium = next;
-                com.radolyn.ayugram.AyuConfig.editor.putBoolean("localPremium", next).apply();
-            }
-            if (option == Option.DONT_READ_MESSAGES) {
-                com.radolyn.ayugram.AyuConfig.sendReadPackets = !next;
-                com.radolyn.ayugram.AyuConfig.editor.putBoolean("sendReadPackets", !next).apply();
-            }
-            if (option == Option.GHOST_READ_ON_INTERACT) {
-                com.radolyn.ayugram.AyuConfig.markReadAfterSend = next;
-                com.radolyn.ayugram.AyuConfig.editor.putBoolean("markReadAfterSend", next).apply();
-            }
-            if (option == Option.HIDE_ONLINE) {
-                com.radolyn.ayugram.AyuConfig.sendOnlinePackets = !next;
-                com.radolyn.ayugram.AyuConfig.editor.putBoolean("sendOnlinePackets", !next).apply();
-            }
-            if (option == Option.GHOST_SCHEDULE_MESSAGES) {
-                // Send path schedules only when ghost mode is active AND this option is on.
-                boolean schedule = next && BananaConfig.isGhostModeActive(currentAccount);
-                com.radolyn.ayugram.AyuConfig.useScheduledMessages = schedule;
-                com.radolyn.ayugram.AyuConfig.editor.putBoolean("useScheduledMessages", schedule).apply();
             }
             if (option == Option.REGEX_MESSAGE_FILTERS_ENABLED) {
                 org.telegram.messenger.banana.FilterStore.get(currentAccount).setEnabled(next);
