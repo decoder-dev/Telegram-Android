@@ -10,6 +10,8 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 - With "Read on Interact" off, sending in a ghosted chat no longer marks it read. Switching "Don't send typing" off restores typing, recording and upload status. The double-tap action defaults to the quick reaction, as in Telegram, instead of Off. It alone decides double-tap behavior: react, reply, repeat and translate work on incoming messages while "Double tap to edit" is on, and only the reaction requires a reaction the chat allows.
 - "Send as round" goes through Telegram's round-video path, the same one a camera recording uses, so the message gets a round preview while uploading and the right secret-chat attribute.
 - The keep-alive service no longer crashes the app when Android 12+ refuses foreground promotion of a background start.
+- "Clean tracking links" also cleans photo, video and file captions, not only text messages.
+- Deleted and edited marks stay on the account they are set for. The time label and the edited-text animation now read the same mark, so the animation finds it when the Banana mark differs from AyuGram's.
 
 ### Changed
 

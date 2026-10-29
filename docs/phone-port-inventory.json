@@ -91,26 +91,26 @@
     {
       "setting": "ghostDontReadMessages",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.DONT_READ_MESSAGES"
+      "status": "implemented_behavior_wired",
+      "android": "Option.DONT_READ_MESSAGES, per account; ConnectionsManager drops every read request kind; read after send follows Option.GHOST_READ_ON_INTERACT"
     },
     {
       "setting": "ghostDontReadStories",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.DONT_READ_STORIES"
+      "status": "implemented_behavior_wired",
+      "android": "Option.DONT_READ_STORIES, per account; gates stories.readStories and stories.incrementStoryViews, their only senders"
     },
     {
       "setting": "ghostDontSendOnline",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.HIDE_ONLINE"
+      "status": "implemented_behavior_wired",
+      "android": "Option.HIDE_ONLINE, per account; ConnectionsManager sends account.updateStatus as offline"
     },
     {
       "setting": "ghostDontSendTyping",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.HIDE_TYPING, Option.HIDE_RECORDING, Option.HIDE_UPLOAD"
+      "status": "implemented_behavior_wired",
+      "android": "Option.GHOST_DONT_SEND_TYPING drives Option.HIDE_TYPING, Option.HIDE_RECORDING and Option.HIDE_UPLOAD both ways"
     },
     {
       "setting": "ghostGoOfflineAutomatically",
@@ -385,8 +385,8 @@
     {
       "setting": "stripTrackingParameters",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.CLEAN_TRACKING_LINKS"
+      "status": "implemented_behavior_wired",
+      "android": "Option.CLEAN_TRACKING_LINKS; new text messages and photo, video and file captions"
     },
     {
       "setting": "wideChannelPosts",
@@ -871,20 +871,20 @@
     {
       "setting": "hideTypingText",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.HIDE_TYPING"
+      "status": "implemented_behavior_wired",
+      "android": "Option.HIDE_TYPING via BananaHooks.suppressTypingRequest for every setTyping request"
     },
     {
       "setting": "hideTypingVoice",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.HIDE_RECORDING"
+      "status": "implemented_behavior_wired",
+      "android": "Option.HIDE_RECORDING via BananaHooks.suppressTypingRequest"
     },
     {
       "setting": "hideTypingFiles",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.HIDE_UPLOAD"
+      "status": "implemented_behavior_wired",
+      "android": "Option.HIDE_UPLOAD via BananaHooks.suppressTypingRequest"
     },
     {
       "setting": "messageShot",
