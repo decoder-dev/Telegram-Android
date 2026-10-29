@@ -24,32 +24,43 @@ public final class BananaMediaConverter {
         public final double duration;
         private volatile boolean adopted;
         private final byte[] waveform;
-        private final TLRPC.PhotoSize thumbnail;
-        private Result(File file, Kind kind, double duration, byte[] waveform, TLRPC.PhotoSize thumbnail) { this.file = file; this.kind = kind; this.duration = duration; this.waveform = waveform; this.thumbnail = thumbnail; }
+        private Result(File file, Kind kind, double duration, byte[] waveform) { this.file = file; this.kind = kind; this.duration = duration; this.waveform = waveform; }
         public void adopt() { adopted = true; }
-        public void discard() { if (!adopted) { file.delete(); discardThumbnail(thumbnail); } }
+        public void discard() { if (!adopted) file.delete(); }
+        /**
+         * A converted round is sent the way InstantCameraView sends a finished recording: through
+         * SendMessagesHelper.prepareSendingVideo with roundVideo set and nothing left to convert.
+         * That path builds the round document, the blurred round preview shown while uploading and
+         * the secret-chat attribute, so the message is a real round video everywhere.
+         */
+        public VideoEditedInfo roundVideoInfo() {
+            if (kind != Kind.VIDEO_TO_ROUND) throw new IllegalStateException("Not a round video");
+            VideoEditedInfo info = new VideoEditedInfo();
+            info.roundVideo = true;
+            info.startTime = -1; info.endTime = -1;
+            info.estimatedSize = Math.max(1, file.length());
+            info.estimatedDuration = Math.round(duration * 1000);
+            info.framerate = 30;
+            info.resultWidth = info.originalWidth = MediaConversionPolicy.ROUND_SIDE;
+            info.resultHeight = info.originalHeight = MediaConversionPolicy.ROUND_SIDE;
+            info.originalPath = file.getAbsolutePath();
+            return info;
+        }
         public TLRPC.TL_document document(boolean secret) {
+            if (kind == Kind.VIDEO_TO_ROUND) throw new IllegalStateException("Send rounds with roundVideoInfo()");
             TLRPC.TL_document doc = new TLRPC.TL_document();
             doc.file_reference = new byte[0]; doc.size = file.length();
-            doc.mime_type = kind == Kind.VIDEO_TO_ROUND ? "video/mp4" : "audio/ogg";
+            doc.mime_type = "audio/ogg";
             TLRPC.TL_documentAttributeFilename name = new TLRPC.TL_documentAttributeFilename();
-            name.file_name = kind == Kind.VIDEO_TO_ROUND ? "video.mp4" : kind == Kind.AUDIO_TO_VOICE ? "voice.ogg" : LocaleController.getString(R.string.BananaConvertedVoiceTitle) + ".ogg";
+            name.file_name = kind == Kind.AUDIO_TO_VOICE ? "voice.ogg" : LocaleController.getString(R.string.BananaConvertedVoiceTitle) + ".ogg";
             doc.attributes.add(name);
-            if (thumbnail != null) { doc.thumbs.add(thumbnail); doc.flags |= 1; }
-            if (kind == Kind.VIDEO_TO_ROUND) {
-                TLRPC.TL_documentAttributeVideo video = secret ? new TLRPC.TL_documentAttributeVideo_layer159() : new TLRPC.TL_documentAttributeVideo();
-                video.round_message = true; video.supports_streaming = true;
-                video.w = video.h = MediaConversionPolicy.ROUND_SIDE; video.duration = duration;
-                doc.attributes.add(video);
-            } else {
-                TLRPC.TL_documentAttributeAudio audio = new TLRPC.TL_documentAttributeAudio();
-                audio.voice = kind == Kind.AUDIO_TO_VOICE; audio.duration = duration;
-                if (audio.voice) {
-                    audio.waveform = waveform == null ? null : waveform.clone();
-                    if (audio.waveform != null && audio.waveform.length > 0) audio.flags |= 4;
-                } else { audio.title = LocaleController.getString(R.string.BananaConvertedVoiceTitle); audio.flags |= 1; }
-                doc.attributes.add(audio);
-            }
+            TLRPC.TL_documentAttributeAudio audio = new TLRPC.TL_documentAttributeAudio();
+            audio.voice = kind == Kind.AUDIO_TO_VOICE; audio.duration = duration;
+            if (audio.voice) {
+                audio.waveform = waveform == null ? null : waveform.clone();
+                if (audio.waveform != null && audio.waveform.length > 0) audio.flags |= 4;
+            } else { audio.title = LocaleController.getString(R.string.BananaConvertedVoiceTitle); audio.flags |= 1; }
+            doc.attributes.add(audio);
             return doc;
         }
     }
@@ -82,7 +93,7 @@ public final class BananaMediaConverter {
         Job job = new Job();
         if (!BUSY.compareAndSet(false, true)) { ApplicationLoader.applicationHandler.post(() -> done.accept(null)); return job; }
         QUEUE.postRunnable(() -> {
-            File output = null; Result result = null; TLRPC.PhotoSize thumbnail = null; String stage = "source";
+            File output = null; Result result = null; String stage = "source";
             try {
                 long deadline = SystemClock.elapsedRealtime() + 120000;
                 while (awaitDownload && !input.isFile() && SystemClock.elapsedRealtime() < deadline) {
@@ -116,21 +127,11 @@ public final class BananaMediaConverter {
                 stage = "waveform";
                 byte[] waveform = kind == Kind.AUDIO_TO_VOICE ? MediaController.getWaveform(output.getAbsolutePath()) : null;
                 check(job, ownerChanged);
-                stage = "thumbnail";
-                if (kind == Kind.VIDEO_TO_ROUND) {
-                    android.graphics.Bitmap bitmap = SendMessagesHelper.createVideoThumbnailAtTime(output.getAbsolutePath(), 0);
-                    if (bitmap != null) {
-                        try { thumbnail = ImageLoader.scaleAndSaveImage(bitmap, 90, 90, 55, true); }
-                        finally { bitmap.recycle(); }
-                    }
-                }
-                check(job, ownerChanged);
-                result = new Result(output, kind, kind == Kind.VIDEO_TO_ROUND ? Math.min(expected, after.duration(kind)) : after.duration(kind), waveform, thumbnail); job.result = result;
+                result = new Result(output, kind, kind == Kind.VIDEO_TO_ROUND ? Math.min(expected, after.duration(kind)) : after.duration(kind), waveform); job.result = result;
             } catch (Exception | LinkageError failure) {
                 job.failureCode = stage + ":" + failure.getClass().getSimpleName();
                 // Decoder/process errors may contain private source paths. Keep them out of exported logs.
                 if (output != null) output.delete();
-                discardThumbnail(thumbnail);
             } finally {
                 Process leftover = job.process; if (leftover != null) leftover.destroyForcibly(); job.process = null;
                 BUSY.set(false);
@@ -142,11 +143,6 @@ public final class BananaMediaConverter {
             });
         });
         return job;
-    }
-    private static void discardThumbnail(TLRPC.PhotoSize thumbnail) {
-        if (thumbnail != null && thumbnail.location != null && thumbnail.location.volume_id == Integer.MIN_VALUE) {
-            new File(FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE), thumbnail.location.volume_id + "_" + thumbnail.location.local_id + ".jpg").delete();
-        }
     }
     private static File locate(MessageObject source) {
         String attached = source.messageOwner.attachPath;
