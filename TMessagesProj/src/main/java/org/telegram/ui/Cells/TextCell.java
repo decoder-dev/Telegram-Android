@@ -507,15 +507,9 @@ public class TextCell extends FrameLayout {
         valueSpoilersTextView.setVisibility(GONE);
         valueImageView.setVisibility(GONE);
         setColorfulIcon(color, resId);
-        if (checkBox == null) {
-            checkBox = new Switch(getContext(), resourcesProvider);
-            checkBox.setColors(Theme.key_switchTrack, Theme.key_switchTrackChecked, Theme.key_windowBackgroundWhite, Theme.key_windowBackgroundWhite);
-            addView(checkBox, LayoutHelper.createFrame(37, 20, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.CENTER_VERTICAL, 22, 0, 22, 0));
-        }
-        if (checkBox != null) {
-            checkBox.setVisibility(VISIBLE);
-            checkBox.setChecked(checked, false);
-        }
+        ensureCheckBox();
+        checkBox.setVisibility(VISIBLE);
+        checkBox.setChecked(checked, false);
         needDivider = divider;
         setWillNotDraw(!needDivider);
         if (emojiDrawable != null) {
@@ -645,10 +639,10 @@ public class TextCell extends FrameLayout {
         imageView.setVisibility(GONE);
         valueImageView.setVisibility(GONE);
         needDivider = divider;
-        if (checkBox != null) {
-            checkBox.setVisibility(VISIBLE);
-            checkBox.setChecked(checked, false);
-        }
+        // A cell made without needCheck has no switch yet; create it, like the colorful-icon variant.
+        ensureCheckBox();
+        checkBox.setVisibility(VISIBLE);
+        checkBox.setChecked(checked, false);
         setWillNotDraw(!needDivider);
         if (emojiDrawable != null) {
             emojiDrawable.set((Drawable) null, false);
@@ -663,10 +657,10 @@ public class TextCell extends FrameLayout {
         valueTextView.setVisibility(GONE);
         valueSpoilersTextView.setVisibility(GONE);
         valueImageView.setVisibility(GONE);
-        if (checkBox != null) {
-            checkBox.setVisibility(VISIBLE);
-            checkBox.setChecked(checked, false);
-        }
+        // A cell made without needCheck has no switch yet; create it, like the colorful-icon variant.
+        ensureCheckBox();
+        checkBox.setVisibility(VISIBLE);
+        checkBox.setChecked(checked, false);
         imageView.setVisibility(VISIBLE);
         imageView.setPadding(0, dp(7), 0, 0);
         imageView.setImageResource(resId);
@@ -685,10 +679,10 @@ public class TextCell extends FrameLayout {
         valueTextView.setVisibility(GONE);
         valueSpoilersTextView.setVisibility(GONE);
         valueImageView.setVisibility(GONE);
-        if (checkBox != null) {
-            checkBox.setVisibility(VISIBLE);
-            checkBox.setChecked(checked, false);
-        }
+        // A cell made without needCheck has no switch yet; create it, like the colorful-icon variant.
+        ensureCheckBox();
+        checkBox.setVisibility(VISIBLE);
+        checkBox.setChecked(checked, false);
         imageView.setVisibility(VISIBLE);
         imageView.setPadding(0, dp(7), 0, 0);
         imageView.setImageDrawable(resDrawable);
@@ -881,7 +875,17 @@ public class TextCell extends FrameLayout {
     }
 
     public void setChecked(boolean checked) {
-        checkBox.setChecked(checked, true);
+        if (checkBox != null) {
+            checkBox.setChecked(checked, true);
+        }
+    }
+
+    private void ensureCheckBox() {
+        if (checkBox == null) {
+            checkBox = new Switch(getContext(), resourcesProvider);
+            checkBox.setColors(Theme.key_switchTrack, Theme.key_switchTrackChecked, Theme.key_windowBackgroundWhite, Theme.key_windowBackgroundWhite);
+            addView(checkBox, LayoutHelper.createFrame(37, 20, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.CENTER_VERTICAL, 22, 0, 22, 0));
+        }
     }
 
     @Override
