@@ -36401,11 +36401,18 @@ public class ChatActivity extends BaseFragment implements
                                 .setPositiveButton(LocaleController.getString(R.string.OK), null).show(); return;
                     }
                     if (!checkSlowModeAlert()) { result.discard(); return; }
-                    SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(result.document(isSecretChat()), null,
-                            result.file.getAbsolutePath(), target, reply, thread, null, null, null, null, notify, date, repeat, 0, null, null, false);
-                    params.sendMessageChatArguments = arguments; params.replyQuote = quote;
-                    params.monoForumPeer = monoPeer; params.suggestionParams = suggestion; params.payStars = price;
-                    getSendMessagesHelper().sendMessage(params); result.adopt();
+                    if (kind == Kind.VIDEO_TO_ROUND) {
+                        // Same path as a finished InstantCameraView recording, so it is a real round message.
+                        SendMessagesHelper.prepareSendingVideo(getAccountInstance(), result.file.getAbsolutePath(), result.roundVideoInfo(), null, null,
+                                target, reply, thread, null, quote, null, 0, null, notify, date, repeat, false, false, null, arguments, 0, price, monoPeer, suggestion);
+                    } else {
+                        SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(result.document(isSecretChat()), null,
+                                result.file.getAbsolutePath(), target, reply, thread, null, null, null, null, notify, date, repeat, 0, null, null, false);
+                        params.sendMessageChatArguments = arguments; params.replyQuote = quote;
+                        params.monoForumPeer = monoPeer; params.suggestionParams = suggestion; params.payStars = price;
+                        getSendMessagesHelper().sendMessage(params);
+                    }
+                    result.adopt();
                     if (chatAttachAlert != null && chatAttachAlert.isShowing()) chatAttachAlert.dismiss();
                     afterMessageSend();
                 };
