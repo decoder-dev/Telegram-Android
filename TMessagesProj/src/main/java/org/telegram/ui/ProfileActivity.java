@@ -11551,7 +11551,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 } else {
                     if (userInfo != null && userInfo.stars_rating != null && userInfo.stars_rating.stars < 0) {
                         newString2 = getString(R.string.StarRatingLevelNegative).toLowerCase(Locale.ROOT);
-                    } else if (!AyuConfig.sendReadPackets || AyuConfig.sendOfflinePacketAfterOnline) {
+                    } else if (!AyuConfig.sendReadPackets || AyuConfig.sendOfflinePacketAfterOnline
+                            || org.telegram.messenger.banana.BananaHooks.dontReadMessages(currentAccount)
+                            || org.telegram.messenger.banana.BananaHooks.hideOnline(currentAccount)
+                            || org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.OFFLINE_AFTER_ACTIVITY)) {
                         newString2 = LocaleController.getString(R.string.LikelyOfflineStatus);
                     } else {
                         newString2 = LocaleController.getString(R.string.Online);
