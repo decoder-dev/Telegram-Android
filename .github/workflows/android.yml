@@ -18,7 +18,9 @@ permissions:
   actions: read
 
 concurrency:
-  group: android-checks-${{ github.ref }}-${{ inputs.diagnostic_run || 'acceptance' }}
+  # github.workflow is the caller's name under workflow_call, so a push to main no longer cancels
+  # the acceptance checks a release run is waiting on (and the reverse).
+  group: android-checks-${{ github.workflow }}-${{ github.ref }}-${{ inputs.diagnostic_run || 'acceptance' }}
   cancel-in-progress: true
 
 jobs:
