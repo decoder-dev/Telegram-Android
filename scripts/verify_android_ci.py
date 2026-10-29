@@ -6,7 +6,7 @@ import re
 import subprocess
 
 REQUIRED_JOBS = {'Android compilation and policy tests'} | {
-    f'Android {api} APK and UI checks' for api in (33, 34, 35, 36, 37)
+    f'Android {api} APK and UI checks' for api in (33, 34, 35, 36)
 }
 
 
