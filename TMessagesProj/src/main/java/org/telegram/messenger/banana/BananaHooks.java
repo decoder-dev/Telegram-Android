@@ -1440,11 +1440,16 @@ public final class BananaHooks {
         if (!compactFolderNames(account) || TextUtils.isEmpty(name)) {
             return name;
         }
-        String trimmed = name.trim();
-        if (trimmed.length() <= 10) {
-            return trimmed;
+        // Keep leading characters: custom emoji entities are offsets into the original name.
+        int end = name.length();
+        while (end > 0 && Character.isWhitespace(name.charAt(end - 1))) {
+            end--;
         }
-        return trimmed.substring(0, 9) + "…";
+        if (end <= 10) {
+            return name.substring(0, end);
+        }
+        int cut = Character.isHighSurrogate(name.charAt(8)) ? 8 : 9;
+        return name.substring(0, cut) + "…";
     }
 
     private static final String BOOKMARKS_KEY = "bananaMessageBookmarks";
