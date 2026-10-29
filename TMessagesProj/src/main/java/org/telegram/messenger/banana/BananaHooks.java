@@ -1265,17 +1265,8 @@ public final class BananaHooks {
         }
         int currentTime = ConnectionsManager.getInstance(account).getCurrentTime();
         int expires = user.status.expires;
-        if (expires <= 0) {
-            if (MessagesController.getInstance(account).onlinePrivacy.containsKey(user.id)) {
-                return null;
-            }
-            return null;
-        }
-        if (expires > currentTime) {
-            return null;
-        }
-        if (expires <= 0 || expires == -1 || expires == -100 || expires == -1000 ||
-                expires == -101 || expires == -1001 || expires == -102 || expires == -1002) {
+        // Hidden (recently / week / month) and still-online statuses keep the stock text.
+        if (expires <= 0 || expires > currentTime) {
             return null;
         }
         boolean exact = exactLastSeen(account);
