@@ -50,8 +50,10 @@ public class AyuConstants {
 
     public static String AYU_DATABASE = "ayu-data";
 
-    public static String APP_GITHUB = "AyuGram/AyuGram4A";
+    // Folder name for downloads, saved media and the file cache. Existing installs keep their
+    // files there, so it must not change; user-facing text uses APP_DISPLAY_NAME.
     public static String APP_NAME = "AyuGram";
+    public static String APP_DISPLAY_NAME = "BananaGram";
 
     public static String BUILD_STORE_PACKAGE = "com.android.vending";
     public static String BUILD_ORIGINAL_PACKAGE = "org.telegram.messenger";

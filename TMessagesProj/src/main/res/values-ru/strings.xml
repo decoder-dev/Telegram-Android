@@ -325,7 +325,7 @@
     <string name="BananaFilterPrivateChat">Чат недоступен</string>
     <string name="BananaFilterOff">Выключено</string>
     <string name="BananaFilterOn">Включено</string>
-    <string name="BananaFiltersFormatInfo">Регулярные выражения Java с построчным поиском. Импорт AyuGram v2 поддерживает правила для чатов, исключения общих правил и обновление списков. Импортированные правила проверяются при использовании; ошибочные и медленные правила не применяются.</string>
+    <string name="BananaFiltersFormatInfo">Регулярные выражения Java с построчным поиском. Импорт JSON v2 поддерживает правила для чатов, исключения общих правил и обновление списков. Импортированные правила проверяются при использовании; ошибочные и медленные правила не применяются.</string>
     <string name="BananaFiltersImport">Импорт правил</string>
     <string name="BananaFiltersExport">Экспорт правил</string>
     <string name="BananaFilterDisable">Выключить правило</string>
@@ -333,11 +333,11 @@
     <string name="BananaFilterInclude">Применять в этом чате</string>
     <string name="BananaFilterExclude">Исключить этот чат</string>
     <string name="BananaFilterDeleteTitle">Удалить это правило?</string>
-    <string name="BananaFiltersPaste">Вставьте JSON AyuGram v2</string>
+    <string name="BananaFiltersPaste">Вставьте JSON правил v2</string>
     <string name="BananaFiltersPreview">Проверить импорт</string>
     <string name="BananaFiltersPreviewInfo">Правил до импорта: %1$d. После: %2$d. Проверьте итоговый список ниже. При применении также принимаются удаления из импортируемого списка.</string>
     <string name="BananaFiltersApply">Применить импорт</string>
-    <string name="BananaFiltersInvalidData">Не удалось применить правила. Используйте JSON AyuGram v2: до 64 правил, до 4096 символов в выражении и до 256 КБ текста. Откройте экран заново, если аккаунт или правила изменились.</string>
+    <string name="BananaFiltersInvalidData">Не удалось применить правила. Используйте JSON правил v2: до 64 правил, до 4096 символов в выражении и до 256 КБ текста. Откройте экран заново, если аккаунт или правила изменились.</string>
     <string name="BananaFilterEdit">Правило фильтра</string>
     <string name="BananaFilterExpression">Регулярное выражение</string>
     <string name="BananaFilterSample">Пример сообщения</string>
@@ -361,6 +361,8 @@
 
     <!-- BananaGram Extras catalog -->
 <string name="BananaHubFooter">Все функции BananaGram собраны здесь. Выберите раздел для настройки оформления, чатов, приватности или подключения.</string>
+<string name="BananaAuthorFooter">BananaGram — автор decoder-dev</string>
+<string name="BananaDeveloper">Разработчик</string>
     <string name="BananaHubNinja">Ниндзя</string>
     <string name="BananaHubNinjaLabel">Сохранение, фильтры, обход</string>
     <string name="BananaHubGhost">Невидимка</string>
@@ -473,7 +475,7 @@
     <string name="BananaOpt_SAVE_BOT_HISTORY">Также сохранять ботов</string>
     <string name="BananaOpt_SAVE_MEDIA_HISTORY">Сохранять медиа</string>
     <string name="BananaOpt_PROACTIVE_SAVE_MEDIA">Активно скачивать медиа</string>
-    <string name="BananaOpt_AYU_FORWARD">Пересылка через AyuGram</string>
+    <string name="BananaOpt_AYU_FORWARD">Расширенная пересылка</string>
     <string name="BananaOpt_BYPASS_DOWNLOAD_RESTRICTIONS">Сохранять истории и защищённые медиа</string>
     <string name="BananaOpt_LOCAL_PREMIUM">Локальный Telegram Premium</string>
     <string name="BananaOpt_HIDE_ADS">Скрыть рекламу</string>

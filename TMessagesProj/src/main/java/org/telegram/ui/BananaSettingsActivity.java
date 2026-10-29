@@ -67,6 +67,7 @@ public final class BananaSettingsActivity extends BananaSettingsFragment {
         items.add(UItem.asButton(SESSION_BACKUP, LocaleController.getString(R.string.BananaSessionBackup)));
         items.add(UItem.asButton(UPDATES, LocaleController.getString(R.string.BananaUpdates)));
         items.add(UItem.asButton(AYU_SETTINGS, LocaleController.getString(R.string.AyuPreferences)));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.BananaAuthorFooter)));
     }
 
     @Override

@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
-  <string name="AyuPreferences">Настройки AyuGram</string>
+  <string name="AyuPreferences">Расширенные настройки</string>
   <string name="GhostEssentialsHeader">Режим призрака</string>
   <string name="SendReadPackets">Отправлять «прочитано»</string>
   <string name="SendOnlinePackets">Отправлять «онлайн»</string>
@@ -47,7 +47,7 @@
   <string name="RegexFiltersAddDescription">Вы можете использовать сайт <![CDATA[<a href="https://regex101.com">regex101.com</a>]]> для проверки регулярного выражения.
 Вы также можете использовать обычный текст, но не забудьте поставить \ перед скобками.</string>
   <string name="RegexFiltersAddError">Синтаксическая ошибка</string>
-  <string name="AyuSyncHeader">AyuSync</string>
+  <string name="AyuSyncHeader">Синхронизация истории</string>
   <string name="AyuSyncStatusTitle">Статус синхронизации</string>
   <string name="AyuSyncStatusOk">подключен</string>
   <string name="AyuSyncStatusErrorDisconnected">отключен</string>
@@ -70,8 +70,8 @@
   <string name="AyuSyncOpenPreferences">Открыть настройки</string>
   <string name="AyuSyncDownloadAgent">Скачать клиент</string>
   <string name="WALMode">Включить WAL режим</string>
-  <string name="ClearAyuDatabase">Очистить AyuGram БД</string>
-  <string name="ClearAyuDatabaseNotification">База сообщений AyuGram очищена</string>
+  <string name="ClearAyuDatabase">Очистить базу истории сообщений</string>
+  <string name="ClearAyuDatabaseNotification">База истории сообщений очищена</string>
   <string name="EraseLocalDatabase">Стереть кэш сообщений</string>
   <string name="BetaFeatures">Бета фичи</string>
   <string name="StickerConfirmation">Подтверждение при отправке стикеров</string>
@@ -98,7 +98,6 @@
   <string name="ContextCopyID">Скопировать ID</string>
   <string name="IDCopiedToast">ID скопирован в буфер обмена.</string>
   <string name="ContextHideMessage">Скрыть</string>
-  <string name="SettingsWatermark">AyuGram разрабатывается и поддерживается Radolyn Labs.</string>
   <string name="SettingsDescription">Просто клиент на базе exteraGram с запретным функционалом.</string>
   <string name="SecretMessageTecno">Телефоны от Tecno - лучшие.</string>
   <string name="SecretMessageXiaomiSuccess">У тебя хороший телефон.</string>
