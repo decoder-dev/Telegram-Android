@@ -10,6 +10,9 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- Automatic proxy waits at least 20 s after a switch before a failure-driven switch, and only switches while the app is still connecting through the proxy. On slow mobile links it used to hop to a new proxy every 6 s and reconnect every account.
+- Changing or removing the archive password now shows the lockout countdown after the fifth wrong attempt, like unlocking does, instead of "0 attempts left".
+- The exteraGram appearance settings no longer show a dead "People Nearby" drawer switch labelled "Or choose a venue"; Telegram removed the feature.
 - The auto-download check no longer builds a full MessageObject for every media message when regex filters are off. The AyuGram hook parsed text, entities and emoji on each check while scrolling and loading chats, only to have the disabled filter return false.
 - The updater sheet no longer crashes when "Check on launch" or "Auto-download" is tapped. Upstream TextCell creates its switch only with needCheck, so these rows had no switch and setChecked hit a null Switch. TextCell now creates the switch when a text-and-check setter needs it.
 - Strings defined in ayu.xml and extera.xml now reach the generated localization assets. The advanced preferences, updater and other exteraGram/AyuGram screens showed "LOC_ERR:" labels because the generator read only strings.xml.

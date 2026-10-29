@@ -181,7 +181,9 @@ public class AppearancePreferencesActivity extends BasePreferencesActivity {
         newChannelRow = newRow();
         contactsRow = newRow();
         callsRow = newRow();
-        peopleNearbyRow = SystemUtils.hasGps() ? newRow() : -1;
+        // Telegram removed People Nearby and the drawer item is gone, so the switch did nothing
+        // and fell back to an unrelated "Or choose a venue" label.
+        peopleNearbyRow = -1;
         savedMessagesRow = newRow();
         scanQrRow = newRow();
         drawerDividerRow = newRow();
