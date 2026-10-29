@@ -4522,13 +4522,13 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 location == null && user == null && game == null && poll == null && todo == null && invoice == null && sendingStory == null &&
                 org.telegram.messenger.banana.BananaConfig.cleanTrackingLinks(currentAccount);
         // Photo, video and file captions carry the entities, so they are cleaned like a text message.
-        final boolean media = photo != null || document != null || videoEditedInfo != null;
-        if (cleanTrackingLinks && !media && message != null) {
+        final boolean cleanCaption = photo != null || document != null || videoEditedInfo != null;
+        if (cleanTrackingLinks && !cleanCaption && message != null) {
             org.telegram.messenger.banana.TrackingLinks.Result cleaned =
                     org.telegram.messenger.banana.TrackingLinks.clean(message, entities);
             message = cleaned.text;
             entities = cleaned.entities;
-        } else if (cleanTrackingLinks && media && caption != null) {
+        } else if (cleanTrackingLinks && cleanCaption && caption != null) {
             org.telegram.messenger.banana.TrackingLinks.Result cleaned =
                     org.telegram.messenger.banana.TrackingLinks.clean(caption, entities);
             caption = cleaned.text;
