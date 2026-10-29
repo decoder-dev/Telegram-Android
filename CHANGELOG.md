@@ -6,6 +6,15 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- Banana ghost switches and local Premium apply only to the account they are set on. They used to write AyuGram's process-wide flags, so one account's ghost mode leaked into every other account. A one-time migration resets the leaked flags; accounts without Banana ghost send read receipts and online status again.
+- With "Read on Interact" off, sending in a ghosted chat no longer marks it read. Switching "Don't send typing" off restores typing, recording and upload status. The double-tap action alone decides double-tap behavior, so react, reply, repeat and translate work on incoming messages while "Double tap to edit" is on.
+- "Send as round" goes through Telegram's round-video path, the same one a camera recording uses, so the message gets a round preview while uploading and the right secret-chat attribute.
+- The keep-alive service no longer crashes the app when Android 12+ refuses foreground promotion of a background start.
+
+### Changed
+
+- Settings credit decoder-dev and link this repository. Visible AyuGram names are replaced; the storage folder keeps its name so existing downloads stay reachable.
+
 - Enter the foreground before rejecting a video download, so a rejected request no longer crashes Android 9+. Message shots are shared through a configured FileProvider cache root. A cancelled voice-model download reports the abort once without a failure toast. Deleted/edited marks are truncated without splitting surrogate pairs. Automatic MTProxy list downloads run on a dedicated queue instead of the shared global queue. The tlrpc patch script no longer uses an invalid escape sequence.
 - Ghost typing, recording and upload toggles each apply to their own activity kind, including activity requests built outside `sendTyping`; cancellations are never dropped. Compact folder names keep custom emoji offsets and surrogate pairs intact.
 - Session export asks for the password twice. The island chip uses dp margins and an open chat shows a single chip. VLESS link errors come from string resources. Message shots older than an hour are pruned from the cache.
