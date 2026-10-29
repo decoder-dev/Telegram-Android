@@ -195,8 +195,23 @@ if not suite_passed(output, instrumentation_failed):
     (args.output_dir / 'logcat-attempt1.log').write_text(run('logcat', '-d', '-t', '4000', '-v', 'threadtime'))
     print('Android smoke suite failed on the first attempt; retrying once from a cleared app state')
     wait_for_system()
-    run('shell', 'am', 'force-stop', PACKAGE)
-    run('shell', 'pm', 'clear', PACKAGE)
+    try:
+        installed = 'package:' in run('shell', 'pm', 'path', PACKAGE, timeout=60)
+    except (SystemExit, subprocess.TimeoutExpired):
+        installed = False
+    if installed:
+        try:
+            run('shell', 'am', 'force-stop', PACKAGE)
+            run('shell', 'pm', 'clear', PACKAGE)
+        except (SystemExit, subprocess.TimeoutExpired):
+            installed = False
+            wait_for_system()
+    if not installed:
+        # A system_server restart during the first attempt can leave the app without its data
+        # directory or unregistered; install both APKs again instead of failing on cleanup.
+        for apk in (app_apks[0], test_apks[0]):
+            installation.append(install(apk))
+        (args.output_dir / 'installation.log').write_text('\n'.join(installation))
     clear_screens()
     output, instrumentation_failed = run_suite()
     output = '[retry: first attempt failed, see instrumentation-attempt1.log]\n' + output

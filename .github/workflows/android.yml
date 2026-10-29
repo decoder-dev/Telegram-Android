@@ -64,6 +64,9 @@ jobs:
           - api: 37
             sdk: '37.2'
             image: google_apis_ps16k
+            # With the profile's default RAM, Android 17's HALs and surfaceflinger abort and
+            # system_server restarts mid-run ("System has crashed").
+            ram: 4096M
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -93,6 +96,7 @@ jobs:
           profile: pixel_2
           # The default userdata partition is too small to install the debug APK on the 16 KB API 37 image.
           disk-size: 8G
+          ram-size: ${{ matrix.ram || '' }}
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim -camera-back none
           script: python3 scripts/run-android-smoke.py --serial emulator-5554 --voice-probe --expected-api ${{ matrix.api }} --expected-page-size ${{ matrix.api == 37 && 16384 || 4096 }}
