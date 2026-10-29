@@ -457,8 +457,11 @@ public class ConnectionsManager extends BaseController {
                 }
             }
 
-            // mark messages as read after sending a message
-            if (AyuConfig.markReadAfterSend && (!AyuConfig.sendReadPackets || BananaHooks.dontReadMessages(currentAccount))) {
+            // mark messages as read after sending a message: Ayu's global ghost follows its own
+            // switch, Banana's per-account ghost follows this account's "Read on Interact"
+            boolean ayuReadAfterSend = AyuConfig.markReadAfterSend && !AyuConfig.sendReadPackets;
+            boolean bananaReadAfterSend = BananaHooks.dontReadMessages(currentAccount) && BananaHooks.ghostReadOnInteract(currentAccount);
+            if (ayuReadAfterSend || bananaReadAfterSend) {
                 TLRPC.InputPeer peer = null;
                 if (object instanceof TLRPC.TL_messages_sendMessage) {
                     var obj = ((TLRPC.TL_messages_sendMessage) object);
