@@ -9349,61 +9349,72 @@ public class MessagesController extends BaseController implements NotificationCe
         // --- AyuGram hook (Ayu OR Banana SAVE_DELETED)
         if (!scheduled && org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount)) {
             if (DialogObject.isEncryptedDialog(dialogId) && messages != null && !messages.isEmpty()) { // process TTL messages from secrets
+                // Saving writes the AyuGram database and may copy media. Collect the work here and
+                // run it on the storage queue: it used to block the UI thread once per message, and
+                // the queue runs it before this method's own deletion task, so the rows still exist.
+                final ArrayList<TLRPC.Message> known = new ArrayList<>();
+                final ArrayList<Integer> missing = new ArrayList<>();
                 for (int a = 0; a < messages.size(); a++) {
                     int id = messages.get(a);
-
                     if (AyuState.isDeletePermitted(dialogId, id)) {
                         continue;
                     }
-
                     MessageObject obj = dialogMessagesByIds.get(id);
-                    if (obj == null) {
-                        var msg = getMessagesStorage().getMessage(dialogId, id);
+                    if (obj != null) {
+                        known.add(obj.messageOwner);
+                    } else {
+                        missing.add(id);
+                    }
+                }
+                final ArrayList<Integer> deleted = new ArrayList<>(messages);
+                getMessagesStorage().getStorageQueue().postRunnable(() -> {
+                    for (Integer id : missing) {
+                        TLRPC.Message msg = getMessagesStorage().getMessageInternal(dialogId, id);
                         if (msg != null) {
-                            obj = new MessageObject(currentAccount, msg, false, false);
+                            known.add(msg);
                         }
                     }
-
-                    if (obj != null) {
-                        var prefs = new AyuSavePreferences(obj.messageOwner, currentAccount);
+                    for (TLRPC.Message msg : known) {
+                        var prefs = new AyuSavePreferences(msg, currentAccount);
                         prefs.setDialogId(dialogId);
                         AyuMessagesController.getInstance().onMessageDeleted(prefs);
                     }
-                }
-
-                AndroidUtilities.runOnUIThread(() -> {
-                    // invalidating views
-                    getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messages);
+                    AndroidUtilities.runOnUIThread(() -> {
+                        // invalidating views
+                        getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, deleted);
+                    });
                 });
             } else if (messages != null && !messages.isEmpty() && (taskId != 0 || cacheOnly)) {
                 // TTL / auto-delete. The local timer (checkDeletingTask) uses taskId == 0 and cacheOnly.
                 // AyuGramDesktop 2e02aa326a: destruction must save, not drop, the message.
-                var invalidate = new ArrayList<Integer>();
-
+                // Same as above: read and save on the storage queue instead of a blocking read per
+                // message on the UI thread; the deletion task queued below runs after it.
+                final ArrayList<Integer> candidates = new ArrayList<>();
                 for (var msgId : messages) {
-                    try {
-                        if (AyuState.isDeletePermitted(dialogId, msgId)) {
-                            continue;
-                        }
-
-                        var msg = getMessagesStorage().getMessage(dialogId, msgId);
-                        if (msg != null) {
-                            if (msg.ttl > 0 || msg.ttl_period > 0) {
+                    if (!AyuState.isDeletePermitted(dialogId, msgId)) {
+                        candidates.add(msgId);
+                    }
+                }
+                getMessagesStorage().getStorageQueue().postRunnable(() -> {
+                    var invalidate = new ArrayList<Integer>();
+                    for (var msgId : candidates) {
+                        try {
+                            var msg = getMessagesStorage().getMessageInternal(dialogId, msgId);
+                            if (msg != null && (msg.ttl > 0 || msg.ttl_period > 0)) {
                                 invalidate.add(msgId);
 
                                 var prefs = new AyuSavePreferences(msg, currentAccount);
                                 prefs.setDialogId(dialogId);
                                 AyuMessagesController.getInstance().onMessageDeleted(prefs);
                             }
+                        } catch (Throwable t) {
+                            FileLog.e(t);
                         }
-                    } catch (Throwable t) {
-                        FileLog.e(t);
                     }
-                }
-
-                AndroidUtilities.runOnUIThread(() -> {
-                    // invalidating views
-                    getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, invalidate);
+                    AndroidUtilities.runOnUIThread(() -> {
+                        // invalidating views
+                        getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, invalidate);
+                    });
                 });
             } else if ((messages != null && !messages.isEmpty())) { // process manual deletion of deleted messages
                 var ayuMessagesController = AyuMessagesController.getInstance();

@@ -82,6 +82,11 @@ public class AyuFilter {
         res = isFiltered(ChatUtils.getMessageText(msg, group));
 
         if (cached == null) {
+            // The cache only grew. Drop it after many chats so a long session does not keep
+            // every verdict ever computed; entries are cheap to recompute.
+            if (filteredCache.size() >= 256) {
+                filteredCache.clear();
+            }
             cached = new HashMap<>();
             filteredCache.put(msg.getDialogId(), cached);
         }
