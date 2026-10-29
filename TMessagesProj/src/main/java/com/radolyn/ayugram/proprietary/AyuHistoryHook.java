@@ -15,7 +15,6 @@ import com.radolyn.ayugram.messages.AyuMessagesController;
 import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import org.telegram.messenger.MessageObject;
@@ -23,9 +22,7 @@ import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
-/* loaded from: classes.dex */
 public abstract class AyuHistoryHook {
-    // TODO: do something with debug code (Log.d)
     public static void doHook(
         int currentAccount,
         ArrayList<MessageObject> messArr,
@@ -37,13 +34,6 @@ public abstract class AyuHistoryHook {
         long topicId,
         boolean isSecretChat
     ) {
-//      Log.d("AyuGram_HistoryHook", "doHook START");
-//      {
-//          Log.d("AyuGram_HistoryHook", "collection at start:");
-//          for (MessageObject msg : messArr) {
-//              Log.d("AyuGram_HistoryHook", "id: " + msg.getId() + " (date: " + msg.messageOwner.date + ")");
-//          }
-//      }
         Iterator<TLRPC.User> it;
         Iterator<TLRPC.Chat> it2;
         MessagesStorage messagesStorage = MessagesStorage.getInstance(currentAccount);
@@ -54,7 +44,6 @@ public abstract class AyuHistoryHook {
         ArrayList replyToMessageIds = new ArrayList();
         List<DeletedMessageFull> deletedMessages = ayuMessagesController.getMessages(currentClientUserId, dialogId, topicId, startId, endId, limit);
         if (deletedMessages.isEmpty()) {
-//          Log.d("AyuGram_HistoryHook", "deletedMessages.isEmpty()");
             return;
         }
         ArrayList usersToLoad = new ArrayList();
@@ -68,15 +57,12 @@ public abstract class AyuHistoryHook {
                 TLRPC.TL_message map = map(deletedMessageFull, currentAccount);
                 long groupedMessagesId = map.grouped_id;
                 if (groupedMessagesId != 0) {
-//                  Log.d("AyuGram_HistoryHook", "messageGroupsIds.add(" + Long.valueOf(groupedMessagesId) + ")");
                     messageGroupsIds.add(Long.valueOf(groupedMessagesId));
                 }
                 TLRPC.MessageReplyHeader tLRPC$TL_messageReplyHeader = map.reply_to;
                 if (tLRPC$TL_messageReplyHeader != null) {
-//                  Log.d("AyuGram_HistoryHook", "replyToMessageIds.add(" + Integer.valueOf(tLRPC$TL_messageReplyHeader.reply_to_msg_id) + ")");
                     replyToMessageIds.add(Integer.valueOf(tLRPC$TL_messageReplyHeader.reply_to_msg_id));
                 }
-//              Log.d("AyuGram_HistoryHook", "longSparseArray.put(" + map.id + ", map);");
                 longSparseArray.put(map.id, map);
                 MessagesStorage.addUsersAndChatsFromMessage(map, usersToLoad, chatsToLoad, null);
             }
@@ -91,7 +77,6 @@ public abstract class AyuHistoryHook {
                         if (tLRPC$TL_messageReplyHeader2 != null) {
                             replyToMessageIds.add(Integer.valueOf(tLRPC$TL_messageReplyHeader2.reply_to_msg_id));
                         }
-//                      Log.d("AyuGram_HistoryHook", "longSparseArray.put(" + map2.id + ", map2);");
                         longSparseArray.put(map2.id, map2);
                         MessagesStorage.addUsersAndChatsFromMessage(map2, usersToLoad, chatsToLoad, null);
                     }
@@ -104,7 +89,6 @@ public abstract class AyuHistoryHook {
             if (message != null && (!TextUtils.isEmpty(message.message.text) || !TextUtils.isEmpty(message.message.mediaPath) || message.message.documentSerialized != null)) {
                 if (!longSparseArray.containsKey(message.message.messageId)) {
                     TLRPC.TL_message map3 = map(message, currentAccount);
-//                  Log.d("AyuGram_HistoryHook", "longSparseArray.put(" + map3.id + ", map3);");
                     longSparseArray.put(map3.id, map3);
                     MessagesStorage.addUsersAndChatsFromMessage(map3, usersToLoad, chatsToLoad, null);
                 }
@@ -146,89 +130,52 @@ public abstract class AyuHistoryHook {
                 return lambda$doHook$0;
             }
         };
-//      Log.d("AyuGram_HistoryHook", "if (" + messArr.size() + " [[messArr.size()]] > 1)");
-        if (messArr.size() > 1) {
-//          Iterator it6 = messArr.iterator();
-//          int i7 = ConnectionsManager.DEFAULT_DATACENTER_ID;
-//          int i8 = Integer.MIN_VALUE;
-//          while (it6.hasNext()) {
-//              MessageObject messageObject = (MessageObject) it6.next();
-//              Log.d("AyuGram_HistoryHook", "it6.next() => " + messageObject.getId());
-//              if (!messageObject.isSending() && i8 == Integer.MIN_VALUE) {
-//                  Log.d("AyuGram_HistoryHook", "i8 = " + messageObject.getId() + " [[messageObject.getId()]];");
-//                  i8 = messageObject.getId();
-//              } else if (!messageObject.isSending()) {
-//                  Log.d("AyuGram_HistoryHook", "i7 = " + messageObject.getId() + " [[messageObject.getId()]];");
-//                  i7 = messageObject.getId();
-//              }
-//          }
-//          Log.d("AyuGram_HistoryHook", "if (" + i8 + " [[i8]] > " + i7 + " [[i7]])");
-//          if (i8 > i7) {
-//              comparator2 = comparator2.reversed();
-                if (isSecretChat) {
-                    // TODO: not sure if it's needed
-                    // but .reversed() method doesn't
-                    // affect comparator2 :thinking:
-                    comparator2 = comparator2.reversed();
+        // Deleted messages must be merged even into an empty or one-message page: that is exactly
+        // the case of a conversation the other side wiped.
+        if (isSecretChat) {
+            comparator2 = comparator2.reversed();
+        }
+        for (int i6 = 0; i6 < longSparseArray.size(); i6++) {
+            messArr.add(
+                new MessageObject(
+                    currentAccount,
+                    (TLRPC.Message) longSparseArray.get(longSparseArray.keyAt(i6)),
+                    newMessageObjectUsers,
+                    newMessageObjectChats,
+                    false,
+                    true
+                )
+            );
+        }
+        Iterator<MessageObject> it3 = messArr.iterator();
+        while (it3.hasNext()) {
+            MessageObject messageObject2 = it3.next();
+            TLRPC.MessageReplyHeader tLRPC$TL_messageReplyHeader3 = messageObject2.messageOwner.reply_to;
+            if (tLRPC$TL_messageReplyHeader3 != null) {
+                MessageObject messageObject3 = (MessageObject) messagesDict[0].get(tLRPC$TL_messageReplyHeader3.reply_to_msg_id);
+                if (messageObject3 == null) {
+                    messageObject3 = (MessageObject) messagesDict[1].get(messageObject2.messageOwner.reply_to.reply_to_msg_id);
                 }
-                for (int i6 = 0; i6 < longSparseArray.size(); i6++) {
-//                  Log.d("AyuGram_HistoryHook", "i6 = " + i6 + ";messArr.add(...)");
-                    messArr.add(
-                        new MessageObject(
-                            currentAccount,
-                            (TLRPC.Message) longSparseArray.get(longSparseArray.keyAt(i6)),
-                            newMessageObjectUsers,
-                            newMessageObjectChats,
-                            false,
-                            true
-                        )
-                    );
-                }
-                Iterator<MessageObject> it3 = messArr.iterator();
-                while (it3.hasNext()) {
-                    MessageObject messageObject2 = it3.next();
-                    TLRPC.MessageReplyHeader tLRPC$TL_messageReplyHeader3 = messageObject2.messageOwner.reply_to;
-                    if (tLRPC$TL_messageReplyHeader3 != null) {
-                        MessageObject messageObject3 = (MessageObject) messagesDict[0].get(tLRPC$TL_messageReplyHeader3.reply_to_msg_id);
-                        if (messageObject3 == null) {
-                            messageObject3 = (MessageObject) messagesDict[1].get(messageObject2.messageOwner.reply_to.reply_to_msg_id);
+                if (messageObject3 == null) {
+                    Iterator<MessageObject> it7 = messArr.iterator();
+                    while (true) {
+                        if (!it7.hasNext()) {
+                            break;
                         }
-                        if (messageObject3 == null) {
-                            Iterator<MessageObject> it7 = messArr.iterator();
-                            while (true) {
-                                if (!it7.hasNext()) {
-                                    break;
-                                }
-                                MessageObject messageObject4 = it7.next();
-                                if (messageObject2.messageOwner.reply_to != null && messageObject4.getId() == messageObject2.messageOwner.reply_to.reply_to_msg_id) {
-                                    messageObject3 = messageObject4;
-                                    break;
-                                }
-                            }
-                        }
-                        if (messageObject3 != null) {
-                            messageObject2.messageOwner.replyMessage = messageObject3.messageOwner;
-                            messageObject2.replyMessageObject = messageObject3;
+                        MessageObject messageObject4 = it7.next();
+                        if (messageObject2.messageOwner.reply_to != null && messageObject4.getId() == messageObject2.messageOwner.reply_to.reply_to_msg_id) {
+                            messageObject3 = messageObject4;
+                            break;
                         }
                     }
                 }
-                Collections.sort(messArr, comparator2);
-//          }
+                if (messageObject3 != null) {
+                    messageObject2.messageOwner.replyMessage = messageObject3.messageOwner;
+                    messageObject2.replyMessageObject = messageObject3;
+                }
+            }
         }
-//      {
-//          Log.d("AyuGram_HistoryHook", "before collection sort:");
-//          for (MessageObject msg : messArr) {
-//              Log.d("AyuGram_HistoryHook", "id: " + msg.getId() + " (date: " + msg.messageOwner.date + ")");
-//          }
-//      }
-//      Collections.sort(messArr, comparator2);
-//      {
-//          Log.d("AyuGram_HistoryHook", "after collection sort:");
-//          for (MessageObject msg : messArr) {
-//              Log.d("AyuGram_HistoryHook", "id: " + msg.getId() + " (date: " + msg.messageOwner.date + ")");
-//          }
-//      }
-//      Log.d("AyuGram_HistoryHook", "doHook END");
+        Collections.sort(messArr, comparator2);
     }
 
     public static Pair<Integer, Integer> getMinAndMaxIds(ArrayList arrayList) {

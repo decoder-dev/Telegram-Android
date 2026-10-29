@@ -21614,23 +21614,16 @@ public class ChatActivity extends BaseFragment implements
             if (Math.abs(secretStartId - secretEndId) == 1 || (secretStartId == msg1 && secretEndId == msg2)) { // empty dialog, so load as much as we can
                 startId = minVal;
                 endId = maxVal;
-                Log.d("AyuGram", "case 1");
             } else if (secretStartId == msg1) { // loaded up to top
                 startId = minVal;
                 endId = msg2;
-                Log.d("AyuGram", "case 2");
             } else if (secretEndId == msg2) { // loaded up to bottom
                 startId = msg1;
                 endId = maxVal;
-                Log.d("AyuGram", "case 3");
             } else { // just between some messages
                 startId = msg1;
                 endId = msg2;
-                Log.d("AyuGram", "case 4");
             }
-
-            Log.d("AyuGram", "omfg " + secretStartId + " " + secretEndId);
-            Log.d("AyuGram", "omfg2 " + msg1 + " " + msg2);
         }
 
         if (startId > endId) {
@@ -21639,16 +21632,6 @@ public class ChatActivity extends BaseFragment implements
             endId = t;
         }
 
-        Log.d("AyuGram",
-                "messArr: " + messArr.size()
-                + " , startId: " + startId
-                + " , endId: " + endId
-                + " , count: " + count
-                + " , load_type: " + load_type
-                + " , isCache: " + isCache
-                + " , isEnd: " + isEnd
-                + ", endReached[0]: " + endReached[0]
-        );
         if (!isInScheduleMode() && chatMode != MODE_PINNED && (startId != minVal || endId != minVal)) {
             boolean needToReset = messArr.size() == count;
             AyuHistoryHook.doHook(currentAccount, messArr, messagesDict, startId, endId, dialogId, limit, topicId, isSecretChat());
