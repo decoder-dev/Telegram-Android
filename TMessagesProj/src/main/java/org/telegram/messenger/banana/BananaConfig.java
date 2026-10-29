@@ -338,7 +338,8 @@ public final class BananaConfig {
     public static void setString(int account, StringValue value, String raw) {
         String next = raw != null ? raw : value.defaultValue;
         if ((value == StringValue.DELETED_MESSAGE_MARK || value == StringValue.EDITED_MESSAGE_MARK) && next.length() > 8) {
-            next = next.substring(0, 8);
+            // Never cut an emoji's surrogate pair in half.
+            next = next.substring(0, Character.isHighSurrogate(next.charAt(7)) ? 7 : 8);
         }
         MessagesController.getMainSettings(account).edit().putString(value.key, next).apply();
         if (value == StringValue.DELETED_MESSAGE_MARK) {
