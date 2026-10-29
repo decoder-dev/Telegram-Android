@@ -219,7 +219,8 @@ public class UpdaterBottomSheet2 extends BottomSheet {
                     copyText(cell.getTextView().getText() + ": " + cell.getValueTextView().getText());
                 } else if (position == checkOnLaunchRow) {
                     ExteraConfig.editor.putBoolean("checkUpdatesOnLaunch", ExteraConfig.checkUpdatesOnLaunch ^= true).apply();
-                    cell.setChecked(!cell.getCheckBox().isChecked());
+                    cell.setChecked(ExteraConfig.checkUpdatesOnLaunch);
+                    org.telegram.messenger.banana.UpdateNotifier.schedule(cell.getContext());
                 } else if (position == clearCacheRow) {
                     if (UpdaterUtils.getOtaDirSize().replaceAll("\\D+", "").equals("0")) {
                         BulletinFactory.of(getContainer(), null).createErrorBulletin(LocaleController.getString("NothingToClear", R.string.NothingToClear)).show();

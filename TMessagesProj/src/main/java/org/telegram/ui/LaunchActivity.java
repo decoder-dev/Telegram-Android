@@ -2052,6 +2052,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
     @SuppressLint("Range")
     private boolean handleIntent(Intent intent, boolean isNew, boolean restore, boolean fromPassword, Browser.Progress progress, boolean rebuildFragments, boolean openedTelegram) {
+        org.telegram.messenger.banana.UpdateNotifier.handleIntent(intent);
         if (GiftInfoBottomSheet.handleIntent(intent, progress)) {
             return true;
         }
@@ -7699,10 +7700,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             showUpdateActivity(UserConfig.selectedAccount, SharedConfig.pendingAppUpdate, true);
         }
         checkAppUpdate(false, null);
-        if (passcodeDialog == null && ExteraConfig.checkUpdatesOnLaunch) {
+        if (passcodeDialog == null) {
             BaseFragment currentFragment = getLastFragment();
             if (currentFragment != null) {
-                UpdaterUtils.checkUpdates(currentFragment, false);
+                // A tap on the "new version" notification runs a manual check, which opens the sheet.
+                boolean openUpdater = org.telegram.messenger.banana.UpdateNotifier.consumeOpenRequest();
+                if (openUpdater || ExteraConfig.checkUpdatesOnLaunch) {
+                    UpdaterUtils.checkUpdates(currentFragment, openUpdater);
+                }
             }
         }
 

@@ -421,6 +421,10 @@
         </receiver>
 
         <receiver
+            android:name=".banana.UpdateNotifier$Receiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".CopyCodeReceiver"
             android:exported="false">
             <intent-filter>
