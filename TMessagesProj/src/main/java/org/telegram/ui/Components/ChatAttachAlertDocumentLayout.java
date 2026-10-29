@@ -1354,7 +1354,7 @@ public class ChatAttachAlertDocumentLayout extends ChatAttachAlert.AttachAlertLa
             File telegramPath = new File(ApplicationLoader.applicationContext.getExternalFilesDir(null), com.radolyn.ayugram.AyuConstants.APP_NAME);
             if (telegramPath.exists()) {
                 fs = new ListItem();
-                fs.title = com.radolyn.ayugram.AyuConstants.APP_NAME;
+                fs.title = com.radolyn.ayugram.AyuConstants.APP_DISPLAY_NAME;
                 fs.subtitle = LocaleController.getString(R.string.AppFolderInfo);
                 fs.icon = R.drawable.files_folder;
                 fs.file = telegramPath;
