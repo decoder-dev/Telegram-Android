@@ -112,11 +112,27 @@ public class UpdaterUtils {
 
     public static void checkUpdates(BaseFragment fragment, boolean manual, OnUpdateNotFound onUpdateNotFound,
             OnUpdateFound onUpdateFound, OnUpdateError onUpdateError) {
+        checkUpdates(fragment, manual, onUpdateNotFound, onUpdateFound, onUpdateError, updateCheckInterval, null);
+    }
+
+    /**
+     * The daily alarm's check. No screen is open, so a found release is announced with a
+     * notification. The interval is a little shorter than a day so an early inexact alarm
+     * does not skip a whole day. onFinished always runs, so the receiver can end its work.
+     */
+    public static void checkUpdatesInBackground(Runnable onFinished) {
+        checkUpdates(null, false, null, null, null, updateCheckInterval - 4 * 3600000L, onFinished);
+    }
+
+    private static void checkUpdates(BaseFragment fragment, boolean manual, OnUpdateNotFound onUpdateNotFound,
+            OnUpdateFound onUpdateFound, OnUpdateError onUpdateError, long minInterval, Runnable onFinished) {
         long now = System.currentTimeMillis();
         if (BuildVars.PM_BUILD || checkingForUpdates
-                || (!manual && now - ExteraConfig.lastUpdateCheckTime < updateCheckInterval)
-                || (!manual && now - ExteraConfig.updateScheduleTimestamp < 60 * 60 * 1000L))
+                || (!manual && now - ExteraConfig.lastUpdateCheckTime < minInterval)
+                || (!manual && now - ExteraConfig.updateScheduleTimestamp < 60 * 60 * 1000L)) {
+            if (onFinished != null) onFinished.run();
             return;
+        }
 
         checkingForUpdates = true;
         otaQueue.postRunnable(() -> {
@@ -153,6 +169,10 @@ public class UpdaterUtils {
                     releaseDigest = update.digest;
                     uploadDate = update.uploadDate;
                     checkDirs();
+                    if (fragment == null && !manual) {
+                        // Background check: nothing on screen would show the sheet.
+                        org.telegram.messenger.banana.UpdateNotifier.notifyAvailable(update.version);
+                    }
                     if (!manual && ExteraConfig.autoDownloadUpdates) {
                         downloadApk(ApplicationLoader.applicationContext, update.downloadURL,
                                 "BananaGram " + update.version, update.digest, true);
@@ -176,6 +196,7 @@ public class UpdaterUtils {
             } finally {
                 if (connection != null) connection.disconnect();
                 checkingForUpdates = false;
+                if (onFinished != null) onFinished.run();
             }
         }, 200);
     }
