@@ -16,6 +16,8 @@ public final class BananaSessionBackup {
     private static final DispatchQueue QUEUE = new DispatchQueue("bananaSessionBackup");
     private static final String ALIAS = "banana-session-backup-v1";
     private static final Map<Integer, Runnable> pending = new HashMap<>();
+    /** Digest of the last snapshot written per slot; only touched on QUEUE. */
+    private static final Map<Integer, byte[]> written = new HashMap<>();
     private BananaSessionBackup() {}
     private static SharedPreferences preferences(int slot) {
         return ApplicationLoader.applicationContext.getSharedPreferences(slot == 0 ? "userconfing" : "userconfig" + slot, Context.MODE_PRIVATE);
@@ -70,7 +72,14 @@ public final class BananaSessionBackup {
                 try {
                     if (!BananaConfig.get(account, BananaConfig.Option.SESSION_KEYCHAIN_BACKUP) || !UserConfig.getInstance(account).isClientActivated()) return;
                     byte[] plain = SessionBackupCodec.encode(capture(account));
-                    try { atomicWrite(new File(directory(), "slot-" + account + ".bin"), SessionBackupCodec.seal(plain, deviceKey(), new byte[16])); }
+                    try {
+                        // saveConfig runs on many unrelated updates; rewrite the encrypted copy only when the session changed.
+                        byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(plain);
+                        File target = new File(directory(), "slot-" + account + ".bin");
+                        if (target.isFile() && Arrays.equals(digest, written.get(account))) return;
+                        atomicWrite(target, SessionBackupCodec.seal(plain, deviceKey(), new byte[16]));
+                        written.put(account, digest);
+                    }
                     finally { Arrays.fill(plain, (byte) 0); }
                 } catch (Exception unavailable) { /* A failed snapshot must never interrupt login or expose session material in logs. */ }
             };
@@ -79,7 +88,7 @@ public final class BananaSessionBackup {
     }
     public static void clear(int account) {
         synchronized (pending) { Runnable task = pending.remove(account); if (task != null) QUEUE.cancelRunnable(task); }
-        QUEUE.postRunnable(() -> new AtomicFile(new File(directory(), "slot-" + account + ".bin")).delete());
+        QUEUE.postRunnable(() -> { written.remove(account); new AtomicFile(new File(directory(), "slot-" + account + ".bin")).delete(); });
     }
     public static void export(int account, Uri uri, char[] password, java.util.function.Consumer<Boolean> done) {
         QUEUE.postRunnable(() -> {
