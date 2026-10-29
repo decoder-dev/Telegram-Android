@@ -112,7 +112,7 @@ class TelegramBuildAppPlugin : Plugin<Project> {
             val suffix = variant.name.replaceFirstChar { it.uppercase() }
             val lottieTask = project.tasks.register<GenerateLottieMetadataAssetFileTask>("generate${suffix}LottieMeta") {
                 runtimeSymbolList.set(variant.artifacts.get(SingleArtifact.RUNTIME_SYMBOL_LIST))
-                variant.sources.res?.all?.let { layers ->
+                variant.sources.res?.all?.let { _ ->
                     rawResourceDirs.from(
                         telegramModule.fileTree("src/main/res") {
                             include("raw*/*.json")
