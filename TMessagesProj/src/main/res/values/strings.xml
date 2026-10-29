@@ -12072,6 +12072,7 @@
     <string name="BananaSessionInfo">Automatic copies are encrypted with Android Keystore and remain on this device. Export uses a separate password and can be restored after reinstalling or on another device. Restoration requires a free account slot and a restart. Logging out removes the automatic copy.</string>
     <string name="BananaSessionPassword">Backup password</string>
     <string name="BananaSessionPasswordInfo">Use at least 10 characters. The backup contains account access: a person with this file and password can restore the session.</string>
+    <string name="BananaSessionPasswordRepeat">Repeat the backup password</string>
     <string name="BananaSessionFailed">Backup operation failed. Check the password, file and free account slots. An account already added cannot be restored again.</string>
     <string name="BananaSessionSaved">Encrypted backup saved</string>
     <string name="BananaSessionRestart">Restart to restore</string>

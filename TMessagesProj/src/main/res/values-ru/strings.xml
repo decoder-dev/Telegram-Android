@@ -692,6 +692,7 @@
     <string name="BananaSessionInfo">Автоматические копии шифруются ключом Android Keystore и остаются на устройстве. Экспорт защищён отдельным паролем и подходит для восстановления после переустановки или на другом устройстве. Для восстановления нужен свободный слот аккаунта и перезапуск. Выход из аккаунта удаляет автоматическую копию.</string>
     <string name="BananaSessionPassword">Пароль резервной копии</string>
     <string name="BananaSessionPasswordInfo">Минимум 10 символов. Копия содержит доступ к аккаунту: имея файл и пароль, можно восстановить сессию.</string>
+    <string name="BananaSessionPasswordRepeat">Повторите пароль копии</string>
     <string name="BananaSessionFailed">Операция не выполнена. Проверьте пароль, файл и наличие свободного слота. Уже добавленный аккаунт нельзя восстановить повторно.</string>
     <string name="BananaSessionSaved">Зашифрованная копия сохранена</string>
     <string name="BananaSessionRestart">Перезапустить для восстановления</string>

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.text.InputType;
 import org.telegram.messenger.*;
 import org.telegram.messenger.banana.*;
@@ -55,12 +56,29 @@ public final class BananaSessionBackupActivity extends BananaSettingsFragment {
         EditText field = new EditText(getParentActivity());
         field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         field.setHint(LocaleController.getString(R.string.BananaSessionPassword));
+        // A mistyped export password would make the backup unrecoverable, so export asks twice.
+        EditText repeat = requestCode == EXPORT ? new EditText(getParentActivity()) : null;
+        View content = field;
+        if (repeat != null) {
+            repeat.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            repeat.setHint(LocaleController.getString(R.string.BananaSessionPasswordRepeat));
+            LinearLayout fields = new LinearLayout(getParentActivity());
+            fields.setOrientation(LinearLayout.VERTICAL);
+            fields.addView(field);
+            fields.addView(repeat);
+            content = fields;
+        }
         AlertDialog dialog = new AlertDialog.Builder(getParentActivity(), getResourceProvider())
                 .setTitle(LocaleController.getString(R.string.BananaSessionPassword))
-                .setMessage(LocaleController.getString(R.string.BananaSessionPasswordInfo)).setView(field)
+                .setMessage(LocaleController.getString(R.string.BananaSessionPasswordInfo)).setView(content)
                 .setPositiveButton(LocaleController.getString(R.string.OK), (d, w) -> {
                     char[] password = field.getText().toString().toCharArray(); field.setText("");
+                    char[] confirmation = repeat == null ? null : repeat.getText().toString().toCharArray();
+                    if (repeat != null) repeat.setText("");
+                    boolean mismatch = confirmation != null && !java.util.Arrays.equals(password, confirmation);
+                    if (confirmation != null) java.util.Arrays.fill(confirmation, '\0');
                     if (password.length < 10) { java.util.Arrays.fill(password, '\0'); message(R.string.BananaSessionPasswordInfo); return; }
+                    if (mismatch) { java.util.Arrays.fill(password, '\0'); message(R.string.BananaArchiveMismatch); return; }
                     if (requestCode == EXPORT) progress(done -> BananaSessionBackup.export(currentAccount, uri, password, done), false);
                     else progress(done -> BananaSessionBackup.importBackup(uri, password, done), true);
                 }).setNegativeButton(LocaleController.getString(R.string.Cancel), null).create();
