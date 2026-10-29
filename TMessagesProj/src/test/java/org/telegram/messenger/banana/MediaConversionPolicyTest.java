@@ -32,7 +32,7 @@ public class MediaConversionPolicyTest {
     @Test public void videoUsesH264SquareAndLocaleIndependentTrim() {
         Locale previous = Locale.getDefault();
         try {
-            Locale.setDefault(new Locale("ru", "RU"));
+            Locale.setDefault(Locale.forLanguageTag("ru-RU"));
             List<String> args = MediaConversionPolicy.arguments(VIDEO_TO_ROUND, "/in.mp4", "/out.mp4", 10, 1.5, 3.5);
             assertEquals("1.500000", args.get(args.indexOf("-ss") + 1));
             assertEquals("2.000000", args.get(args.indexOf("-t") + 1));
