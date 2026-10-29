@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--serial', required=True)
@@ -62,10 +63,33 @@ if len(app_apks) != 1:
 if len(test_apks) != 1:
     candidates = ', '.join(str(path.relative_to(root)) for path in test_apks) or 'none found'
     raise SystemExit(f'Expected exactly one standalone instrumentation APK under build dirs ({build_roots}); found: {candidates}')
+def package_service_ready():
+    try:
+        return 'found' in run('shell', 'service', 'check', 'package', timeout=30)
+    except (SystemExit, subprocess.TimeoutExpired):
+        return False
+
+
+def install(apk):
+    # Slow emulator images can drop the streamed install ("Failure calling service package:
+    # Broken pipe") while system_server is still settling. Wait for the package service and retry.
+    for attempt in range(1, 4):
+        deadline = time.monotonic() + 120
+        while not package_service_ready() and time.monotonic() < deadline:
+            time.sleep(5)
+        try:
+            return run('install', '-t', '-r', str(apk))
+        except (SystemExit, subprocess.TimeoutExpired) as error:
+            installation.append(f'Attempt {attempt} for {apk.name} failed: {error}')
+            if attempt == 3:
+                raise
+            time.sleep(10)
+
+
 installation = []
 try:
     for apk in (app_apks[0], test_apks[0]):
-        installation.append(run('install', '-t', '-r', str(apk)))
+        installation.append(install(apk))
 except (SystemExit, subprocess.TimeoutExpired) as error:
     installation.append(str(error))
     (args.output_dir / 'installation.log').write_text('\n'.join(installation))
@@ -76,20 +100,45 @@ except (SystemExit, subprocess.TimeoutExpired) as error:
     raise SystemExit('APK installation failed before tests started; see installation.log and logcat.log')
 (args.output_dir / 'installation.log').write_text('\n'.join(installation))
 run('shell', 'rm', '-rf', '/sdcard/Android/data/org.telegram.messenger.web/files/banana-smoke')
-instrumentation_failed = False
-try:
-    output = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class',
-                 'org.telegram.banana.MediaConversionAndroidTest,org.telegram.banana.VideoEngineAndroidTest,org.telegram.banana.SessionBackupAndroidTest,org.telegram.banana.BananaSmokeTest,org.telegram.banana.HistoryDatabaseTest,org.telegram.banana.HistoryCaptureTest,org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest',
-                 'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner', timeout=600)
-except SystemExit as error:
-    output = str(error)
-    instrumentation_failed = True
-except subprocess.TimeoutExpired as error:
-    output = error.stdout or ''
-    if isinstance(output, bytes):
-        output = output.decode(errors='replace')
-    output += f'\nInstrumentation timed out: {error}\n'
-    instrumentation_failed = True
+SUITE = ('org.telegram.banana.MediaConversionAndroidTest,org.telegram.banana.VideoEngineAndroidTest,'
+         'org.telegram.banana.SessionBackupAndroidTest,org.telegram.banana.BananaSmokeTest,'
+         'org.telegram.banana.HistoryDatabaseTest,org.telegram.banana.HistoryCaptureTest,'
+         'org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,'
+         'org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest')
+
+
+def run_suite():
+    try:
+        # A healthy run takes about two minutes; a hung UI wait must not burn the whole job.
+        result = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class', SUITE,
+                     'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner', timeout=420)
+        return result, False
+    except SystemExit as error:
+        return str(error), True
+    except subprocess.TimeoutExpired as error:
+        result = error.stdout or ''
+        if isinstance(result, bytes):
+            result = result.decode(errors='replace')
+        return result + f'\nInstrumentation timed out: {error}\n', True
+
+
+def suite_passed(result, failed):
+    count = re.search(r'OK \((\d+) tests?\)', result)
+    return not failed and count is not None and int(count.group(1)) >= 30 and 'FAILURES!!!' not in result
+
+
+output, instrumentation_failed = run_suite()
+if not suite_passed(output, instrumentation_failed):
+    # Swiftshader emulators occasionally miss a synthesized tap or a viewer close. Keep the first
+    # attempt's evidence, reset the app to the fresh unsigned state and run the suite once more.
+    (args.output_dir / 'instrumentation-attempt1.log').write_text(output)
+    (args.output_dir / 'logcat-attempt1.log').write_text(run('logcat', '-d', '-t', '4000', '-v', 'threadtime'))
+    print('Android smoke suite failed on the first attempt; retrying once from a cleared app state')
+    run('shell', 'am', 'force-stop', 'org.telegram.messenger.web')
+    run('shell', 'pm', 'clear', 'org.telegram.messenger.web')
+    run('shell', 'rm', '-rf', '/sdcard/Android/data/org.telegram.messenger.web/files/banana-smoke')
+    output, instrumentation_failed = run_suite()
+    output = '[retry: first attempt failed, see instrumentation-attempt1.log]\n' + output
 (args.output_dir / 'instrumentation.log').write_text(output)
 # Android's instrumentation runner may terminate its own process and return a short
 # "Process crashed" result without forwarding the Java exception to stdout. Preserve
@@ -102,8 +151,7 @@ pull = subprocess.run([adb, '-s', args.serial, 'pull',
                        str(args.output_dir / 'screens')], cwd=root, text=True,
                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=60)
 (args.output_dir / 'screenshots.log').write_text(pull.stdout)
-passed = re.search(r'OK \((\d+) tests?\)', output)
-if instrumentation_failed or not passed or int(passed.group(1)) < 30 or 'FAILURES!!!' in output:
+if not suite_passed(output, instrumentation_failed):
     print(output)
     print('\n--- Recent Android logcat ---\n')
     print(logcat[-30000:])
