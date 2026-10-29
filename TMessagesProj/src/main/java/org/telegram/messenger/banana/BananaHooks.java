@@ -485,13 +485,13 @@ public final class BananaHooks {
     }
 
     /**
-     * Android has no iOS Keychain. Preference is stored for parity; no crypto backup runs.
+     * Android has no iOS Keychain; this enables the app-private encrypted session snapshot instead.
      */
     public static boolean sessionKeychainBackup(int account) {
         return BananaConfig.get(account, BananaConfig.Option.SESSION_KEYCHAIN_BACKUP);
     }
 
-    /** Documented no-op: iOS keychain session backup has no Android equivalent. */
+    /** Schedules the app-private encrypted session snapshot (the Android counterpart of the iOS keychain backup). */
     public static void maybeSessionKeychainBackup(int account) {
         if (!sessionKeychainBackup(account)) {
             return;
