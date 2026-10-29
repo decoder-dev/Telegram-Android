@@ -2042,7 +2042,7 @@ public class ChatActivity extends BaseFragment implements
             if (bananaTap == 0) {
                 return false;
             }
-            if (bananaTap == 6 || org.telegram.messenger.banana.BananaHooks.doubleTapToEdit(currentAccount)) {
+            if (bananaTap == 6) {
                 return messageObject.isOutOwner() && messageObject.canEditMessage(currentChat);
             }
             if (bananaTap == 2 || bananaTap == 3 || bananaTap == 4) {
@@ -2074,7 +2074,7 @@ public class ChatActivity extends BaseFragment implements
             if (bananaTap == 0) {
                 return;
             }
-            if (bananaTap == 6 || (bananaTap != 1 && bananaTap != 2 && bananaTap != 3 && bananaTap != 4 && org.telegram.messenger.banana.BananaHooks.doubleTapToEdit(currentAccount))) {
+            if (bananaTap == 6) {
                 if (messageObject.isOutOwner() && messageObject.canEditMessage(currentChat)) {
                     startEditingMessageObject(messageObject);
                 }
