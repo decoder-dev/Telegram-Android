@@ -294,7 +294,13 @@ public final class BananaConfig {
     }
 
     public static void set(int account, Option option, boolean enabled) {
-        MessagesController.getMainSettings(account).edit().putBoolean(option.key, enabled).apply();
+        SharedPreferences.Editor editor = MessagesController.getMainSettings(account).edit().putBoolean(option.key, enabled);
+        if (option == Option.DOUBLE_TAP_TO_EDIT) {
+            // The switch is a shortcut for the "Edit" double-tap action; both read one value.
+            int action = getInt(account, IntValue.DOUBLE_TAP_ACTION);
+            editor.putInt(IntValue.DOUBLE_TAP_ACTION.key, enabled ? 6 : action == 6 ? 0 : action);
+        }
+        editor.apply();
         if (option == Option.KEEP_ALIVE_IN_BACKGROUND && account == org.telegram.messenger.UserConfig.selectedAccount) {
             org.telegram.messenger.AndroidUtilities.runOnUIThread(org.telegram.messenger.ApplicationLoader::startPushService);
         }
@@ -444,7 +450,7 @@ public final class BananaConfig {
     public static int translationBackend(int account) { return getInt(account, IntValue.TRANSLATION_BACKEND); }
     public static void setTranslationBackend(int account, int value) { setInt(account, IntValue.TRANSLATION_BACKEND, value); }
 
-    /** 0 = Telegram default, 1 = on-device (iOS: apple). */
+    /** 0 = Telegram default, 1 = on-device Russian model, 2 = on-device English model. */
     public static int transcriptionBackend(int account) { return getInt(account, IntValue.TRANSCRIPTION_BACKEND); }
     public static void setTranscriptionBackend(int account, int value) { setInt(account, IntValue.TRANSCRIPTION_BACKEND, value); }
 
