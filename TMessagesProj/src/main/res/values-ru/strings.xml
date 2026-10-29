@@ -656,6 +656,20 @@
     <string name="BananaVlessHint">Вставьте ссылку vless://. SOCKS5, MTProto и WEB остаются доступны.</string>
     <string name="BananaVlessRuntimeMissing">Ссылка сохранена. В этой сборке Android нет встроенного Xray, поэтому VLESS не подменяет активный SOCKS5, MTProto или WEB. Ссылки tg://proxy и t.me/proxy работают как раньше.</string>
     <string name="BananaVlessSaved">Ссылка VLESS сохранена</string>
+    <string name="BananaVlessErrorTooLong">Ссылка длиннее 8192 байт.</string>
+    <string name="BananaVlessErrorUuid">Некорректный UUID пользователя.</string>
+    <string name="BananaVlessErrorHost">Проверьте адрес сервера.</string>
+    <string name="BananaVlessErrorPort">Порт должен быть от 1 до 65535.</string>
+    <string name="BananaVlessErrorDuplicate">В ссылке повторяется параметр.</string>
+    <string name="BananaVlessErrorTransport">Поддерживаются TCP, WebSocket, gRPC, HTTPUpgrade и XHTTP.</string>
+    <string name="BananaVlessErrorSecurity">Поддерживаются TLS, REALITY и none.</string>
+    <string name="BananaVlessErrorPbk">Проверьте публичный ключ REALITY (pbk).</string>
+    <string name="BananaVlessErrorFlow">Неподдерживаемый flow.</string>
+    <string name="BananaVlessErrorFp">Неподдерживаемый fingerprint (fp).</string>
+    <string name="BananaVlessErrorSid">Short ID: чётное число шестнадцатеричных символов, не больше 16.</string>
+    <string name="BananaVlessErrorAlpn">ALPN: h2 и/или http/1.1 через запятую.</string>
+    <string name="BananaVlessErrorAllowInsecure">allowInsecure: 0, 1, false или true.</string>
+    <string name="BananaVlessErrorInvalid">Некорректная ссылка. Нужен формат vless://UUID@сервер:порт?параметры.</string>
 
     <string name="BananaKeychainUnavailable">Резервная копия сессий через Keychain недоступна на Android.</string>
     <string name="BananaTranscriptionUnavailable">Локальная расшифровка в этой сборке недоступна. Расшифровка выполняется на серверах Telegram.</string>

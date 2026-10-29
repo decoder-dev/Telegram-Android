@@ -5,6 +5,7 @@ import android.text.TextUtils;
 
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.R;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -127,42 +128,36 @@ public final class VlessProfile {
     }
 
     public static String errorText(IllegalArgumentException error) {
-        boolean ru = false;
-        try {
-            ru = LocaleController.getInstance().getCurrentLocale() != null
-                    && "ru".equals(LocaleController.getInstance().getCurrentLocale().getLanguage());
-        } catch (Throwable ignore) {
-        }
         String code = error == null || error.getMessage() == null ? "" : error.getMessage();
         switch (code) {
             case "tooLong":
-                return ru ? "Ссылка длиннее 8192 байт." : "The link exceeds 8192 bytes.";
+                return LocaleController.getString(R.string.BananaVlessErrorTooLong);
             case "uuid":
-                return ru ? "Некорректный UUID пользователя." : "Invalid user UUID.";
+                return LocaleController.getString(R.string.BananaVlessErrorUuid);
             case "host":
-                return ru ? "Проверьте адрес сервера." : "Check the server address.";
+                return LocaleController.getString(R.string.BananaVlessErrorHost);
             case "port":
-                return ru ? "Порт должен быть от 1 до 65535." : "The port must be between 1 and 65535.";
+                return LocaleController.getString(R.string.BananaVlessErrorPort);
             case "duplicate":
-                return ru ? "В ссылке повторяется параметр." : "The link contains a duplicate parameter.";
+                return LocaleController.getString(R.string.BananaVlessErrorDuplicate);
             case "transport":
-                return ru ? "Поддерживаются TCP, WebSocket, gRPC, HTTPUpgrade и XHTTP." : "Supported transports: TCP, WebSocket, gRPC, HTTPUpgrade and XHTTP.";
+                return LocaleController.getString(R.string.BananaVlessErrorTransport);
             case "security":
-                return ru ? "Поддерживаются TLS, REALITY и none." : "Supported security: TLS, REALITY and none.";
+                return LocaleController.getString(R.string.BananaVlessErrorSecurity);
             case "pbk":
-                return ru ? "Проверьте публичный ключ REALITY (pbk)." : "Check the REALITY public key (pbk).";
+                return LocaleController.getString(R.string.BananaVlessErrorPbk);
             case "flow":
-                return ru ? "Неподдерживаемый flow." : "Unsupported flow.";
+                return LocaleController.getString(R.string.BananaVlessErrorFlow);
             case "fp":
-                return ru ? "Неподдерживаемый fingerprint (fp)." : "Unsupported fingerprint (fp).";
+                return LocaleController.getString(R.string.BananaVlessErrorFp);
             case "sid":
-                return ru ? "Short ID: чётное число шестнадцатеричных символов, не больше 16." : "Short ID must contain an even number of hexadecimal characters, at most 16.";
+                return LocaleController.getString(R.string.BananaVlessErrorSid);
             case "alpn":
-                return ru ? "ALPN: h2 и/или http/1.1 через запятую." : "ALPN: h2 and/or http/1.1, separated by a comma.";
+                return LocaleController.getString(R.string.BananaVlessErrorAlpn);
             case "allowInsecure":
-                return ru ? "allowInsecure: 0, 1, false или true." : "allowInsecure must be 0, 1, false or true.";
+                return LocaleController.getString(R.string.BananaVlessErrorAllowInsecure);
             default:
-                return ru ? "Некорректная ссылка. Нужен формат vless://UUID@сервер:порт?параметры." : "Invalid link. Expected vless://UUID@server:port?parameters.";
+                return LocaleController.getString(R.string.BananaVlessErrorInvalid);
         }
     }
 
