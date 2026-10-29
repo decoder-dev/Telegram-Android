@@ -368,7 +368,7 @@
 <string name="BananaUpdateAvailableText">Нажмите, чтобы открыть обновление</string>
 <string name="BananaAuthorFooter">BananaGram — автор decoder-dev</string>
 <string name="BananaDeveloper">Разработчик</string>
-    <string name="BananaHubNinja">Ниндзя</string>
+    <string name="BananaHubNinja">Ниндзя и невидимка</string>
     <string name="BananaHubNinjaLabel">Сохранение, фильтры, обход</string>
     <string name="BananaHubGhost">Невидимка</string>
     <string name="BananaHubGhostLabel">Мастер-переключатель, прочтения</string>
@@ -430,7 +430,7 @@
     <string name="BananaProfileId">ID профиля</string>
     <string name="BananaHubNetwork">Сеть</string>
     <string name="BananaHubNetworkLabel">Прокси, загрузки, работа в фоне</string>
-    <string name="BananaCat_NINJA">Ниндзя</string>
+    <string name="BananaCat_NINJA">Ниндзя и невидимка</string>
     <string name="BananaCat_GHOST">Невидимка</string>
     <string name="BananaCat_PRIVACY">Приватность</string>
     <string name="BananaCat_CHAT_LIST">Список чатов и папки</string>

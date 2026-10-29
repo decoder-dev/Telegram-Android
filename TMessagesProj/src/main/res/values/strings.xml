@@ -11803,7 +11803,7 @@
 <string name="BananaUpdateAvailableText">Tap to open the updater</string>
 <string name="BananaAuthorFooter">BananaGram by decoder-dev</string>
 <string name="BananaDeveloper">Developer</string>
-    <string name="BananaHubNinja">Ninja</string>
+    <string name="BananaHubNinja">Ninja and Ghost</string>
     <string name="BananaHubNinjaLabel">Save, filters, bypass</string>
     <string name="BananaHubGhost">Ghost</string>
     <string name="BananaHubGhostLabel">Master switch, read receipts</string>
@@ -11821,7 +11821,7 @@
     <string name="BananaHubProfileLabel">Diagnostics, glow, Premium</string>
     <string name="BananaHubNetwork">Network</string>
     <string name="BananaHubNetworkLabel">Proxy, downloads, background connection</string>
-    <string name="BananaCat_NINJA">Ninja</string>
+    <string name="BananaCat_NINJA">Ninja and Ghost</string>
     <string name="BananaCat_GHOST">Ghost</string>
     <string name="BananaCat_PRIVACY">Privacy</string>
     <string name="BananaCat_CHAT_LIST">Chat list and folders</string>
