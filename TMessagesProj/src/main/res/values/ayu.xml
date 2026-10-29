@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
-  <string name="AyuPreferences">AyuGram Preferences</string>
+  <string name="AyuPreferences">Advanced Preferences</string>
   <string name="GhostEssentialsHeader">Ghost essentials</string>
   <string name="DontSendReadPackets">Don\'t read messages</string>
   <string name="DontSendOnlinePackets">Don\'t send online</string>
@@ -25,7 +25,7 @@
   <string name="MessageSavingSaveReactions">Save reactions</string>
   <string name="MessageSavingSaveForBots">Save in bot dialogs</string>
   <string name="QoLTogglesHeader">Useful features</string>
-  <string name="KeepAliveService">AyuGram Push Service</string>
+  <string name="KeepAliveService">BananaGram Push Service</string>
   <string name="DisableAds">Disable ads</string>
   <string name="LocalPremium">Local Telegram Premium</string>
   <string name="CustomizationHeader">Customization</string>
@@ -47,7 +47,7 @@
   <string name="RegexFiltersAddDescription">You can use site <![CDATA[<a href="https://regex101.com">regex101.com</a>]]> to fully test your regular expression.
     You can also use plain text, but don\'t forget to escape brackets.</string>
   <string name="RegexFiltersAddError">Regex syntax error</string>
-  <string name="AyuSyncHeader">AyuSync</string>
+  <string name="AyuSyncHeader">History Sync</string>
   <string name="AyuSyncStatusTitle">Sync status</string>
   <string name="AyuSyncStatusOk">connected</string>
   <string name="AyuSyncStatusErrorDisconnected">disconnected</string>
@@ -70,8 +70,8 @@
   <string name="AyuSyncOpenPreferences">Open preferences</string>
   <string name="AyuSyncDownloadAgent">Download agent</string>
   <string name="WALMode">Enable WAL mode</string>
-  <string name="ClearAyuDatabase">Clear Ayu Database</string>
-  <string name="ClearAyuDatabaseNotification">AyuGram database cleared</string>
+  <string name="ClearAyuDatabase">Clear Message History Database</string>
+  <string name="ClearAyuDatabaseNotification">Message history database cleared</string>
   <string name="EraseLocalDatabase">Erase Local Database</string>
   <string name="BetaFeatures">Beta features</string>
   <string name="StickerConfirmation">Confirmation when sending stickers</string>
@@ -98,7 +98,6 @@
   <string name="ContextCopyID">Copy ID</string>
   <string name="IDCopiedToast">ID copied to clipboard.</string>
   <string name="ContextHideMessage">Hide</string>
-  <string name="SettingsWatermark">AyuGram developed and maintained by Radolyn Labs.</string>
   <string name="SettingsDescription">Just an exteraGram based client with ToS breaking features in mind.</string>
   <string name="SecretMessageTecno">Tecno phones are the best.</string>
   <string name="SecretMessageXiaomiSuccess">You\'re using a good phone.</string>
