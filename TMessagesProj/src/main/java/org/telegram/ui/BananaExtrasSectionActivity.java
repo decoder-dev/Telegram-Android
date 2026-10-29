@@ -44,22 +44,27 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
 
     @Override
     protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        Option[] options = BananaExtrasCatalog.optionsFor(section);
-        for (Option option : options) {
-            int label = optionLabel(option);
-            boolean supported = true;
-            items.add(BananaSwitchCell.Factory.of(option.ordinal() + 1,
-                    label != 0 ? LocaleController.getString(label) : option.name(),
-                    supported && BananaConfig.get(currentAccount, option)).setEnabled(supported));
-            if (!supported) items.add(UItem.asShadow(LocaleController.getString(R.string.BananaKeychainUnavailable)));
+        BananaExtrasCatalog.Group[] groups = BananaExtrasCatalog.groupsFor(section);
+        for (int g = 0; g < groups.length; g++) {
+            BananaExtrasCatalog.Group group = groups[g];
+            if (g > 0) items.add(UItem.asShadow(null));
+            if (group.title != 0) items.add(UItem.asHeader(LocaleController.getString(group.title)));
+            for (Option option : group.options) {
+                int label = optionLabel(option);
+                items.add(BananaSwitchCell.Factory.of(option.ordinal() + 1,
+                        label != 0 ? LocaleController.getString(label) : option.name(),
+                        BananaConfig.get(currentAccount, option)));
+            }
         }
         if ("PROFILE".equals(section)) {
+            items.add(UItem.asShadow(null));
             items.add(BananaValueCell.Factory.of(9100,
                     LocaleController.getString(R.string.BananaVisualLabel),
                     BananaVisualLabels.labelName(currentAccount)));
         } else if ("GHOST".equals(section)) {
             items.add(UItem.asShadow(LocaleController.getString(R.string.BananaGhostModeInfo)));
         } else if ("NINJA".equals(section)) {
+            items.add(UItem.asShadow(null));
             items.add(UItem.asButton(9001, LocaleController.getString(R.string.BananaHistoryOpen)));
             items.add(UItem.asButton(9002, LocaleController.getString(R.string.BananaFilters)));
             items.add(UItem.asShadow(LocaleController.getString(R.string.BananaHistoryInfo)));

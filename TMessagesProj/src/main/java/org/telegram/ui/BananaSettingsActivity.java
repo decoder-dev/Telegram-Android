@@ -63,7 +63,7 @@ public final class BananaSettingsActivity extends BananaSettingsFragment {
         String[] order = BananaExtrasCatalog.HUB_ORDER;
         for (int i = 0; i < order.length; i++) {
             String section = order[i];
-            items.add(UItem.asButton(SECTION_BASE + i, hubTitle(section)));
+            items.add(UItem.asButton(SECTION_BASE + i, hubIcon(section), hubTitle(section)));
         }
         items.add(UItem.asShadow(null));
         items.add(UItem.asButton(VALUES, LocaleController.getString(R.string.BananaValues)));
@@ -158,6 +158,23 @@ public final class BananaSettingsActivity extends BananaSettingsFragment {
         return themesCell;
     }
 
+    /** Section icons, as next to each hub row on iOS. */
+    private static int hubIcon(String section) {
+        switch (section) {
+            case "NINJA": return R.drawable.msg_saved;
+            case "GHOST": return R.drawable.ayu_ghost;
+            case "PRIVACY": return R.drawable.msg2_secret;
+            case "APPEARANCE": return R.drawable.msg_theme;
+            case "CHAT_LIST": return R.drawable.msg_folders;
+            case "TAB_BAR": return R.drawable.msg_topics;
+            case "MESSAGES": return R.drawable.msg_discussion;
+            case "MEDIA": return R.drawable.msg_calls;
+            case "PROFILE": return R.drawable.msg_openprofile;
+            case "NETWORK": return R.drawable.msg2_data;
+            default: return R.drawable.msg_mini_customize;
+        }
+    }
+
     private static String hubTitle(String section) {
         switch (section) {
             case "NINJA":
@@ -176,6 +193,10 @@ public final class BananaSettingsActivity extends BananaSettingsFragment {
                 return LocaleController.getString(R.string.BananaHubMedia);
             case "PROFILE":
                 return LocaleController.getString(R.string.BananaHubProfile);
+            case "APPEARANCE":
+                return LocaleController.getString(R.string.BananaHubAppearance);
+            case "NETWORK":
+                return LocaleController.getString(R.string.BananaHubNetwork);
             default:
                 return section;
         }
