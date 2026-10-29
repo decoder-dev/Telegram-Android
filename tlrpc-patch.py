@@ -17,7 +17,7 @@ r1 = re.compile(r'noforwards = (?P<flags>.+);')
 r2 = re.compile(r'restricted = (.+);')
 r3 = re.compile(r'history_deleted = (.+);')
 
-data = r1.sub('noforwards = false;\n            ayuNoforwards = \g<flags>;', data)
+data = r1.sub('noforwards = false;\n            ayuNoforwards = \\g<flags>;', data)
 data = r2.sub('restricted = false;', data)
 data = r3.sub('history_deleted = false;', data)
 
