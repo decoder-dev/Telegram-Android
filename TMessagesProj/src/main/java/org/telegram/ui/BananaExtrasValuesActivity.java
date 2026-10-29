@@ -1,5 +1,6 @@
 package org.telegram.ui;
 
+import android.text.InputFilter;
 import android.text.InputType;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -125,10 +126,8 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
                 break;
             case ID_SEEK:
                 pickFrom(R.string.BananaVal_DoubleTapSeek, IntValue.DOUBLE_TAP_SEEK_SECONDS,
-                        new CharSequence[]{
-                                LocaleController.getString(R.string.BananaVal_SeekOff),
-                                "5s", "10s", "15s", "30s"
-                        }, new int[]{0, 5, 10, 15, 30});
+                        new CharSequence[]{seekLabel(0), seekLabel(5), seekLabel(10), seekLabel(15), seekLabel(30)},
+                        new int[]{0, 5, 10, 15, 30});
                 break;
             case ID_DOUBLE_TAP:
                 pickFrom(R.string.BananaVal_DoubleTapAction, IntValue.DOUBLE_TAP_ACTION,
@@ -244,7 +243,13 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
         input.setPadding(AndroidUtilities.dp(4), AndroidUtilities.dp(8), AndroidUtilities.dp(4), AndroidUtilities.dp(8));
         input.setMaxLines(1);
         input.setSingleLine(true);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        if (value == StringValue.VISUAL_PHONE_NUMBER) {
+            input.setInputType(InputType.TYPE_CLASS_PHONE);
+        } else {
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            // BananaConfig keeps eight characters; stop typing there instead of cutting on save.
+            input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(8)});
+        }
         input.setHint(hint);
         input.setText(BananaConfig.getString(currentAccount, value));
         input.setSelection(input.length());
@@ -284,7 +289,7 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     }
 
     private static String seekLabel(int seconds) {
-        return seconds <= 0 ? LocaleController.getString(R.string.BananaVal_SeekOff) : seconds + "s";
+        return seconds <= 0 ? LocaleController.getString(R.string.BananaVal_SeekOff) : LocaleController.formatPluralString("Seconds", seconds);
     }
 
     private static String doubleTapLabel(int value) {
