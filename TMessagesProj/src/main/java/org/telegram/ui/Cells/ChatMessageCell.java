@@ -18569,10 +18569,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             final String clock = org.telegram.messenger.banana.BananaHooks.showMessageSeconds(currentAccount)
                     ? LocaleController.getInstance().getFormatterDayWithSeconds().format(timeMs)
                     : LocaleController.getInstance().getFormatterDay().format(timeMs);
-            final String bananaEdited = org.telegram.messenger.banana.BananaHooks.editedMark(currentAccount);
-            final String bananaDeleted = org.telegram.messenger.banana.BananaHooks.deletedMark(currentAccount);
-            final String editedMark = !TextUtils.isEmpty(bananaEdited) ? bananaEdited : AyuConfig.getEditedMark();
-            final String deletedMark = !TextUtils.isEmpty(bananaDeleted) ? bananaDeleted : AyuConfig.getDeletedMark();
+            final String editedMark = org.telegram.messenger.banana.BananaHooks.shownEditedMark(currentAccount);
+            final String deletedMark = org.telegram.messenger.banana.BananaHooks.shownDeletedMark(currentAccount);
             if (edited && !ayuDeleted) {
                 timeString = editedMark + " " + clock;
             } else if (!edited && ayuDeleted) {
@@ -28764,14 +28762,17 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
             if ((edited || ayuDeleted) && !lastDrawingEdited && timeLayout != null) {
+                // Same marks as the time label built above, so the edited text can be found in it.
+                String editedMark = org.telegram.messenger.banana.BananaHooks.shownEditedMark(currentAccount);
+                String deletedMark = org.telegram.messenger.banana.BananaHooks.shownDeletedMark(currentAccount);
                 String editedStr;
                 if (edited && !ayuDeleted){
-                    editedStr = AyuConfig.getEditedMark();
+                    editedStr = editedMark;
                 } else if (!edited) {
-                    editedStr = AyuConfig.getDeletedMark();
+                    editedStr = deletedMark;
                 } else {
                     // it's both edited and deleted
-                    editedStr = AyuConfig.getEditedMark() + " (" + AyuConfig.getDeletedMark() + ")";
+                    editedStr = editedMark + " (" + deletedMark + ")";
                 }
                 CharSequence text = timeLayout.getText();
                 int i = text.toString().indexOf(editedStr);

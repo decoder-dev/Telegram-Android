@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "scope": "source/resources and recorded JVM results; runtime acceptance is separate",
-  "java_source_sha256": "a92af01c200cf20de94c2d9b1a33069fad1fbb78df03da1c8fe259e29dedd497",
+  "java_source_sha256": "4b3d5196001407590baaa5b667e31cb46867ef2be10311c87d6d0c1f0063a213",
   "checks": {
     "known_catalog_options": true,
     "all_options_in_catalog": true,
@@ -16,7 +16,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1365
+          "line": 1396
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -27,7 +27,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1370
+          "line": 1401
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -38,7 +38,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1466
+          "line": 1502
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -49,7 +49,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1470
+          "line": 1506
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -60,7 +60,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1474
+          "line": 1510
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -71,7 +71,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 893
+          "line": 926
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -82,7 +82,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1374
+          "line": 1405
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -93,7 +93,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1378
+          "line": 1409
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -115,7 +115,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 707
+          "line": 740
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -137,7 +137,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 639
+          "line": 672
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -148,7 +148,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 711
+          "line": 744
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -159,7 +159,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 897
+          "line": 930
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -205,12 +205,12 @@
           "line": 21594
         },
         {
-          "file": "TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java",
-          "line": 908
-        },
-        {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java",
           "line": 217
+        },
+        {
+          "file": "TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java",
+          "line": 908
         },
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
@@ -224,16 +224,16 @@
       "label_ru": "Не читать истории",
       "source_references": [
         {
-          "file": "TMessagesProj/src/main/java/org/telegram/ui/Stories/StoryViewer.java",
-          "line": 411
-        },
-        {
           "file": "TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java",
           "line": 1301
         },
         {
           "file": "TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java",
           "line": 3731
+        },
+        {
+          "file": "TMessagesProj/src/main/java/org/telegram/ui/Stories/StoryViewer.java",
+          "line": 411
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -271,7 +271,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 269
+          "line": 284
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -280,6 +280,10 @@
       "option": "OFFLINE_AFTER_ACTIVITY",
       "label_ru": "Сразу уходить в офлайн",
       "source_references": [
+        {
+          "file": "TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java",
+          "line": 11557
+        },
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java",
           "line": 6402
@@ -323,7 +327,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1309
+          "line": 1344
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -356,27 +360,27 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/ui/BananaSessionBackupActivity.java",
-          "line": 24
-        },
-        {
-          "file": "TMessagesProj/src/main/java/org/telegram/ui/BananaSessionBackupActivity.java",
-          "line": 36
+          "line": 25
         },
         {
           "file": "TMessagesProj/src/main/java/org/telegram/ui/BananaSessionBackupActivity.java",
           "line": 37
         },
         {
+          "file": "TMessagesProj/src/main/java/org/telegram/ui/BananaSessionBackupActivity.java",
+          "line": 38
+        },
+        {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java",
           "line": 228
         },
         {
-          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 458
+          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaSessionBackup.java",
+          "line": 73
         },
         {
-          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaSessionBackup.java",
-          "line": 71
+          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
+          "line": 491
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -409,7 +413,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1390
+          "line": 1421
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -431,7 +435,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 375
+          "line": 408
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -475,7 +479,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1284
+          "line": 1319
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -486,7 +490,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 399
+          "line": 432
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -497,7 +501,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1337
+          "line": 1368
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -508,7 +512,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 415
+          "line": 448
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -518,12 +522,12 @@
       "label_ru": "Сохранять удалённые",
       "source_references": [
         {
-          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/MessageHistory.java",
-          "line": 91
-        },
-        {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
           "line": 216
+        },
+        {
+          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/MessageHistory.java",
+          "line": 91
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -533,12 +537,12 @@
       "label_ru": "История правок",
       "source_references": [
         {
-          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/MessageHistory.java",
-          "line": 66
-        },
-        {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
           "line": 220
+        },
+        {
+          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/MessageHistory.java",
+          "line": 66
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -559,6 +563,10 @@
       "label_ru": "Сохранять медиа",
       "source_references": [
         {
+          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
+          "line": 234
+        },
+        {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/MessageHistory.java",
           "line": 78
         },
@@ -569,10 +577,6 @@
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/MessageHistory.java",
           "line": 211
-        },
-        {
-          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 234
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -590,11 +594,11 @@
     },
     {
       "option": "AYU_FORWARD",
-      "label_ru": "Пересылка через AyuGram",
+      "label_ru": "Расширенная пересылка",
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1276
+          "line": 1311
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -649,7 +653,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1296
+          "line": 1331
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -660,7 +664,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 419
+          "line": 452
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -671,7 +675,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 423
+          "line": 456
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -704,7 +708,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 940
+          "line": 973
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -737,7 +741,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 275
+          "line": 308
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -765,7 +769,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 383
+          "line": 416
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -773,12 +777,7 @@
     {
       "option": "DOUBLE_TAP_TO_EDIT",
       "label_ru": "Двойной тап — править",
-      "source_references": [
-        {
-          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1317
-        }
-      ],
+      "source_references": [],
       "runtime_acceptance": "not_certified"
     },
     {
@@ -787,7 +786,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1321
+          "line": 1352
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -798,7 +797,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1329
+          "line": 1360
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -809,7 +808,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1333
+          "line": 1364
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -820,7 +819,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1288
+          "line": 1323
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -842,7 +841,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 343
+          "line": 376
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -853,7 +852,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 347
+          "line": 380
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -864,7 +863,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 427
+          "line": 460
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -875,7 +874,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1382
+          "line": 1413
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -886,7 +885,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1386
+          "line": 1417
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -897,7 +896,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 431
+          "line": 464
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -908,7 +907,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1349
+          "line": 1380
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -919,7 +918,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 435
+          "line": 468
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -941,7 +940,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1357
+          "line": 1388
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -974,7 +973,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1361
+          "line": 1392
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -985,7 +984,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 439
+          "line": 472
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -996,7 +995,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 351
+          "line": 384
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1007,7 +1006,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 355
+          "line": 388
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1018,7 +1017,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 359
+          "line": 392
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1029,7 +1028,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 303
+          "line": 336
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1051,7 +1050,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 299
+          "line": 332
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1062,7 +1061,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 295
+          "line": 328
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1073,7 +1072,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 291
+          "line": 324
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1084,7 +1083,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 287
+          "line": 320
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1095,7 +1094,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 311
+          "line": 344
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1112,7 +1111,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1394
+          "line": 1425
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1145,7 +1144,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1300
+          "line": 1335
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1156,7 +1155,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1292
+          "line": 1327
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1167,7 +1166,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 363
+          "line": 396
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1178,7 +1177,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 367
+          "line": 400
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1189,7 +1188,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 319
+          "line": 352
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1200,7 +1199,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 920
+          "line": 953
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1222,7 +1221,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1325
+          "line": 1356
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1233,7 +1232,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 387
+          "line": 420
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1244,7 +1243,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 667
+          "line": 700
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1255,7 +1254,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 379
+          "line": 412
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1266,7 +1265,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 339
+          "line": 372
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1277,7 +1276,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 671
+          "line": 704
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1299,7 +1298,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 703
+          "line": 736
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1310,7 +1309,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 647
+          "line": 680
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1321,7 +1320,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 643
+          "line": 676
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1342,12 +1341,12 @@
       "label_ru": "Включить жидкое стекло",
       "source_references": [
         {
-          "file": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java",
-          "line": 4322
+          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
+          "line": 961
         },
         {
-          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 928
+          "file": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java",
+          "line": 4322
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1358,7 +1357,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 307
+          "line": 340
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1369,7 +1368,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 391
+          "line": 424
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1380,7 +1379,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 395
+          "line": 428
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1402,7 +1401,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 279
+          "line": 312
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1413,7 +1412,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 283
+          "line": 316
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1435,7 +1434,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 651
+          "line": 684
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1457,7 +1456,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 403
+          "line": 436
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1468,7 +1467,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 407
+          "line": 440
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1479,7 +1478,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 411
+          "line": 444
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1490,7 +1489,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 663
+          "line": 696
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1524,10 +1523,6 @@
         {
           "file": "TMessagesProj/src/main/java/org/telegram/ui/EmojiAnimationsOverlay.java",
           "line": 886
-        },
-        {
-          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 270
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1541,12 +1536,7 @@
     {
       "option": "HIDE_UPLOAD",
       "label_ru": "Не отправлять статус загрузки файлов",
-      "source_references": [
-        {
-          "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 271
-        }
-      ],
+      "source_references": [],
       "runtime_acceptance": "not_certified"
     },
     {
@@ -1555,7 +1545,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1280
+          "line": 1315
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1566,7 +1556,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1341
+          "line": 1372
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1588,7 +1578,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 323
+          "line": 356
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1599,7 +1589,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 331
+          "line": 364
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1610,7 +1600,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 655
+          "line": 688
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1621,7 +1611,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 699
+          "line": 732
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1632,7 +1622,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 691
+          "line": 724
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1643,7 +1633,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 695
+          "line": 728
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1676,7 +1666,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 335
+          "line": 368
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1687,7 +1677,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 679
+          "line": 712
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1698,7 +1688,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 683
+          "line": 716
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1709,7 +1699,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 687
+          "line": 720
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1720,7 +1710,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1313
+          "line": 1348
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1731,7 +1721,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1345
+          "line": 1376
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1742,7 +1732,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 327
+          "line": 360
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1753,7 +1743,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 675
+          "line": 708
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1764,7 +1754,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 659
+          "line": 692
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1775,7 +1765,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 371
+          "line": 404
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1786,7 +1776,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 924
+          "line": 957
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1797,7 +1787,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 443
+          "line": 476
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1819,7 +1809,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 1353
+          "line": 1384
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1830,7 +1820,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 447
+          "line": 480
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1841,7 +1831,7 @@
       "source_references": [
         {
           "file": "TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaHooks.java",
-          "line": 451
+          "line": 484
         }
       ],
       "runtime_acceptance": "not_certified"
@@ -1936,26 +1926,26 @@
     {
       "setting": "ghostDontReadMessages",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.DONT_READ_MESSAGES"
+      "status": "implemented_behavior_wired",
+      "android": "Option.DONT_READ_MESSAGES, per account; ConnectionsManager drops every read request kind; read after send follows Option.GHOST_READ_ON_INTERACT"
     },
     {
       "setting": "ghostDontReadStories",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.DONT_READ_STORIES"
+      "status": "implemented_behavior_wired",
+      "android": "Option.DONT_READ_STORIES, per account; gates stories.readStories and stories.incrementStoryViews, their only senders"
     },
     {
       "setting": "ghostDontSendOnline",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.HIDE_ONLINE"
+      "status": "implemented_behavior_wired",
+      "android": "Option.HIDE_ONLINE, per account; ConnectionsManager sends account.updateStatus as offline"
     },
     {
       "setting": "ghostDontSendTyping",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.HIDE_TYPING, Option.HIDE_RECORDING, Option.HIDE_UPLOAD"
+      "status": "implemented_behavior_wired",
+      "android": "Option.GHOST_DONT_SEND_TYPING drives Option.HIDE_TYPING, Option.HIDE_RECORDING and Option.HIDE_UPLOAD both ways"
     },
     {
       "setting": "ghostGoOfflineAutomatically",
@@ -2230,8 +2220,8 @@
     {
       "setting": "stripTrackingParameters",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.CLEAN_TRACKING_LINKS"
+      "status": "implemented_behavior_wired",
+      "android": "Option.CLEAN_TRACKING_LINKS; new text messages and photo, video and file captions"
     },
     {
       "setting": "wideChannelPosts",
@@ -2716,20 +2706,20 @@
     {
       "setting": "hideTypingText",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.HIDE_TYPING"
+      "status": "implemented_behavior_wired",
+      "android": "Option.HIDE_TYPING via BananaHooks.suppressTypingRequest for every setTyping request"
     },
     {
       "setting": "hideTypingVoice",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.HIDE_RECORDING"
+      "status": "implemented_behavior_wired",
+      "android": "Option.HIDE_RECORDING via BananaHooks.suppressTypingRequest"
     },
     {
       "setting": "hideTypingFiles",
       "type": "Bool",
-      "status": "implemented_pending_full_integration",
-      "android": "Option.HIDE_UPLOAD"
+      "status": "implemented_behavior_wired",
+      "android": "Option.HIDE_UPLOAD via BananaHooks.suppressTypingRequest"
     },
     {
       "setting": "messageShot",
@@ -2907,8 +2897,7 @@
     }
   ],
   "inventory_status_counts": {
-    "implemented_behavior_wired": 146,
-    "implemented_pending_full_integration": 8,
+    "implemented_behavior_wired": 154,
     "implemented_pending_live_server_acceptance": 2,
     "implemented_prompt_and_policy_verified_pending_authenticated_story_flow": 2,
     "implemented_android_backup_pending_session_acceptance": 1,

@@ -44,10 +44,10 @@
 | `showChannelForwardCount` | `implemented_behavior_wired` | BananaConfig.Option.SHOW_CHANNEL_FORWARD_COUNT via BananaHooks call sites |
 | `reactionGlowEnabled` | `implemented_behavior_wired` | BananaHooks.glowPaint |
 | `showContactsTab` | `implemented_behavior_wired` | BananaConfig.Option.SHOW_CONTACTS_TAB via BananaHooks call sites |
-| `ghostDontReadMessages` | `implemented_pending_full_integration` | Option.DONT_READ_MESSAGES |
-| `ghostDontReadStories` | `implemented_pending_full_integration` | Option.DONT_READ_STORIES |
-| `ghostDontSendOnline` | `implemented_pending_full_integration` | Option.HIDE_ONLINE |
-| `ghostDontSendTyping` | `implemented_pending_full_integration` | Option.HIDE_TYPING, Option.HIDE_RECORDING, Option.HIDE_UPLOAD |
+| `ghostDontReadMessages` | `implemented_behavior_wired` | Option.DONT_READ_MESSAGES, per account; ConnectionsManager drops every read request kind; read after send follows Option.GHOST_READ_ON_INTERACT |
+| `ghostDontReadStories` | `implemented_behavior_wired` | Option.DONT_READ_STORIES, per account; gates stories.readStories and stories.incrementStoryViews, their only senders |
+| `ghostDontSendOnline` | `implemented_behavior_wired` | Option.HIDE_ONLINE, per account; ConnectionsManager sends account.updateStatus as offline |
+| `ghostDontSendTyping` | `implemented_behavior_wired` | Option.GHOST_DONT_SEND_TYPING drives Option.HIDE_TYPING, Option.HIDE_RECORDING and Option.HIDE_UPLOAD both ways |
 | `ghostGoOfflineAutomatically` | `implemented_pending_live_server_acceptance` | Option.OFFLINE_AFTER_ACTIVITY: own-online updates and ordinary send acknowledgements; debounced and bounded retries. |
 | `ghostReadOnInteract` | `implemented_behavior_wired` | BananaConfig.Option.GHOST_READ_ON_INTERACT via BananaHooks call sites |
 | `ghostAlertBeforeOpeningStory` | `implemented_prompt_and_policy_verified_pending_authenticated_story_flow` | Option.WARN_BEFORE_STORIES. Account-owned choice: enable Ghost, open normally or cancel; own-only stories and already-private views skip it. Native button/back/dismiss behavior and EN/RU Blue/Night layout verified, including fresh install with disabled system animations. |
@@ -93,7 +93,7 @@
 | `rememberLastFolder` | `implemented_behavior_wired` | BananaConfig.Option.REMEMBER_LAST_FOLDER via BananaHooks call sites |
 | `hideTabBar` | `implemented_behavior_wired` | BananaConfig.Option.HIDE_TAB_BAR via BananaHooks call sites |
 | `showMessageSeconds` | `implemented_behavior_wired` | BananaConfig.Option.SHOW_MESSAGE_SECONDS via BananaHooks call sites |
-| `stripTrackingParameters` | `implemented_pending_full_integration` | Option.CLEAN_TRACKING_LINKS |
+| `stripTrackingParameters` | `implemented_behavior_wired` | Option.CLEAN_TRACKING_LINKS; new text messages and photo, video and file captions |
 | `wideChannelPosts` | `implemented_behavior_wired` | BananaConfig.Option.WIDE_CHANNEL_POSTS via BananaHooks call sites |
 | `stickerSizePercent` | `implemented_behavior_wired` | BananaHooks.stickerSizeScale (MessageObject/ChatMessageCell) |
 | `doubleTapToEdit` | `implemented_behavior_wired` | BananaConfig.Option.DOUBLE_TAP_TO_EDIT via BananaHooks call sites |
@@ -174,9 +174,9 @@
 | `quoteRepliesToDeleted` | `implemented_behavior_wired` | BananaConfig.Option.QUOTE_REPLIES_TO_DELETED via BananaHooks call sites |
 | `exactCounts` | `implemented_behavior_wired` | BananaConfig.Option.EXACT_COUNTS via BananaHooks call sites |
 | `confirmVoiceSend` | `implemented_behavior_wired` | BananaConfig.Option.CONFIRM_VOICE_SEND via BananaHooks call sites |
-| `hideTypingText` | `implemented_pending_full_integration` | Option.HIDE_TYPING |
-| `hideTypingVoice` | `implemented_pending_full_integration` | Option.HIDE_RECORDING |
-| `hideTypingFiles` | `implemented_pending_full_integration` | Option.HIDE_UPLOAD |
+| `hideTypingText` | `implemented_behavior_wired` | Option.HIDE_TYPING via BananaHooks.suppressTypingRequest for every setTyping request |
+| `hideTypingVoice` | `implemented_behavior_wired` | Option.HIDE_RECORDING via BananaHooks.suppressTypingRequest |
+| `hideTypingFiles` | `implemented_behavior_wired` | Option.HIDE_UPLOAD via BananaHooks.suppressTypingRequest |
 | `messageShot` | `implemented_behavior_wired` | BananaConfig.Option.MESSAGE_SHOT via BananaHooks call sites |
 | `powerSaving` | `implemented_behavior_wired` | BananaConfig.Option.POWER_SAVING via BananaHooks call sites |
 | `showsOfflineDot` | `implemented_behavior_wired` | BananaConfig.Option.SHOWS_OFFLINE_DOT via BananaHooks call sites |

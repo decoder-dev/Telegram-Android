@@ -394,12 +394,8 @@ public final class BananaConfig {
             // Never cut an emoji's surrogate pair in half.
             next = next.substring(0, Character.isHighSurrogate(next.charAt(7)) ? 7 : 8);
         }
+        // Marks stay on this account; BananaHooks falls back to AyuGram's own mark only when empty.
         MessagesController.getMainSettings(account).edit().putString(value.key, next).apply();
-        if (value == StringValue.DELETED_MESSAGE_MARK) {
-            syncAyuMark("deletedMarkText", next);
-        } else if (value == StringValue.EDITED_MESSAGE_MARK) {
-            syncAyuMark("editedMarkText", next);
-        }
     }
 
     public static int accentColorSaturation(int account) { return getInt(account, IntValue.ACCENT_COLOR_SATURATION); }
@@ -500,15 +496,6 @@ public final class BananaConfig {
             }
         }
         return fallback;
-    }
-
-    private static void syncAyuMark(String key, String value) {
-        try {
-            if (AyuConfig.editor != null) {
-                AyuConfig.editor.putString(key, value).apply();
-            }
-        } catch (Throwable ignored) {
-        }
     }
 
     private static boolean defaultFor(Option option) {
