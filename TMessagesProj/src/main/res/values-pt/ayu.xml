@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
-  <string name="AyuPreferences">Preferências do AyuGram</string>
+  <string name="AyuPreferences">Preferências avançadas</string>
   <string name="GhostEssentialsHeader">Essenciais do fantasma</string>
   <string name="SendReadPackets">Enviar status de leitura</string>
   <string name="SendOnlinePackets">Enviar status online</string>
@@ -25,7 +25,7 @@
   <string name="MessageSavingSaveForBots">Save in bot dialogs</string>
   <string name="QoLTogglesHeader">Funcionalidades úteis</string>
   <string name="ShowFromChannel">Mostrar rótulo «canal»</string>
-  <string name="KeepAliveService">AyuGram Push Service</string>
+  <string name="KeepAliveService">Serviço push do BananaGram</string>
   <string name="EnableAds">Habilitar anúncios</string>
   <string name="LocalPremium">Local Telegram Premium</string>
   <string name="CustomizationHeader">Personalização</string>
@@ -47,7 +47,7 @@
   <string name="RegexFiltersAddDescription">Você pode usar o site <![CDATA[<a href="https://regex101.com">regex101.com</a>]]> para testar completamente a sua expressão regular.
 Você também pode usar texto simples, mas não se esqueça de escapar de parênteses.</string>
   <string name="RegexFiltersAddError">Erro de sintaxe Regex</string>
-  <string name="AyuSyncHeader">AyuSync</string>
+  <string name="AyuSyncHeader">Sincronização do histórico</string>
   <string name="AyuSyncStatusTitle">Sync status</string>
   <string name="AyuSyncStatusOk">conectado</string>
   <string name="AyuSyncStatusErrorDisconnected">desconectado</string>
@@ -70,8 +70,8 @@ Você também pode usar texto simples, mas não se esqueça de escapar de parên
   <string name="AyuSyncOpenPreferences">Abrir preferências</string>
   <string name="AyuSyncDownloadAgent">Descarregar cliente</string>
   <string name="WALMode">Ativar o modo WAL</string>
-  <string name="ClearAyuDatabase">Clear Ayu Database</string>
-  <string name="ClearAyuDatabaseNotification">AyuGram database cleared</string>
+  <string name="ClearAyuDatabase">Limpar banco de dados do histórico</string>
+  <string name="ClearAyuDatabaseNotification">Banco de dados do histórico limpo</string>
   <string name="EraseLocalDatabase">Erase Local Database</string>
   <string name="BetaFeatures">Funcionalidades Beta</string>
   <string name="StickerConfirmation">Confirmação do envio do autocolante</string>
@@ -98,7 +98,6 @@ Você também pode usar texto simples, mas não se esqueça de escapar de parên
   <string name="ContextCopyID">Copiar ID</string>
   <string name="IDCopiedToast">ID copiado para a área de transferência.</string>
   <string name="ContextHideMessage">Ocultar</string>
-  <string name="SettingsWatermark">AyuGram desenvolvido e mantido por Radolyn Labs.</string>
   <string name="SettingsDescription">Just an exteraGram based client with ToS breaking features in mind.</string>
   <string name="SecretMessageTecno">Tecno phones are the best.</string>
   <string name="SecretMessageXiaomiSuccess">You\'re using a good phone.</string>
