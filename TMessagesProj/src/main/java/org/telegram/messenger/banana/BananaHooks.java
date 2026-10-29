@@ -1337,10 +1337,6 @@ public final class BananaHooks {
         return BananaConfig.get(account, BananaConfig.Option.SHOW_SENSITIVE_CONTENT);
     }
 
-    public static boolean doubleTapToEdit(int account) {
-        return BananaConfig.get(account, BananaConfig.Option.DOUBLE_TAP_TO_EDIT);
-    }
-
     public static boolean quickTranslateButton(int account) {
         return BananaConfig.get(account, BananaConfig.Option.QUICK_TRANSLATE_BUTTON);
     }
