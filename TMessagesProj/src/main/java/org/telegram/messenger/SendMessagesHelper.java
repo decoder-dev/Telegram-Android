@@ -4517,15 +4517,21 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         PollSendParams pollSendParams = sendMessageParams.pollSendParams;
         TL_iv.RichMessage richMessage = sendMessageParams.richMessage;
 
-        final boolean cleanTrackingLinks = message != null && richMessage == null && retryMessageObject == null &&
+        final boolean cleanTrackingLinks = richMessage == null && retryMessageObject == null &&
                 sendMessageChatArguments.welcomeMessageChatId == 0 && quick_reply_shortcut == null && quick_reply_shortcut_id == 0 &&
-                photo == null && document == null && videoEditedInfo == null && location == null &&
-                user == null && game == null && poll == null && todo == null && invoice == null && sendingStory == null &&
+                location == null && user == null && game == null && poll == null && todo == null && invoice == null && sendingStory == null &&
                 org.telegram.messenger.banana.BananaConfig.cleanTrackingLinks(currentAccount);
-        if (cleanTrackingLinks) {
+        // Photo, video and file captions carry the entities, so they are cleaned like a text message.
+        final boolean media = photo != null || document != null || videoEditedInfo != null;
+        if (cleanTrackingLinks && !media && message != null) {
             org.telegram.messenger.banana.TrackingLinks.Result cleaned =
                     org.telegram.messenger.banana.TrackingLinks.clean(message, entities);
             message = cleaned.text;
+            entities = cleaned.entities;
+        } else if (cleanTrackingLinks && media && caption != null) {
+            org.telegram.messenger.banana.TrackingLinks.Result cleaned =
+                    org.telegram.messenger.banana.TrackingLinks.clean(caption, entities);
+            caption = cleaned.text;
             entities = cleaned.entities;
         }
 

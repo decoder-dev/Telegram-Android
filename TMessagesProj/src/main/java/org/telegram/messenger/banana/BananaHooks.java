@@ -1034,6 +1034,17 @@ public final class BananaHooks {
         return mark != null ? mark : "";
     }
 
+    /** The mark shown in the time label: this account's, or AyuGram's when the Banana field is empty. */
+    public static String shownEditedMark(int account) {
+        String mark = editedMark(account);
+        return mark.isEmpty() ? AyuConfig.getEditedMark() : mark;
+    }
+
+    public static String shownDeletedMark(int account) {
+        String mark = deletedMark(account);
+        return mark.isEmpty() ? AyuConfig.getDeletedMark() : mark;
+    }
+
     /** Append " #id" when SHOW_MESSAGE_ID is enabled. */
     public static String appendMessageId(int account, String timeString, int messageId) {
         if (!showMessageId(account) || messageId <= 0 || timeString == null) {
