@@ -43,6 +43,12 @@ jobs:
     timeout-minutes: 90
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: '2'
+      BANANAGRAM_CCACHE: /usr/bin/ccache
+      CCACHE_DIR: ${{ runner.temp }}/bananagram-ccache
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_COMPILERCHECK: content
+      CCACHE_COMPRESS: 'true'
+      CCACHE_MAXSIZE: 2G
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -55,6 +61,31 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: gradle
+
+      - name: Restore native compiler cache
+        id: native_cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: banana-native-v1-${{ runner.os }}-ndk27-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: banana-native-v1-${{ runner.os }}-ndk27-
+
+      - name: Restore Gradle task outputs
+        id: gradle_tasks
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.gradle/caches/build-cache-1
+          key: banana-gradle-tasks-v1-${{ runner.os }}-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: banana-gradle-tasks-v1-${{ runner.os }}-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}-
+
+      - name: Prepare native compiler cache
+        run: |
+          if ! command -v ccache >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y ccache
+          fi
+          mkdir -p "$CCACHE_DIR"
+          ccache --zero-stats
 
       - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
         with:
@@ -72,6 +103,7 @@ jobs:
           chmod 600 "$RUNNER_TEMP/bananagram-release.p12"
 
       - name: Build signed release APK
+        id: build_signed
         env:
           TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
           TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
@@ -79,7 +111,7 @@ jobs:
           BANANAGRAM_RELEASE_STORE_PASSWORD: ${{ secrets.BANANAGRAM_RELEASE_STORE_PASSWORD }}
           BANANAGRAM_RELEASE_KEY_ALIAS: ${{ secrets.BANANAGRAM_RELEASE_KEY_ALIAS }}
           BANANAGRAM_RELEASE_KEY_PASSWORD: ${{ secrets.BANANAGRAM_RELEASE_KEY_PASSWORD }}
-        run: python3 scripts/build-android.py -- -Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.workers.max=2 :TMessagesProj_AppStandalone:assembleAfatStandalone
+        run: python3 scripts/build-android.py -- --build-cache -Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.workers.max=2 :TMessagesProj_AppStandalone:assembleAfatStandalone
 
       - name: Verify APK identity and signature
         env:
@@ -111,7 +143,7 @@ jobs:
           grep -Fxq "targetSdkVersion:'36'" "$badging"
           grep -Fxq 'Signer #1 certificate SHA-256 digest: ceed8fcb50535731aeab5d27cd75d02936b0a9e466c0285d0da0baa93d3e5634' "$RUNNER_TEMP/bananagram-signature.txt"
           python3 scripts/check-apk-native-pages.py "$apk"
-          python3 scripts/check-theme-reflection.py TMessagesProj_AppStandalone/build/outputs/mapping/afatStandalone/mapping.txt
+          python3 scripts/check-theme-reflection.py TMessagesProj_AppStandalone/build/outputs/mapping/afatStandalone/mapping.txt --apk "$apk"
           mkdir -p build/release-output
           version="$(sed -n 's/^APP_VERSION_NAME=//p' gradle.properties)"
           cp "$apk" "build/release-output/BananaGram-${version}-release.apk"
@@ -127,6 +159,19 @@ jobs:
           path: build/release-output/
           if-no-files-found: error
           retention-days: 30
+
+      - name: Preserve the signed APK and mapping if packaging fails
+        if: failure() && steps.build_signed.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: BananaGram-failed-release-${{ github.sha }}
+          path: |
+            TMessagesProj_AppStandalone/build/**/app.apk
+            TMessagesProj_AppStandalone/build/outputs/mapping/afatStandalone/mapping.txt
+            ${{ runner.temp }}/bananagram-signature.txt
+            ${{ runner.temp }}/bananagram-badging.txt
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Publish signed prerelease for in-app updates
         env:
@@ -149,3 +194,26 @@ jobs:
           gh release create "$tag" build/release-output/* \
             --target "$GITHUB_SHA" --title "BananaGram Android $version" \
             --prerelease --notes-file "$notes"
+
+      - name: Report native compiler cache statistics
+        id: native_stats
+        if: always() && steps.build_signed.outcome != 'skipped'
+        run: |
+          ccache --show-stats
+          if [ -n "$(find "$CCACHE_DIR" -type f -name '*R' -print -quit)" ]; then
+            printf 'has_cache=true\n' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save native compiler cache even after a failed release
+        if: always() && steps.native_stats.outputs.has_cache == 'true' && steps.native_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ steps.native_cache.outputs.cache-primary-key }}
+
+      - name: Save Gradle task outputs even after a failed release
+        if: always() && steps.build_signed.outcome != 'skipped' && steps.gradle_tasks.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.gradle/caches/build-cache-1
+          key: ${{ steps.gradle_tasks.outputs.cache-primary-key }}

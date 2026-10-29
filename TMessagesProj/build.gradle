@@ -242,6 +242,10 @@ android {
             cmake {
                 version '3.22.1'
                 arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-23' //, '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'
+                def compilerCache = System.getenv('BANANAGRAM_CCACHE')
+                if (compilerCache) {
+                    arguments "-DCMAKE_C_COMPILER_LAUNCHER=${compilerCache}", "-DCMAKE_CXX_COMPILER_LAUNCHER=${compilerCache}"
+                }
                 targets 'tmessages.49', 'sharpyuv', 'webpdecoder', 'webp', 'webpdemux', 'libwebpmux'
             }
         }
