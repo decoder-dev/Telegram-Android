@@ -4466,7 +4466,7 @@ public class ChatActivity extends BaseFragment implements
         } else {
             actionBar.addView(avatarContainer, 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, !inPreviewMode ? 52 : 0, 0, 52, 0));
             actionBar.createMenu().bringToFront();
-            org.telegram.messenger.banana.BananaIsland.attachToActionBar(actionBar, currentAccount);
+            // The chat shows the activity-level island from onResume; a second ActionBar chip would stack under it.
         }
         actionBar.setOnActionModeFactorChangeListener(() -> {
             checkUi_avatarContainerVisibility();

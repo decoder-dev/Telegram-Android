@@ -51,11 +51,10 @@ public final class BananaIsland {
         }
         Chip chip = new Chip(actionBar.getContext(), account, null);
         chip.setTag(TAG);
-        int top = actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0;
         FrameLayout.LayoutParams lp = LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, 28,
                 Gravity.TOP | Gravity.CENTER_HORIZONTAL,
-                0, Math.max(2, (top > 0 ? (top - AndroidUtilities.dp(28)) / 2 : 4)), 0, 0);
+                0, topMarginDp(actionBar.getOccupyStatusBar(), 4), 0, 0);
         actionBar.addView(chip, lp);
         return chip;
     }
@@ -112,11 +111,10 @@ public final class BananaIsland {
         overlayChip.setTag(TAG);
         overlayChip.setAlpha(0f);
         overlayChip.setVisibility(View.GONE);
-        int top = AndroidUtilities.statusBarHeight > 0 ? Math.max(2, (AndroidUtilities.statusBarHeight - AndroidUtilities.dp(28)) / 2) : AndroidUtilities.dp(8);
         FrameLayout.LayoutParams chipLp = LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, 28,
                 Gravity.TOP | Gravity.CENTER_HORIZONTAL,
-                0, top, 0, 0);
+                0, topMarginDp(true, 8), 0, 0);
         overlayHost.addView(overlayChip, chipLp);
     }
 
@@ -167,6 +165,12 @@ public final class BananaIsland {
         }
         overlayHost = null;
         overlayChip = null;
+    }
+
+    /** Top margin in dp (LayoutHelper converts it): centered in the status bar, never above 2dp. */
+    private static float topMarginDp(boolean underStatusBar, float fallbackDp) {
+        float statusBarDp = underStatusBar ? AndroidUtilities.statusBarHeight / AndroidUtilities.density : 0;
+        return statusBarDp > 0 ? Math.max(2f, (statusBarDp - 28f) / 2f) : fallbackDp;
     }
 
     private static final class Chip extends LinearLayout {
