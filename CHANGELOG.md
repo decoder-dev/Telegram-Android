@@ -6,6 +6,8 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- Strings defined in ayu.xml and extera.xml now reach the generated localization assets. The advanced preferences, updater and other exteraGram/AyuGram screens showed "LOC_ERR:" labels because the generator read only strings.xml.
+
 - Banana ghost switches and local Premium apply only to the account they are set on. They used to write AyuGram's process-wide flags, so one account's ghost mode leaked into every other account. A one-time migration resets the leaked flags; accounts without Banana ghost send read receipts and online status again.
 - With "Read on Interact" off, sending in a ghosted chat no longer marks it read. Switching "Don't send typing" off restores typing, recording and upload status. The double-tap action defaults to the quick reaction, as in Telegram, instead of Off. It alone decides double-tap behavior: react, reply, repeat and translate work on incoming messages while "Double tap to edit" is on, and only the reaction requires a reaction the chat allows.
 - "Send as round" goes through Telegram's round-video path, the same one a camera recording uses, so the message gets a round preview while uploading and the right secret-chat attribute.
