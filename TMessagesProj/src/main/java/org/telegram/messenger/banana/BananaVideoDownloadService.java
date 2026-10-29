@@ -52,12 +52,13 @@ public final class BananaVideoDownloadService extends Service {
             return START_NOT_STICKY;
         }
         if (busy) { toast(R.string.BananaVideoBusy); return START_NOT_STICKY; }
+        // startForegroundService() requires startForeground() even for a rejected request, or Android 9+ crashes the app.
+        notification(LocaleController.getString(R.string.BananaVideoPreparing), -1);
         String url = intent.getStringExtra("url");
         int account = intent.getIntExtra("account", -1);
         long owner = intent.getLongExtra("owner", 0);
         if (!VideoDownloadPolicy.accepts(url) || account < 0 || account >= UserConfig.MAX_ACCOUNT_COUNT || owner <= 0
                 || UserConfig.getInstance(account).getClientUserId() != owner) { stopSelf(); return START_NOT_STICKY; }
-        notification(LocaleController.getString(R.string.BananaVideoPreparing), -1);
         busy = true; cancelled.set(false); processId = java.util.UUID.randomUUID().toString();
         worker.execute(() -> download(url, account, owner));
         return START_NOT_STICKY;
