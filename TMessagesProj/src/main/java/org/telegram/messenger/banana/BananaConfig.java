@@ -197,24 +197,62 @@ public final class BananaConfig {
         editor.putBoolean(Option.GHOST_DONT_SEND_TYPING.key, enabled);
         editor.putBoolean(Option.OFFLINE_AFTER_ACTIVITY.key, enabled);
         editor.apply();
-        // Keep overlapping AyuGram ghost prefs aligned with Banana as source of truth.
-        try {
-            AyuConfig.sendReadPackets = !enabled;
-            AyuConfig.sendOnlinePackets = !enabled;
-            AyuConfig.sendUploadProgress = !enabled;
-            AyuConfig.sendOfflinePacketAfterOnline = enabled;
-            AyuConfig.useScheduledMessages = enabled && get(account, Option.GHOST_SCHEDULE_MESSAGES);
-            if (AyuConfig.editor != null) {
-                AyuConfig.editor
-                        .putBoolean("sendReadPackets", AyuConfig.sendReadPackets)
-                        .putBoolean("sendOnlinePackets", AyuConfig.sendOnlinePackets)
-                        .putBoolean("sendUploadProgress", AyuConfig.sendUploadProgress)
-                        .putBoolean("sendOfflinePacketAfterOnline", AyuConfig.sendOfflinePacketAfterOnline)
-                        .putBoolean("useScheduledMessages", AyuConfig.useScheduledMessages)
-                        .apply();
-            }
-        } catch (Throwable ignored) {
+        // Every request hook checks these per-account options itself; AyuGram's process-wide
+        // ghost flags are left to AyuGram's own screen so one account never ghosts another.
+    }
+
+    private static final String GHOST_SCOPE_MIGRATED = "bananaGhostScopeMigrated";
+
+    /**
+     * Earlier builds mirrored Banana ghost and local Premium switches into AyuGram's process-wide
+     * flags, so turning one on for one account also applied it to every other account. Once per
+     * install, reset each Ayu
+     * flag that a Banana option in some account explains back to Ayu's default; the Banana
+     * option keeps covering the account it was turned on for.
+     */
+    public static void migrateGhostScope() {
+        // Runs from Application.onCreate: read the account files directly instead of creating
+        // a MessagesController for every account slot.
+        SharedPreferences global = accountPreferences(0);
+        if (global.getBoolean(GHOST_SCOPE_MIGRATED, false) || AyuConfig.editor == null) {
+            return;
         }
+        SharedPreferences.Editor ayu = AyuConfig.editor;
+        if (!AyuConfig.sendReadPackets && anyAccount(Option.DONT_READ_MESSAGES)) {
+            ayu.putBoolean("sendReadPackets", AyuConfig.sendReadPackets = true);
+        }
+        if (!AyuConfig.sendOnlinePackets && anyAccount(Option.HIDE_ONLINE)) {
+            ayu.putBoolean("sendOnlinePackets", AyuConfig.sendOnlinePackets = true);
+        }
+        if (!AyuConfig.sendUploadProgress && (anyAccount(Option.GHOST_DONT_SEND_TYPING) || anyAccount(Option.HIDE_UPLOAD))) {
+            ayu.putBoolean("sendUploadProgress", AyuConfig.sendUploadProgress = true);
+        }
+        if (AyuConfig.sendOfflinePacketAfterOnline && anyAccount(Option.OFFLINE_AFTER_ACTIVITY)) {
+            ayu.putBoolean("sendOfflinePacketAfterOnline", AyuConfig.sendOfflinePacketAfterOnline = false);
+        }
+        if (AyuConfig.useScheduledMessages && anyAccount(Option.GHOST_SCHEDULE_MESSAGES)) {
+            ayu.putBoolean("useScheduledMessages", AyuConfig.useScheduledMessages = false);
+        }
+        if (AyuConfig.localPremium && anyAccount(Option.LOCAL_PREMIUM)) {
+            ayu.putBoolean("localPremium", AyuConfig.localPremium = false);
+        }
+        ayu.apply();
+        global.edit().putBoolean(GHOST_SCOPE_MIGRATED, true).apply();
+    }
+
+    private static boolean anyAccount(Option option) {
+        for (int account = 0; account < org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT; account++) {
+            if (accountPreferences(account).getBoolean(option.key, defaultFor(option))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Same files as MessagesController.getMainSettings(account). */
+    private static SharedPreferences accountPreferences(int account) {
+        return org.telegram.messenger.ApplicationLoader.applicationContext.getSharedPreferences(
+                account == 0 ? "mainconfig" : "mainconfig" + account, android.content.Context.MODE_PRIVATE);
     }
 
     public static SilentSending silentSending(int account) {
