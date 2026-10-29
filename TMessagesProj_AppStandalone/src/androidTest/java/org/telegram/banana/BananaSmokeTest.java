@@ -49,6 +49,19 @@ import static org.junit.Assert.*;
 /** Runs without a signed-in user; never sends messages or changes a real account. */
 public class BananaSmokeTest {
     @Test
+    public void stringsOutsideStringsXmlResolve() {
+        // LocaleController reads generated assets only; ayu.xml and extera.xml strings once showed
+        // as "LOC_ERR:" on the AyuGram preferences and updater screens.
+        int[] samples = {R.string.AyuPreferences, R.string.DontSendReadPackets, R.string.ClearAyuDatabase,
+                R.string.CheckForUpdates, R.string.CurrentVersion, R.string.LastCheck, R.string.BananaExtras};
+        for (int res : samples) {
+            String value = LocaleController.getString(res);
+            assertFalse("Unresolved string " + res + ": " + value, value == null || value.startsWith("LOC_ERR"));
+        }
+        assertFalse(LocaleController.getString("CheckForUpdates").startsWith("LOC_ERR"));
+    }
+
+    @Test
     public void externalThemesCannotReplaceAnyAllowedPalette() {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         instrumentation.runOnMainSync(() -> {

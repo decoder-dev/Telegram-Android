@@ -11,6 +11,8 @@ import org.telegram.tasks.GenerateStringResourceIdsAssetTask
 import org.telegram.tasks.GenerateLottieMetadataAssetFileTask
 import org.telegram.tasks.TelegramStringsTask
 
+private val STRING_FILES = listOf("strings.xml", "ayu.xml", "extera.xml")
+
 class TelegramBuildAppPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val telegramModule = project.project(":TMessagesProj")
@@ -24,21 +26,24 @@ class TelegramBuildAppPlugin : Plugin<Project> {
             val task = project.tasks.register<TelegramStringsTask>(
                 "generate${suffix}TelegramStrings"
             ) {
+                // LocaleController reads every string from the generated assets, never from
+                // Android resources, so each values file that defines strings must be listed.
+                // ayu.xml and extera.xml hold the AyuGram and exteraGram screens' strings.
                 stringsXml.from(
                     telegramModule.fileTree("src/main/res/values") {
-                        include("strings.xml")
+                        include(STRING_FILES)
                     },
                     project.fileTree("src/main/res/values") {
-                        include("strings.xml")
+                        include(STRING_FILES)
                     }
                 )
 
                 localizationFiles.from(
                     telegramModule.fileTree("src/main/res") {
-                        include("values-*/strings.xml")
+                        include(STRING_FILES.map { "values-*/$it" })
                     },
                     project.fileTree("src/main/res") {
-                        include("values-*/strings.xml")
+                        include(STRING_FILES.map { "values-*/$it" })
                     }
                 )
 
