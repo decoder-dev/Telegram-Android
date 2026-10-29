@@ -419,14 +419,7 @@ public final class BananaArchiveLock {
                         clearFailures(account);
                         unlock(account, onSuccess);
                     } else {
-                        recordFailure(account);
-                        long again = remainingCooldownSeconds(account);
-                        if (again > 0) {
-                            showMessage(fragment, LocaleController.formatString(R.string.BananaArchiveCooldown, (int) again));
-                        } else {
-                            int left = Math.max(0, 5 - state(account).failures);
-                            showMessage(fragment, LocaleController.formatString(R.string.BananaArchiveIncorrect, left));
-                        }
+                        showFailure(fragment, account);
                     }
                 });
             });
@@ -453,13 +446,23 @@ public final class BananaArchiveLock {
                             onMatch.run();
                         }
                     } else {
-                        recordFailure(account);
-                        int left = Math.max(0, 5 - state(account).failures);
-                        showMessage(fragment, LocaleController.formatString(R.string.BananaArchiveIncorrect, left));
+                        showFailure(fragment, account);
                     }
                 });
             });
         });
+    }
+
+    /** Records a wrong password and shows the cooldown once it starts, like the unlock prompt. */
+    private static void showFailure(BaseFragment fragment, int account) {
+        recordFailure(account);
+        long again = remainingCooldownSeconds(account);
+        if (again > 0) {
+            showMessage(fragment, LocaleController.formatString(R.string.BananaArchiveCooldown, (int) again));
+        } else {
+            int left = Math.max(0, 5 - state(account).failures);
+            showMessage(fragment, LocaleController.formatString(R.string.BananaArchiveIncorrect, left));
+        }
     }
 
     private interface PasswordCallback {
@@ -884,12 +887,7 @@ public final class BananaArchiveLock {
     private static void recordFailure(int account) {
         State state = state(account);
         state.failures++;
-        long now = SystemClock.elapsedRealtime();
-        if (state.failureElapsed > now) {
-            state.failureElapsed = now;
-        } else {
-            state.failureElapsed = now;
-        }
+        state.failureElapsed = SystemClock.elapsedRealtime();
         write(account, state);
     }
 
