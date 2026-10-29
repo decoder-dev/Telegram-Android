@@ -6,6 +6,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- The updater sheet no longer crashes when "Check on launch" or "Auto-download" is tapped. Upstream TextCell creates its switch only with needCheck, so these rows had no switch and setChecked hit a null Switch. TextCell now creates the switch when a text-and-check setter needs it.
 - Strings defined in ayu.xml and extera.xml now reach the generated localization assets. The advanced preferences, updater and other exteraGram/AyuGram screens showed "LOC_ERR:" labels because the generator read only strings.xml.
 
 - Banana ghost switches and local Premium apply only to the account they are set on. They used to write AyuGram's process-wide flags, so one account's ghost mode leaked into every other account. A one-time migration resets the leaked flags; accounts without Banana ghost send read receipts and online status again.
