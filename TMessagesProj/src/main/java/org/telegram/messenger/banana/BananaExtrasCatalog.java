@@ -14,7 +14,7 @@ import org.telegram.messenger.banana.BananaConfig.Option;
  */
 public final class BananaExtrasCatalog {
     public static final String[] HUB_ORDER = {
-            "NINJA", "GHOST", "PRIVACY", "APPEARANCE", "CHAT_LIST", "TAB_BAR", "MESSAGES", "MEDIA", "PROFILE", "NETWORK"
+            "NINJA", "PRIVACY", "APPEARANCE", "CHAT_LIST", "TAB_BAR", "MESSAGES", "MEDIA", "PROFILE", "NETWORK"
     };
 
     /** A titled run of switches inside a section. title is 0 for a section with a single group. */
@@ -31,15 +31,14 @@ public final class BananaExtrasCatalog {
     private static final Map<String, Group[]> SECTIONS;
     static {
         Map<String, Group[]> map = new LinkedHashMap<>();
+        // Ninja and Ghost are one section: ghost activity first, then the archive and filters.
         map.put("NINJA", new Group[] {
+                new Group(R.string.BananaGroup_Activity, Option.DONT_READ_MESSAGES, Option.HIDE_ONLINE, Option.OFFLINE_AFTER_ACTIVITY, Option.GHOST_READ_ON_INTERACT, Option.GHOST_DONT_SEND_TYPING, Option.HIDE_TYPING, Option.HIDE_RECORDING, Option.HIDE_UPLOAD),
+                new Group(R.string.BananaGroup_Stories, Option.DONT_READ_STORIES, Option.WARN_BEFORE_STORIES, Option.GHOST_SUGGEST_FOR_STORIES),
+                new Group(R.string.BananaGroup_Sending, Option.GHOST_SCHEDULE_MESSAGES, Option.GHOST_SEND_WITHOUT_SOUND),
                 new Group(R.string.BananaGroup_Archive, Option.SAVE_DELETED, Option.SAVE_EDITS, Option.SAVE_BOT_HISTORY, Option.SAVE_MEDIA_HISTORY, Option.PROACTIVE_SAVE_MEDIA, Option.QUOTE_REPLIES_TO_DELETED),
                 new Group(R.string.BananaGroup_Content, Option.AYU_FORWARD, Option.BYPASS_DOWNLOAD_RESTRICTIONS, Option.SHOW_SENSITIVE_CONTENT, Option.HIDE_ADS, Option.HIDE_BLOCKED_MESSAGES),
                 new Group(R.string.BananaGroup_Filters, Option.REGEX_MESSAGE_FILTERS_ENABLED, Option.REGEX_MESSAGE_FILTERS_CASE_INSENSITIVE)
-        });
-        map.put("GHOST", new Group[] {
-                new Group(R.string.BananaGroup_Activity, Option.DONT_READ_MESSAGES, Option.HIDE_ONLINE, Option.OFFLINE_AFTER_ACTIVITY, Option.GHOST_READ_ON_INTERACT, Option.GHOST_DONT_SEND_TYPING, Option.HIDE_TYPING, Option.HIDE_RECORDING, Option.HIDE_UPLOAD),
-                new Group(R.string.BananaGroup_Stories, Option.DONT_READ_STORIES, Option.WARN_BEFORE_STORIES, Option.GHOST_SUGGEST_FOR_STORIES),
-                new Group(R.string.BananaGroup_Sending, Option.GHOST_SCHEDULE_MESSAGES, Option.GHOST_SEND_WITHOUT_SOUND)
         });
         map.put("PRIVACY", new Group[] {
                 new Group(R.string.BananaGroup_LockScreen, Option.INSTANT_PASSCODE_LOCK, Option.STREAMER_MODE, Option.ALLOW_SECRET_SCREENSHOTS, Option.ALLOW_PROTECTED_SCREENSHOTS, Option.EXPIRE_TTL_BUTTON),

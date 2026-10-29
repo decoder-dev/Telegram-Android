@@ -61,10 +61,8 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
             items.add(BananaValueCell.Factory.of(9100,
                     LocaleController.getString(R.string.BananaVisualLabel),
                     BananaVisualLabels.labelName(currentAccount)));
-        } else if ("GHOST".equals(section)) {
-            items.add(UItem.asShadow(LocaleController.getString(R.string.BananaGhostModeInfo)));
         } else if ("NINJA".equals(section)) {
-            items.add(UItem.asShadow(null));
+            items.add(UItem.asShadow(LocaleController.getString(R.string.BananaGhostModeInfo)));
             items.add(UItem.asButton(9001, LocaleController.getString(R.string.BananaHistoryOpen)));
             items.add(UItem.asButton(9002, LocaleController.getString(R.string.BananaFilters)));
             items.add(UItem.asShadow(LocaleController.getString(R.string.BananaHistoryInfo)));
