@@ -7871,7 +7871,8 @@ public class MessagesStorage extends BaseController {
         return ref.get();
     }
 
-    private TLRPC.Message getMessageInternal(long dialogId, long msgId) {
+    /** Reads one cached message without waiting; call it on the storage queue only. */
+    TLRPC.Message getMessageInternal(long dialogId, long msgId) {
         SQLiteCursor cursor = null;
         TLRPC.Message result = null;
         try {
