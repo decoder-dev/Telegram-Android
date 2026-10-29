@@ -210,16 +210,18 @@ public class BananaSmokeTest {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         instrumentation.getTargetContext().startActivity(intent);
         LaunchActivity[] launched = new LaunchActivity[1];
+        // A cold start from cleared data loads native libraries and databases first; slow emulators
+        // need longer than the per-step wait used by the rest of the scenario.
         await(instrumentation, () -> {
             launched[0] = LaunchActivity.instance;
             return launched[0] != null && launched[0].getActionBarLayout() != null && launched[0].hasWindowFocus();
-        }, "LaunchActivity must become visible");
+        }, "LaunchActivity must become visible", 60000);
         LaunchActivity activity = launched[0];
         await(instrumentation, () -> {
             org.telegram.ui.ActionBar.BaseFragment root = activity.getActionBarLayout().getLastFragment();
             return root != null && root.getFragmentView() != null && root.getFragmentView().isLaidOut() &&
                     !activity.getActionBarLayout().isTransitionAnimationInProgress();
-        }, "The initial host must finish its navigation before Extras is opened");
+        }, "The initial host must finish its navigation before Extras is opened", 60000);
         assertFalse("Use a fresh emulator, never a signed-in account", org.telegram.messenger.UserConfig.getInstance(0).isClientActivated());
         assertFalse("Use a fresh emulator, never a signed-in account", org.telegram.messenger.UserConfig.getInstance(1).isClientActivated());
         checkAutomaticProxyVisibility(instrumentation, activity);
@@ -1036,6 +1038,10 @@ public class BananaSmokeTest {
         instrumentation.waitForIdleSync();
         // Capture a rendered frame after native list/text changes, not the previous buffer.
         SystemClock.sleep(150);
+        writeScreenshot(instrumentation, name);
+    }
+
+    private static void writeScreenshot(Instrumentation instrumentation, String name) throws Exception {
         File directory = instrumentation.getTargetContext().getExternalFilesDir("banana-smoke");
         assertNotNull(directory);
         assertTrue(directory.isDirectory() || directory.mkdirs());
@@ -1049,7 +1055,11 @@ public class BananaSmokeTest {
     }
 
     private static void await(Instrumentation instrumentation, BooleanSupplier condition, String message) {
-        long deadline = SystemClock.uptimeMillis() + 15000;
+        await(instrumentation, condition, message, 15000);
+    }
+
+    private static void await(Instrumentation instrumentation, BooleanSupplier condition, String message, long timeoutMs) {
+        long deadline = SystemClock.uptimeMillis() + timeoutMs;
         AtomicBoolean ready = new AtomicBoolean();
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.runOnMainSync(() -> ready.set(condition.getAsBoolean()));
@@ -1066,8 +1076,12 @@ public class BananaSmokeTest {
                         "; transition=" + activity.getActionBarLayout().isTransitionAnimationInProgress();
             }
         });
-        try { capture(instrumentation, "failure-" + java.util.UUID.randomUUID()); }
-        catch (Exception ignored) { }
+        // Skip waitForIdleSync here: a screen that keeps animating never lets the main thread go idle,
+        // and waiting for it would hang the whole suite instead of failing this test.
+        String failure = "failure-" + java.util.UUID.randomUUID();
+        scenario(instrumentation, failure);
+        try { writeScreenshot(instrumentation, failure); }
+        catch (Exception | AssertionError ignored) { }
         fail(message + state[0]);
     }
 
