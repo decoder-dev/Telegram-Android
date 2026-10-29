@@ -23,4 +23,10 @@ public class UpdaterUtilsTest {
         assertEquals(0, UpdaterUtils.compareVersions("latest", "13.1.1"));
         assertEquals(0, UpdaterUtils.compareVersions("13.1.1-rc.1", "latest"));
     }
+
+    @Test
+    public void readsGitHubTimestampsAsUtc() {
+        assertEquals(1793220900L, UpdaterUtils.publishedSeconds("2026-10-28T20:55:00Z"));
+        assertEquals(0L, UpdaterUtils.publishedSeconds("2026-10-28 20:55:00"));
+    }
 }
