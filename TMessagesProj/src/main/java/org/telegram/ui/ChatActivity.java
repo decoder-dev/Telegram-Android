@@ -2015,18 +2015,6 @@ public class ChatActivity extends BaseFragment implements
         @Override
         public boolean hasDoubleTap(View view, int position) {
             if (isQuickRepliesOrWelcomeMessagesMode()) return false;
-            String reactionStringSetting = getMediaDataController().getDoubleTapReaction();
-            TLRPC.TL_availableReaction reaction = getMediaDataController().getReactionsMap().get(reactionStringSetting);
-            if (reaction == null && (reactionStringSetting == null || !reactionStringSetting.startsWith("animated_"))) {
-                return false;
-            }
-            boolean available = dialog_id >= 0;
-            if (!available && chatInfo != null) {
-                available = ChatObject.reactionIsAvailable(chatInfo, reaction == null ? reactionStringSetting : reaction.reaction);
-            }
-            if (!available) {
-                return false;
-            }
             MessageObject messageObject;
             if (view instanceof ChatMessageCell) {
                 messageObject = ((ChatMessageCell) view).getPrimaryMessageObject();
@@ -2048,7 +2036,17 @@ public class ChatActivity extends BaseFragment implements
             if (bananaTap == 2 || bananaTap == 3 || bananaTap == 4) {
                 return true;
             }
-            return messageObject.canSetReaction();
+            // Only the quick reaction needs a reaction this chat allows; the other actions do not.
+            String reactionStringSetting = getMediaDataController().getDoubleTapReaction();
+            TLRPC.TL_availableReaction reaction = getMediaDataController().getReactionsMap().get(reactionStringSetting);
+            if (reaction == null && (reactionStringSetting == null || !reactionStringSetting.startsWith("animated_"))) {
+                return false;
+            }
+            boolean available = dialog_id >= 0;
+            if (!available && chatInfo != null) {
+                available = ChatObject.reactionIsAvailable(chatInfo, reaction == null ? reactionStringSetting : reaction.reaction);
+            }
+            return available && messageObject.canSetReaction();
         }
 
         @Override
