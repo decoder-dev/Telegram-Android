@@ -21,6 +21,9 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 - The exteraGram appearance settings no longer show a dead "People Nearby" drawer switch labelled "Or choose a venue"; Telegram removed the feature.
 - Saving self-destructing and auto-deleted messages (AyuGram "save deleted", on by default) no longer blocks the UI thread. For every expiring message the hook waited on a storage-queue read and then wrote the AyuGram database, and could copy media, on the main thread. It now runs on the storage queue, still before the message and its files are deleted.
 - The AyuGram regex-filter verdict cache is cleared after 256 chats instead of growing for the whole session.
+- Glass bubbles reuse their recorded backdrop while the bubble stays in place. Re-recording on every frame made the GPU recompute each bubble's blur and refraction whenever anything in the chat animated.
+- Avatar and reaction glow are drawn from small cached bitmaps instead of a shadow-layer stroke that was blurred again on every draw while scrolling.
+- Opening the message menu skips the edit-history database query for messages that were never edited.
 - The auto-download check no longer builds a full MessageObject for every media message when regex filters are off. The AyuGram hook parsed text, entities and emoji on each check while scrolling and loading chats, only to have the disabled filter return false.
 - The updater sheet no longer crashes when "Check on launch" or "Auto-download" is tapped. Upstream TextCell creates its switch only with needCheck, so these rows had no switch and setChecked hit a null Switch. TextCell now creates the switch when a text-and-check setter needs it.
 - Strings defined in ayu.xml and extera.xml now reach the generated localization assets. The advanced preferences, updater and other exteraGram/AyuGram screens showed "LOC_ERR:" labels because the generator read only strings.xml.

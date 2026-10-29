@@ -475,10 +475,10 @@ public class ReactionsLayoutInBubble {
                     messageObject != null ? messageObject.currentAccount : UserConfig.selectedAccount,
                     false, Theme.getColor(Theme.key_chat_inReactionButtonBackground), bananaReactionGlow);
             if (bananaReactionGlow != null) {
-                canvas.drawRoundRect(
+                org.telegram.messenger.banana.BananaGlowCache.draw(canvas, bananaReactionGlow,
                         totalX + x, totalY + y,
                         totalX + x + reactionButton.width, totalY + y + reactionButton.height,
-                        AndroidUtilities.dp(10), AndroidUtilities.dp(10), bananaReactionGlow);
+                        AndroidUtilities.dp(10));
             }
             reactionButton.draw(canvas, totalX + x, totalY + y, reactionButton.animationType == ANIMATION_TYPE_MOVE ? animationProgress : 1f, alpha, drawOnlyReaction != null, scrimDirection, scrimProgress);
             canvas.restore();
