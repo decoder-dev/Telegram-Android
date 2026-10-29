@@ -1093,7 +1093,7 @@ public final class BananaHooks {
         if (TextUtils.isEmpty(url)) {
             return false;
         }
-        String lower = url.toLowerCase();
+        String lower = url.toLowerCase(java.util.Locale.ROOT);
         if (lower.startsWith("tg:msg") || lower.startsWith("tg://msg")
                 || lower.startsWith("tg:share") || lower.startsWith("tg://share")) {
             return true;
@@ -1104,7 +1104,7 @@ public final class BananaHooks {
             if (host == null) {
                 return false;
             }
-            host = host.toLowerCase();
+            host = host.toLowerCase(java.util.Locale.ROOT);
             if (!"t.me".equals(host) && !"telegram.me".equals(host) && !"telegram.dog".equals(host)
                     && !host.endsWith(".t.me")) {
                 return false;
@@ -1113,7 +1113,7 @@ public final class BananaHooks {
             if (path == null) {
                 return false;
             }
-            path = path.toLowerCase();
+            path = path.toLowerCase(java.util.Locale.ROOT);
             return path.equals("/share") || path.startsWith("/share/")
                     || path.equals("/msg") || path.startsWith("/msg/");
         } catch (Exception ignore) {
@@ -1590,6 +1590,17 @@ public final class BananaHooks {
             java.io.File dir = new java.io.File(org.telegram.messenger.ApplicationLoader.applicationContext.getCacheDir(), "message_shots");
             //noinspection ResultOfMethodCallIgnored
             dir.mkdirs();
+            // Earlier shots were already handed to their share targets; do not let the cache grow forever.
+            java.io.File[] old = dir.listFiles();
+            if (old != null) {
+                long cutoff = System.currentTimeMillis() - 60 * 60 * 1000L;
+                for (java.io.File file : old) {
+                    if (file.lastModified() < cutoff) {
+                        //noinspection ResultOfMethodCallIgnored
+                        file.delete();
+                    }
+                }
+            }
             java.io.File out = new java.io.File(dir, "msg_" + System.currentTimeMillis() + ".png");
             try (java.io.FileOutputStream fos = new java.io.FileOutputStream(out)) {
                 bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos);

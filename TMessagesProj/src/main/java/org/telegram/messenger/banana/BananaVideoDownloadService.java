@@ -59,7 +59,7 @@ public final class BananaVideoDownloadService extends Service {
         long owner = intent.getLongExtra("owner", 0);
         if (!VideoDownloadPolicy.accepts(url) || account < 0 || account >= UserConfig.MAX_ACCOUNT_COUNT || owner <= 0
                 || UserConfig.getInstance(account).getClientUserId() != owner) { stopSelf(); return START_NOT_STICKY; }
-        busy = true; cancelled.set(false); processId = java.util.UUID.randomUUID().toString();
+        busy = true; cancelled.set(false); lastProgressAt = 0; processId = java.util.UUID.randomUUID().toString();
         worker.execute(() -> download(url, account, owner));
         return START_NOT_STICKY;
     }
