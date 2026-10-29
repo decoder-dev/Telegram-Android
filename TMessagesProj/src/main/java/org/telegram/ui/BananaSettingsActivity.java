@@ -11,6 +11,7 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.BananaSwitchCell;
 import org.telegram.ui.Cells.BananaValueCell;
+import org.telegram.ui.Cells.ThemesHorizontalListCell;
 import org.telegram.ui.Components.BananaTheme;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
@@ -25,7 +26,6 @@ import java.util.ArrayList;
 public final class BananaSettingsActivity extends BananaSettingsFragment {
     private static final int GHOST_PRESET = 1000;
     private static final int SILENT_SENDING = 1001;
-    private static final int THEME_PALETTE = 1002;
     private static final int VALUES = 1003;
     private static final int AYU_SETTINGS = 1004;
     private static final int UPDATES = 1005;
@@ -53,8 +53,11 @@ public final class BananaSettingsActivity extends BananaSettingsFragment {
                 BananaConfig.isGhostModeActive(currentAccount)));
         items.add(BananaValueCell.Factory.of(SILENT_SENDING, LocaleController.getString(R.string.BananaSilentSending),
                 silentLabels()[BananaConfig.silentSending(currentAccount).ordinal()]));
-        items.add(BananaValueCell.Factory.of(THEME_PALETTE, LocaleController.getString(R.string.BananaAppearanceTheme),
-                themeLabels()[BananaTheme.selectedPalette().ordinal()]));
+        items.add(UItem.asShadow(null));
+        // Live mini-chat previews of the four bundled themes, like the iOS theme picker,
+        // instead of a plain list of names.
+        items.add(UItem.asHeader(LocaleController.getString(R.string.BananaAppearanceTheme)));
+        items.add(UItem.asCustom(themesCell(), 148));
         items.add(UItem.asShadow(LocaleController.getString(R.string.BananaHubFooter)));
 
         String[] order = BananaExtrasCatalog.HUB_ORDER;
@@ -107,15 +110,6 @@ public final class BananaSettingsActivity extends BananaSettingsFragment {
                         BananaConfig.setSilentSending(currentAccount, BananaConfig.SilentSending.values()[which]);
                         listView.adapter.update(true);
                     }).create());
-            return;
-        }
-        if (item.id == THEME_PALETTE) {
-            showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
-                    .setTitle(LocaleController.getString(R.string.BananaAppearanceTheme))
-                    .setItems(themeLabels(), (dialog, which) -> {
-                        BananaTheme.setPalette(currentAccount, BananaTheme.Palette.values()[which]);
-                        listView.adapter.update(true);
-                    }).create());
         }
     }
 
@@ -127,13 +121,41 @@ public final class BananaSettingsActivity extends BananaSettingsFragment {
         };
     }
 
-    private CharSequence[] themeLabels() {
-        return new CharSequence[]{
-                LocaleController.getString(R.string.BananaThemeClassicWhite),
-                LocaleController.getString(R.string.BananaThemeCream),
-                LocaleController.getString(R.string.BananaThemeGraphite),
-                LocaleController.getString(R.string.BananaThemeClassicBlack)
-        };
+    private ThemesHorizontalListCell themesCell;
+
+    public ThemesHorizontalListCell getThemesCell() {
+        return themesCell;
+    }
+
+    private ThemesHorizontalListCell themesCell() {
+        if (themesCell == null) {
+            ArrayList<Theme.ThemeInfo> themes = new ArrayList<>();
+            for (BananaTheme.Palette palette : BananaTheme.Palette.values()) {
+                Theme.ThemeInfo info = Theme.getTheme(BananaTheme.themeName(palette));
+                if (info != null) themes.add(info);
+            }
+            themesCell = new ThemesHorizontalListCell(getParentActivity(), this, ThemeActivity.THEME_TYPE_BASIC, themes, new ArrayList<>()) {
+                @Override
+                public void selectTheme(Theme.ThemeInfo themeInfo) {
+                    BananaTheme.Palette palette = BananaTheme.paletteOf(themeInfo);
+                    if (palette == null) return;
+                    if (themeInfo.isDark()) {
+                        // As BananaTheme.applyThemeInfo: keep the night slot on the chosen dark theme.
+                        Theme.setCurrentNightTheme(themeInfo);
+                    }
+                    super.selectTheme(themeInfo);
+                    BananaConfig.setThemePalette(currentAccount, palette.ordinal());
+                }
+
+                @Override
+                protected void showOptionsForTheme(Theme.ThemeInfo themeInfo) {
+                    // Bundled themes have nothing to share, edit or delete.
+                }
+            };
+            themesCell.setDrawDivider(false);
+            themesCell.setFocusable(false);
+        }
+        return themesCell;
     }
 
     private static String hubTitle(String section) {

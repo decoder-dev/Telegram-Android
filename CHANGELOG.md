@@ -4,8 +4,14 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Removed
+
+- UpdaterBottomSheet2, an unused second copy of the updater sheet.
+
 ### Added
 
+- Two BananaGram app icons, Graphite and Cream, with the banana mark on the theme backgrounds. Every app icon is unlocked; none needs Telegram Premium or is hidden when Premium features are blocked.
+- The BananaGram hub picks a theme from live mini-chat previews of the four bundled themes, like the iOS theme picker, instead of a list of names.
 - The updater checks for a new release once a day in the background (an inexact alarm that never wakes the device) and posts a notification once per version. Tapping it opens the updater sheet. The check follows the updater's "Check on launch" switch.
 
 ### Fixed

@@ -53,6 +53,24 @@ public final class BananaTheme {
         return values[value];
     }
 
+    public static String themeName(Palette palette) {
+        switch (palette) {
+            case CREAM: return THEME_CREAM;
+            case GRAPHITE: return THEME_GRAPHITE;
+            case CLASSIC_BLACK: return "Classic Black";
+            default: return "Classic White";
+        }
+    }
+
+    /** The palette a bundled theme belongs to, or null for any other theme. */
+    public static Palette paletteOf(Theme.ThemeInfo info) {
+        if (info == null) return null;
+        for (Palette palette : Palette.values()) {
+            if (themeName(palette).equals(info.name)) return palette;
+        }
+        return null;
+    }
+
     public static void setPalette(int account, Palette palette) {
         BananaConfig.setThemePalette(account, palette.ordinal());
         applyThemeInfo(palette);
