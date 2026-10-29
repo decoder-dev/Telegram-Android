@@ -51,6 +51,12 @@ public final class BananaAutomaticProxy {
     private static final long MIN_SWITCH_MS = 60L * 1000L;
     /** {@code automaticMtProxySwitchRttFactor}. */
     private static final double SWITCH_RTT_FACTOR = 0.7d;
+    /**
+     * Minimum gap before a failure-driven switch. A just-selected route needs time for its
+     * handshake; on a slow mobile link it can take longer than the 6 s fallback, and switching
+     * again every few seconds reconnects every account and never lets any route connect.
+     */
+    private static final long FAILURE_SWITCH_MIN_MS = 20L * 1000L;
     private static final int STORED_LIMIT = 40;
     /** Candidates dialed in one refresh. Kept at the concurrency cap so a pass cannot queue a second wave. */
     private static final int PROBE_LIMIT = 4;
@@ -481,6 +487,15 @@ public final class BananaAutomaticProxy {
         }
         SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
         if (current != null && !isAutomatic(current) && SharedConfig.isProxyEnabled()) {
+            return;
+        }
+        if (ConnectionsManager.getInstance(UserConfig.selectedAccount).getConnectionState()
+                != ConnectionsManager.ConnectionStateConnectingToProxy) {
+            return;
+        }
+        long sinceSwitch = System.currentTimeMillis() - lastSwitchAt;
+        if (sinceSwitch < FAILURE_SWITCH_MIN_MS) {
+            AndroidUtilities.runOnUIThread(FALLBACK, FAILURE_SWITCH_MIN_MS - sinceSwitch);
             return;
         }
         failureDrivenSwitch = true;
