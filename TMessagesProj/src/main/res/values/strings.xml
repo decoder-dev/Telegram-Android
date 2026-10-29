@@ -11733,6 +11733,7 @@
     <string name="BananaHistoryClear">Clear local history</string>
     <string name="BananaHistoryClearInfo">Permanently delete the saved text history for this account on this device? Messages on Telegram will stay unchanged. To stop saving new versions, also turn off the history switches in Extras.</string>
     <string name="BananaHistoryPeer">Chat %1$d · message %2$d</string>
+    <string name="BananaHistoryPeerNamed">%1$s · message %2$d</string>
     <string name="BananaHistoryIntro">Saved text stays on this device. Search shows the latest 100 matching records.</string>
     <string name="BananaHistoryNoMatches">No saved messages match this search.</string>
     <string name="BananaSaveMediaHistory">Keep downloaded attachments</string>
