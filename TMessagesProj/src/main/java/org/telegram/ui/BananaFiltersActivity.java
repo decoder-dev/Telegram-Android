@@ -85,7 +85,12 @@ public final class BananaFiltersActivity extends BananaSettingsFragment {
         if (item.id == 1) store.setEnabled(!store.enabled());
         else if (item.id == 2) store.setSharedInChats(!store.sharedInChats());
         else if (item.id == 3) {
-            if (store.rules().rules.size() >= FilterRules.MAX_RULES) { error(); return; }
+            if (store.rules().rules.size() >= FilterRules.MAX_RULES) {
+                showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                        .setMessage(text(R.string.BananaFilterLimitReached))
+                        .setPositiveButton(text(R.string.OK), null).create());
+                return;
+            }
             presentFragment(new BananaFilterEditActivity(currentAccount, dialogId, null));
         } else if (item.id == 4) importRules();
         else if (item.id == 6) importLink();
