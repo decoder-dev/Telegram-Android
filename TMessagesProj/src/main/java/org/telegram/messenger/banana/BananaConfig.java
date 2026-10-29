@@ -298,7 +298,7 @@ public final class BananaConfig {
         if (option == Option.DOUBLE_TAP_TO_EDIT) {
             // The switch is a shortcut for the "Edit" double-tap action; both read one value.
             int action = getInt(account, IntValue.DOUBLE_TAP_ACTION);
-            editor.putInt(IntValue.DOUBLE_TAP_ACTION.key, enabled ? 6 : action == 6 ? 0 : action);
+            editor.putInt(IntValue.DOUBLE_TAP_ACTION.key, enabled ? 6 : action == 6 ? IntValue.DOUBLE_TAP_ACTION.defaultValue : action);
         }
         editor.apply();
         if (option == Option.KEEP_ALIVE_IN_BACKGROUND && account == org.telegram.messenger.UserConfig.selectedAccount) {
@@ -331,7 +331,8 @@ public final class BananaConfig {
         STICKER_SIZE_PERCENT("bananaStickerSizePercent", 100),
         OUTGOING_PHOTO_QUALITY("bananaOutgoingPhotoQuality", 0),
         DOUBLE_TAP_SEEK_SECONDS("bananaDoubleTapSeekSeconds", 15),
-        DOUBLE_TAP_ACTION("bananaDoubleTapAction", 0),
+        // Telegram's quick reaction, as in upstream and exteraGram, unless the user picks otherwise.
+        DOUBLE_TAP_ACTION("bananaDoubleTapAction", 1),
         STICKER_SHAPE("bananaStickerShape", 0),
         GLASS_BUBBLE_TINT("bananaGlassBubbleTint", 25),
         GLASS_BUBBLE_RIM_TOP("bananaGlassBubbleRimTop", 95),
@@ -486,7 +487,7 @@ public final class BananaConfig {
             case DOUBLE_TAP_SEEK_SECONDS:
                 return nearestAllowed(raw, DOUBLE_TAP_SEEK_ALLOWED, 15);
             case DOUBLE_TAP_ACTION:
-                return nearestAllowed(raw, DOUBLE_TAP_ACTION_ALLOWED, 0);
+                return nearestAllowed(raw, DOUBLE_TAP_ACTION_ALLOWED, IntValue.DOUBLE_TAP_ACTION.defaultValue);
             default:
                 return raw;
         }
