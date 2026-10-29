@@ -136,6 +136,18 @@ jobs:
                   with zipfile.ZipFile(io.BytesIO(raw)) as archive:
                       raw = b'\n'.join(archive.read(name) for name in archive.namelist() if not name.endswith('/'))
               lines = re.sub(r'\x1b\[[0-?]*[ -/]*[@-~]', '', raw.decode(errors='replace')).splitlines()
+              failures = [i for i, line in enumerate(lines) if '##[error]' in line]
+              if failures:
+                  end = failures[-1]
+                  starts = [i for i in range(end) if '##[group]Run ' in lines[i]]
+                  start = starts[-1] if starts else max(0, end - 150)
+                  value = '\n'.join(lines[start:end+3])[-30000:]
+                  for part, offset in enumerate(range(0, len(value), 3500), 1):
+                      chunk = value[offset:offset+3500].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                      title = ('Failed step ' + job['name'] + ' part ' + str(part)).replace(',', '_')
+                      print(f'::warning title={title}::{chunk}')
+                  found += 1
+                  continue
               indices = [i for i, line in enumerate(lines) if re.search(r'FAILURE:|What went wrong|Execution failed|Could not|error:|Error:|CMake Error|No space|Caused by|fatal:|A failure occurred', line)]
               context = sorted({n for i in indices for n in range(max(0, i-2), min(len(lines), i+18))})
               value = '\n'.join(lines[n] for n in context) if context else '\n'.join(lines[-70:])
