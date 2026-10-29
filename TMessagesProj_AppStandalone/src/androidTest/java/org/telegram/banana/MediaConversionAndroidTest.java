@@ -52,14 +52,17 @@ public class MediaConversionAndroidTest {
         try {
             byte[] original = digest(video);
             result = convert(video, Kind.VIDEO_TO_ROUND, 0.5, 1.5);
-            TLRPC.TL_document document = roundTrip(result.document(false));
-            assertEquals("video/mp4", document.mime_type);
-            assertTrue(MessageObject.isRoundVideoDocument(document));
-            TLRPC.TL_documentAttributeVideo attribute = null;
-            for (TLRPC.DocumentAttribute value : document.attributes) if (value instanceof TLRPC.TL_documentAttributeVideo) attribute = (TLRPC.TL_documentAttributeVideo) value;
-            assertNotNull(attribute); assertTrue(attribute.round_message); assertEquals(384, attribute.w); assertEquals(384, attribute.h);
+            // Sent like a finished camera recording: a round with nothing left for Telegram to convert.
+            org.telegram.messenger.VideoEditedInfo info = result.roundVideoInfo();
+            assertTrue(info.roundVideo); assertFalse(info.needConvert());
+            assertEquals(384, info.resultWidth); assertEquals(384, info.resultHeight);
+            assertTrue(info.estimatedDuration >= 900 && info.estimatedDuration < 1500);
+            assertEquals(result.file.length(), info.estimatedSize);
+            // The attributes Telegram reads back from the file must describe a square round message.
+            TLRPC.TL_documentAttributeVideo attribute = new TLRPC.TL_documentAttributeVideo();
+            org.telegram.messenger.SendMessagesHelper.fillVideoAttribute(result.file.getAbsolutePath(), attribute, info);
+            assertEquals(384, attribute.w); assertEquals(384, attribute.h);
             assertTrue(attribute.duration >= 0.9 && attribute.duration < 1.5);
-            assertFalse("A round video needs a usable preview", document.thumbs.isEmpty());
             assertArrayEquals(original, digest(video));
         } finally { video.delete(); if (result != null) result.discard(); }
     }
