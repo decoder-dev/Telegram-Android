@@ -665,15 +665,11 @@ public class BananaSmokeTest {
             final String name = names[i];
             final int choice = choices[i];
             final int label = labels[i];
-            tapRow(instrumentation, screen, 1002);
-            await(instrumentation, () -> screen.getVisibleDialog() instanceof AlertDialog && screen.getVisibleDialog().isShowing(),
-                    "The native palette chooser must open");
             instrumentation.runOnMainSync(() -> {
-                AlertDialog dialog = (AlertDialog) screen.getVisibleDialog();
-                assertEquals("Only the four bundled themes may be offered", 4, dialog.getItemsCount());
-                View item = findPaletteItem(dialog.getWindow().getDecorView(), choice);
-                assertNotNull("Missing palette choice", item);
-                assertTrue(item.performClick());
+                org.telegram.ui.Cells.ThemesHorizontalListCell carousel = screen.getThemesCell();
+                assertNotNull("The theme preview carousel must be on the Extras hub", carousel);
+                assertEquals("Only the four bundled themes may be offered", 4, carousel.getAdapter().getItemCount());
+                carousel.selectTheme(Theme.getTheme(name));
             });
             await(instrumentation, () -> name.equals(Theme.getActiveTheme().name)
                     && screen.getActionBar().getTitleTextView().getTextColor() == Theme.getColor(Theme.key_actionBarDefaultTitle)
@@ -683,10 +679,7 @@ public class BananaSmokeTest {
             instrumentation.runOnMainSync(() -> {
                 assertSame("Changing a palette must repaint the existing view", originalView, screen.getFragmentView());
                 assertEquals(choice, BananaConfig.getThemePalette(screen.getCurrentAccount()));
-                for (int row = 0; row < screen.listView.adapter.getItemCount(); row++) {
-                    org.telegram.ui.Components.UItem item = screen.listView.adapter.getItem(row);
-                    if (item.id == 1002) assertEquals(LocaleController.getString(label), item.textValue.toString());
-                }
+                assertEquals(LocaleController.getString(label), Theme.getActiveTheme().getName());
             });
             assertHeaderContrast(instrumentation, screen);
             instrumentation.runOnMainSync(() -> {
@@ -701,18 +694,6 @@ public class BananaSmokeTest {
                     "The palette preview must return to the top after checking cached rows");
             capture(instrumentation, "live-palette-" + name);
         }
-    }
-
-    private static View findPaletteItem(View view, int choice) {
-        if (view instanceof AlertDialog.AlertDialogCell && Integer.valueOf(choice).equals(view.getTag())) return view;
-        if (view instanceof android.view.ViewGroup) {
-            android.view.ViewGroup group = (android.view.ViewGroup) view;
-            for (int i = 0; i < group.getChildCount(); i++) {
-                View found = findPaletteItem(group.getChildAt(i), choice);
-                if (found != null) return found;
-            }
-        }
-        return null;
     }
 
     private static void assertPaletteContrast(int foregroundKey, int backgroundKey) {
