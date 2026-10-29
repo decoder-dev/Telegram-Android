@@ -50,6 +50,14 @@ subprojects {
                     }
                 }
             }
+            // Guava's annotations reference these enum constants. Without them javac warns
+            // "unknown enum constant When.MAYBE / MigrationStatus.STRICT / Level.FULL" in each module.
+            // Kept here because TMessagesProj_Modules/media is an unmodified submodule.
+            project.dependencies {
+                compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+                compileOnly 'org.jetbrains.kotlin:kotlin-annotations-jvm:1.9.0'
+                compileOnly 'com.google.j2objc:j2objc-annotations:3.0.0'
+            }
         }
     }
 }
