@@ -52,6 +52,7 @@ import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,6 +71,7 @@ public class UpdaterUtils {
     private static final Pattern RELEASE_VERSION = Pattern.compile("^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-rc\\.(\\d+))?$", Pattern.CASE_INSENSITIVE);
 
     private static boolean updateDownloaded;
+    private static boolean receiverRegistered;
     private static boolean checkingForUpdates;
     private static boolean automaticDownload;
 
@@ -228,10 +230,22 @@ public class UpdaterUtils {
                 || !digest.matches("sha256:[a-fA-F0-9]{64}")) {
             return null;
         }
-        String published = release.optString("published_at", "").replaceAll("[TZ]", " ");
-        String formattedDate = LocaleController.formatDateTime(getMillisFromDate(published, "yyyy-M-dd hh:mm:ss") / 1000, true);
+        String formattedDate = LocaleController.formatDateTime(publishedSeconds(release.optString("published_at", "")), true);
         return new Update(tag, release.optString("body", ""), AndroidUtilities.formatFileSize(bytes),
                 link, formattedDate, digest.substring("sha256:".length()).toLowerCase(Locale.US));
+    }
+
+    /** GitHub timestamps are UTC ISO-8601; parsing them as local 12-hour time shifted the shown date. */
+    static long publishedSeconds(String iso) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        format.setLenient(false);
+        try {
+            Date date = format.parse(iso);
+            return date == null ? 0 : date.getTime() / 1000;
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     static int compareVersions(String left, String right) {
@@ -258,11 +272,13 @@ public class UpdaterUtils {
     }
 
     private static synchronized void downloadApk(Context context, String link, String title, String digest, boolean automatic) {
-        if (context == null || version == null || digest == null || downloadId != -1L) return;
+        if (context == null || version == null || digest == null || downloadInProgress(context)) return;
         checkDirs();
         if (updateDownloaded) {
-            if (!automatic) installApk(context, apkFile.getAbsolutePath(), digest);
-            return;
+            if (automatic) return;
+            installApk(context, apkFile.getAbsolutePath(), digest);
+            // installApk clears the flag and deletes the file when it fails verification; download it again.
+            if (updateDownloaded) return;
         }
         if (!isSafeReleaseUrl(link)) return;
         try {
@@ -282,19 +298,49 @@ public class UpdaterUtils {
             automaticDownload = automatic;
             releaseDigest = digest;
             downloadId = manager.enqueue(request);
-            DownloadReceiver receiver = new DownloadReceiver();
-            IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-            filter.addAction(DownloadManager.ACTION_NOTIFICATION_CLICKED);
-            Context applicationContext = context.getApplicationContext();
-            if (Build.VERSION.SDK_INT >= 33) {
-                applicationContext.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
-            } else {
-                applicationContext.registerReceiver(receiver, filter);
-            }
+            registerReceiverOnce(context.getApplicationContext());
         } catch (Exception e) {
             downloadId = -1L;
             FileLog.e(e);
         }
+    }
+
+    /**
+     * DownloadManager broadcasts come from the DownloadProvider app, so a not-exported receiver
+     * never hears them. Exporting is safe: the id is checked against DownloadManager and the APK's
+     * digest, package, version and signers are verified before any install prompt.
+     */
+    private static synchronized void registerReceiverOnce(Context applicationContext) {
+        if (receiverRegistered) return;
+        IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+        filter.addAction(DownloadManager.ACTION_NOTIFICATION_CLICKED);
+        if (Build.VERSION.SDK_INT >= 33) {
+            applicationContext.registerReceiver(new DownloadReceiver(), filter, Context.RECEIVER_EXPORTED);
+        } else {
+            applicationContext.registerReceiver(new DownloadReceiver(), filter);
+        }
+        receiverRegistered = true;
+    }
+
+    /** A missed completion broadcast must not leave the updater stuck until the app restarts. */
+    private static boolean downloadInProgress(Context context) {
+        if (downloadId == -1L) return false;
+        DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+        if (manager != null) {
+            try (Cursor cursor = manager.query(new DownloadManager.Query().setFilterById(downloadId))) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
+                    if (status == DownloadManager.STATUS_PENDING || status == DownloadManager.STATUS_RUNNING
+                            || status == DownloadManager.STATUS_PAUSED) {
+                        return true;
+                    }
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        }
+        downloadId = -1L;
+        return false;
     }
 
     private static void installApk(Context context, String path, String digest) {
