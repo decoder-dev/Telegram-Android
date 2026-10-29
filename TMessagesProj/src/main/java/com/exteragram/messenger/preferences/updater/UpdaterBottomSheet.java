@@ -185,7 +185,8 @@ public class UpdaterBottomSheet extends BottomSheet {
             checkOnLaunch.setTextAndCheckAndIcon(LocaleController.getString("CheckOnLaunch", R.string.CheckOnLaunch), ExteraConfig.checkUpdatesOnLaunch, R.drawable.msg_recent, true);
             checkOnLaunch.setOnClickListener(v -> {
                 ExteraConfig.editor.putBoolean("checkUpdatesOnLaunch", ExteraConfig.checkUpdatesOnLaunch ^= true).apply();
-                checkOnLaunch.setChecked(!checkOnLaunch.getCheckBox().isChecked());
+                checkOnLaunch.setChecked(ExteraConfig.checkUpdatesOnLaunch);
+                org.telegram.messenger.banana.UpdateNotifier.schedule(context);
             });
             linearLayout.addView(checkOnLaunch);
 

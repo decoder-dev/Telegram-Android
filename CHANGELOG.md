@@ -4,6 +4,10 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added
+
+- The updater checks for a new release once a day in the background (an inexact alarm that never wakes the device) and posts a notification once per version. Tapping it opens the updater sheet. The check follows the updater's "Check on launch" switch.
+
 ### Fixed
 
 - The auto-download check no longer builds a full MessageObject for every media message when regex filters are off. The AyuGram hook parsed text, entities and emoji on each check while scrolling and loading chats, only to have the disabled filter return false.

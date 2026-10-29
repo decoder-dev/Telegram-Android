@@ -380,6 +380,7 @@ public class ApplicationLoader extends Application {
         LauncherIconController.tryFixLauncherIconIfNeeded();
         ProxyRotationController.init();
         org.telegram.messenger.banana.BananaAutomaticProxy.init();
+        org.telegram.messenger.banana.UpdateNotifier.schedule(applicationContext);
 
         //if (BuildConfig.DEBUG_PRIVATE_VERSION) {
         //    Choreographer60FpsContent.getInstance().addFrameCallback(debugEverySecondChecks, 1);

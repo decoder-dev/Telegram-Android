@@ -11796,6 +11796,9 @@
 
     <!-- BananaGram Extras catalog -->
 <string name="BananaHubFooter">All BananaGram features live here. Choose a section to configure appearance, chats, privacy or connection.</string>
+<string name="BananaUpdatesChannel">App updates</string>
+<string name="BananaUpdateAvailableTitle">BananaGram %1$s is available</string>
+<string name="BananaUpdateAvailableText">Tap to open the updater</string>
 <string name="BananaAuthorFooter">BananaGram by decoder-dev</string>
 <string name="BananaDeveloper">Developer</string>
     <string name="BananaHubNinja">Ninja</string>

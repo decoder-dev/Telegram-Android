@@ -361,6 +361,9 @@
 
     <!-- BananaGram Extras catalog -->
 <string name="BananaHubFooter">Все функции BananaGram собраны здесь. Выберите раздел для настройки оформления, чатов, приватности или подключения.</string>
+<string name="BananaUpdatesChannel">Обновления приложения</string>
+<string name="BananaUpdateAvailableTitle">Доступна BananaGram %1$s</string>
+<string name="BananaUpdateAvailableText">Нажмите, чтобы открыть обновление</string>
 <string name="BananaAuthorFooter">BananaGram — автор decoder-dev</string>
 <string name="BananaDeveloper">Разработчик</string>
     <string name="BananaHubNinja">Ниндзя</string>
