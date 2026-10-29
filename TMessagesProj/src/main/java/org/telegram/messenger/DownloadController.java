@@ -869,8 +869,10 @@ public class DownloadController extends BaseController implements NotificationCe
 
         // --- AyuGram hook
 
-        var isFiltered = AyuFilter.isFiltered(new MessageObject(currentAccount, message, false, false), null);
-        if (isFiltered) {
+        // Building a MessageObject parses text, entities and emoji, and this runs for every media
+        // message shown or preloaded. Only pay for it when regex filters can hide the message.
+        if (com.radolyn.ayugram.AyuConfig.regexFiltersEnabled
+                && AyuFilter.isFiltered(new MessageObject(currentAccount, message, false, false), null)) {
             return 0;
         }
 
