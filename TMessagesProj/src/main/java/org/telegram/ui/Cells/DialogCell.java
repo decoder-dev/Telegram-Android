@@ -4840,9 +4840,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 bananaAvatarGlow = org.telegram.messenger.banana.BananaHooks.glowPaint(
                         currentAccount, true, Theme.getColor(Theme.key_avatar_backgroundBlue), bananaAvatarGlow);
                 if (bananaAvatarGlow != null && avatarImage != null) {
-                    canvas.drawCircle(avatarImage.getCenterX(), avatarImage.getCenterY(),
-                            Math.max(avatarImage.getImageWidth(), avatarImage.getImageHeight()) / 2f + AndroidUtilities.dp(1),
-                            bananaAvatarGlow);
+                    float r = Math.max(avatarImage.getImageWidth(), avatarImage.getImageHeight()) / 2f + AndroidUtilities.dp(1);
+                    float cx = avatarImage.getCenterX(), cy = avatarImage.getCenterY();
+                    org.telegram.messenger.banana.BananaGlowCache.draw(canvas, bananaAvatarGlow, cx - r, cy - r, cx + r, cy + r, r);
                 }
                 if (storyParams.drawnLive) {
                     checkTtl();

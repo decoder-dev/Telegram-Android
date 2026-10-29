@@ -31638,6 +31638,8 @@ public class ChatActivity extends BaseFragment implements
             if (message != null
                     && message.messageOwner.from_id != null
                     && message.messageOwner.from_id.user_id != getAccountInstance().getUserConfig().getClientUserId()
+                    // Revisions exist only for edited messages; skip the database query for the rest.
+                    && message.messageOwner.edit_date > 0
                     && AyuMessagesController.getInstance().hasAnyRevisions(getAccountInstance().getUserConfig().getClientUserId(), dialog_id, message.messageOwner.id)
             ) {
                 int idx = Math.max(0, options.size() - 1);
