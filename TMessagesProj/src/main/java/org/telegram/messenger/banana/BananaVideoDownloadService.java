@@ -43,7 +43,11 @@ public final class BananaVideoDownloadService extends Service {
         startForeground(ID, note);
     }
     @Override public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent == null) { stopSelf(); return START_NOT_STICKY; }
+        if (intent == null) {
+            notification(LocaleController.getString(R.string.BananaVideoPreparing), -1);
+            stopSelf();
+            return START_NOT_STICKY;
+        }
         if ("cancel".equals(intent.getAction())) {
             cancelled.set(true);
             String id = processId;
@@ -51,7 +55,13 @@ public final class BananaVideoDownloadService extends Service {
             if (!busy) stopSelf();
             return START_NOT_STICKY;
         }
-        if (busy) { toast(R.string.BananaVideoBusy); return START_NOT_STICKY; }
+        if (busy) {
+            // Every startForegroundService() needs its own startForeground(), even while the
+            // running download already holds the notification; repost it to satisfy that.
+            notification(LocaleController.getString(R.string.BananaVideoDownloading), -1);
+            toast(R.string.BananaVideoBusy);
+            return START_NOT_STICKY;
+        }
         // startForegroundService() requires startForeground() even for a rejected request, or Android 9+ crashes the app.
         notification(LocaleController.getString(R.string.BananaVideoPreparing), -1);
         String url = intent.getStringExtra("url");
@@ -128,7 +138,16 @@ public final class BananaVideoDownloadService extends Service {
     private void toast(int message) { AndroidUtilities.runOnUIThread(() -> android.widget.Toast.makeText(this, LocaleController.getString(message), android.widget.Toast.LENGTH_LONG).show()); }
     private static void erase(File directory) { File[] files = directory.listFiles(); if (files != null) for (File file : files) { if (file.isDirectory()) erase(file); else file.delete(); } directory.delete(); }
     @Override public void onDestroy() {
-        destroyed = true; cancelled.set(true); if (processId != null) YoutubeDL.getInstance().destroyProcessById(processId);
+        destroyed = true; cancelled.set(true);
+        // The download thread clears processId in its finally; read it once so null never reaches yt-dlp.
+        String id = processId;
+        if (id != null) {
+            try {
+                YoutubeDL.getInstance().destroyProcessById(id);
+            } catch (RuntimeException e) {
+                FileLog.e(e);
+            }
+        }
         worker.shutdownNow(); timer.shutdownNow(); super.onDestroy();
     }
 }

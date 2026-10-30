@@ -109,7 +109,15 @@ public final class MessageHistory {
             try {
                 cursor = source.queryFinalized("SELECT uid,data FROM messages_v2 WHERE mid IN(" + placeholders + ") AND " + scope,
                         args.toArray());
-                while (cursor.next()) capture(source, account, cursor.longValue(0), decode(cursor.byteArrayValue(1)), true);
+                // Per row: these rows are deleted right after this returns, so one message that fails
+                // to capture must not take the rest of the batch with it.
+                while (cursor.next()) {
+                    try {
+                        capture(source, account, cursor.longValue(0), decode(cursor.byteArrayValue(1)), true);
+                    } catch (Exception error) {
+                        FileLog.e(error);
+                    }
+                }
             } catch (Exception error) {
                 FileLog.e(error);
             } finally {
@@ -125,6 +133,16 @@ public final class MessageHistory {
             return TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
         } finally {
             data.cleanup();
+        }
+    }
+
+    /** Formatting to archive; text whose entities exceed the limits is kept as plain text rather than lost. */
+    private static byte[] storableFormatting(TLRPC.Message message) {
+        try {
+            return formatting(message);
+        } catch (IllegalArgumentException tooLarge) {
+            FileLog.e(tooLarge);
+            return new byte[0];
         }
     }
 
@@ -162,7 +180,7 @@ public final class MessageHistory {
         long topic = message.reply_to != null && message.reply_to.forum_topic ?
                 (message.reply_to.reply_to_top_id != 0 ? message.reply_to.reply_to_top_id : message.reply_to.reply_to_msg_id) : 0;
         HistoryDatabase.Record record = new HistoryDatabase.Record(dialog, message.id, author, topic, message.date,
-                deleted, message.message, formatting(message), media);
+                deleted, message.message, storableFormatting(message), media);
         boolean test = ConnectionsManager.getInstance(account).isTestBackend();
         AtomicLong rowId = new AtomicLong();
         Worker.QUEUE.postRunnable(() -> {
