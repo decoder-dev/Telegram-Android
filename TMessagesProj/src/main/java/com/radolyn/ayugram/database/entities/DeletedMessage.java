@@ -10,9 +10,11 @@
 package com.radolyn.ayugram.database.entities;
 
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity()
+// Chat history merges deleted messages on every page load; the index keeps that a range read.
+@Entity(indices = {@Index({"userId", "dialogId", "topicId", "messageId"})})
 public class DeletedMessage extends AyuMessageBase {
     @PrimaryKey(autoGenerate = true)
     public long fakeId;

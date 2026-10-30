@@ -774,9 +774,11 @@ public final class BananaArchiveLock {
                     if ("verifier".equals(key) && value.startsWith("pbkdf2$")) {
                         state.verifier = value;
                     } else if ("failures".equals(key)) {
-                        state.failures = Integer.parseInt(value);
+                        // A damaged counter must not abort the loop and drop the stored verifier,
+                        // which would leave the archive silently unlocked.
+                        try { state.failures = Integer.parseInt(value); } catch (NumberFormatException e) { FileLog.e(e); }
                     } else if ("failureElapsed".equals(key)) {
-                        state.failureElapsed = Long.parseLong(value);
+                        try { state.failureElapsed = Long.parseLong(value); } catch (NumberFormatException e) { FileLog.e(e); }
                     } else if ("biometrics".equals(key)) {
                         state.biometrics = "1".equals(value);
                     }

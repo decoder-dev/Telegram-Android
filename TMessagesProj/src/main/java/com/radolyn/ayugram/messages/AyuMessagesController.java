@@ -60,7 +60,7 @@ public class AyuMessagesController {
         }
     }
 
-    public static AyuMessagesController getInstance() {
+    public static synchronized AyuMessagesController getInstance() {
         if (instance == null) {
             instance = new AyuMessagesController();
         }
