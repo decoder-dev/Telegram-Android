@@ -18,7 +18,11 @@ public class AyuState {
     private static final AyuStateVariable allowReadPacket = new AyuStateVariable();
     private static final AyuStateVariable automaticallyScheduled = new AyuStateVariable();
     private static final AyuStateVariable hideSelection = new AyuStateVariable();
-    private static final LongSparseArray<ArrayList<Integer>> deletePermitted = new LongSparseArray<>();
+    // dialog -> message -> expiry. A permit lets the archive skip a message the user is deleting;
+    // it used to live forever when the delete failed or was cancelled, so a later remote delete of
+    // the same message was not archived, and repeated deletes added duplicates without limit.
+    private static final LongSparseArray<java.util.HashMap<Integer, Long>> deletePermitted = new LongSparseArray<>();
+    private static final long DELETE_PERMIT_MS = 2 * 60 * 1000;
 
     public static void setAllowReadPacket(boolean val, int resetAfter) {
         allowReadPacket.set(val, resetAfter);
@@ -63,30 +67,44 @@ public class AyuState {
     }
 
     public static synchronized void permitDeleteMessage(long dialogId, int messageId) {
-        var list = deletePermitted.get(dialogId);
-        if (list == null) {
-            list = new ArrayList<>();
-            deletePermitted.put(dialogId, list);
+        long now = android.os.SystemClock.elapsedRealtime();
+        for (int i = deletePermitted.size() - 1; i >= 0; i--) {
+            var permits = deletePermitted.valueAt(i);
+            permits.values().removeIf(expiry -> expiry <= now);
+            if (permits.isEmpty()) deletePermitted.removeAt(i);
         }
-
-        list.add(messageId);
+        var permits = deletePermitted.get(dialogId);
+        if (permits == null) {
+            permits = new java.util.HashMap<>();
+            deletePermitted.put(dialogId, permits);
+        }
+        permits.put(messageId, now + DELETE_PERMIT_MS);
     }
 
     public static synchronized boolean isDeletePermitted(long dialogId, int messageId) {
-        var list = deletePermitted.get(dialogId);
-        if (list == null) {
+        var permits = deletePermitted.get(dialogId);
+        if (permits == null) {
             return false;
         }
-
-        return list.contains(messageId);
+        Long expiry = permits.get(messageId);
+        if (expiry == null) {
+            return false;
+        }
+        if (expiry <= android.os.SystemClock.elapsedRealtime()) {
+            permits.remove(messageId);
+            return false;
+        }
+        return true;
     }
 
     public static synchronized void messageDeleted(long dialogId, int messageId) {
-        var list = deletePermitted.get(dialogId);
-        if (list == null) {
+        var permits = deletePermitted.get(dialogId);
+        if (permits == null) {
             return;
         }
-
-        list.remove((Object) messageId);
+        permits.remove(messageId);
+        if (permits.isEmpty()) {
+            deletePermitted.remove(dialogId);
+        }
     }
 }

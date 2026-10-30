@@ -22,7 +22,12 @@ import java.util.regex.PatternSyntaxException;
 
 public class AyuFilter {
     private static ArrayList<Pattern> patterns;
-    private static LongSparseArray<HashMap<Integer, Boolean>> filteredCache;
+    // Keyed by dialog, then by account and message id: two accounts can share dialog and message ids.
+    private static LongSparseArray<HashMap<Long, Boolean>> filteredCache;
+
+    // Matched on the UI thread (chat list, chat) and in notifications: an expression that blows
+    // its time budget is dropped until the filters change instead of freezing the app.
+    private static final long MATCH_BUDGET_NS = 20_000_000L;
 
     // Read from the chat list and chat (UI), NotificationsController's queue and DownloadController,
     // and rebuilt from settings: every access goes through the class lock.
@@ -56,8 +61,14 @@ public class AyuFilter {
             return false;
         }
 
-        for (var pattern : patterns) {
-            if (pattern.matcher(text).find()) {
+        for (int i = 0; i < patterns.size(); i++) {
+            Pattern pattern = patterns.get(i);
+            Boolean matched = org.telegram.messenger.banana.BoundedMatch.find(pattern, text, MATCH_BUDGET_NS);
+            if (matched == null) {
+                FileLog.e("AyuFilter: dropping an expression that took too long to match: " + pattern.pattern());
+                patterns.remove(i--);
+                filteredCache = new LongSparseArray<>();
+            } else if (matched) {
                 return true;
             }
         }
@@ -82,7 +93,7 @@ public class AyuFilter {
 
         var cached = filteredCache.get(msg.getDialogId());
         if (cached != null) {
-            res = cached.get(msg.getId());
+            res = cached.get(cacheKey(msg));
             if (res != null) {
                 return res;
             }
@@ -100,14 +111,18 @@ public class AyuFilter {
             filteredCache.put(msg.getDialogId(), cached);
         }
 
-        cached.put(msg.getId(), res);
+        cached.put(cacheKey(msg), res);
 
         if (group != null && group.messages != null && !group.messages.isEmpty()) {
             for (var m : group.messages) {
-                cached.put(m.getId(), res);
+                cached.put(cacheKey(m), res);
             }
         }
 
         return res;
+    }
+
+    private static long cacheKey(MessageObject msg) {
+        return ((long) msg.currentAccount << 32) | (msg.getId() & 0xffffffffL);
     }
 }

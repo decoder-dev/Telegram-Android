@@ -33,7 +33,14 @@ import java.util.List;
 
 public class AyuMessagesController {
     public static final String attachmentsSubfolder = "Saved Attachments";
+    // App-private: saved media of deleted and edited messages, including secret-chat and
+    // self-destructing media, used to sit in public Downloads where any app could read it and
+    // where clearing the archive or logging out left it behind.
     public static final File attachmentsPath = new File(
+            new File(org.telegram.messenger.ApplicationLoader.applicationContext.getNoBackupFilesDir(), "ayu-attachments"),
+            attachmentsSubfolder
+    );
+    private static final File legacyAttachmentsPath = new File(
             new File(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), AyuConstants.APP_NAME),
             attachmentsSubfolder
@@ -50,13 +57,14 @@ public class AyuMessagesController {
     }
 
     private static void initializeAttachmentsFolder() {
-        if (!attachmentsPath.exists()) {
-            attachmentsPath.mkdirs();
-            try {
-                new File(attachmentsPath, ".nomedia").createNewFile();
-            } catch (IOException e) {
-                // ignored, I hate java
-            }
+        attachmentsPath.mkdirs();
+        try {
+            new File(attachmentsPath, ".nomedia").createNewFile();
+        } catch (IOException e) {
+            // ignored, I hate java
+        }
+        if (legacyAttachmentsPath.isDirectory()) {
+            new Thread(AyuMessagesController::migrateLegacyAttachments, "ayu-attachments-migration").start();
         }
     }
 
@@ -237,9 +245,104 @@ public class AyuMessagesController {
         }
     }
 
+    /** Copies each public file into the private folder, repoints the archive rows, then deletes it. */
+    private static synchronized void migrateLegacyAttachments() {
+        File[] files = legacyAttachmentsPath.listFiles();
+        if (files == null) {
+            return;
+        }
+        try {
+            androidx.sqlite.db.SupportSQLiteDatabase db = AyuData.getDatabase().getOpenHelper().getWritableDatabase();
+            for (File file : files) {
+                if (!file.isFile() || ".nomedia".equals(file.getName())) {
+                    continue;
+                }
+                try {
+                    File target = new File(attachmentsPath, file.getName());
+                    if (!(target.isFile() && target.length() == file.length()) && !AndroidUtilities.copyFile(file, target)) {
+                        continue;
+                    }
+                    Object[] paths = {target.getAbsolutePath(), file.getAbsolutePath()};
+                    for (String table : new String[]{"DeletedMessage", "EditedMessage"}) {
+                        db.execSQL("UPDATE `" + table + "` SET mediaPath = ? WHERE mediaPath = ?", paths);
+                        db.execSQL("UPDATE `" + table + "` SET hqThumbPath = ? WHERE hqThumbPath = ?", paths);
+                    }
+                    file.delete();
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+            }
+            new File(legacyAttachmentsPath, ".nomedia").delete();
+            legacyAttachmentsPath.delete();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+    }
+
+    private static void deleteAttachments(File directory) {
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile() && !".nomedia".equals(file.getName())) file.delete();
+            }
+        }
+    }
+
+    private static boolean isArchiveFile(String path) {
+        return path != null && (path.startsWith(attachmentsPath.getAbsolutePath() + "/") || path.startsWith(legacyAttachmentsPath.getAbsolutePath() + "/"));
+    }
+
+    /**
+     * Logging an account out removes what the archive kept for it: its deleted and edited message
+     * rows, their reactions and every saved file no other account's rows still use.
+     */
+    public static void clearForUser(long userId) {
+        if (userId <= 0) {
+            return;
+        }
+        new Thread(() -> {
+            try {
+                androidx.sqlite.db.SupportSQLiteDatabase db = AyuData.getDatabase().getOpenHelper().getWritableDatabase();
+                java.util.HashSet<String> paths = new java.util.HashSet<>();
+                for (String table : new String[]{"DeletedMessage", "EditedMessage"}) {
+                    try (android.database.Cursor cursor = db.query("SELECT mediaPath, hqThumbPath FROM `" + table + "` WHERE userId = ?", new Object[]{userId})) {
+                        while (cursor.moveToNext()) {
+                            if (!cursor.isNull(0)) paths.add(cursor.getString(0));
+                            if (!cursor.isNull(1)) paths.add(cursor.getString(1));
+                        }
+                    }
+                }
+                db.beginTransaction();
+                try {
+                    db.execSQL("DELETE FROM `DeletedMessageReaction` WHERE deletedMessageId IN (SELECT fakeId FROM `DeletedMessage` WHERE userId = ?)", new Object[]{userId});
+                    db.execSQL("DELETE FROM `DeletedMessage` WHERE userId = ?", new Object[]{userId});
+                    db.execSQL("DELETE FROM `EditedMessage` WHERE userId = ?", new Object[]{userId});
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                for (String path : paths) {
+                    if (!isArchiveFile(path)) continue;
+                    boolean used = false;
+                    for (String table : new String[]{"DeletedMessage", "EditedMessage"}) {
+                        try (android.database.Cursor cursor = db.query("SELECT 1 FROM `" + table + "` WHERE mediaPath = ? OR hqThumbPath = ? LIMIT 1", new Object[]{path, path})) {
+                            used |= cursor.moveToFirst();
+                        }
+                    }
+                    if (!used) new File(path).delete();
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        }, "ayu-archive-logout").start();
+    }
+
     public void clean() {
         AyuData.clean();
         AyuData.create();
+        // Clearing the archive removes its files too; they used to stay in Downloads.
+        deleteAttachments(attachmentsPath);
+        deleteAttachments(legacyAttachmentsPath);
 
         // force to recreate a database to avoid crash
         instance = null;
