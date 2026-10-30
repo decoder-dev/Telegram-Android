@@ -68,6 +68,12 @@ public class AyuFilter {
                 FileLog.e("AyuFilter: dropping an expression that took too long to match: " + pattern.pattern());
                 patterns.remove(i--);
                 filteredCache = new LongSparseArray<>();
+                // The switch stays on in settings, so say which expression stopped working.
+                String expression = pattern.pattern();
+                org.telegram.messenger.AndroidUtilities.runOnUIThread(() -> org.telegram.messenger.NotificationCenter.getGlobalInstance().postNotificationName(
+                        org.telegram.messenger.NotificationCenter.showBulletin, org.telegram.ui.Components.Bulletin.TYPE_ERROR,
+                        org.telegram.messenger.LocaleController.formatString(org.telegram.messenger.R.string.AyuFilterTooSlow,
+                                expression.length() > 40 ? expression.substring(0, 40) + "…" : expression)));
             } else if (matched) {
                 return true;
             }

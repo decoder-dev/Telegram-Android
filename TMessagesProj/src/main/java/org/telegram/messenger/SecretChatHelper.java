@@ -134,22 +134,20 @@ public class SecretChatHelper extends BaseController {
                     for (var i = 0; i < dialogsWithMessageIds.size(); i++) {
                         var dialogId = dialogsWithMessageIds.keyAt(i);
                         var messageIds = dialogsWithMessageIds.valueAt(i);
+                        ArrayList<AyuSavePreferences> toSave = new ArrayList<>();
                         for (var messageId : messageIds) {
                             try {
                                 var message = getMessagesStorage().getMessageInternal(dialogId, messageId);
                                 if (message != null) {
                                     var prefs = new AyuSavePreferences(message, currentAccount);
                                     prefs.setDialogId(dialogId);
-                                    AyuMessagesController.getInstance().onMessageDeleted(prefs);
+                                    toSave.add(prefs);
                                 }
                             } catch (Throwable t) {
                                 FileLog.e(t);
                             }
                         }
-                        AndroidUtilities.runOnUIThread(() -> {
-                            // invalidating views
-                            getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messageIds);
-                        });
+                        getMessagesController().bananaSaveDeleted(toSave, () -> getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messageIds));
                     }
                 });
             }

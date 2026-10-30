@@ -323,7 +323,7 @@ public abstract class AyuMessageUtils {
                 pathToAttach = pathToAttach2;
             }
         }
-        return processAttachment(pathToAttach, new File(AyuMessagesController.attachmentsPath, AyuUtils.getFilename(tLObject, pathToAttach)));
+        return processAttachment(pathToAttach, new File(AyuMessagesController.attachmentsPath(), AyuUtils.getFilename(tLObject, pathToAttach)));
     }
 
     private static File processAttachment(AyuSavePreferences ayuSavePreferences) {
@@ -334,7 +334,7 @@ public abstract class AyuMessageUtils {
         }
         if (pathToMessage.exists() || message.media.document == null) {
             if (pathToMessage.exists() || message.media.photo == null) {
-                return processAttachment(pathToMessage, new File(AyuMessagesController.attachmentsPath, AyuUtils.getFilename(message, pathToMessage)));
+                return processAttachment(pathToMessage, new File(AyuMessagesController.attachmentsPath(), AyuUtils.getFilename(message, pathToMessage)));
             }
             return processAttachment(ayuSavePreferences.getAccountId(), message.media.photo);
         }
