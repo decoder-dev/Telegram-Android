@@ -43,5 +43,15 @@ public interface DeletedMessageDao {
     boolean exists(long userId, long dialogId, long topicId, int msgId);
 
     @Query("DELETE FROM deletedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :msgId")
-    void delete(long userId, long dialogId, int msgId);
+    void deleteMessages(long userId, long dialogId, int msgId);
+
+    @Query("DELETE FROM deletedmessagereaction WHERE deletedMessageId IN (SELECT fakeId FROM deletedmessage WHERE userId = :userId AND dialogId = :dialogId AND messageId = :msgId)")
+    void deleteReactions(long userId, long dialogId, int msgId);
+
+    // Reactions are keyed by the message row, so they go first or they are orphaned forever.
+    @Transaction
+    default void delete(long userId, long dialogId, int msgId) {
+        deleteReactions(userId, dialogId, msgId);
+        deleteMessages(userId, dialogId, msgId);
+    }
 }

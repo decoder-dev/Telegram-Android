@@ -253,7 +253,9 @@ public final class BananaIsland {
                 return;
             }
             if (text.length() > 24) {
-                text = text.substring(0, 23) + "…";
+                // Never cut an emoji's surrogate pair in half.
+                int end = Character.isHighSurrogate(text.charAt(22)) ? 22 : 23;
+                text = text.substring(0, end) + "…";
             }
             if (labelView.getVisibility() == View.VISIBLE && text.equals(String.valueOf(labelView.getText()))) {
                 return;

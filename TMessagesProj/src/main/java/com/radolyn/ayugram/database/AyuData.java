@@ -9,7 +9,10 @@
 
 package com.radolyn.ayugram.database;
 
+import androidx.annotation.NonNull;
 import androidx.room.Room;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 import com.radolyn.ayugram.AyuConstants;
 import com.radolyn.ayugram.database.dao.DeletedMessageDao;
 import com.radolyn.ayugram.database.dao.EditedMessageDao;
@@ -20,6 +23,16 @@ public class AyuData {
     private static EditedMessageDao editedMessageDao;
     private static DeletedMessageDao deletedMessageDao;
 
+    // Explicit, because fallbackToDestructiveMigration would otherwise wipe the saved history.
+    private static final Migration MIGRATION_21_22 = new Migration(21, 22) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_EditedMessage_userId_dialogId_messageId` ON `EditedMessage` (`userId`, `dialogId`, `messageId`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_DeletedMessage_userId_dialogId_topicId_messageId` ON `DeletedMessage` (`userId`, `dialogId`, `topicId`, `messageId`)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_DeletedMessageReaction_deletedMessageId` ON `DeletedMessageReaction` (`deletedMessageId`)");
+        }
+    };
+
     static {
         create();
     }
@@ -27,6 +40,7 @@ public class AyuData {
     public static void create() {
         database = Room.databaseBuilder(ApplicationLoader.applicationContext, AyuDatabase.class, AyuConstants.AYU_DATABASE)
                 .allowMainThreadQueries()
+                .addMigrations(MIGRATION_21_22)
                 .fallbackToDestructiveMigration()
                 .build();
 
