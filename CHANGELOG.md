@@ -21,6 +21,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- Ghost mode with hidden online and "offline after activity" no longer sends a status update every 5 seconds. While another session (such as Telegram Desktop) stays online, the server answers each offline correction with "online" again, and the app corrected it again 5 s later, for as long as that session was open and even in the background. Corrections triggered by status pushes now back off from 5 s to 5 minutes, and sending a message resets the delay.
 - With "Schedule messages" in ghost mode, a recorded round video no longer looks unsent. Ghost mode sends it as a scheduled message, which never appears in the chat, and Telegram 13's new round camera only closes when the round appears there, so it stayed on screen with its last frame. It now closes after sending, as the old camera already did.
 - Proxies given by host name connect faster. Their address lookup asked www.google.com for Google's DNS JSON, which now answers 404, so every lookup waited for that before falling back to system DNS. It asks dns.google directly and ignores CNAME answers, which are host names rather than addresses.
 - Message history: one deleted message that failed to archive no longer drops the rest of its batch, which Telegram then deletes for good. A message whose formatting is over the archive limits is kept as plain text instead of being skipped.

@@ -414,6 +414,10 @@ public class MessagesController extends BaseController implements NotificationCe
     // Accessed on stageQueue. Coalesce status updates from other sessions.
     private Runnable bananaOfflineTask;
     private long bananaLastOfflineReset;
+    // Another session that stays online makes the server answer each offline correction with
+    // "online" again; without a backoff that looped every 5 s for as long as it stayed online.
+    private static final long BANANA_OFFLINE_DELAY_MIN = 5000, BANANA_OFFLINE_DELAY_MAX = 5 * 60 * 1000;
+    private long bananaOfflineDelay = BANANA_OFFLINE_DELAY_MIN;
     private long statusRetryAfter;
     private int statusGeneration;
     private String uploadingAvatar;
@@ -6400,7 +6404,7 @@ public class MessagesController extends BaseController implements NotificationCe
             }
             if (GhostPolicy.shouldReturnOffline(BananaConfig.get(currentAccount, Option.HIDE_ONLINE),
                     BananaConfig.get(currentAccount, Option.OFFLINE_AFTER_ACTIVITY), true)) {
-                bananaOwnOnlineObserved(getUserConfig().getClientUserId());
+                bananaOwnOnlineObserved(getUserConfig().getClientUserId(), true);
             }
             Integer msgId = (Integer) args[0];
             Integer newMsgId = (Integer) args[1];
@@ -6683,6 +6687,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 bananaOfflineTask = null;
             }
             bananaLastOfflineReset = 0;
+            bananaOfflineDelay = BANANA_OFFLINE_DELAY_MIN;
             statusRetryAfter = 0;
             statusGeneration++;
             getConnectionsManager().setIsUpdating(false);
@@ -10625,9 +10630,17 @@ public class MessagesController extends BaseController implements NotificationCe
         });
     }
 
-    private void bananaOwnOnlineObserved(long ownerId) {
+    /**
+     * @param localActivity this device did something (sent a message) that put the account online;
+     *                      a status push may instead come from another session that stays online.
+     */
+    private void bananaOwnOnlineObserved(long ownerId, boolean localActivity) {
         Utilities.stageQueue.postRunnable(() -> {
+            if (localActivity) bananaOfflineDelay = BANANA_OFFLINE_DELAY_MIN;
             if (bananaOfflineTask != null) return;
+            final long delay = bananaOfflineDelay;
+            // If the server still says online after this correction, wait longer before the next.
+            bananaOfflineDelay = Math.min(BANANA_OFFLINE_DELAY_MAX, bananaOfflineDelay * 2);
             bananaOfflineTask = () -> {
                 bananaOfflineTask = null;
                 if (!getUserConfig().isClientActivated() || getUserConfig().getClientUserId() != ownerId ||
@@ -10639,7 +10652,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 updateTimerProc();
             };
             Utilities.stageQueue.postRunnable(bananaOfflineTask,
-                    Math.max(0, 5000 - (SystemClock.elapsedRealtime() - bananaLastOfflineReset)));
+                    Math.max(0, delay - (SystemClock.elapsedRealtime() - bananaLastOfflineReset)));
         });
     }
 
@@ -19919,7 +19932,7 @@ public class MessagesController extends BaseController implements NotificationCe
                             if (GhostPolicy.shouldReturnOffline(BananaConfig.get(currentAccount, Option.HIDE_ONLINE),
                                     BananaConfig.get(currentAccount, Option.OFFLINE_AFTER_ACTIVITY),
                                     update.status instanceof TLRPC.TL_userStatusOnline)) {
-                                bananaOwnOnlineObserved(update.user_id);
+                                bananaOwnOnlineObserved(update.user_id, false);
                             }
                         }
                     } else if (baseUpdate instanceof TL_update.TL_updateMonoForumNoPaidException) {
