@@ -295,7 +295,8 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         } else if (position == ayuSyncStatusBtnRow) {
             presentFragment(new AyuSyncPreferencesActivity());
         } else if (position == WALModeRow) {
-            AyuConfig.editor.putBoolean("WALMode", AyuConfig.WALMode ^= true).apply();
+            // AyuConfig reads "walMode"; the switch wrote "WALMode", so it never survived a restart.
+            AyuConfig.editor.putBoolean("walMode", AyuConfig.WALMode ^= true).apply();
             ((TextCheckCell) view).setChecked(AyuConfig.WALMode);
         } else if (position == clearAyuDatabaseBtnRow) {
             AyuMessagesController.getInstance().clean();

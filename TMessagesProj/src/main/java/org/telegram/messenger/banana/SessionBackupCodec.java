@@ -25,6 +25,32 @@ public final class SessionBackupCodec {
             }
         }
     }
+    /**
+     * Keys of an account's own state in its userconfig file. Slot 0's file is shared with
+     * SharedConfig (passcode hash and salt, lock state, push token, proxy rotation and more), so a
+     * backup carries only these: it must not export the source device's passcode hash, nor replace
+     * the target device's. Dialog and migration offsets are stored under per-folder suffixes.
+     */
+    private static final Set<String> ACCOUNT_KEYS = new HashSet<>(Arrays.asList(
+            "user", "registeredForPush", "lastSendMessageId", "contactsSavedCount", "lastBroadcastId",
+            "lastContactsSyncTime", "lastHintsSyncTime", "draftsLoaded", "unreadDialogsLoaded",
+            "contactsReimported", "ratingLoadTime", "botRatingLoadTime", "botGuestRatingLoadTime",
+            "webappRatingLoadTime", "loginTime", "syncContacts", "suggestContacts", "hasSecureData",
+            "notificationsSettingsLoaded4", "notificationsSignUpSettingsLoaded", "autoDownloadConfigLoadTime",
+            "hasValidDialogLoadIds", "sharingMyLocationUntil", "lastMyLocationShareTime", "filtersLoaded",
+            "showCallsTab", "genericAnimationsStickerPack", "lastUpdatedGenericAnimations",
+            "premiumGiftsStickerPack", "lastUpdatedPremiumGiftsStickerPack", "terms", "tmpPassword"));
+
+    public static boolean isAccountKey(String key) {
+        return key != null && (ACCOUNT_KEYS.contains(key) || key.startsWith("2dialogsLoadOffset") || key.startsWith("6migrateOffset"));
+    }
+
+    public static Map<String, Object> accountPreferences(Map<String, ?> all) {
+        Map<String, Object> result = new TreeMap<>();
+        for (Map.Entry<String, ?> item : all.entrySet()) if (isAccountKey(item.getKey())) result.put(item.getKey(), item.getValue());
+        return result;
+    }
+
     public static boolean validNetworkConfig(byte[] data) {
         if (data == null || data.length < 8 || data.length > MAX_BYTES / 2) return false;
         long length = (data[0] & 255L) | ((data[1] & 255L) << 8) | ((data[2] & 255L) << 16) | ((data[3] & 255L) << 24);

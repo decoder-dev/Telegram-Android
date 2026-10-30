@@ -77,7 +77,9 @@ public final class MessageFilters {
             try {
                 boolean insensitive = rule.caseInsensitive || globalInsensitive;
                 int flags = Pattern.MULTILINE | (insensitive ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0);
-                boolean matched = Pattern.compile(rule.text, flags).matcher(body).find();
+                // This queue delivers every notification: a runaway expression must not stall it.
+                Boolean matched = BoundedMatch.find(Pattern.compile(rule.text, flags), body, 20_000_000L);
+                if (matched == null) continue;
                 if (rule.reversed != matched) return true;
             } catch (Throwable ignore) {
                 // Fail open: never drop a notification because a rule blew up.

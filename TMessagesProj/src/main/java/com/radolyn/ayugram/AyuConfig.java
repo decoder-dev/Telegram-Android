@@ -196,7 +196,9 @@ public class AyuConfig {
     }
 
     public static String getWALMode() {
-        return AyuConfig.WALMode ? "WAL" : "OFF";
+        // Without WAL keep a rollback journal: journal_mode = OFF drops atomic commits, and a crash
+        // or power loss mid-transaction can corrupt the message database.
+        return AyuConfig.WALMode ? "WAL" : "TRUNCATE";
     }
 
     public static String getSyncServerURL() {

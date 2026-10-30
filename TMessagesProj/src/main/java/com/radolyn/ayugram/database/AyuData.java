@@ -23,7 +23,7 @@ public class AyuData {
     private static EditedMessageDao editedMessageDao;
     private static DeletedMessageDao deletedMessageDao;
 
-    // Explicit, because fallbackToDestructiveMigration would otherwise wipe the saved history.
+    // Explicit: without a migration Room would refuse to open the database (see create()).
     private static final Migration MIGRATION_21_22 = new Migration(21, 22) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase db) {
@@ -41,7 +41,11 @@ public class AyuData {
         database = Room.databaseBuilder(ApplicationLoader.applicationContext, AyuDatabase.class, AyuConstants.AYU_DATABASE)
                 .allowMainThreadQueries()
                 .addMigrations(MIGRATION_21_22)
-                .fallbackToDestructiveMigration()
+                // Every upgrade from 21 on needs an explicit migration: a blanket destructive fallback
+                // would silently wipe saved deleted and edited messages on the next schema change.
+                // Only a downgrade, or a schema older than this fork ever shipped, starts over.
+                .fallbackToDestructiveMigrationOnDowngrade()
+                .fallbackToDestructiveMigrationFrom(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
                 .build();
 
         editedMessageDao = database.editedMessageDao();

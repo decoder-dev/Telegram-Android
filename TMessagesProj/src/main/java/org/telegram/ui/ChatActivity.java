@@ -2005,9 +2005,8 @@ public class ChatActivity extends BaseFragment implements
                     }
                     return;
                 }
-                if (msg != null && !msg.isOut() && msg.messageOwner != null) {
-                    org.telegram.messenger.banana.BananaHooks.maybeMarkReadOnInteract(currentAccount, msg.messageOwner);
-                }
+                // Ghost "Read on interact" no longer reads the chat on a bare tap, which also fired for
+                // just opening this menu; replies, reactions, votes and forwards read it once they succeed.
             }
             createMenu(view, true, false, x, y, false);
         }
