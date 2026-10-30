@@ -21,6 +21,9 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- Message history: one deleted message that failed to archive no longer drops the rest of its batch, which Telegram then deletes for good. A message whose formatting is over the archive limits is kept as plain text instead of being skipped.
+- Video download: asking for a second download while one runs no longer risks Android's "did not call startForeground" crash, and closing the service at the moment a download ends no longer passes a cleared process id to yt-dlp.
+- The avatar and reaction glow cache draws an unusually large glow directly instead of risking an exception while allocating its bitmap.
 - A run of failed downloads, such as all of a deleted chat's files, shows one "Message not found" bulletin instead of one per file, and a download without a file no longer counts as the one that failed. Ported from Glassgram.
 - Tapping the keep-alive notification opens its system channel settings, where it can be hidden; the service keeps running. It used to open the app with a mutable PendingIntent. Ported from Glassgram.
 - With glass bubbles on, outgoing messages are glass too. Their gradient colours were read past the glass tint, so they stayed opaque while incoming bubbles showed the blurred wallpaper.
