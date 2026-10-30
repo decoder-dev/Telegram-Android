@@ -171,6 +171,14 @@ and no self-capture or extra invalidation loop. The Glassgram Compose module
 is not included. See the feature attestation for actual validation and remaining
 platform/server limitations.
 
+Later Glassgram fixes ported (2026-10-30):
+[`60569115b935`](https://github.com/shashachkaaa/Glassgram/commit/60569115b935)
+(one "Message not found" bulletin for a run of failed downloads) and
+[`e6c5c0c71dc2`](https://github.com/shashachkaaa/Glassgram/commit/e6c5c0c71dc2)
+(tapping the keep-alive notification opens its channel settings). The iOS slide,
+Liquid press and glass panel commits depend on Glassgram's own transition and
+Compose glass code, which BananaGram does not include.
+
 
 The Android feature engines added after the initial prerelease are documented in
 [`third-party-additions.md`](third-party-additions.md). Session backups use the
