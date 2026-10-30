@@ -24,12 +24,33 @@ public class AyuState {
     private static final LongSparseArray<java.util.HashMap<Integer, Long>> deletePermitted = new LongSparseArray<>();
     private static final long DELETE_PERMIT_MS = 2 * 60 * 1000;
 
+    // The shared one-shot permit (still used where the read request is built out of reach, such
+    // as reading a self-destructing secret message) expires: armed while ghost mode was off, it was
+    // never consumed and let the first read through whenever ghost mode was later turned on.
+    private static final long READ_PERMIT_MS = 5000;
+    private static long allowReadPacketUntil;
+
     public static void setAllowReadPacket(boolean val, int resetAfter) {
-        allowReadPacket.set(val, resetAfter);
+        synchronized (allowReadPacket) {
+            allowReadPacket.set(val, resetAfter);
+            allowReadPacketUntil = val ? android.os.SystemClock.elapsedRealtime() + READ_PERMIT_MS : 0;
+        }
     }
 
+    /**
+     * Whether a read the ghost hook is about to drop was explicitly allowed. Only asked once that hook
+     * has decided reads are suppressed for this account, so it must not consult AyuConfig.sendReadPackets:
+     * that flag is neutral (true) since AyuGram's ghost settings moved to BananaGram, and checking it
+     * here let every read through while BananaGram's "Don't read messages" was on.
+     */
     public static boolean getAllowReadPacket() {
-        return AyuConfig.sendReadPackets || allowReadPacket.process();
+        synchronized (allowReadPacket) {
+            if (android.os.SystemClock.elapsedRealtime() > allowReadPacketUntil) {
+                allowReadPacket.set(false, 0);
+                return false;
+            }
+            return allowReadPacket.process();
+        }
     }
 
     // Reads the client sends on purpose in ghost mode. Keyed by the request itself: the one-shot

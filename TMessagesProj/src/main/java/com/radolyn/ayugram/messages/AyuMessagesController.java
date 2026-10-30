@@ -33,13 +33,24 @@ import java.util.List;
 
 public class AyuMessagesController {
     public static final String attachmentsSubfolder = "Saved Attachments";
-    // App-private: saved media of deleted and edited messages, including secret-chat and
-    // self-destructing media, used to sit in public Downloads where any app could read it and
-    // where clearing the archive or logging out left it behind.
-    public static final File attachmentsPath = new File(
-            new File(org.telegram.messenger.ApplicationLoader.applicationContext.getNoBackupFilesDir(), "ayu-attachments"),
-            attachmentsSubfolder
-    );
+    private static File attachmentsPath;
+
+    /**
+     * App-private folder for the saved media of deleted and edited messages, including secret-chat
+     * and self-destructing media, which used to sit in public Downloads where any app could read it
+     * and where clearing the archive or logging out left it behind. It sits in the app's external
+     * files, on the volume that holds Telegram's media cache, so saving a cached file is a rename
+     * rather than a copy. Resolved lazily: the class can load before the application context exists.
+     */
+    public static synchronized File attachmentsPath() {
+        if (attachmentsPath == null) {
+            android.content.Context context = org.telegram.messenger.ApplicationLoader.applicationContext;
+            File base = context.getExternalFilesDir(null);
+            if (base == null) base = context.getNoBackupFilesDir();
+            attachmentsPath = new File(new File(base, "ayu-attachments"), attachmentsSubfolder);
+        }
+        return attachmentsPath;
+    }
     private static final File legacyAttachmentsPath = new File(
             new File(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), AyuConstants.APP_NAME),
@@ -57,9 +68,10 @@ public class AyuMessagesController {
     }
 
     private static void initializeAttachmentsFolder() {
-        attachmentsPath.mkdirs();
+        File folder = attachmentsPath();
+        folder.mkdirs();
         try {
-            new File(attachmentsPath, ".nomedia").createNewFile();
+            new File(folder, ".nomedia").createNewFile();
         } catch (IOException e) {
             // ignored, I hate java
         }
@@ -258,8 +270,10 @@ public class AyuMessagesController {
                     continue;
                 }
                 try {
-                    File target = new File(attachmentsPath, file.getName());
-                    if (!(target.isFile() && target.length() == file.length()) && !AndroidUtilities.copyFile(file, target)) {
+                    File target = new File(attachmentsPath(), file.getName());
+                    // Same volume: a rename, kept atomic; otherwise copy and delete the original below.
+                    boolean moved = !target.exists() && file.renameTo(target);
+                    if (!moved && !(target.isFile() && target.length() == file.length()) && !AndroidUtilities.copyFile(file, target)) {
                         continue;
                     }
                     Object[] paths = {target.getAbsolutePath(), file.getAbsolutePath()};
@@ -289,7 +303,7 @@ public class AyuMessagesController {
     }
 
     private static boolean isArchiveFile(String path) {
-        return path != null && (path.startsWith(attachmentsPath.getAbsolutePath() + "/") || path.startsWith(legacyAttachmentsPath.getAbsolutePath() + "/"));
+        return path != null && (path.startsWith(attachmentsPath().getAbsolutePath() + "/") || path.startsWith(legacyAttachmentsPath.getAbsolutePath() + "/"));
     }
 
     /**
@@ -341,7 +355,7 @@ public class AyuMessagesController {
         AyuData.clean();
         AyuData.create();
         // Clearing the archive removes its files too; they used to stay in Downloads.
-        deleteAttachments(attachmentsPath);
+        deleteAttachments(attachmentsPath());
         deleteAttachments(legacyAttachmentsPath);
 
         // force to recreate a database to avoid crash
