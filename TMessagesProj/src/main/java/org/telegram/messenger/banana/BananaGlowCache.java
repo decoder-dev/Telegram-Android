@@ -22,6 +22,8 @@ public final class BananaGlowCache {
     };
     private static final Paint BITMAP_PAINT = new Paint(Paint.FILTER_BITMAP_FLAG);
 
+    private static final int MAX_CACHED_SIDE = 2048;
+
     private BananaGlowCache() {}
 
     /** Draws the glow of {@code glow} (a stroke with a shadow layer) around a rounded rectangle. */
@@ -29,12 +31,17 @@ public final class BananaGlowCache {
         int width = Math.round(right - left), height = Math.round(bottom - top);
         if (width <= 0 || height <= 0) return;
         int pad = AndroidUtilities.dp(12);
+        // Avatars and reaction pills are small; anything this large is drawn directly, not cached.
+        if (width > MAX_CACHED_SIDE || height > MAX_CACHED_SIDE) {
+            canvas.drawRoundRect(left, top, right, bottom, radius, radius, glow);
+            return;
+        }
         String key = width + "x" + height + "r" + Math.round(radius) + "c" + glow.getColor() + "s" + glow.getStrokeWidth();
         Bitmap bitmap = CACHE.get(key);
         if (bitmap == null) {
             try {
                 bitmap = Bitmap.createBitmap(width + pad * 2, height + pad * 2, Bitmap.Config.ARGB_8888);
-            } catch (OutOfMemoryError e) {
+            } catch (OutOfMemoryError | RuntimeException e) {
                 canvas.drawRoundRect(left, top, right, bottom, radius, radius, glow);
                 return;
             }
