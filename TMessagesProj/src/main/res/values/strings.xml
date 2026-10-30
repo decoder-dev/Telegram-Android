@@ -11802,6 +11802,7 @@
 <string name="BananaUpdateAvailableTitle">BananaGram %1$s is available</string>
 <string name="BananaUpdateAvailableText">Tap to open the updater</string>
 <string name="BananaKeepAliveHint">Tap to hide this notification. Messages will keep arriving.</string>
+<string name="BananaGhostMediaScheduled">Ghost mode: the media appears in the chat once it is uploaded and sent</string>
 <string name="BananaAuthorFooter">BananaGram by decoder-dev</string>
 <string name="BananaDeveloper">Developer</string>
     <string name="BananaHubNinja">Ninja and Ghost</string>
