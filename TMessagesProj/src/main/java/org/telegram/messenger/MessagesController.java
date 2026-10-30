@@ -14548,7 +14548,7 @@ public class MessagesController extends BaseController implements NotificationCe
             return;
         }
         getMessagesStorage().resetMentionsCount(dialogId, topicId, 0);
-        if (BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) return;
+        // Like readReactions, readMentions only clears this account's own mention badge.
         TLRPC.TL_messages_readMentions req = new TLRPC.TL_messages_readMentions();
         req.peer = getInputPeer(dialogId);
         if (topicId != 0) {
@@ -21567,10 +21567,9 @@ public class MessagesController extends BaseController implements NotificationCe
             topicsController.markAllReactionsAsRead(-dialogId, topicId);
         }
         getMessagesStorage().updateUnreadReactionsCount(dialogId, topicId, 0);
-        if (BananaConfig.get(currentAccount, Option.DONT_READ_MESSAGES)) {
-            getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, UPDATE_MASK_REACTIONS_READ);
-            return;
-        }
+        // Not gated by ghost mode: readReactions only clears this account's own badge and tells
+        // nobody anything. Skipping it left the server count unread, so the reactions button came
+        // back after every sync.
         TLRPC.TL_messages_readReactions req = new TLRPC.TL_messages_readReactions();
         req.peer = getInputPeer(dialogId);
 
