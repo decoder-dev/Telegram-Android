@@ -1256,10 +1256,13 @@ public class ConnectionsManager extends BaseController {
             InputStream httpConnectionStream = null;
             boolean done = false;
             try {
-                URL downloadUrl = new URL("https://www.google.com/resolve?name=" + currentHostName + "&type=A");
+                // www.google.com with a dns.google.com Host header now answers 404, so every proxy
+                // host name waited for that before falling back to system DNS. Ask Google's
+                // DNS-over-HTTPS JSON endpoint directly.
+                URL downloadUrl = new URL("https://dns.google/resolve?name=" + java.net.URLEncoder.encode(currentHostName, "UTF-8") + "&type=A");
                 URLConnection httpConnection = downloadUrl.openConnection();
                 httpConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0 like Mac OS X) AppleWebKit/602.1.38 (KHTML, like Gecko) Version/10.0 Mobile/14A5297c Safari/602.1");
-                httpConnection.addRequestProperty("Host", "dns.google.com");
+                httpConnection.addRequestProperty("Accept", "application/dns-json");
                 httpConnection.setConnectTimeout(1000);
                 httpConnection.setReadTimeout(2000);
                 httpConnection.connect();
@@ -1286,9 +1289,15 @@ public class ConnectionsManager extends BaseController {
                     if (len > 0) {
                         ArrayList<String> addresses = new ArrayList<>(len);
                         for (int a = 0; a < len; a++) {
-                            addresses.add(array.getJSONObject(a).getString("data"));
+                            JSONObject answer = array.getJSONObject(a);
+                            // A CNAME answer carries a host name, not an address to connect to.
+                            if (answer.optInt("type", 1) == 1) {
+                                addresses.add(answer.getString("data"));
+                            }
                         }
-                        return new ResolvedDomain(addresses, SystemClock.elapsedRealtime());
+                        if (!addresses.isEmpty()) {
+                            return new ResolvedDomain(addresses, SystemClock.elapsedRealtime());
+                        }
                     }
                 }
                 done = true;
