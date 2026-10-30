@@ -368,6 +368,7 @@
 <string name="BananaUpdateAvailableText">Нажмите, чтобы открыть обновление</string>
 <string name="BananaKeepAliveHint">Нажмите, чтобы скрыть это уведомление. Сообщения продолжат приходить.</string>
 <string name="BananaGhostMediaScheduled">Режим призрака: медиа появится в чате после загрузки и отправки</string>
+<string name="AyuFilterTooSlow">Фильтр %1$s выполнялся слишком долго и пропускается, пока вы не измените фильтры</string>
 <string name="BananaProfileMutual">Взаимный контакт</string>
 <string name="BananaProfileCreated">Создан</string>
 <string name="BananaMutualYes">Да</string>

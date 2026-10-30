@@ -45,8 +45,9 @@ public class SessionBackupCodecTest {
         shared.put("2dialogsLoadOffsetId1", 7); shared.put("6migrateOffsetDate", 9);
         shared.put("passcodeHash1", "hash"); shared.put("passcodeSalt", "salt"); shared.put("appLocked", true);
         shared.put("pushString2", "token"); shared.put("selectedAccount", 2); shared.put("lastLocalId", -5);
-        Map<String,Object> kept = SessionBackupCodec.accountPreferences(shared);
-        assertEquals(new HashSet<>(Arrays.asList("user", "registeredForPush", "2dialogsLoadOffsetId1", "6migrateOffsetDate")), kept.keySet());
+        shared.put("loginTime", 1); shared.put("draftsLoaded", true); shared.put("filtersLoaded", true);
+        // Identity and the user's own choices move; device state and "already loaded" cursors do not.
+        assertEquals(new HashSet<>(Arrays.asList("user", "loginTime")), SessionBackupCodec.accountPreferences(shared).keySet());
     }
     @Test public void rejectsWeakPasswordAndOversizedBackup() throws Exception {
         try { SessionBackupCodec.encrypt(new byte[]{1},"short".toCharArray()); fail(); } catch (java.security.GeneralSecurityException expected) { }

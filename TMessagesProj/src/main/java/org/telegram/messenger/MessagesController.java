@@ -9379,15 +9379,13 @@ public class MessagesController extends BaseController implements NotificationCe
                             known.add(msg);
                         }
                     }
+                    ArrayList<AyuSavePreferences> toSave = new ArrayList<>();
                     for (TLRPC.Message msg : known) {
                         var prefs = new AyuSavePreferences(msg, currentAccount);
                         prefs.setDialogId(dialogId);
-                        AyuMessagesController.getInstance().onMessageDeleted(prefs);
+                        toSave.add(prefs);
                     }
-                    AndroidUtilities.runOnUIThread(() -> {
-                        // invalidating views
-                        getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, deleted);
-                    });
+                    bananaSaveDeleted(toSave, () -> getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, deleted));
                 });
             } else if (messages != null && !messages.isEmpty() && (taskId != 0 || cacheOnly)) {
                 // TTL / auto-delete. The local timer (checkDeletingTask) uses taskId == 0 and cacheOnly.
@@ -9402,6 +9400,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
                 getMessagesStorage().getStorageQueue().postRunnable(() -> {
                     var invalidate = new ArrayList<Integer>();
+                    ArrayList<AyuSavePreferences> toSave = new ArrayList<>();
                     for (var msgId : candidates) {
                         try {
                             var msg = getMessagesStorage().getMessageInternal(dialogId, msgId);
@@ -9410,16 +9409,13 @@ public class MessagesController extends BaseController implements NotificationCe
 
                                 var prefs = new AyuSavePreferences(msg, currentAccount);
                                 prefs.setDialogId(dialogId);
-                                AyuMessagesController.getInstance().onMessageDeleted(prefs);
+                                toSave.add(prefs);
                             }
                         } catch (Throwable t) {
                             FileLog.e(t);
                         }
                     }
-                    AndroidUtilities.runOnUIThread(() -> {
-                        // invalidating views
-                        getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, invalidate);
-                    });
+                    bananaSaveDeleted(toSave, () -> getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, invalidate));
                 });
             } else if ((messages != null && !messages.isEmpty())) { // process manual deletion of deleted messages
                 var ayuMessagesController = AyuMessagesController.getInstance();
@@ -16755,6 +16751,26 @@ public class MessagesController extends BaseController implements NotificationCe
         });
     }
 
+    /**
+     * Archives deleted messages on the file loader queue. They are read on the storage queue while
+     * the rows exist, but saving moves or copies their media, which held the database queue (every
+     * chat and list load, all accounts) for as long as the files took. Telegram deletes those media
+     * files on this same queue, after the deletion that follows, so they are still there.
+     */
+    void bananaSaveDeleted(ArrayList<AyuSavePreferences> toSave, Runnable onUiThread) {
+        getFileLoader().getFileLoaderQueue().postRunnable(() -> {
+            var controller = AyuMessagesController.getInstance();
+            for (AyuSavePreferences prefs : toSave) {
+                try {
+                    controller.onMessageDeleted(prefs);
+                } catch (Throwable t) {
+                    FileLog.e(t);
+                }
+            }
+            AndroidUtilities.runOnUIThread(onUiThread);
+        });
+    }
+
     private void checkChannelError(String text, long channelId) {
         if (org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount)) {
             return;
@@ -19689,7 +19705,6 @@ public class MessagesController extends BaseController implements NotificationCe
             }
             getMessagesStorage().getStorageQueue().postRunnable(() -> {
                 var messagesStorage = getMessagesStorage();
-                var ayuMessagesController = AyuMessagesController.getInstance();
                 for (int a = 0, size = toSave.size(); a < size; a++) {
                     var possibleDialogId = toSave.keyAt(a);
                     var messageIds = toSave.valueAt(a);
@@ -19707,20 +19722,18 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
 
                     for (var dialogId : dialogIds) {
+                        ArrayList<AyuSavePreferences> prefsList = new ArrayList<>();
                         for (var msgId : messageIds) {
                             try {
                                 var msg = messagesStorage.getMessageInternal(dialogId, msgId);
-                                int topicId = msg != null ? (int) MessageObject.getTopicId(currentAccount, msg, isForum(dialogId)) : 0;
-                                var prefs = new AyuSavePreferences(msg, currentAccount, dialogId, topicId, msgId, currentTimeS);
-                                ayuMessagesController.onMessageDeleted(prefs);
+                                if (msg == null) continue;
+                                int topicId = (int) MessageObject.getTopicId(currentAccount, msg, isForum(dialogId));
+                                prefsList.add(new AyuSavePreferences(msg, currentAccount, dialogId, topicId, msgId, currentTimeS));
                             } catch (Throwable t) {
                                 FileLog.e(t);
                             }
                         }
-                        AndroidUtilities.runOnUIThread(() -> {
-                            // invalidating views
-                            getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messageIds);
-                        });
+                        bananaSaveDeleted(prefsList, () -> getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messageIds));
                     }
                 }
             });

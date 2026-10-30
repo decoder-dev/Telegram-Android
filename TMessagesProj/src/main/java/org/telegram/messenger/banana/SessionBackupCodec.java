@@ -26,23 +26,18 @@ public final class SessionBackupCodec {
         }
     }
     /**
-     * Keys of an account's own state in its userconfig file. Slot 0's file is shared with
-     * SharedConfig (passcode hash and salt, lock state, push token, proxy rotation and more), so a
-     * backup carries only these: it must not export the source device's passcode hash, nor replace
-     * the target device's. Dialog and migration offsets are stored under per-folder suffixes.
+     * The userconfig keys a backup carries: who the account is and the user's own choices. Slot 0's
+     * file is shared with SharedConfig (passcode hash and salt, lock state, push token and more), so
+     * a backup must neither export the source device's passcode nor replace the target's. Sync
+     * cursors and "already loaded" flags (dialog and migration offsets, drafts, folders, unread
+     * dialogs, contacts, push registration) stay behind: the restored slot has no local database,
+     * and carrying them made the client skip loading the chat list, drafts and folders.
      */
     private static final Set<String> ACCOUNT_KEYS = new HashSet<>(Arrays.asList(
-            "user", "registeredForPush", "lastSendMessageId", "contactsSavedCount", "lastBroadcastId",
-            "lastContactsSyncTime", "lastHintsSyncTime", "draftsLoaded", "unreadDialogsLoaded",
-            "contactsReimported", "ratingLoadTime", "botRatingLoadTime", "botGuestRatingLoadTime",
-            "webappRatingLoadTime", "loginTime", "syncContacts", "suggestContacts", "hasSecureData",
-            "notificationsSettingsLoaded4", "notificationsSignUpSettingsLoaded", "autoDownloadConfigLoadTime",
-            "hasValidDialogLoadIds", "sharingMyLocationUntil", "lastMyLocationShareTime", "filtersLoaded",
-            "showCallsTab", "genericAnimationsStickerPack", "lastUpdatedGenericAnimations",
-            "premiumGiftsStickerPack", "lastUpdatedPremiumGiftsStickerPack", "terms", "tmpPassword"));
+            "user", "loginTime", "syncContacts", "suggestContacts", "showCallsTab", "hasSecureData", "terms"));
 
     public static boolean isAccountKey(String key) {
-        return key != null && (ACCOUNT_KEYS.contains(key) || key.startsWith("2dialogsLoadOffset") || key.startsWith("6migrateOffset"));
+        return key != null && ACCOUNT_KEYS.contains(key);
     }
 
     public static Map<String, Object> accountPreferences(Map<String, ?> all) {
