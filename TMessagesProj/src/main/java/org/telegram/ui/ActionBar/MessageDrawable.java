@@ -207,6 +207,15 @@ public class MessageDrawable extends Drawable {
             gradientColor2 = getCurrentColor(Theme.key_chat_outBubbleGradient2);
             gradientColor3 = getCurrentColor(Theme.key_chat_outBubbleGradient3);
             animatedGradient = getCurrentColor(Theme.key_chat_outBubbleGradientAnimated) != 0;
+            // getCurrentColor skips Theme's glass hook, so outgoing gradients stayed opaque and hid
+            // the wallpaper lens that incoming bubbles show. The animated gradient is an opaque
+            // bitmap and keeps its colours.
+            if (!animatedGradient) {
+                int account = org.telegram.messenger.UserConfig.selectedAccount;
+                gradientColor1 = org.telegram.messenger.banana.BananaHooks.applyGlassBubbleColor(account, gradientColor1);
+                gradientColor2 = org.telegram.messenger.banana.BananaHooks.applyGlassBubbleColor(account, gradientColor2);
+                gradientColor3 = org.telegram.messenger.banana.BananaHooks.applyGlassBubbleColor(account, gradientColor3);
+            }
         } else {
             color = getColor(isSelected ? Theme.key_chat_inBubbleSelected : Theme.key_chat_inBubble);
             gradientColor1 = 0;

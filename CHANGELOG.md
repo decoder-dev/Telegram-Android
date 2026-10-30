@@ -21,6 +21,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- With glass bubbles on, outgoing messages are glass too. Their gradient colours were read past the glass tint, so they stayed opaque while incoming bubbles showed the blurred wallpaper.
 - AyuGram: copying a secret-chat attachment into the deleted-message archive closes both streams on failure and removes the partial file. Regex filters are thread-safe (the chat list, notifications and downloads read them from different threads) and skip a stored expression that no longer compiles instead of crashing. Delete permissions and one-shot read/schedule flags update atomically. AyuForward waits are bounded at 15 minutes, so a send or download that never reports back no longer keeps a thread and its observers alive forever.
 - Opening a chat no longer scans the whole deleted-message archive on the main thread. The deleted-message, edit-history and reaction tables had no indexes, so every history page, the "edited" check and each reaction lookup grew with the archive. Database version 22 adds the indexes through an explicit migration; the destructive fallback would otherwise have wiped saved history on upgrade. Deleting a saved message also deletes its reactions instead of leaving them behind.
 - The archive lock tolerates a corrupted failure counter instead of crashing on unlock, and the island label no longer splits an emoji when it shortens a long title.
