@@ -25,7 +25,6 @@ import androidx.core.app.NotificationManagerCompat;
 
 import android.util.Log;
 import com.radolyn.ayugram.AyuConfig;
-import org.telegram.ui.LaunchActivity;
 
 
 
@@ -83,15 +82,22 @@ public class NotificationsService extends Service {
 
             // todo: remove try catch
             try {
-                var startIntent = new Intent(this, LaunchActivity.class);
-                var pendingIntent = PendingIntent.getActivity(this, 0, startIntent, PendingIntent.FLAG_MUTABLE);
+                // Android shows a foreground service's notification whatever the channel's importance;
+                // only the user can turn the channel off, and the service keeps running then. So a tap
+                // opens this channel's system settings instead of the app (ported from Glassgram).
+                var hideIntent = new Intent(android.provider.Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                        .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName())
+                        .putExtra(android.provider.Settings.EXTRA_CHANNEL_ID, CHANNEL_ID)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                var pendingIntent = PendingIntent.getActivity(this, 0, hideIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
                 notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                         .setContentIntent(pendingIntent)
                         .setSmallIcon(R.drawable.msg_premium_badge)
                         .setShowWhen(false)
                         .setOngoing(true)
-                        .setContentText(cuteText)
+                        .setContentTitle(cuteText)
+                        .setContentText(LocaleController.getString(R.string.BananaKeepAliveHint))
                         .setCategory(NotificationCompat.CATEGORY_STATUS)
                         .build();
             } catch (Exception e) {
