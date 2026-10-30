@@ -21,6 +21,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- Proxies given by host name connect faster. Their address lookup asked www.google.com for Google's DNS JSON, which now answers 404, so every lookup waited for that before falling back to system DNS. It asks dns.google directly and ignores CNAME answers, which are host names rather than addresses.
 - Message history: one deleted message that failed to archive no longer drops the rest of its batch, which Telegram then deletes for good. A message whose formatting is over the archive limits is kept as plain text instead of being skipped.
 - Video download: asking for a second download while one runs no longer risks Android's "did not call startForeground" crash, and closing the service at the moment a download ends no longer passes a cleared process id to yt-dlp.
 - The avatar and reaction glow cache draws an unusually large glow directly instead of risking an exception while allocating its bitmap.
