@@ -239,27 +239,6 @@ public final class BananaHooks {
                 && saveMediaHistory(account);
     }
 
-    /**
-     * When DONT_READ_MESSAGES is on and GHOST_READ_ON_INTERACT is on, allow one read
-     * receipt for this message (tap / send interaction).
-     */
-    public static void maybeMarkReadOnInteract(int account, TLRPC.Message message) {
-        if (message == null || message.id <= 0 || message.peer_id == null) {
-            return;
-        }
-        if (!dontReadMessages(account) || !ghostReadOnInteract(account)) {
-            return;
-        }
-        try {
-            com.radolyn.ayugram.utils.AyuGhostUtils.markReadOnServer(
-                    account,
-                    message.id,
-                    MessagesController.getInstance(account).getInputPeer(message.peer_id));
-        } catch (Throwable e) {
-            FileLog.e(e);
-        }
-    }
-
     public static boolean hideOnline(int account) {
         return BananaConfig.get(account, BananaConfig.Option.HIDE_ONLINE);
     }

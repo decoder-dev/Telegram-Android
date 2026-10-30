@@ -39,6 +39,15 @@ public class SessionBackupCodecTest {
         try { SessionBackupCodec.decode(extra); fail(); } catch (IOException expected) { }
         try { SessionBackupCodec.decode(Arrays.copyOf(original, 12)); fail(); } catch (IOException expected) { }
     }
+    @Test public void accountPreferencesNeverCarryDeviceState() {
+        Map<String,Object> shared = new HashMap<>();
+        shared.put("user", "synthetic-fixture"); shared.put("registeredForPush", true);
+        shared.put("2dialogsLoadOffsetId1", 7); shared.put("6migrateOffsetDate", 9);
+        shared.put("passcodeHash1", "hash"); shared.put("passcodeSalt", "salt"); shared.put("appLocked", true);
+        shared.put("pushString2", "token"); shared.put("selectedAccount", 2); shared.put("lastLocalId", -5);
+        Map<String,Object> kept = SessionBackupCodec.accountPreferences(shared);
+        assertEquals(new HashSet<>(Arrays.asList("user", "registeredForPush", "2dialogsLoadOffsetId1", "6migrateOffsetDate")), kept.keySet());
+    }
     @Test public void rejectsWeakPasswordAndOversizedBackup() throws Exception {
         try { SessionBackupCodec.encrypt(new byte[]{1},"short".toCharArray()); fail(); } catch (java.security.GeneralSecurityException expected) { }
         try { SessionBackupCodec.readBounded(new ByteArrayInputStream(new byte[SessionBackupCodec.MAX_BYTES+1])); fail(); } catch (IOException expected) { }

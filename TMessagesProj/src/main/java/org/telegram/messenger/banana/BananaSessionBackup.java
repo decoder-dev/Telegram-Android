@@ -52,7 +52,7 @@ public final class BananaSessionBackup {
         File config = new File(configDirectory(slot), "tgnet.dat");
         byte[] network = read(config), again = read(config);
         if (!Arrays.equals(network, again) || new File(configDirectory(slot), "tgnet.dat.bak").exists()) throw new IOException("Session update in progress; retry");
-        SessionBackupCodec.Snapshot snapshot = new SessionBackupCodec.Snapshot(owner, network, preferences(slot).getAll());
+        SessionBackupCodec.Snapshot snapshot = new SessionBackupCodec.Snapshot(owner, network, SessionBackupCodec.accountPreferences(preferences(slot).getAll()));
         verifyIdentity(snapshot);
         if (UserConfig.getInstance(slot).getClientUserId() != owner) throw new IOException("Account changed");
         return snapshot;
@@ -180,8 +180,15 @@ public final class BananaSessionBackup {
                 }
                 atomicWrite(new File(configDirectory(slot), "tgnet.dat"), snapshot.network);
                 new File(configDirectory(slot), "tgnet.dat.bak").delete();
-                SharedPreferences.Editor editor = preferences(slot).edit().clear();
-                for (Map.Entry<String, Object> entry : snapshot.preferences.entrySet()) put(editor, entry.getKey(), entry.getValue());
+                // Replace only the account's own keys. Slot 0's file also holds the device's passcode,
+                // lock state and push token (SharedConfig); clearing it and writing every key of an
+                // older backup replaced them with the source device's.
+                SharedPreferences target = preferences(slot);
+                SharedPreferences.Editor editor = target.edit();
+                for (String key : target.getAll().keySet()) if (SessionBackupCodec.isAccountKey(key)) editor.remove(key);
+                for (Map.Entry<String, Object> entry : SessionBackupCodec.accountPreferences(snapshot.preferences).entrySet()) {
+                    put(editor, entry.getKey(), entry.getValue());
+                }
                 if (!editor.commit()) throw new IOException("Cannot restore preferences");
                 if (!preferences(0).edit().putInt("selectedAccount", slot).commit()) throw new IOException("Cannot select restored account");
                 new AtomicFile(staged).delete();
