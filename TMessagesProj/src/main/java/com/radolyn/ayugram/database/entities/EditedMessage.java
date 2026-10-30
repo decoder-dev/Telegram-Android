@@ -10,9 +10,11 @@
 package com.radolyn.ayugram.database.entities;
 
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity()
+// Every lookup is per message; without the index each one scanned the whole table.
+@Entity(indices = {@Index({"userId", "dialogId", "messageId"})})
 public class EditedMessage extends AyuMessageBase {
     @PrimaryKey(autoGenerate = true)
     public long fakeId;
