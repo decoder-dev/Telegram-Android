@@ -4600,6 +4600,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             }
 
             AyuState.setAutomaticallyScheduled(true, 1);
+            if (document != null || photo != null) {
+                bananaNoticeGhostMedia();
+            }
         }
 
         // user can't reply to deleted messages
@@ -7809,6 +7812,40 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         return uploadingMessagesIdDialogs.get(did, 0) > 0;
     }
 
+    // Ghost scheduling fixes the date when the message is created, but media is converted and
+    // uploaded first. A video or round that took longer than the margin went out with a date in
+    // the past, which the server sends at once: visible online and out of step with the scheduled
+    // copy the client keeps, so it looked unsent. Re-arm the date when the request really leaves.
+    private void bananaRefreshGhostSchedule(TLObject req) {
+        if (!(AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount))) {
+            return;
+        }
+        final int earliest = getConnectionsManager().getCurrentTime() + 11;
+        if (req instanceof TLRPC.TL_messages_sendMedia) {
+            TLRPC.TL_messages_sendMedia r = (TLRPC.TL_messages_sendMedia) req;
+            if (r.schedule_date != 0 && r.schedule_date < earliest) r.schedule_date = earliest;
+        } else if (req instanceof TLRPC.TL_messages_sendMultiMedia) {
+            TLRPC.TL_messages_sendMultiMedia r = (TLRPC.TL_messages_sendMultiMedia) req;
+            if (r.schedule_date != 0 && r.schedule_date < earliest) r.schedule_date = earliest;
+        } else if (req instanceof TLRPC.TL_messages_sendMessage) {
+            TLRPC.TL_messages_sendMessage r = (TLRPC.TL_messages_sendMessage) req;
+            if (r.schedule_date != 0 && r.schedule_date < earliest) r.schedule_date = earliest;
+        }
+    }
+
+    private static long bananaGhostMediaNoticeAt;
+
+    /** A ghost-scheduled photo, video or round stays out of the chat until it is uploaded and sent. */
+    private static void bananaNoticeGhostMedia() {
+        AndroidUtilities.runOnUIThread(() -> {
+            long now = android.os.SystemClock.elapsedRealtime();
+            if (now - bananaGhostMediaNoticeAt < 5000) return;
+            bananaGhostMediaNoticeAt = now;
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.showBulletin, Bulletin.TYPE_SUCCESS,
+                    LocaleController.getString(R.string.BananaGhostMediaScheduled));
+        });
+    }
+
     protected void performSendMessageRequestMulti(final TLObject request, final ArrayList<MessageObject> msgObjs, final ArrayList<String> originalPaths, final ArrayList<Object> parentObjects, DelayedMessage delayedMessage, boolean scheduled) {
         for (int a = 0, size = msgObjs.size(); a < size; a++) {
             putToSendingMessages(msgObjs.get(a).messageOwner, scheduled);
@@ -7823,6 +7860,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             return;
         }
 
+        bananaRefreshGhostSchedule(request);
         getConnectionsManager().sendRequest(request, (response, error) -> {
             if (error != null && FileRefController.isFileRefError(error.text)) {
                 final int fileRefIndex = FileRefController.getFileRefErrorIndex(error.text);
@@ -8214,6 +8252,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             return;
         }
 
+        bananaRefreshGhostSchedule(req);
         newMsgObj.reqId = getConnectionsManager().sendRequest(req, (response, error) -> {
             if (error != null && (req instanceof TLRPC.TL_messages_sendMedia || req instanceof TL_ephemeral.TL_sendMessage || req instanceof TLRPC.TL_messages_editMessage || req instanceof TLRPC.TL_messages_addPollAnswer) && FileRefController.isFileRefError(error.text)) {
                 if (FileRefController.isFileRefErrorCover(error.text)) {
