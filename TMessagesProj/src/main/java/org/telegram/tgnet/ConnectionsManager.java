@@ -434,7 +434,7 @@ public class ConnectionsManager extends BaseController {
                                     object instanceof TLRPC.TL_channels_readMessageContents
                             )
             ) {
-                if (!AyuState.getAllowReadPacket()) {
+                if (!AyuState.consumeAllowedReadRequest(object) && !AyuState.getAllowReadPacket()) {
                     var fakeRes = new TLRPC.TL_messages_affectedMessages();
                     // IDK if this should be -1 or what, check `TL_messages_readMessageContents` usages
                     fakeRes.pts = -1;
@@ -505,23 +505,12 @@ public class ConnectionsManager extends BaseController {
                         }
 
                         getMessagesStorage().getDialogMaxMessageId(dialogId, maxId -> {
-                            // Supergroups and channels only accept channels.readHistory; sending them
-                            // messages.readHistory was rejected, so interacting never marked them read.
-                            TLObject request;
-                            if (finalPeer instanceof TLRPC.TL_inputPeerChannel) {
-                                TLRPC.TL_channels_readHistory channelRequest = new TLRPC.TL_channels_readHistory();
-                                channelRequest.channel = MessagesController.getInputChannel(finalPeer);
-                                channelRequest.max_id = maxId;
-                                request = channelRequest;
-                            } else {
-                                TLRPC.TL_messages_readHistory historyRequest = new TLRPC.TL_messages_readHistory();
-                                historyRequest.peer = finalPeer;
-                                historyRequest.max_id = maxId;
-                                request = historyRequest;
+                            // markReadOnServer sends channels.readHistory to supergroups and channels
+                            // (messages.readHistory was rejected there, so they were never read) and
+                            // applies the returned pts instead of leaving a gap.
+                            if (maxId > 0) {
+                                AyuGhostUtils.markReadOnServer(currentAccount, maxId, finalPeer);
                             }
-
-                            AyuState.setAllowReadPacket(true, 1);
-                            sendRequest(request, (a1, a2) -> {});
                         });
                     };
                 }

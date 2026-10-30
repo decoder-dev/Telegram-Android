@@ -34,7 +34,7 @@ public class AyuGhostUtils {
             req = request;
         }
 
-        AyuState.setAllowReadPacket(true, 1);
+        AyuState.allowReadRequest(req);
         connectionsManager.sendRequest(req, (response, error) -> {
             if (error == null) {
                 if (response instanceof TLRPC.TL_messages_affectedMessages) {
