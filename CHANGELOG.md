@@ -21,6 +21,8 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- A run of failed downloads, such as all of a deleted chat's files, shows one "Message not found" bulletin instead of one per file, and a download without a file no longer counts as the one that failed. Ported from Glassgram.
+- Tapping the keep-alive notification opens its system channel settings, where it can be hidden; the service keeps running. It used to open the app with a mutable PendingIntent. Ported from Glassgram.
 - With glass bubbles on, outgoing messages are glass too. Their gradient colours were read past the glass tint, so they stayed opaque while incoming bubbles showed the blurred wallpaper.
 - AyuGram: copying a secret-chat attachment into the deleted-message archive closes both streams on failure and removes the partial file. Regex filters are thread-safe (the chat list, notifications and downloads read them from different threads) and skip a stored expression that no longer compiles instead of crashing. Delete permissions and one-shot read/schedule flags update atomically. AyuForward waits are bounded at 15 minutes, so a send or download that never reports back no longer keeps a thread and its observers alive forever.
 - Opening a chat no longer scans the whole deleted-message archive on the main thread. The deleted-message, edit-history and reaction tables had no indexes, so every history page, the "edited" check and each reaction lookup grew with the archive. Database version 22 adds the indexes through an explicit migration; the destructive fallback would otherwise have wiped saved history on upgrade. Deleting a saved message also deletes its reactions instead of leaving them behind.
