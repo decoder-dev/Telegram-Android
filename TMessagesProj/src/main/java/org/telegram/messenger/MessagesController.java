@@ -19679,45 +19679,51 @@ public class MessagesController extends BaseController implements NotificationCe
 
         // --- AyuGram request hook
         if (org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount) && deletedMessages != null) {
-            var currentTimeS = (int)(currentTime / 1000);
-            var messagesStorage = getMessagesStorage();
-            var userId = getAccountInstance().getUserConfig().clientUserId;
-            var ayuMessagesController = AyuMessagesController.getInstance();
+            // One storage-queue task for the whole batch. It used to read each message with a blocking
+            // round trip from here, stalling update processing for every message of a mass delete in a
+            // busy group. Posted before the deletion below, so the rows are still there when it reads.
+            final int currentTimeS = (int) (currentTime / 1000);
+            final LongSparseArray<ArrayList<Integer>> toSave = new LongSparseArray<>();
             for (int a = 0, size = deletedMessages.size(); a < size; a++) {
-                var possibleDialogId = deletedMessages.keyAt(a);
-                var messageIds = deletedMessages.valueAt(a);
-
-                var dialogIds = new ArrayList<Long>();
-
-                if (possibleDialogId == 0) {
-                    // Telegram sometimes won't give us dialog id directly...
-                    var possibleIds = messagesStorage.getDialogIdsToUpdate(possibleDialogId, messageIds);
-                    if (possibleIds != null && !possibleIds.isEmpty()) {
-                        dialogIds = possibleIds;
-                    }
-                }
-
-                if (dialogIds.isEmpty()) {
-                    dialogIds.add(possibleDialogId);
-                }
-
-                for (var dialogId : dialogIds) {
-                    for (var msgId : messageIds) {
-                        var msg = messagesStorage.getMessage(dialogId, msgId);
-                        long topicIdLong = msg != null ? MessageObject.getTopicId(currentAccount, msg, isForum(dialogId)) : 0;
-                        int topicId = (int) topicIdLong;
-
-                        // TLRPC.Message msg, int accountId, long dialogId, int topicId, int messageId, int requestCatchTime
-                        var prefs = new AyuSavePreferences(msg, currentAccount, dialogId, (int) topicId, msgId, currentTimeS);
-                        ayuMessagesController.onMessageDeleted(prefs);
-                    }
-
-                    AndroidUtilities.runOnUIThread(() -> {
-                        // invalidating views
-                        getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messageIds);
-                    });
-                }
+                toSave.put(deletedMessages.keyAt(a), new ArrayList<>(deletedMessages.valueAt(a)));
             }
+            getMessagesStorage().getStorageQueue().postRunnable(() -> {
+                var messagesStorage = getMessagesStorage();
+                var ayuMessagesController = AyuMessagesController.getInstance();
+                for (int a = 0, size = toSave.size(); a < size; a++) {
+                    var possibleDialogId = toSave.keyAt(a);
+                    var messageIds = toSave.valueAt(a);
+
+                    var dialogIds = new ArrayList<Long>();
+                    if (possibleDialogId == 0) {
+                        // Telegram sometimes won't give us dialog id directly...
+                        var possibleIds = messagesStorage.getDialogIdsToUpdate(possibleDialogId, messageIds);
+                        if (possibleIds != null && !possibleIds.isEmpty()) {
+                            dialogIds = possibleIds;
+                        }
+                    }
+                    if (dialogIds.isEmpty()) {
+                        dialogIds.add(possibleDialogId);
+                    }
+
+                    for (var dialogId : dialogIds) {
+                        for (var msgId : messageIds) {
+                            try {
+                                var msg = messagesStorage.getMessageInternal(dialogId, msgId);
+                                int topicId = msg != null ? (int) MessageObject.getTopicId(currentAccount, msg, isForum(dialogId)) : 0;
+                                var prefs = new AyuSavePreferences(msg, currentAccount, dialogId, topicId, msgId, currentTimeS);
+                                ayuMessagesController.onMessageDeleted(prefs);
+                            } catch (Throwable t) {
+                                FileLog.e(t);
+                            }
+                        }
+                        AndroidUtilities.runOnUIThread(() -> {
+                            // invalidating views
+                            getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messageIds);
+                        });
+                    }
+                }
+            });
         }
         // --- AyuGram request hook
 
