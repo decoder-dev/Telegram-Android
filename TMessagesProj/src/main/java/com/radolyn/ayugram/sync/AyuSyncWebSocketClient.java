@@ -94,6 +94,7 @@ public class AyuSyncWebSocketClient extends WebSocketClient {
     @Override
     public void onOpen() {
         AyuSyncState.setConnectionState(AyuSyncConnectionState.Connected);
+        AyuSyncController.onConnected();
 
         Log.d("AyuSync", "Connected to the origin");
     }
@@ -138,14 +139,8 @@ public class AyuSyncWebSocketClient extends WebSocketClient {
             // using reflection call doesn't work
 
             AyuSyncController.nullifyInstance();
-
-            try {
-                Thread.sleep(1500);
-            } catch (Exception e2) {
-                Log.d("AyuSync", "jaBBa", e2);
-            }
-
-            AyuSyncController.create();
+            // Same backoff as the controller's other failures, instead of a fixed 1.5 s loop.
+            AyuSyncController.enqueueRetry();
         }
     }
 

@@ -12,17 +12,21 @@ package com.radolyn.ayugram;
 import android.text.TextUtils;
 import android.util.LongSparseArray;
 import com.exteragram.messenger.utils.ChatUtils;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessageObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class AyuFilter {
     private static ArrayList<Pattern> patterns;
     private static LongSparseArray<HashMap<Integer, Boolean>> filteredCache;
 
-    public static void rebuildCache() {
+    // Read from the chat list and chat (UI), NotificationsController's queue and DownloadController,
+    // and rebuilt from settings: every access goes through the class lock.
+    public static synchronized void rebuildCache() {
         var filters = AyuConfig.getRegexFilters();
 
         var flags = Pattern.MULTILINE;
@@ -32,7 +36,12 @@ public class AyuFilter {
 
         patterns = new ArrayList<>();
         for (var filter : filters) {
-            patterns.add(Pattern.compile(filter, flags));
+            try {
+                patterns.add(Pattern.compile(filter, flags));
+            } catch (PatternSyntaxException e) {
+                // A stored expression that no longer compiles must not crash every chat list draw.
+                FileLog.e(e);
+            }
         }
 
         filteredCache = new LongSparseArray<>();
@@ -56,7 +65,7 @@ public class AyuFilter {
         return false;
     }
 
-    public static boolean isFiltered(MessageObject msg, MessageObject.GroupedMessages group) {
+    public static synchronized boolean isFiltered(MessageObject msg, MessageObject.GroupedMessages group) {
         if (!AyuConfig.regexFiltersEnabled) {
             return false;
         }
