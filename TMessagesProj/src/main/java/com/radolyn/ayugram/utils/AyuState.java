@@ -21,8 +21,7 @@ public class AyuState {
     private static final LongSparseArray<ArrayList<Integer>> deletePermitted = new LongSparseArray<>();
 
     public static void setAllowReadPacket(boolean val, int resetAfter) {
-        allowReadPacket.val = val;
-        allowReadPacket.resetAfter = resetAfter;
+        allowReadPacket.set(val, resetAfter);
     }
 
     public static boolean getAllowReadPacket() {
@@ -30,8 +29,7 @@ public class AyuState {
     }
 
     public static void setAutomaticallyScheduled(boolean val, int resetAfter) {
-        automaticallyScheduled.val = val;
-        automaticallyScheduled.resetAfter = resetAfter;
+        automaticallyScheduled.set(val, resetAfter);
     }
 
     public static boolean getAutomaticallyScheduled() {
@@ -39,15 +37,14 @@ public class AyuState {
     }
 
     public static void setHideSelection(boolean val, int resetAfter) {
-        hideSelection.val = val;
-        hideSelection.resetAfter = resetAfter;
+        hideSelection.set(val, resetAfter);
     }
 
     public static boolean getHideSelection() {
         return hideSelection.process();
     }
 
-    public static void permitDeleteMessage(long dialogId, int messageId) {
+    public static synchronized void permitDeleteMessage(long dialogId, int messageId) {
         var list = deletePermitted.get(dialogId);
         if (list == null) {
             list = new ArrayList<>();
@@ -57,7 +54,7 @@ public class AyuState {
         list.add(messageId);
     }
 
-    public static boolean isDeletePermitted(long dialogId, int messageId) {
+    public static synchronized boolean isDeletePermitted(long dialogId, int messageId) {
         var list = deletePermitted.get(dialogId);
         if (list == null) {
             return false;
@@ -66,7 +63,7 @@ public class AyuState {
         return list.contains(messageId);
     }
 
-    public static void messageDeleted(long dialogId, int messageId) {
+    public static synchronized void messageDeleted(long dialogId, int messageId) {
         var list = deletePermitted.get(dialogId);
         if (list == null) {
             return;

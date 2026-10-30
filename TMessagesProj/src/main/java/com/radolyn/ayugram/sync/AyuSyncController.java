@@ -83,16 +83,20 @@ public class AyuSyncController {
         instance = new AyuSyncControllerEmpty();
     }
 
-    private static void enqueueRetry() {
-        queue.postRunnable(() -> {
-            try {
-                Thread.sleep(1500);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+    // Failures (server down, no MVP, registration refused) used to retry every 1.5 s forever while
+    // sync was on. Back off exponentially to five minutes; a successful connection resets it.
+    private static final long RETRY_BASE_MS = 1500;
+    private static final long RETRY_MAX_MS = 5 * 60 * 1000;
+    private static int retryAttempt;
 
-            create();
-        });
+    static synchronized void enqueueRetry() {
+        long delay = Math.min(RETRY_MAX_MS, RETRY_BASE_MS << Math.min(retryAttempt, 10));
+        retryAttempt++;
+        queue.postRunnable(AyuSyncController::create, delay);
+    }
+
+    static synchronized void onConnected() {
+        retryAttempt = 0;
     }
 
     private void loadAccounts() {
@@ -183,9 +187,7 @@ public class AyuSyncController {
                 .get()
                 .build();
 
-        try {
-            var response = client.newCall(request).execute();
-
+        try (var response = client.newCall(request).execute()) {
             Log.d("AyuSync", "Get self status: " + response.code());
 
             return new GsonBuilder()
