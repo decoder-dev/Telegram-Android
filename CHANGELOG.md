@@ -21,6 +21,9 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- AyuGram: copying a secret-chat attachment into the deleted-message archive closes both streams on failure and removes the partial file. Regex filters are thread-safe (the chat list, notifications and downloads read them from different threads) and skip a stored expression that no longer compiles instead of crashing. Delete permissions and one-shot read/schedule flags update atomically. AyuForward waits are bounded at 15 minutes, so a send or download that never reports back no longer keeps a thread and its observers alive forever.
+- AyuSync closes the HTTP response it used to leak and backs off from 1.5 s to 5 minutes between retries instead of retrying every 1.5 s forever.
+- Session backup export, import and restore log the failure type instead of failing silently.
 - With "Don't read messages" on, the unread-reactions and unread-mentions buttons in a chat no longer come back after being cleared. Ghost mode skipped messages.readReactions and messages.readMentions, which only clear your own badges and are visible to nobody, so the server kept the counts. Listened voice and round messages stay unsent.
 - BananaGram Cream draws switched-off controls at 3:1 contrast, the WCAG minimum; they were at 2.6:1. The gallery background in attachments and inline code in incoming messages no longer stay Telegram blue in Cream and Graphite. Both palettes live in BananaPalette, and a JVM test keeps every text and control pair at WCAG AA.
 - Automatic proxy waits at least 20 s after a switch before a failure-driven switch, and only switches while the app is still connecting through the proxy. On slow mobile links it used to hop to a new proxy every 6 s and reconnect every account.

@@ -16,6 +16,7 @@ import org.telegram.messenger.NotificationCenter;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 // music for real coders
 // https://music.youtube.com/watch?v=Cw_tD7MXeEI
@@ -88,11 +89,20 @@ public abstract class EasyWaiter implements NotificationCenter.NotificationCente
         latch.countDown();
     }
 
+    // Long enough for a large download or upload on a slow link. Without a bound, a send or load
+    // that never reports success or failure kept this thread and its observers alive forever.
+    private static final long MAX_WAIT_MINUTES = 15;
+
     public void await() {
         try {
-            latch.await();
+            if (!latch.await(MAX_WAIT_MINUTES, TimeUnit.MINUTES)) {
+                Log.w("AyuGram", getClass().getSimpleName() + " timed out; continuing without its event");
+                unsubscribe();
+            }
         } catch (InterruptedException e) {
-            Log.w("AyuGran", "wtf", e);
+            Log.w("AyuGram", "wait interrupted", e);
+            Thread.currentThread().interrupt();
+            unsubscribe();
         }
     }
 }

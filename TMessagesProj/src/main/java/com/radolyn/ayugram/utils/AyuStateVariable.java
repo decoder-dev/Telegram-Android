@@ -15,6 +15,14 @@ public class AyuStateVariable {
     public boolean val;
     public int resetAfter;
 
+    /** Sets both fields under the lock, so process() never sees a new value with an old counter. */
+    public void set(boolean value, int resetAfter) {
+        synchronized (sync) {
+            this.val = value;
+            this.resetAfter = resetAfter;
+        }
+    }
+
     public boolean process() {
         synchronized (sync) {
             if (resetAfter == -1) {

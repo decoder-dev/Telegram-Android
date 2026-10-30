@@ -352,31 +352,20 @@ public abstract class AyuMessageUtils {
             File file4 = new File(internalCacheDir, file3.getName() + ".key");
             Log.d("AyuGram", "key file " + file4.getAbsolutePath() + " exists " + file4.exists());
             if (file4.exists()) {
-                try {
-                    EncryptedFileInputStream encryptedFileInputStream = new EncryptedFileInputStream(file3, file4);
-                    FileOutputStream fileOutputStream = new FileOutputStream(file2);
-                    try {
-                        byte[] bArr = new byte[1024];
-                        while (true) {
-                            int read = encryptedFileInputStream.read(bArr);
-                            if (read == -1) {
-                                Log.d("AyuGram", "encrypted media copy success");
-                                fileOutputStream.close();
-                                encryptedFileInputStream.close();
-                                return file2;
-                            }
-                            fileOutputStream.write(bArr, 0, read);
-                        }
-                    } catch (Throwable th) {
-                        try {
-                            fileOutputStream.close();
-                        } catch (Throwable th2) {
-                            th.addSuppressed(th2);
-                        }
-                        throw th;
+                // Both streams close on every path; a failed copy must not leave a truncated file that
+                // looks like saved media, nor an open descriptor on the encrypted cache file.
+                try (EncryptedFileInputStream encryptedFileInputStream = new EncryptedFileInputStream(file3, file4);
+                     FileOutputStream fileOutputStream = new FileOutputStream(file2)) {
+                    byte[] bArr = new byte[16 * 1024];
+                    int read;
+                    while ((read = encryptedFileInputStream.read(bArr)) != -1) {
+                        fileOutputStream.write(bArr, 0, read);
                     }
+                    Log.d("AyuGram", "encrypted media copy success");
+                    return file2;
                 } catch (Exception e) {
                     Log.e("AyuGram", "encrypted media copy failed", e);
+                    file2.delete();
                     return new File("/");
                 }
             }

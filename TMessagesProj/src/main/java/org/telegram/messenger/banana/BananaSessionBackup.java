@@ -90,6 +90,11 @@ public final class BananaSessionBackup {
         synchronized (pending) { Runnable task = pending.remove(account); if (task != null) QUEUE.cancelRunnable(task); }
         QUEUE.postRunnable(() -> { written.remove(account); new AtomicFile(new File(directory(), "slot-" + account + ".bin")).delete(); });
     }
+    /** Only the stage and exception type: messages can carry paths or decrypted session fields. */
+    private static void logFailure(String stage, Exception failure) {
+        org.telegram.messenger.FileLog.e("BananaSessionBackup " + stage + " failed: " + failure.getClass().getName());
+    }
+
     public static void export(int account, Uri uri, char[] password, java.util.function.Consumer<Boolean> done) {
         QUEUE.postRunnable(() -> {
             boolean ok = false; byte[] plain = null;
@@ -100,7 +105,7 @@ public final class BananaSessionBackup {
                     if (output == null) throw new IOException("Cannot open destination"); output.write(encrypted);
                 }
                 ok = true;
-            } catch (Exception failure) { }
+            } catch (Exception failure) { logFailure("export", failure); }
             finally { Arrays.fill(password, '\0'); if (plain != null) Arrays.fill(plain, (byte) 0); }
             boolean result = ok; AndroidUtilities.runOnUIThread(() -> done.accept(result));
         });
@@ -113,7 +118,7 @@ public final class BananaSessionBackup {
                     if (input == null) throw new IOException("Cannot read source"); plain = SessionBackupCodec.decrypt(SessionBackupCodec.readBounded(input), password);
                 }
                 stage(SessionBackupCodec.decode(plain)); ok = true;
-            } catch (Exception failure) { }
+            } catch (Exception failure) { logFailure("import", failure); }
             finally { Arrays.fill(password, '\0'); if (plain != null) Arrays.fill(plain, (byte) 0); }
             boolean result = ok; AndroidUtilities.runOnUIThread(() -> done.accept(result));
         });
@@ -122,7 +127,7 @@ public final class BananaSessionBackup {
         QUEUE.postRunnable(() -> {
             boolean ok = false; byte[] plain = null;
             try { plain = SessionBackupCodec.open(read(new File(directory(), "slot-" + sourceSlot + ".bin")), deviceKey()); stage(SessionBackupCodec.decode(plain)); ok = true; }
-            catch (Exception failure) { }
+            catch (Exception failure) { logFailure("restore", failure); }
             finally { if (plain != null) Arrays.fill(plain, (byte) 0); }
             boolean result = ok; AndroidUtilities.runOnUIThread(() -> done.accept(result));
         });
