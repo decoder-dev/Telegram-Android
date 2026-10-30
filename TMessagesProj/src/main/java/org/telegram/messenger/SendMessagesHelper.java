@@ -2247,7 +2247,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
         // --- Banana/AyuGram ghost scheduled send
         if ((AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount))
-                && !DialogObject.isEncryptedDialog(peer) && scheduleDateOrig == 0) {
+                && scheduleDateOrig == 0 && bananaCanGhostSchedule(peer, replyToTopMsg, payStars, false)) {
             scheduleDateOrig = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 10; // min t = 10 sec
 
             // ..but here's the problem:
@@ -4585,7 +4585,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
         // --- Banana/AyuGram ghost scheduled send
         if ((AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount))
-                && !DialogObject.isEncryptedDialog(peer) && scheduleDate == 0) {
+                && scheduleDate == 0 && bananaCanGhostSchedule(peer, replyToTopMsg, payStars,
+                        quick_reply_shortcut != null || quick_reply_shortcut_id != 0 || sendMessageChatArguments.welcomeMessageChatId != 0)) {
             scheduleDate = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 10; // min t = 10 sec
 
             // ..but here's the problem:
@@ -7810,6 +7811,21 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
     public boolean isUploadingMessageIdDialog(long did) {
         return uploadingMessagesIdDialogs.get(did, 0) > 0;
+    }
+
+    /**
+     * Where Telegram itself offers no scheduling (ChatActivity.canScheduleMessage), a ghost-scheduled
+     * send was rejected or misfiled: quick-reply and welcome shortcuts, paid-message chats,
+     * monoforums, a forum outside a topic and channel comment threads. Those are sent normally.
+     */
+    private boolean bananaCanGhostSchedule(long peer, MessageObject replyToTopMsg, long payStars, boolean businessShortcut) {
+        if (businessShortcut || DialogObject.isEncryptedDialog(peer) || payStars > 0) {
+            return false;
+        }
+        if (getMessagesController().getSendPaidMessagesStars(peer) > 0 || getMessagesController().isMonoForum(peer)) {
+            return false;
+        }
+        return getMessagesController().isForum(peer) ? replyToTopMsg != null : replyToTopMsg == null;
     }
 
     // Ghost scheduling fixes the date when the message is created, but media is converted and
