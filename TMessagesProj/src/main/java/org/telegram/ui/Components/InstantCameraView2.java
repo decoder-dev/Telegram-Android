@@ -875,6 +875,14 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
                 false,
                 options.stars
         );
+        // Ghost scheduling turns this round into a scheduled message. It never shows up in the chat,
+        // which is what flies the camera into its bubble and closes it, so the camera stayed on
+        // screen and the round looked unsent. Close it here, as InstantCameraView does.
+        if (!secretChat && options.scheduleDate == 0
+                && (com.radolyn.ayugram.AyuConfig.useScheduledMessages
+                || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount))) {
+            startAnimation(false, false);
+        }
         if (upload != null) upload.release(false);
         upload = null;
         MediaController.getInstance().requestRecordAudioFocus(false);
