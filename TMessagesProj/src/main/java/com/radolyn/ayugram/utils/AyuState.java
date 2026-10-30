@@ -28,6 +28,24 @@ public class AyuState {
         return AyuConfig.sendReadPackets || allowReadPacket.process();
     }
 
+    // Reads the client sends on purpose in ghost mode. Keyed by the request itself: the one-shot
+    // flag above is shared, so two reads issued close together (two reactions in two chats) let the
+    // first one consume it and silently dropped the second.
+    private static final java.util.Set<Object> allowedReadRequests =
+            java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
+
+    public static void allowReadRequest(Object request) {
+        synchronized (allowedReadRequests) {
+            allowedReadRequests.add(request);
+        }
+    }
+
+    public static boolean consumeAllowedReadRequest(Object request) {
+        synchronized (allowedReadRequests) {
+            return allowedReadRequests.remove(request);
+        }
+    }
+
     public static void setAutomaticallyScheduled(boolean val, int resetAfter) {
         automaticallyScheduled.set(val, resetAfter);
     }
