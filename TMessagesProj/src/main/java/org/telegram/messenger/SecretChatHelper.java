@@ -126,42 +126,32 @@ public class SecretChatHelper extends BaseController {
             // --- AyuGram hook (secret)
 
             if (org.telegram.messenger.banana.BananaHooks.ayuSaveDeletedEnabled(currentAccount)) {
-                // save before because they will be removed when `runOnUIThread` happens
-                var dialogsWithMessageIds = getMessagesStorage().getMessageIdsByRandomIds(pendingEncMessagesToDeleteCopy);
-                var dialogsWithMessages = new LongSparseArray<ArrayList<TLRPC.Message>>();
-                for (var i = 0; i < dialogsWithMessageIds.size(); i++) {
-                    var dialogId = dialogsWithMessageIds.keyAt(i);
-                    var messageIds = dialogsWithMessageIds.valueAt(i);
-
-                    for (var messageId : messageIds) {
-                        var message = getMessagesStorage().getMessage(dialogId, messageId);
-                        if (message != null) {
-                            var messages = dialogsWithMessages.get(dialogId);
-                            if (messages == null) {
-                                messages = new ArrayList<>();
-                                dialogsWithMessages.put(dialogId, messages);
+                // One storage-queue task, posted before markMessagesAsDeletedByRandoms below, so the
+                // random-id map and the rows still exist when it reads them. It used to query the
+                // database from this queue and then block on a storage round trip per message.
+                getMessagesStorage().getStorageQueue().postRunnable(() -> {
+                    var dialogsWithMessageIds = getMessagesStorage().getMessageIdsByRandomIds(pendingEncMessagesToDeleteCopy);
+                    for (var i = 0; i < dialogsWithMessageIds.size(); i++) {
+                        var dialogId = dialogsWithMessageIds.keyAt(i);
+                        var messageIds = dialogsWithMessageIds.valueAt(i);
+                        for (var messageId : messageIds) {
+                            try {
+                                var message = getMessagesStorage().getMessageInternal(dialogId, messageId);
+                                if (message != null) {
+                                    var prefs = new AyuSavePreferences(message, currentAccount);
+                                    prefs.setDialogId(dialogId);
+                                    AyuMessagesController.getInstance().onMessageDeleted(prefs);
+                                }
+                            } catch (Throwable t) {
+                                FileLog.e(t);
                             }
-
-                            messages.add(message);
                         }
+                        AndroidUtilities.runOnUIThread(() -> {
+                            // invalidating views
+                            getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, messageIds);
+                        });
                     }
-                }
-
-                for (var i = 0; i < dialogsWithMessages.size(); i++) {
-                    var dialogId = dialogsWithMessages.keyAt(i);
-                    var messages = dialogsWithMessages.valueAt(i);
-
-                    for (var msg : messages) {
-                        var prefs = new AyuSavePreferences(msg, currentAccount);
-                        prefs.setDialogId(dialogId);
-                        AyuMessagesController.getInstance().onMessageDeleted(prefs);
-                    }
-
-                    AndroidUtilities.runOnUIThread(() -> {
-                        // invalidating views
-                        getNotificationCenter().postNotificationName(AyuConstants.MESSAGES_DELETED_NOTIFICATION, dialogId, dialogsWithMessageIds.get(dialogId));
-                    });
-                }
+                });
             }
             // --- AyuGram hook
 
