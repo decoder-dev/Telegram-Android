@@ -472,6 +472,23 @@ public class ConnectionsManager extends BaseController {
                 } else if (object instanceof TLRPC.TL_messages_sendMultiMedia) {
                     var obj = ((TLRPC.TL_messages_sendMultiMedia) object);
                     peer = obj.peer;
+                // Every other visible action in a chat counts as an interaction, as in AyuGram Desktop's
+                // markReadAfterAction: forwarding into it, reacting, voting, inline results, bot
+                // buttons and quick replies.
+                } else if (object instanceof TLRPC.TL_messages_forwardMessages) {
+                    peer = ((TLRPC.TL_messages_forwardMessages) object).to_peer;
+                } else if (object instanceof TLRPC.TL_messages_sendReaction) {
+                    peer = ((TLRPC.TL_messages_sendReaction) object).peer;
+                } else if (object instanceof TLRPC.TL_messages_sendPaidReaction) {
+                    peer = ((TLRPC.TL_messages_sendPaidReaction) object).peer;
+                } else if (object instanceof TLRPC.TL_messages_sendVote) {
+                    peer = ((TLRPC.TL_messages_sendVote) object).peer;
+                } else if (object instanceof TLRPC.TL_messages_sendInlineBotResult) {
+                    peer = ((TLRPC.TL_messages_sendInlineBotResult) object).peer;
+                } else if (object instanceof TLRPC.TL_messages_sendQuickReplyMessages) {
+                    peer = ((TLRPC.TL_messages_sendQuickReplyMessages) object).peer;
+                } else if (object instanceof TLRPC.TL_messages_sendBotRequestedPeer) {
+                    peer = ((TLRPC.TL_messages_sendBotRequestedPeer) object).peer;
                 }
 
                 if (peer != null) {
@@ -480,12 +497,28 @@ public class ConnectionsManager extends BaseController {
                     var origOnComplete = onCompleteOrig;
                     TLRPC.InputPeer finalPeer = peer;
                     onCompleteOrig = (response, error) -> {
-                        origOnComplete.run(response, error);
+                        if (origOnComplete != null) {
+                            origOnComplete.run(response, error);
+                        }
+                        if (error != null) {
+                            return;
+                        }
 
                         getMessagesStorage().getDialogMaxMessageId(dialogId, maxId -> {
-                            TLRPC.TL_messages_readHistory request = new TLRPC.TL_messages_readHistory();
-                            request.peer = finalPeer;
-                            request.max_id = maxId;
+                            // Supergroups and channels only accept channels.readHistory; sending them
+                            // messages.readHistory was rejected, so interacting never marked them read.
+                            TLObject request;
+                            if (finalPeer instanceof TLRPC.TL_inputPeerChannel) {
+                                TLRPC.TL_channels_readHistory channelRequest = new TLRPC.TL_channels_readHistory();
+                                channelRequest.channel = MessagesController.getInputChannel(finalPeer);
+                                channelRequest.max_id = maxId;
+                                request = channelRequest;
+                            } else {
+                                TLRPC.TL_messages_readHistory historyRequest = new TLRPC.TL_messages_readHistory();
+                                historyRequest.peer = finalPeer;
+                                historyRequest.max_id = maxId;
+                                request = historyRequest;
+                            }
 
                             AyuState.setAllowReadPacket(true, 1);
                             sendRequest(request, (a1, a2) -> {});
