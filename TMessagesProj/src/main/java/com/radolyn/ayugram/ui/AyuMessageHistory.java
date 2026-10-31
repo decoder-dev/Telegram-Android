@@ -47,30 +47,29 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
     private void updateHistory() {
         var messagesController = AyuMessagesController.getInstance();
         messages = messagesController.getRevisions(getUserConfig().clientUserId, messageObject.messageOwner.dialog_id, messageObject.messageOwner.id);
+        if (messages == null) {
+            messages = new ArrayList<>();
+        }
         rowCount = messages.size();
     }
 
     @Override
     public View createView(Context context) {
-        var firstMsg = messages.get(0);
-        var peer = getMessagesController().getUserOrChat(firstMsg.dialogId);
-        // todo: check sender of the message
-
-        String name;
-        if (peer == null) {
-            name = "?"; // wtf
-        } else if (peer instanceof TLRPC.User) {
-            name = ((TLRPC.User) peer).first_name;
-        } else if (peer instanceof TLRPC.Chat) {
-            name = ((TLRPC.Chat) peer).title;
-        } else {
-            name = LocaleController.getString("EditsHistoryTitle", R.string.EditsHistoryTitle);
+        EditedMessage firstMsg = messages.isEmpty() ? null : messages.get(0);
+        String name = LocaleController.getString("EditsHistoryTitle", R.string.EditsHistoryTitle);
+        if (firstMsg != null) {
+            var peer = getMessagesController().getUserOrChat(firstMsg.dialogId);
+            if (peer instanceof TLRPC.User) {
+                name = ((TLRPC.User) peer).first_name;
+            } else if (peer instanceof TLRPC.Chat) {
+                name = ((TLRPC.Chat) peer).title;
+            }
         }
 
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle(name);
-        actionBar.setSubtitle(String.valueOf(firstMsg.messageId));
+        actionBar.setSubtitle(String.valueOf(firstMsg != null ? firstMsg.messageId : messageObject.getId()));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -111,7 +110,7 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
     public boolean onFragmentCreate() {
         super.onFragmentCreate();
 
-        NotificationCenter.getInstance(UserConfig.selectedAccount).addObserver(this, AyuConstants.MESSAGE_EDITED_NOTIFICATION);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, AyuConstants.MESSAGE_EDITED_NOTIFICATION);
 
         return true;
     }
@@ -124,7 +123,9 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
 
             if (dialogId == messageObject.messageOwner.dialog_id && messageId == messageObject.messageOwner.id) {
                 updateHistory();
-                listView.getAdapter().notifyDataSetChanged();
+                if (listView != null && listView.getAdapter() != null) {
+                    listView.getAdapter().notifyDataSetChanged();
+                }
             }
         }
     }
@@ -133,7 +134,7 @@ public class AyuMessageHistory extends BaseFragment implements NotificationCente
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
 
-        NotificationCenter.getInstance(UserConfig.selectedAccount).removeObserver(this, AyuConstants.MESSAGE_EDITED_NOTIFICATION);
+        NotificationCenter.getInstance(currentAccount).removeObserver(this, AyuConstants.MESSAGE_EDITED_NOTIFICATION);
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {

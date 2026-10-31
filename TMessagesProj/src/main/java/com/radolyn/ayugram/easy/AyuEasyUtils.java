@@ -49,7 +49,8 @@ public class AyuEasyUtils {
             TLRPC.WebPage webPage,
             boolean searchLinks,
             ArrayList<TLRPC.MessageEntity> entities,
-            boolean notify
+            boolean notify,
+            int scheduleDate
     ) {
         var dialogId = AyuGhostUtils.getDialogId(MessagesController.getInstance(currentAccount).getInputPeer(peer));
 
@@ -70,7 +71,7 @@ public class AyuEasyUtils {
                     null,
                     null,
                     notify,
-                    0,
+                    scheduleDate,
                     0,
                     null,
                     false
@@ -92,6 +93,7 @@ public class AyuEasyUtils {
             String caption,
             ArrayList<TLRPC.MessageEntity> entities,
             boolean notify,
+            int scheduleDate,
             Long groupId,
             boolean isFinalInGroup
     ) {
@@ -123,7 +125,7 @@ public class AyuEasyUtils {
                     null,
                     params,
                     notify,
-                    0,
+                    scheduleDate,
                     0,
                     0,
                     null,
@@ -155,6 +157,7 @@ public class AyuEasyUtils {
             String caption,
             ArrayList<TLRPC.MessageEntity> entities,
             boolean notify,
+            int scheduleDate,
             Long groupId,
             boolean isFinalInGroup
     ) {
@@ -189,7 +192,7 @@ public class AyuEasyUtils {
                     null,
                     params,
                     notify,
-                    0,
+                    scheduleDate,
                     0,
                     0,
                     null,
