@@ -2698,7 +2698,7 @@
     <string name="UseProxyTelegramInfo2">This proxy may display a sponsored channel in your chat list. This doesn\'t reveal any of your Telegram traffic.</string>
     <string name="UseProxyWebInfo">WEB proxy uses an HTTPS page inside a private WebView. Enter a hostname without a scheme or path and a 16-byte MTProxy secret. This proof of concept requires a current Android System WebView and is intended for foreground testing.</string>
     <string name="BananaAutomaticProxy">Auto MTProxy</string>
-    <string name="BananaAutomaticProxyInfo">Fetches public MTProto proxies (tg://proxy, t.me/proxy and host:port:secret). A proxy you added yourself stays selected.</string>
+    <string name="BananaAutomaticProxyInfo">Fetches public MTProto proxies (tg://proxy, t.me/proxy and host:port:secret). Works whether or not Use proxy was on and takes over from your own proxy; turning it off brings that proxy back. Turning Use proxy off pauses it.</string>
     <string name="BananaVless">VLESS</string>
     <string name="BananaVlessNone">Not set</string>
     <string name="BananaVlessHint">Paste a vless:// link. SOCKS5, MTProto and WEB proxies stay available.</string>

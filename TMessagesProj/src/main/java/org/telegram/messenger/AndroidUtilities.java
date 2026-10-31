@@ -4776,6 +4776,7 @@ public class AndroidUtilities {
         final ButtonWithCounterView buttonView = new ButtonWithCounterView(activity, null).setRound();
         buttonView.setText(getString(R.string.ConnectingConnectProxy));
         buttonView.setOnClickListener(v -> {
+            org.telegram.messenger.banana.BananaAutomaticProxy.handOverToManual();
             SharedPreferences.Editor editor = MessagesController.getGlobalMainSettings().edit();
             editor.putBoolean("proxy_enabled", true);
             settings.toSharedPreferences(editor);

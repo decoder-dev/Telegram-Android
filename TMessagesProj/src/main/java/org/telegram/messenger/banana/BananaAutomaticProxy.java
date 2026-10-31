@@ -34,13 +34,20 @@ import java.util.Set;
  *
  * iOS refreshes every 10 minutes and may consider a larger pool. This client probes at most
  * {@link #PROBE_LIMIT} candidates per pass, at most {@link #PROBE_CONCURRENCY} at a time, with
- * {@link #PROBE_GAP_MS} between dials. An enabled hand-added route is never replaced.
+ * {@link #PROBE_GAP_MS} between dials. While enabled it owns routing whatever "Use proxy" was
+ * set to and whichever proxy was selected; turning it off brings that earlier state back.
+ * Turning "Use proxy" off while it is enabled pauses it instead of being undone by a later switch.
  * The refresh runnable is not re-armed while the process stays in the background, the screen
  * is off, power save is on, or there is no network.
  */
 public final class BananaAutomaticProxy {
     private static final String ENABLED = "bananaAutomaticMtProxy";
     private static final String KEYS = "bananaAutomaticMtProxyKeys";
+    /** The user turned "Use proxy" off while automatic mode was on. */
+    private static final String PAUSED = "bananaAutomaticMtProxyPaused";
+    /** Key of the route selected before automatic mode took over, and whether it was in use. */
+    private static final String PREVIOUS = "bananaAutomaticMtProxyPrevious";
+    private static final String PREVIOUS_ENABLED = "bananaAutomaticMtProxyPreviousEnabled";
     /** {@code automaticMtProxyRefreshInterval}. */
     private static final long REFRESH_MS = 10L * 60L * 1000L;
     /** {@code automaticMtProxySelectionDelay}. */
@@ -113,7 +120,36 @@ public final class BananaAutomaticProxy {
     }
 
     public static void setEnabled(boolean enabled) {
-        MessagesController.getGlobalMainSettings().edit().putBoolean(ENABLED, enabled).apply();
+        setEnabled(enabled, true);
+    }
+
+    /** A proxy link the user connects to wins over automatic mode. Call before selecting it. */
+    public static void handOverToManual() {
+        if (isEnabled()) {
+            setEnabled(false, false);
+        }
+    }
+
+    private static void setEnabled(boolean enabled, boolean restorePrevious) {
+        if (enabled == isEnabled()) {
+            if (enabled) {
+                setPaused(false);
+            }
+            return;
+        }
+        // A route the user paused stays off when automatic mode hands back.
+        final boolean wasPaused = isPaused();
+        android.content.SharedPreferences.Editor editor = MessagesController.getGlobalMainSettings().edit();
+        editor.putBoolean(ENABLED, enabled).putBoolean(PAUSED, false);
+        if (enabled) {
+            SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
+            if (current != null && current.settings != null && !isAutomatic(current)) {
+                editor.putString(PREVIOUS, key(current.settings)).putBoolean(PREVIOUS_ENABLED, SharedConfig.isProxyEnabled());
+            } else {
+                editor.remove(PREVIOUS).remove(PREVIOUS_ENABLED);
+            }
+        }
+        editor.apply();
         AndroidUtilities.cancelRunOnUIThread(REFRESH);
         AndroidUtilities.cancelRunOnUIThread(FALLBACK);
         cancelProbes();
@@ -125,8 +161,77 @@ public final class BananaAutomaticProxy {
             lastSwitchAt = 0L;
             refresh();
         } else {
-            AndroidUtilities.runOnUIThread(BananaAutomaticProxy::removeAutomaticExceptManualCurrent);
+            // Synchronous: a proxy link selected right after handOverToManual() may share a key
+            // with the pool and must not be removed by a cleanup that runs after it.
+            removeAutomaticExceptManualCurrent();
+            if (restorePrevious) {
+                restorePrevious(!wasPaused);
+            }
+            MessagesController.getGlobalMainSettings().edit().remove(PREVIOUS).remove(PREVIOUS_ENABLED).apply();
         }
+    }
+
+    /**
+     * Mirrors the "Use proxy" switch while automatic mode is on. Off pauses switching, so
+     * a later probe cannot turn the proxy back on; on resumes it and picks a route.
+     */
+    public static void onProxyUsageChanged(boolean used) {
+        if (!isEnabled()) {
+            return;
+        }
+        if (!used) {
+            setPaused(true);
+        } else if (isPaused()) {
+            setPaused(false);
+        } else if (SharedConfig.currentProxy == null) {
+            refresh();
+        }
+    }
+
+    private static boolean isPaused() {
+        return MessagesController.getGlobalMainSettings().getBoolean(PAUSED, false);
+    }
+
+    private static void setPaused(boolean paused) {
+        if (paused == isPaused()) {
+            return;
+        }
+        MessagesController.getGlobalMainSettings().edit().putBoolean(PAUSED, paused).apply();
+        if (paused) {
+            AndroidUtilities.cancelRunOnUIThread(FALLBACK);
+            cancelProbes();
+            pendingProbe = false;
+            return;
+        }
+        lastSwitchAt = 0L;
+        if (lastAdded != null && !lastAdded.isEmpty()) {
+            startProbe(lastAdded);
+        } else {
+            refresh();
+        }
+    }
+
+    /** Puts back the route and "Use proxy" state that automatic mode replaced. */
+    private static void restorePrevious(boolean allowUse) {
+        android.content.SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+        String previousKey = preferences.getString(PREVIOUS, null);
+        if (TextUtils.isEmpty(previousKey) || SharedConfig.currentProxy != null) {
+            return;
+        }
+        SharedConfig.ProxyInfo previous = find(previousKey);
+        if (previous == null || previous.settings == null) {
+            return;
+        }
+        boolean use = allowUse && preferences.getBoolean(PREVIOUS_ENABLED, false);
+        android.content.SharedPreferences.Editor editor = preferences.edit();
+        previous.settings.toSharedPreferences(editor);
+        editor.putBoolean("proxy_enabled", use);
+        editor.apply();
+        SharedConfig.currentProxy = previous;
+        if (use) {
+            ConnectionsManager.setProxySettings(true, previous.settings);
+        }
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
     }
 
     public static void init() {
@@ -273,19 +378,10 @@ public final class BananaAutomaticProxy {
         if (!isEnabled() || !ApplicationLoader.isScreenOn || backgroundedLong()) {
             return false;
         }
-        if (isPowerSave() || !hasNetwork() || manualRouteSelected()) {
+        if (isPowerSave() || !hasNetwork() || isPaused()) {
             return false;
         }
         return true;
-    }
-
-    /** A hand-picked SOCKS, WEB, or MTProxy route stays in charge. iOS returns before activate. */
-    private static boolean manualRouteSelected() {
-        SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
-        if (current == null || !SharedConfig.isProxyEnabled()) {
-            return false;
-        }
-        return !isAutomatic(current);
     }
 
     private static boolean isPowerSave() {
@@ -485,10 +581,6 @@ public final class BananaAutomaticProxy {
         if (!isEnabled() || !canProbe()) {
             return;
         }
-        SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
-        if (current != null && !isAutomatic(current) && SharedConfig.isProxyEnabled()) {
-            return;
-        }
         if (ConnectionsManager.getInstance(UserConfig.selectedAccount).getConnectionState()
                 != ConnectionsManager.ConnectionStateConnectingToProxy) {
             return;
@@ -515,11 +607,10 @@ public final class BananaAutomaticProxy {
             return;
         }
         SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
-        // An enabled hand-added route stays selected. A disabled one is left in the list;
-        // auto may then choose its own route instead of no-op'ing the toggle.
-        if (current != null && !isAutomatic(current) && SharedConfig.isProxyEnabled()) {
-            return;
-        }
+        // A hand-added route stays in the list but is replaced: the "Use proxy" switch, not
+        // the route that happened to be selected, decides whether automatic mode connects.
+        boolean currentAutomatic = current != null && isAutomatic(current);
+        boolean currentUsed = currentAutomatic && SharedConfig.isProxyEnabled();
         SharedConfig.ProxyInfo best = null;
         for (int i = 0; i < probed.size(); i++) {
             SharedConfig.ProxyInfo info = probed.get(i);
@@ -534,11 +625,11 @@ public final class BananaAutomaticProxy {
             }
         }
         // A pass that found no live candidate must not enable a dead proxy.
-        if (best == null || best == current || best.settings == null) {
+        if (best == null || best.settings == null || (best == current && currentUsed)) {
             return;
         }
         long now = System.currentTimeMillis();
-        boolean currentDown = failureDriven || current == null || !current.available || current.ping <= 0;
+        boolean currentDown = failureDriven || !currentUsed || !current.available || current.ping <= 0;
         if (!currentDown) {
             if (now - lastSwitchAt < MIN_SWITCH_MS) {
                 return;
