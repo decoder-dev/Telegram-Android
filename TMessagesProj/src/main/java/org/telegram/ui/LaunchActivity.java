@@ -6732,7 +6732,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         editor.putBoolean("proxy_enabled", false);
                         editor.commit();
                         ConnectionsManager.setProxySettings(false, null);
-                        org.telegram.messenger.banana.BananaAutomaticProxy.onProxyUsageChanged(false);
+                        org.telegram.messenger.banana.BananaAutomaticProxy.onProxyDisabled();
                         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
                         proxyErrorDialog = null;
                     }
