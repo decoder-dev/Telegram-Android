@@ -597,7 +597,11 @@ public class BananaSmokeTest {
             await(instrumentation, () -> !org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()
                     && countProxyRows(list[0]) == fixtures.size() && hasRenderedProxyRow(list[0]) && !list[0].isLayoutRequested(),
                     "Switching back to manual mode must restore the saved list");
-            instrumentation.runOnMainSync(() -> assertEquals(fixtures, org.telegram.messenger.SharedConfig.proxyList));
+            instrumentation.runOnMainSync(() -> {
+                assertEquals(fixtures, org.telegram.messenger.SharedConfig.proxyList);
+                assertSame("Leaving automatic mode must keep the user's own proxy", fixtures.get(0), org.telegram.messenger.SharedConfig.currentProxy);
+                assertTrue("Toggling automatic mode must not change Use proxy", org.telegram.messenger.SharedConfig.isProxyEnabled());
+            });
         } finally {
             instrumentation.runOnMainSync(() -> {
                 org.telegram.messenger.banana.BananaAutomaticProxy.setEnabled(false);
