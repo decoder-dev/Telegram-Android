@@ -404,7 +404,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                     && position != useProxyRow && position != automaticProxyRow && position != vlessRow) return;
             if (position == useProxyRow) {
                 if (SharedConfig.currentProxy == null && org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()) {
-                    org.telegram.messenger.banana.BananaAutomaticProxy.refresh();
+                    // Nothing selected yet: automatic mode turns the proxy on once a route answers.
+                    org.telegram.messenger.banana.BananaAutomaticProxy.onProxyUsageChanged(true);
                     return;
                 }
                 if (SharedConfig.currentProxy == null) {
@@ -434,6 +435,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 editor.commit();
 
                 ConnectionsManager.setProxySettings(useProxySettings, SharedConfig.currentProxy.settings);
+                org.telegram.messenger.banana.BananaAutomaticProxy.onProxyUsageChanged(useProxySettings);
                 NotificationCenter.getGlobalInstance().removeObserver(ProxyListActivity.this, NotificationCenter.proxySettingsChanged);
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
                 NotificationCenter.getGlobalInstance().addObserver(ProxyListActivity.this, NotificationCenter.proxySettingsChanged);
