@@ -24,6 +24,9 @@ import java.util.ArrayList;
 // https://open.spotify.com/track/2qpOzuQGFqTKNn56w7qShx
 public class AyuForwarder {
     public static boolean isFullAyuForwardsNeeded(int currentAccount, ArrayList<MessageObject> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return false;
+        }
         var dialogId = messages.get(0).getDialogId();
         var chat = MessagesController.getInstance(currentAccount).getChat(Math.abs(dialogId));
 
@@ -31,6 +34,9 @@ public class AyuForwarder {
     }
 
     public static boolean isAyuForwardNeeded(ArrayList<MessageObject> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return false;
+        }
         for (var message : messages) {
             if (isAyuForwardNeeded(message)) {
                 return true;
@@ -41,10 +47,13 @@ public class AyuForwarder {
     }
 
     private static boolean isAyuForwardNeeded(MessageObject message) {
-        return message.messageOwner != null && (message.messageOwner.ayuDeleted || message.messageOwner.ayuNoforwards);
+        return message != null && message.messageOwner != null && (message.messageOwner.ayuDeleted || message.messageOwner.ayuNoforwards);
     }
 
     public static void intelligentForward(int currentAccount, ArrayList<MessageObject> messages, long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDate, MessageObject replyToTopMsg) {
+        if (messages == null || messages.isEmpty()) {
+            return;
+        }
         var batches = new ArrayList<ForwardBatch>();
 
         var currentArray = new ArrayList<MessageObject>();
@@ -74,6 +83,9 @@ public class AyuForwarder {
     }
 
     public static void forwardMessages(int currentAccount, ArrayList<MessageObject> messages, long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDate, MessageObject replyToTopMsg) {
+        if (messages == null || messages.isEmpty()) {
+            return;
+        }
         var toBeDownloaded = new ArrayList<MessageObject>();
 
         var groups = new LongSparseArray<Long>();
@@ -135,11 +147,14 @@ public class AyuForwarder {
                         null, // todo
                         false,
                         message.messageOwner.entities,
-                        notify
+                        notify,
+                        scheduleDate
                 );
             } else if (message.getDocument() != null) {
                 var doc = message.getDocument();
                 var newDoc = mapDocument(currentAccount, doc, messagePath);
+                var caption = hideCaption ? "" : text;
+                var entities = hideCaption ? null : message.messageOwner.entities;
 
                 AyuEasyUtils.sendDocumentMessageSync(
                         currentAccount,
@@ -148,9 +163,10 @@ public class AyuForwarder {
                         peer,
                         null,
                         replyToTopMsg,
-                        text,
-                        message.messageOwner.entities,
+                        caption,
+                        entities,
                         notify,
+                        scheduleDate,
                         newGroupId,
                         isFinalInGroup
                 );
@@ -158,7 +174,8 @@ public class AyuForwarder {
                 var photo = MessageObject.getPhoto(message.messageOwner);
                 var newPhoto = mapPhoto(currentAccount, photo, messagePath);
 
-                var caption = TextUtils.isEmpty(photo.caption) ? text : photo.caption;
+                var caption = hideCaption ? "" : (TextUtils.isEmpty(photo.caption) ? text : photo.caption);
+                var entities = hideCaption ? null : message.messageOwner.entities;
 
                 AyuEasyUtils.sendPhotoMessageSync(
                         currentAccount,
@@ -168,8 +185,9 @@ public class AyuForwarder {
                         null,
                         replyToTopMsg,
                         caption,
-                        message.messageOwner.entities,
+                        entities,
                         notify,
+                        scheduleDate,
                         newGroupId,
                         isFinalInGroup
                 );

@@ -24,7 +24,7 @@ public class AyuMessageCell extends ChatMessageCell {
     private EditedMessage editedMessage;
 
     public AyuMessageCell(Context context, Activity activity, BaseFragment fragment) {
-        super(context, org.telegram.messenger.UserConfig.selectedAccount);
+        super(context, fragment.getCurrentAccount());
 
         setFullyDraw(true);
         isChat = false;
@@ -32,6 +32,9 @@ public class AyuMessageCell extends ChatMessageCell {
         });
 
         setOnClickListener(v -> {
+            if (editedMessage == null) {
+                return;
+            }
             // copy only if no media
             if (TextUtils.isEmpty(editedMessage.mediaPath)) {
                 copyText(fragment);
@@ -44,6 +47,9 @@ public class AyuMessageCell extends ChatMessageCell {
         });
 
         setOnLongClickListener(v -> {
+            if (editedMessage == null) {
+                return false;
+            }
             copyText(fragment);
             return true;
         });
@@ -64,7 +70,7 @@ public class AyuMessageCell extends ChatMessageCell {
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
 
-        if (!TextUtils.isEmpty(editedMessage.hqThumbPath)) {
+        if (editedMessage != null && !TextUtils.isEmpty(editedMessage.hqThumbPath)) {
             getPhotoImage().setImage(editedMessage.hqThumbPath, null, null, null, 0);
         }
     }

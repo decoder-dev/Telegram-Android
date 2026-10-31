@@ -156,6 +156,7 @@ public final class BananaAutomaticProxy {
         refreshGeneration++;
         refreshing = false;
         pendingProbe = false;
+        lastAdded = new ArrayList<>();
         if (enabled) {
             // iOS clears the dwell stamp when the user turns the feature on.
             lastSwitchAt = 0L;
@@ -231,6 +232,10 @@ public final class BananaAutomaticProxy {
             AndroidUtilities.cancelRunOnUIThread(REFRESH);
             AndroidUtilities.cancelRunOnUIThread(FALLBACK);
             cancelProbes();
+            // A fetch may already be waiting to post its result to the UI thread.  Do not let
+            // that result replace the pool or restart probing after the user explicitly paused.
+            refreshGeneration++;
+            refreshing = false;
             pendingProbe = false;
             return;
         }
@@ -316,7 +321,7 @@ public final class BananaAutomaticProxy {
                     return;
                 }
                 refreshing = false;
-                if (!isEnabled()) {
+                if (!isEnabled() || isPaused()) {
                     return;
                 }
                 applyPool(pool);
@@ -500,6 +505,7 @@ public final class BananaAutomaticProxy {
         pendingProbe = false;
         failureDrivenSwitch = false;
         if (!isEnabled() || added == null || added.isEmpty()) {
+            lastAdded = new ArrayList<>();
             return;
         }
         int limit = Math.min(PROBE_LIMIT, added.size());
