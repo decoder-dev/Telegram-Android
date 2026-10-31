@@ -364,6 +364,8 @@
 <string name="AppIconBananaGraphite">Графит</string>
 <string name="AppIconBananaCream">Крем</string>
 <string name="BananaUpdatesChannel">Обновления приложения</string>
+<string name="BananaCrashTitle">Приложение неожиданно завершилось</string>
+<string name="BananaCrashInfo">На устройстве сохранён технический отчёт: тип ошибки, стек вызовов, расход памяти и количество экранов. Тексты исключений исключены. Отчёт никуда не отправляется автоматически. Его можно скопировать для сообщения о проблеме или удалить.</string>
 <string name="BananaUpdateAvailableTitle">Доступна BananaGram %1$s</string>
 <string name="BananaUpdateAvailableText">Нажмите, чтобы открыть обновление</string>
 <string name="BananaKeepAliveHint">Нажмите, чтобы скрыть это уведомление. Сообщения продолжат приходить.</string>

@@ -106,7 +106,7 @@ public class AyuEasyUtils {
         }
 
         var uploadWaiter = new DummyFileUploadWaiter(currentAccount, path);
-        uploadWaiter.subscribe();
+        if (groupId == 0) uploadWaiter.subscribe();
 
         var helper = SendMessagesHelper.getInstance(currentAccount);
 
@@ -174,7 +174,7 @@ public class AyuEasyUtils {
         }
 
         var uploadWaiter = new DummyFileUploadWaiter(currentAccount, filename);
-        uploadWaiter.subscribe();
+        if (groupId == 0) uploadWaiter.subscribe();
 
         var helper = SendMessagesHelper.getInstance(currentAccount);
 
