@@ -7704,6 +7704,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         if (passcodeDialog == null) {
             BaseFragment currentFragment = getLastFragment();
             if (currentFragment != null) {
+                org.telegram.messenger.banana.BananaCrashReporter.showIfNeeded(this);
                 // A tap on the "new version" notification runs a manual check, which opens the sheet.
                 boolean openUpdater = org.telegram.messenger.banana.UpdateNotifier.consumeOpenRequest();
                 if (openUpdater || ExteraConfig.checkUpdatesOnLaunch) {

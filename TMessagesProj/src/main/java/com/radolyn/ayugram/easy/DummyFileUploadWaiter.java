@@ -9,8 +9,6 @@
 
 package com.radolyn.ayugram.easy;
 
-import android.text.TextUtils;
-import android.util.Log;
 import org.telegram.messenger.NotificationCenter;
 
 public class DummyFileUploadWaiter extends EasyWaiter {
@@ -25,7 +23,7 @@ public class DummyFileUploadWaiter extends EasyWaiter {
     }
 
     private void process(String path) {
-        if (this.path.contains(path) || (!TextUtils.isEmpty(path) && path.endsWith(this.path))) {
+        if (this.path != null && this.path.equals(path)) {
             unsubscribe();
         }
     }
@@ -35,13 +33,9 @@ public class DummyFileUploadWaiter extends EasyWaiter {
         if (id == NotificationCenter.fileUploaded) {
             final String location = (String) args[0];
 
-            Log.w("AyuGram", "File uploaded: " + location);
-
             process(location);
         } else if (id == NotificationCenter.fileUploadFailed) {
             final String location = (String) args[0];
-
-            Log.w("AyuGram", "File upload failed: " + location);
 
             process(location);
         }

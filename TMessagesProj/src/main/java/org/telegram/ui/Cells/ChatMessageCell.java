@@ -6368,6 +6368,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     @Override
+    public void onVisibilityAggregated(boolean visible) {
+        super.onVisibilityAggregated(visible);
+        if (visible && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && bananaBubbleBackdrop != null) {
+            bananaBubbleBackdrop.release();
+            invalidate();
+        }
+    }
+
+    @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && bananaBubbleBackdrop != null) {

@@ -17559,6 +17559,23 @@ public class ChatActivity extends BaseFragment implements
     }
 
     public class ChatActivityFragmentView extends SizeNotifierFrameLayout {
+        // Refresh after PhotoViewer stops hiding the chat, including its closing animation.
+        private final Runnable bananaRecaptureGlass = () -> {
+            if (isAttachedToWindow() && isShown()) {
+                invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_POSITIONS | BLUR_INVALIDATE_FLAG_SCROLL);
+                if (chatListView != null) chatListView.invalidate();
+            }
+        };
+
+        @Override
+        public void onVisibilityAggregated(boolean visible) {
+            super.onVisibilityAggregated(visible);
+            removeCallbacks(bananaRecaptureGlass);
+            if (visible) {
+                post(bananaRecaptureGlass);
+                postDelayed(bananaRecaptureGlass, 450);
+            }
+        }
 
         @Override
         public int measureKeyboardHeight() {
@@ -17875,6 +17892,7 @@ public class ChatActivity extends BaseFragment implements
         @Override
         protected void onDetachedFromWindow() {
             super.onDetachedFromWindow();
+            removeCallbacks(bananaRecaptureGlass);
             adjustPanLayoutHelper.onDetach();
             if (pullingDownDrawable != null) {
                 pullingDownDrawable.onDetach();

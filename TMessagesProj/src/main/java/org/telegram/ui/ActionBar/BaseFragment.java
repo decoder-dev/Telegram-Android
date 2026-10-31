@@ -211,6 +211,7 @@ public abstract class BaseFragment {
     }
 
     public BaseFragment(Bundle args) {
+        org.telegram.messenger.banana.BananaCrashReporter.track(this);
         arguments = args;
         classGuid = ConnectionsManager.generateClassGuid();
         if (BuildConfig.DEBUG_PRIVATE_VERSION) {
@@ -505,11 +506,13 @@ public abstract class BaseFragment {
     }
 
     public boolean onFragmentCreate() {
+        org.telegram.messenger.banana.BananaCrashReporter.active(this, true);
         return true;
     }
 
     @CallSuper
     public void onFragmentDestroy() {
+        org.telegram.messenger.banana.BananaCrashReporter.active(this, false);
         getConnectionsManager().cancelRequestsForGuid(classGuid);
         getMessagesStorage().cancelTasksForGuid(classGuid);
         isFinished = true;

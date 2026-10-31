@@ -312,6 +312,7 @@ public class ApplicationLoader extends Application {
         // native libraries, preferences, push providers or account databases.
         if (org.telegram.messenger.banana.RegexProcess.isWorker(this)) return;
 
+        org.telegram.messenger.banana.BananaCrashReporter.install(this);
         org.telegram.messenger.banana.BananaSessionBackup.applyPending();
 
         // AndroidUtilities must be initialized before FileLog
