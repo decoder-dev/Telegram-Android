@@ -171,20 +171,50 @@ public final class BananaAutomaticProxy {
         }
     }
 
+    /** Whether automatic mode is on and not paused: what "Use proxy" shows while it is on. */
+    public static boolean isActive() {
+        return isEnabled() && !isPaused();
+    }
+
     /**
-     * Mirrors the "Use proxy" switch while automatic mode is on. Off pauses switching, so
-     * a later probe cannot turn the proxy back on; on resumes it and picks a route.
+     * The "Use proxy" switch while automatic mode is on. Off pauses it and disconnects, so a
+     * later probe cannot turn the proxy back on. On resumes it: an automatic route already
+     * selected is used at once, otherwise the proxy turns on when a probed route answers.
      */
-    public static void onProxyUsageChanged(boolean used) {
+    public static void setUsed(boolean used) {
         if (!isEnabled()) {
             return;
         }
+        SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
+        android.content.SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         if (!used) {
             setPaused(true);
-        } else if (isPaused()) {
+            if (preferences.getBoolean("proxy_enabled", false)) {
+                preferences.edit().putBoolean("proxy_enabled", false).apply();
+                ConnectionsManager.setProxySettings(false, current != null ? current.settings : null);
+            }
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
+            return;
+        }
+        boolean automaticSelected = current != null && current.settings != null && isAutomatic(current);
+        if (automaticSelected && !SharedConfig.isProxyEnabled()) {
+            android.content.SharedPreferences.Editor editor = preferences.edit();
+            current.settings.toSharedPreferences(editor);
+            editor.putBoolean("proxy_enabled", true).apply();
+            ConnectionsManager.setProxySettings(true, current.settings);
+        }
+        if (isPaused()) {
             setPaused(false);
-        } else if (SharedConfig.currentProxy == null) {
+        } else if (!automaticSelected) {
             refresh();
+        }
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
+    }
+
+    /** Use proxy was turned off elsewhere (the proxy error dialog): pause automatic mode. */
+    public static void onProxyDisabled() {
+        if (isEnabled()) {
+            setPaused(true);
         }
     }
 
@@ -198,6 +228,7 @@ public final class BananaAutomaticProxy {
         }
         MessagesController.getGlobalMainSettings().edit().putBoolean(PAUSED, paused).apply();
         if (paused) {
+            AndroidUtilities.cancelRunOnUIThread(REFRESH);
             AndroidUtilities.cancelRunOnUIThread(FALLBACK);
             cancelProbes();
             pendingProbe = false;
@@ -242,7 +273,7 @@ public final class BananaAutomaticProxy {
     }
 
     public static void refresh() {
-        if (!isEnabled() || refreshing) {
+        if (!isEnabled() || refreshing || isPaused()) {
             return;
         }
         if (shouldDeferRefresh()) {
@@ -353,7 +384,7 @@ public final class BananaAutomaticProxy {
 
     private static void scheduleRefresh(long delay) {
         AndroidUtilities.cancelRunOnUIThread(REFRESH);
-        if (!isEnabled() || backgroundedLong()) {
+        if (!isEnabled() || isPaused() || backgroundedLong()) {
             return;
         }
         AndroidUtilities.runOnUIThread(REFRESH, Math.max(0L, delay));

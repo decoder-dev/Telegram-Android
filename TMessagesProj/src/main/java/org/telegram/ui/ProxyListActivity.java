@@ -350,7 +350,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didUpdateConnectionState);
 
         final SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-        useProxySettings = preferences.getBoolean("proxy_enabled", false) && !SharedConfig.proxyList.isEmpty();
+        useProxySettings = org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()
+                ? org.telegram.messenger.banana.BananaAutomaticProxy.isActive()
+                : preferences.getBoolean("proxy_enabled", false) && !SharedConfig.proxyList.isEmpty();
 
         updateRows(true);
 
@@ -403,9 +405,12 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
             if (org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()
                     && position != useProxyRow && position != automaticProxyRow && position != vlessRow) return;
             if (position == useProxyRow) {
-                if (SharedConfig.currentProxy == null && org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()) {
-                    // Nothing selected yet: automatic mode turns the proxy on once a route answers.
-                    org.telegram.messenger.banana.BananaAutomaticProxy.onProxyUsageChanged(true);
+                if (org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()) {
+                    // Automatic mode owns the route; this switch only pauses or resumes it.
+                    useProxySettings = !org.telegram.messenger.banana.BananaAutomaticProxy.isActive();
+                    ((TextCheckCell) view).setChecked(useProxySettings);
+                    org.telegram.messenger.banana.BananaAutomaticProxy.setUsed(useProxySettings);
+                    updateRows(true);
                     return;
                 }
                 if (SharedConfig.currentProxy == null) {
@@ -435,7 +440,6 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 editor.commit();
 
                 ConnectionsManager.setProxySettings(useProxySettings, SharedConfig.currentProxy.settings);
-                org.telegram.messenger.banana.BananaAutomaticProxy.onProxyUsageChanged(useProxySettings);
                 NotificationCenter.getGlobalInstance().removeObserver(ProxyListActivity.this, NotificationCenter.proxySettingsChanged);
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
                 NotificationCenter.getGlobalInstance().addObserver(ProxyListActivity.this, NotificationCenter.proxySettingsChanged);
@@ -453,7 +457,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
-                useProxySettings = SharedConfig.isProxyEnabled();
+                useProxySettings = readUseProxy();
                 updateRows(true);
             } else if (position == vlessRow) {
                 showVlessEditor();
@@ -655,6 +659,14 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         showDialog(builder.create());
     }
 
+    /** While automatic mode is on, Use proxy shows whether it runs, not whether a route is up yet. */
+    private static boolean readUseProxy() {
+        if (org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()) {
+            return org.telegram.messenger.banana.BananaAutomaticProxy.isActive();
+        }
+        return SharedConfig.isProxyEnabled();
+    }
+
     private void updateRows(boolean notify) {
         final boolean automatic = org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled();
         notify |= automatic != automaticProxyMode;
@@ -777,7 +789,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     @Override
     public void onResume() {
         super.onResume();
-        useProxySettings = SharedConfig.isProxyEnabled();
+        useProxySettings = readUseProxy();
         updateRows(true);
     }
 
@@ -795,7 +807,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
 
             updateRows(false);
         } else if (id == NotificationCenter.proxySettingsChanged) {
-            useProxySettings = SharedConfig.isProxyEnabled();
+            useProxySettings = readUseProxy();
             updateRows(true);
         } else if (id == NotificationCenter.didUpdateConnectionState) {
             int state = ConnectionsManager.getInstance(account).getConnectionState();
