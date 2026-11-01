@@ -364,6 +364,10 @@
 <string name="AppIconBananaGraphite">Графит</string>
 <string name="AppIconBananaCream">Крем</string>
 <string name="BananaUpdatesChannel">Обновления приложения</string>
+<string name="BananaRefreshRate">Частота обновления экрана</string>
+<string name="BananaRefreshSystem">Системная</string>
+<string name="BananaRefreshMaximum">Максимальная доступная</string>
+<string name="BananaRefreshHz">%1$d Гц</string>
 <string name="BananaCrashTitle">Приложение неожиданно завершилось</string>
 <string name="BananaCrashInfo">На устройстве сохранён технический отчёт: тип ошибки, стек вызовов, расход памяти и количество экранов. Тексты исключений исключены. Отчёт никуда не отправляется автоматически. Его можно скопировать для сообщения о проблеме или удалить.</string>
 <string name="BananaUpdateAvailableTitle">Доступна BananaGram %1$s</string>

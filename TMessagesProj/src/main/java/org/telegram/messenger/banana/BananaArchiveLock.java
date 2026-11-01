@@ -68,6 +68,8 @@ public final class BananaArchiveLock {
     private static final long TAP_GAP_MS = 3000L;
     private static final Object FILE_LOCK = new Object();
     private static final int ACCOUNTS = UserConfig.MAX_ACCOUNT_COUNT;
+    /** Persisted snapshots only; callers receive copies so failed writes cannot change the cache. */
+    private static final State[] persistedStates = new State[ACCOUNTS];
 
     private static final boolean[] unlocked = new boolean[ACCOUNTS];
     private static final boolean[] revealed = new boolean[ACCOUNTS];
@@ -751,17 +753,29 @@ public final class BananaArchiveLock {
         int failures;
         long failureElapsed;
         boolean biometrics;
+
+        State copy() {
+            State result = new State();
+            result.verifier = verifier;
+            result.failures = failures;
+            result.failureElapsed = failureElapsed;
+            result.biometrics = biometrics;
+            return result;
+        }
     }
 
     private static State state(int account) {
         State state = new State();
-        File file = file(account);
-        if (file == null || !file.isFile()) {
-            return state;
-        }
+        if (account < 0 || account >= ACCOUNTS || ApplicationLoader.applicationContext == null) return state;
         synchronized (FILE_LOCK) {
+            if (persistedStates[account] != null) return persistedStates[account].copy();
+            File file = file(account);
+            if (!file.isFile() && !new File(file.getPath() + ".bak").isFile()) {
+                persistedStates[account] = state.copy();
+                return state;
+            }
             try {
-                byte[] raw = java.nio.file.Files.readAllBytes(file.toPath());
+                byte[] raw = new android.util.AtomicFile(file).readFully();
                 String text = new String(raw, StandardCharsets.UTF_8);
                 String[] lines = text.split("\n");
                 for (String line : lines) {
@@ -783,17 +797,22 @@ public final class BananaArchiveLock {
                         state.biometrics = "1".equals(value);
                     }
                 }
+                persistedStates[account] = state.copy();
             } catch (Throwable t) {
                 FileLog.e(t);
+                // An unreadable existing lock must not become an unlocked cached state.
+                // Leave the cache empty so a transient storage error can recover on retry.
+                if (state.verifier == null) state.verifier = "unreadable";
             }
         }
         return state;
     }
 
-    private static void write(int account, State state) {
+    private static boolean write(int account, State state) {
+        if (account < 0 || account >= ACCOUNTS) return false;
         File file = file(account);
         if (file == null) {
-            return;
+            return false;
         }
         StringBuilder builder = new StringBuilder();
         if (state.verifier != null) {
@@ -803,14 +822,25 @@ public final class BananaArchiveLock {
         builder.append("failureElapsed=").append(state.failureElapsed).append('\n');
         builder.append("biometrics=").append(state.biometrics ? "1" : "0").append('\n');
         synchronized (FILE_LOCK) {
+            android.util.AtomicFile atomic = new android.util.AtomicFile(file);
+            java.io.FileOutputStream output = null;
             try {
                 File parent = file.getParentFile();
                 if (parent != null && !parent.exists()) {
                     parent.mkdirs();
                 }
-                java.nio.file.Files.write(file.toPath(), builder.toString().getBytes(StandardCharsets.UTF_8));
+                output = atomic.startWrite();
+                byte[] bytes = builder.toString().getBytes(StandardCharsets.UTF_8);
+                output.write(bytes);
+                atomic.finishWrite(output);
+                output = null;
+                if (!java.util.Arrays.equals(bytes, atomic.readFully())) throw new java.io.IOException("Lock state was not committed");
+                persistedStates[account] = state.copy();
+                return true;
             } catch (Throwable t) {
+                atomic.failWrite(output);
                 FileLog.e(t);
+                return false;
             }
         }
     }
@@ -834,8 +864,7 @@ public final class BananaArchiveLock {
             state.verifier = "pbkdf2$" + ITERATIONS + "$" + Base64.encodeToString(salt, Base64.NO_WRAP) + "$" + Base64.encodeToString(hash, Base64.NO_WRAP);
             state.failures = 0;
             state.failureElapsed = 0;
-            write(account, state);
-            return state(account).verifier != null;
+            return write(account, state);
         } catch (Throwable t) {
             FileLog.e(t);
             return false;

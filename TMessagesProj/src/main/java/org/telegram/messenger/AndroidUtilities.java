@@ -2819,17 +2819,21 @@ public class AndroidUtilities {
     }
 
     public static void setPreferredMaxRefreshRate(Window window) {
-        setPreferredMaxRefreshRate(window, screenMaxRefreshRate);
+        setPreferredMaxRefreshRate(window, preferredWindowRefreshRate());
+    }
+
+    private static float preferredWindowRefreshRate() {
+        return org.telegram.messenger.banana.RefreshRatePolicy.resolve(
+                MessagesController.getGlobalMainSettings().getFloat(
+                        org.telegram.messenger.banana.RefreshRatePolicy.KEY, -1f), screenMaxRefreshRate);
     }
 
     public static void setPreferredMaxRefreshRate(Window window, float rate) {
         if (window == null) return;
-        final WindowManager wm = window.getWindowManager();
-        if (wm == null) return;
         WindowManager.LayoutParams params = window.getAttributes();
         params.preferredRefreshRate = rate;
         try {
-            wm.updateViewLayout(window.getDecorView(), params);
+            window.setAttributes(params);
         } catch (Exception e) {
             FileLog.e(e);
         }
@@ -2837,8 +2841,9 @@ public class AndroidUtilities {
 
     public static void setPreferredMaxRefreshRate(WindowManager wm, View windowView, WindowManager.LayoutParams params) {
         if (wm == null) return;
-        if (Math.abs(params.preferredRefreshRate - screenMaxRefreshRate) > 0.2) {
-            params.preferredRefreshRate = screenMaxRefreshRate;
+        float preferred = preferredWindowRefreshRate();
+        if (Math.abs(params.preferredRefreshRate - preferred) > 0.2) {
+            params.preferredRefreshRate = preferred;
             if (windowView.isAttachedToWindow()) {
                 try {
                     wm.updateViewLayout(windowView, params);

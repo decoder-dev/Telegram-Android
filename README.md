@@ -6,7 +6,7 @@ BananaGram brings together our [iOS client](https://github.com/decoder-dev/Teleg
 
 [Android source](https://github.com/decoder-dev/Telegram-Android) · [iOS source](https://github.com/decoder-dev/Telegram-iOS) · [Issues](https://github.com/decoder-dev/Telegram-Android/issues) · [Releases](https://github.com/decoder-dev/Telegram-Android/releases)
 
-> **Release candidate 13.1.1-rc.1 — source only.** This candidate has not been built or functionally tested after the latest integration. No APK is available; do not install or distribute it as a working release. Android CI is currently disabled, and the required AyuGram proprietary submodule is unavailable to this repository.
+> **Published candidate: [13.1.1-rc.10](https://github.com/decoder-dev/Telegram-Android/releases/tag/v13.1.1-rc.10).** The release includes a signed APK and checksum/signature information. `main` can contain newer fixes that are not yet in that APK. Candidates remain under testing; see [Android checks](https://github.com/decoder-dev/Telegram-Android/actions/workflows/android.yml) for each commit's results.
 
 ## Feature scope
 
@@ -20,9 +20,13 @@ The following features are present in the source and are being brought into a co
 - **Playback** — audio and video speed controls up to **4×**.
 - **Interface** — English and Russian Extras screens with light and dark themes.
 
+### Display refresh rate
+
+Extras → Values and marks → Appearance → Display refresh rate offers System, Maximum available and the rates reported by the display. This is an app-wide window preference, reapplied when the main activity resumes; it does not alter system settings. Android can override it for device policy, power saving or thermal limits. Display refresh rate and the application's rendered FPS are different: choosing 120 Hz does not remove rendering stalls.
+
 ## Development setup
 
-The intended toolchain is **JDK 17**, **Android SDK / build tools 36**, **NDK 27.2.12479018** and the included **Gradle 8.13** wrapper. Some imported build settings and dependencies still need reconciliation.
+The toolchain is **JDK 17**, **Android SDK / build tools 36**, **NDK 27.2.12479018** and the included **Gradle 8.13** wrapper.
 
 ```sh
 git clone https://github.com/decoder-dev/Telegram-Android.git BananaGram
@@ -48,7 +52,7 @@ API credentials are separate from APK signing keys and Firebase configuration. C
 
 ### Automated builds
 
-The Android checks workflow builds Java sources and runs unit tests, then builds an APK and runs UI smoke tests on an Android 16 emulator. GitHub Actions must be enabled for these checks. The legacy self-hosted release workflow is manual-only; releases are prepared separately. See the [update-flow plan](docs/update-flow.md) for the in-app update design.
+The Android checks workflow compiles Java sources, runs unit tests and builds APKs for UI smoke tests on Android 13–16 emulators. The manual release workflow builds and publishes the signed APK; by default it runs acceptance checks or verifies a successful run for the same commit. See the [update-flow plan](docs/update-flow.md) for the in-app update design.
 
 ## Contributing
 
@@ -62,7 +66,9 @@ Use the [changelog](CHANGELOG.md), [import record](docs/ayugram-upstream-import.
 
 Переносим возможности нашего iOS-клиента и AyuGram: гибкий Ghost Mode, историю правок и удалений, фильтры сообщений, инструменты отправки и управление скоростью воспроизведения.
 
-**Кандидат 13.1.1-rc.1 — только исходный код.** После последнего объединения Android-порт не собран и функционально не проверен. APK нет; не устанавливайте и не распространяйте его как готовый релиз. CI Android отключён, а необходимый приватный подмодуль AyuGram недоступен этому репозиторию.
+**Опубликованный кандидат: [13.1.1-rc.10](https://github.com/decoder-dev/Telegram-Android/releases/tag/v13.1.1-rc.10).** В релизе доступны подписанный APK, контрольная сумма и сведения о подписи. В `main` могут быть более свежие исправления, ещё не вошедшие в APK. Результаты проверок каждого коммита — в [GitHub Actions](https://github.com/decoder-dev/Telegram-Android/actions/workflows/android.yml).
+
+Частота экрана выбирается в Extras → Значения и метки → Внешний вид → Частота обновления экрана. Настройка общая для приложения: системная, максимальная или доступная частота. Android может ограничивать запрос из-за энергосбережения, температуры или политики устройства. Выбор 120 Гц сам по себе не устраняет пропуски кадров.
 
 ## Credits and license
 

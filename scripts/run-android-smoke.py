@@ -175,7 +175,8 @@ SUITE = ('org.telegram.banana.MediaConversionAndroidTest,org.telegram.banana.Vid
          'org.telegram.banana.HistoryDatabaseTest,org.telegram.banana.HistoryCaptureTest,'
          'org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,'
          'org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest,'
-         'org.telegram.banana.ForwardWaiterTest')
+         'org.telegram.banana.ForwardWaiterTest,org.telegram.banana.ArchiveLockPersistenceTest,'
+         'org.telegram.banana.GlassRedrawTest')
 
 
 def run_suite():
