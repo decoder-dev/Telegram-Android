@@ -6843,7 +6843,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             if (!pollChanged && newResults != lastPollResults) {
                 pollChanged = true;
             }
-            if (!pollChanged && (messageObject.forceShowPollResults != pollResultsPreview)) {
+            if (!pollChanged && (org.telegram.messenger.banana.BananaHooks.previewPollResults(currentAccount, messageObject) != pollResultsPreview)) {
                 pollChanged = true;
             }
             if (lastPoll != newPoll && (lastPoll != null && lastPoll.closed) != newPoll.closed) {
@@ -6856,7 +6856,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             animatePollAvatars = false;
             if (pollChanged && attachedToWindow) {
                 pollAnimationProgressTime = 0.0f;
-                if ((pollVoted || pollResultsPreview) && !(messageObject.isVoted() || messageObject.forceShowPollResults)) {
+                if ((pollVoted || pollResultsPreview) && !(messageObject.isVoted() || org.telegram.messenger.banana.BananaHooks.previewPollResults(currentAccount, messageObject))) {
                     pollUnvoteInProgress = true;
                 }
                 animatePollAvatars = lastPollResultsVoters == 0 || lastPollResultsVoters != 0 && newVoters == 0;
@@ -11391,11 +11391,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             total_voters = media.results.total_voters;
             timerTransitionProgress = media.poll.close_date - ConnectionsManager.getInstance(currentAccount).getCurrentTime() < 60 ? 0.0f : 1.0f;
             pollClosed = media.poll.closed;
-            if (org.telegram.messenger.banana.BananaHooks.pollResultsBeforeVoting(currentAccount)
-                    && messageObject.isPoll() && !messageObject.isVoted()) {
-                messageObject.forceShowPollResults = true;
-            }
-            pollResultsPreview = messageObject.forceShowPollResults;
+            // Automatic results keep voting interactive; forceShowPollResults belongs to the
+            // explicit author preview, whose touch handler intentionally disables voting.
+            pollResultsPreview = org.telegram.messenger.banana.BananaHooks.previewPollResults(currentAccount, messageObject);
             pollHideResults = media.poll.hide_results_until_close;
             title = media.poll.question;
             if (pollClosed) {

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="BananaDisappearedGiftsHistory">Previously seen gifts</string>
+    <string name="BananaDisappearedGiftsInfo">This gift was seen in this profile before and was absent from a later complete list. It may have been hidden, transferred or removed. This is a local snapshot, not proof of ownership. Actions are unavailable.</string>
     <string name="AppName">BananaGram</string>
     <string name="AppNameBeta">BananaGram Beta</string>
     <string name="LanguageName">English</string>
@@ -11867,7 +11869,7 @@
     <string name="BananaHubAppearance">Appearance</string>
     <string name="BananaCat_APPEARANCE">Appearance</string>
     <string name="BananaCat_NETWORK">Network</string>
-    <string name="BananaOpt_REMOVE_PINGS">Remove Pings</string>
+    <string name="BananaOpt_REMOVE_PINGS">Remove mention pings</string>
     <string name="BananaOpt_SEND_TELEGRAM_STATISTICS">Send Telegram Statistics</string>
     <string name="BananaOpt_BANANA_ISLAND_ENABLED">Banana Island Enabled</string>
     <string name="BananaOpt_BANANA_ISLAND_SHOWS_NAME">Banana Island Shows Name</string>
@@ -12005,6 +12007,10 @@
     <string name="BananaSelectFromAuthor">Select from author</string>
     <string name="BananaBookmarkMessage">Bookmark</string>
     <string name="BananaBookmarkAdded">Bookmarked</string>
+    <string name="BananaBookmarks">Message bookmarks</string>
+    <string name="BananaBookmarksEmpty">No bookmarks yet. Add them from a message’s menu.</string>
+    <string name="BananaBookmarkOpen">Go to message</string>
+    <string name="BananaBookmarkRemove">Remove bookmark</string>
     <string name="BananaJumpToStart">Jump to start</string>
     <string name="BananaExpireTtlNow">Expire now</string>
     <string name="BananaLocalGroupAlias">Local group alias</string>

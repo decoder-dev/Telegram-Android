@@ -375,6 +375,9 @@ public class BananaSmokeTest {
                         ninja[0] = (BananaExtrasSectionActivity) activity.getActionBarLayout().getLastFragment();
                         return ninja[0].listView != null && ninja[0].listView.isLaidOut();
                     }, "Ninja options must open from Extras");
+                    if ("en".equals(language) && "Classic White".equals(theme)) {
+                        checkScopedNinjaSwitches(instrumentation, ninja[0]);
+                    }
                     assertEveryRowFits(instrumentation, ninja[0]);
                     tapRow(instrumentation, ninja[0], 9001);
                     BananaHistoryActivity[] history = new BananaHistoryActivity[1];
@@ -396,6 +399,7 @@ public class BananaSmokeTest {
                     checkStoryPromptChoices(instrumentation, activity, language + "-" + theme);
                     checkFilters(instrumentation, activity, screen[0], language + "-" + theme);
                     for (int sectionIndex = 1; sectionIndex < org.telegram.messenger.banana.BananaExtrasCatalog.HUB_ORDER.length; sectionIndex++) {
+                        if (sectionIndex == 5) instrumentation.runOnMainSync(() -> BananaConfig.set(0, Option.MESSAGE_BOOKMARKS, true));
                         tapRow(instrumentation, screen[0], 2000 + sectionIndex);
                         final int selectedSection = sectionIndex;
                         BananaExtrasSectionActivity[] sectionScreen = new BananaExtrasSectionActivity[1];
@@ -406,6 +410,9 @@ public class BananaSmokeTest {
                             return sectionScreen[0].listView != null && sectionScreen[0].listView.isLaidOut();
                         }, "Extras category " + selectedSection + " must open");
                         assertEveryRowFits(instrumentation, sectionScreen[0]);
+                        if (selectedSection == 5 && "Classic White".equals(theme)) {
+                            checkBookmarks(instrumentation, sectionScreen[0], language);
+                        }
                         capture(instrumentation, language + "-" + theme + "-section-" + selectedSection);
                         instrumentation.runOnMainSync(() -> sectionScreen[0].finishFragment(false));
                         await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == screen[0] &&
@@ -439,6 +446,87 @@ public class BananaSmokeTest {
                 BananaConfig.setSilentSending(0, BananaConfig.SilentSending.NORMAL);
                 BananaConfig.setSilentSending(1, BananaConfig.SilentSending.NORMAL);
                 activity.finish();
+            });
+        }
+    }
+
+    private static void checkBookmarks(Instrumentation instrumentation, BananaExtrasSectionActivity screen, String language) throws Exception {
+        tapRow(instrumentation, screen, 9200);
+        AlertDialog empty = waitDialog(instrumentation, screen, null);
+        assertEquals(0, empty.getItemsCount());
+        tapDialogButton(instrumentation, empty, DialogInterface.BUTTON_NEGATIVE);
+        instrumentation.runOnMainSync(() -> org.telegram.messenger.banana.BananaHooks.addBookmark(0, -42, 7));
+        tapRow(instrumentation, screen, 9200);
+        AlertDialog list = waitDialog(instrumentation, screen, empty);
+        assertEquals(1, list.getItemsCount());
+        capture(instrumentation, language + "-bookmarks");
+        tapDialogItem(instrumentation, list, 0);
+        AlertDialog actions = waitDialog(instrumentation, screen, list);
+        assertEquals(2, actions.getItemsCount());
+        tapDialogItem(instrumentation, actions, 1);
+        AlertDialog after = waitDialog(instrumentation, screen, actions);
+        assertEquals(0, after.getItemsCount());
+        assertTrue(org.telegram.messenger.banana.BananaHooks.getBookmarks(0).isEmpty());
+        tapDialogButton(instrumentation, after, DialogInterface.BUTTON_NEGATIVE);
+    }
+
+    private static void tapDialogItem(Instrumentation instrumentation, AlertDialog dialog, int index) {
+        View[] item = new View[1];
+        await(instrumentation, () -> {
+            java.util.ArrayDeque<View> views = new java.util.ArrayDeque<>();
+            views.add(dialog.getWindow().getDecorView());
+            while (!views.isEmpty()) {
+                View view = views.remove();
+                if (view instanceof AlertDialog.AlertDialogCell && Integer.valueOf(index).equals(view.getTag())) {
+                    item[0] = view;
+                    return view.isLaidOut() && view.isShown();
+                }
+                if (view instanceof android.view.ViewGroup) {
+                    android.view.ViewGroup group = (android.view.ViewGroup) view;
+                    for (int i = 0; i < group.getChildCount(); i++) views.add(group.getChildAt(i));
+                }
+            }
+            return false;
+        }, "The bookmark action must be visible");
+        int[] xy = new int[2];
+        instrumentation.runOnMainSync(() -> { item[0].getLocationOnScreen(xy); xy[0] += item[0].getWidth() / 2; xy[1] += item[0].getHeight() / 2; });
+        tap(instrumentation, xy[0], xy[1]);
+    }
+
+    private static void checkScopedNinjaSwitches(Instrumentation instrumentation, BananaExtrasSectionActivity screen) throws Exception {
+        boolean filterEnabled = FilterStore.get(0).enabled();
+        Option[] options = {Option.HIDE_ADS, Option.REGEX_MESSAGE_FILTERS_ENABLED, Option.REGEX_MESSAGE_FILTERS_CASE_INSENSITIVE};
+        try {
+            for (Option option : options) {
+                boolean legacy = option == Option.HIDE_ADS ? com.radolyn.ayugram.AyuConfig.disableAds :
+                        option == Option.REGEX_MESSAGE_FILTERS_ENABLED ? com.radolyn.ayugram.AyuConfig.regexFiltersEnabled :
+                                com.radolyn.ayugram.AyuConfig.regexFiltersCaseInsensitive;
+                instrumentation.runOnMainSync(() -> {
+                    BananaConfig.set(0, option, legacy);
+                    BananaConfig.set(1, option, legacy);
+                    screen.listView.adapter.update(false);
+                });
+                tapRow(instrumentation, screen, option.ordinal() + 1);
+                await(instrumentation, () -> BananaConfig.get(0, option) != legacy,
+                        "The actual tap must toggle " + option.name());
+                assertEquals(!legacy, BananaConfig.get(0, option));
+                assertEquals(legacy, BananaConfig.get(1, option));
+                boolean legacyAfter = option == Option.HIDE_ADS ? com.radolyn.ayugram.AyuConfig.disableAds :
+                        option == Option.REGEX_MESSAGE_FILTERS_ENABLED ? com.radolyn.ayugram.AyuConfig.regexFiltersEnabled :
+                                com.radolyn.ayugram.AyuConfig.regexFiltersCaseInsensitive;
+                assertEquals("An account switch must not write process-wide Ayu state", legacy, legacyAfter);
+                if (option == Option.HIDE_ADS) {
+                    assertEquals(!legacy, org.telegram.messenger.banana.BananaHooks.hideAds(0));
+                    assertEquals(legacy, org.telegram.messenger.banana.BananaHooks.hideAds(1));
+                }
+            }
+        } finally {
+            instrumentation.runOnMainSync(() -> {
+                for (Option option : options) {
+                    BananaConfig.set(0, option, false);
+                    BananaConfig.set(1, option, false);
+                }
+                FilterStore.get(0).setEnabled(filterEnabled);
             });
         }
     }

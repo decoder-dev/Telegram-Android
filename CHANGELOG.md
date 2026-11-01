@@ -4,6 +4,22 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Candidate preparation: 13.1.1-rc.11
+
+- Include the post-rc.10 glass recapture/redraw fixes and refresh-rate selection under Extras → Values → Appearance, plus the bounded private crash report. Physical keyboard flicker and 120/60/30 Hz acceptance remain pending.
+- Repair bookmark preference types and recover legacy entries. Existing Extras → Messages now offers the bookmark list, jump-to-message and removal; malformed records are ignored, negative secret-chat message IDs are retained, and logout clears the list before another account reuses its slot.
+- Keep advertising and regex options scoped to the chosen account instead of changing AyuGram's process-wide flags.
+- Resolve copy-forward media from explicit local attachments or the owning account's cache. Stop on missing/unsupported media, download/upload failures, interruption and bounded timeouts; preserve document sizes above 2 GiB.
+- Track the exact created message IDs, wait for server confirmation and share completion/error tracking across album items. Acknowledgements for another send no longer advance the queue.
+- Preserve manually scheduled dates. Re-arm only automatically created Ghost dates when a delayed request actually leaves.
+- Correct Bot API channel IDs using the numeric offset, including short IDs and monoforums.
+- Show automatic poll results without disabling voting or revealing results hidden until closure; toggling the setting no longer mutates manual preview state.
+- Remove group mention overrides and badges without dropping reaction notifications or erasing server mention counts. Muted/read folder rules respect the option.
+- Route voice messages and round-video recording to the built-in input when selected, including recorder V2. Bound pending PCM during encoder stalls; recover failed legacy recording resumes.
+- Hide the actual bot automation panel rather than bot verification information. Allowed secret-chat screenshots no longer generate screenshot service messages.
+- Track disappeared profile gifts using opt-in, private, bounded complete-list snapshots. Present historical gifts separately with no ownership actions; reconcile reappearances and upgrades, and clear the cache on logout.
+- Refresh the pinned iOS settings inventory to 185 fields. Cross-source audit and physical-device/authenticated acceptance remain explicitly tracked; Kotlin/Rust work waits for the audit.
+
 ### Changed
 
 - BananaGram Extras follows the iOS layout: Ninja, Ghost, Privacy, Appearance, Chat list, Tab bar, Messages, Media, Profile, Network, with an icon per section. The new Appearance section holds the island, glass, glow, snow and chat look; Network holds keep-alive and the download and upload boosts. Long sections are split under headers, such as Display, Composer and links, Message menu, Reactions and stickers, Channels and gifts.

@@ -58,6 +58,8 @@ The Android checks workflow compiles Java sources, runs unit tests and builds AP
 
 Bug reports and focused pull requests are welcome. Include the device, Android version, reproduction steps and relevant logs with tokens and private conversation data removed.
 
+The [language strategy](docs/language-strategy.md) preserves upstream Java, uses Kotlin for new Android screens after the feature audit, and requires measurements before introducing Rust.
+
 Use the [changelog](CHANGELOG.md), [import record](docs/ayugram-upstream-import.json), [iOS feature inventory](docs/phone-port-inventory.json) and [AyuGram inventory](docs/ayugram-port-inventory.json) to follow porting progress.
 
 ## Русский

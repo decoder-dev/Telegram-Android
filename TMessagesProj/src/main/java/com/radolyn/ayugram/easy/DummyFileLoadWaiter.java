@@ -15,7 +15,6 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.NotificationCenter;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,8 +27,7 @@ public class DummyFileLoadWaiter extends EasyWaiter {
         super(currentAccount);
         // Own the pending names: callbacks must never mutate the caller's iteration/list.
         for (MessageObject message : messages) {
-            File local = FileLoader.getInstance(currentAccount).getPathToMessage(message.messageOwner);
-            if (local.isFile() && local.length() > 0) continue;
+            if (com.radolyn.ayugram.AyuUtils.getLocalMessageFile(message) != null) continue;
             String name;
             if (message.getDocument() != null) {
                 name = FileLoader.getAttachFileName(message.getDocument());
@@ -43,6 +41,7 @@ public class DummyFileLoadWaiter extends EasyWaiter {
 
         notifications.add(NotificationCenter.fileLoaded);
         notifications.add(NotificationCenter.fileLoadFailed);
+        notifications.add(NotificationCenter.appDidLogout);
     }
 
     @Override
@@ -59,13 +58,16 @@ public class DummyFileLoadWaiter extends EasyWaiter {
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
+        if (account != currentAccount) return;
+        if (id == NotificationCenter.appDidLogout) { fail("Forward account changed"); return; }
+        if (args.length == 0 || !(args[0] instanceof String)) return;
         if (id == NotificationCenter.fileLoaded) {
             var name = (String) args[0];
             process(name);
         } else if (id == NotificationCenter.fileLoadFailed) {
             var name = (String) args[0];
 
-            process(name);
+            if (pending.contains(name)) fail("Forward download failed");
         }
     }
 }

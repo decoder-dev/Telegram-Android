@@ -1337,8 +1337,9 @@ public class MessagesController extends BaseController implements NotificationCe
             ContactsController contactsController = accountInstance.getContactsController();
             boolean skip = false;
 
-            if ((flags & DIALOG_FILTER_FLAG_EXCLUDE_MUTED) != 0 && messagesController.isDialogMuted(d.id, 0) && d.unread_mentions_count == 0 ||
-                    (flags & DIALOG_FILTER_FLAG_EXCLUDE_READ) != 0 && messagesController.getDialogUnreadCount(d) == 0 && !d.unread_mark && d.unread_mentions_count == 0) {
+            int mentions = org.telegram.messenger.banana.BananaHooks.visibleMentionCount(accountInstance.getCurrentAccount(), d.unread_mentions_count);
+            if ((flags & DIALOG_FILTER_FLAG_EXCLUDE_MUTED) != 0 && messagesController.isDialogMuted(d.id, 0) && mentions == 0 ||
+                    (flags & DIALOG_FILTER_FLAG_EXCLUDE_READ) != 0 && messagesController.getDialogUnreadCount(d) == 0 && !d.unread_mark && mentions == 0) {
                 return false;
             }
             if (dialogId > 0) {
@@ -16047,6 +16048,7 @@ public class MessagesController extends BaseController implements NotificationCe
             getConnectionsManager().cleanup(type == 2);
         }
         getUserConfig().clearConfig();
+        org.telegram.messenger.banana.GiftHistory.clear(currentAccount);
         SharedPrefsHelper.cleanupAccount(currentAccount);
 
         boolean shouldHandle = true;

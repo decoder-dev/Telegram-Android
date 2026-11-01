@@ -1795,6 +1795,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     public void processForwardFromMyName(MessageObject messageObject, long did, long payStars, long monoForumPeerId, MessageSuggestionParams suggestionParams) {
+        processForwardFromMyName(messageObject, did, payStars, monoForumPeerId, suggestionParams, null);
+    }
+
+    private void processForwardFromMyName(MessageObject messageObject, long did, long payStars, long monoForumPeerId, MessageSuggestionParams suggestionParams, SendObserver observer) {
+        if (observer != null && !observer.isActive()) return;
         if (messageObject == null) {
             return;
         }
@@ -1809,18 +1814,21 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 fparams.payStars = payStars;
                 fparams.monoForumPeer = monoForumPeerId;
                 fparams.suggestionParams = suggestionParams;
+                fparams.bananaSendObserver = observer;
                 sendMessage(fparams);
             } else if (messageObject.messageOwner.media.document instanceof TLRPC.TL_document) {
                 SendMessagesHelper.SendMessageParams fparams = SendMessagesHelper.SendMessageParams.of((TLRPC.TL_document) messageObject.messageOwner.media.document, null, messageObject.messageOwner.attachPath, did, messageObject.replyMessageObject, null, messageObject.messageOwner.message, messageObject.messageOwner.entities, null, params, true, 0, 0, messageObject.messageOwner.media.ttl_seconds, messageObject, null, false);
                 fparams.payStars = payStars;
                 fparams.monoForumPeer = monoForumPeerId;
                 fparams.suggestionParams = suggestionParams;
+                fparams.bananaSendObserver = observer;
                 sendMessage(fparams);
             } else if (messageObject.messageOwner.media instanceof TLRPC.TL_messageMediaVenue || messageObject.messageOwner.media instanceof TLRPC.TL_messageMediaGeo) {
                 SendMessagesHelper.SendMessageParams fparams = SendMessagesHelper.SendMessageParams.of(messageObject.messageOwner.media, did, messageObject.replyMessageObject, null, null, null, true, 0, 0);
                 fparams.payStars = payStars;
                 fparams.monoForumPeer = monoForumPeerId;
                 fparams.suggestionParams = suggestionParams;
+                fparams.bananaSendObserver = observer;
                 sendMessage(fparams);
             } else if (messageObject.messageOwner.media.phone_number != null) {
                 TLRPC.User user = new TLRPC.TL_userContact_old2();
@@ -1831,12 +1839,13 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 SendMessagesHelper.SendMessageParams fparams = SendMessagesHelper.SendMessageParams.of(user, did, messageObject.replyMessageObject, null, null, null, true, 0, 0);
                 fparams.monoForumPeer = monoForumPeerId;
                 fparams.suggestionParams = suggestionParams;
+                fparams.bananaSendObserver = observer;
                 fparams.payStars = payStars;
                 sendMessage(fparams);
             } else if (!DialogObject.isEncryptedDialog(did)) {
                 ArrayList<MessageObject> arrayList = new ArrayList<>();
                 arrayList.add(messageObject);
-                sendMessage(arrayList, did, true, false, true, 0, 0, null, -1, payStars, monoForumPeerId, suggestionParams);
+                sendMessage(arrayList, did, true, false, true, 0, 0, null, -1, payStars, monoForumPeerId, suggestionParams, observer);
             }
         } else if (messageObject.messageOwner.message != null) {
             TLRPC.WebPage webPage = null;
@@ -1865,11 +1874,12 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             fparams.payStars = payStars;
             fparams.monoForumPeer = monoForumPeerId;
             fparams.suggestionParams = suggestionParams;
+            fparams.bananaSendObserver = observer;
             sendMessage(fparams);
         } else if (DialogObject.isEncryptedDialog(did)) {
             ArrayList<MessageObject> arrayList = new ArrayList<>();
             arrayList.add(messageObject);
-            sendMessage(arrayList, did, true, false, true, 0, 0, null, -1, payStars, monoForumPeerId, suggestionParams);
+            sendMessage(arrayList, did, true, false, true, 0, 0, null, -1, payStars, monoForumPeerId, suggestionParams, observer);
         }
     }
 
@@ -2241,13 +2251,19 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDateOrig, int scheduleRepeatPeriod, MessageObject replyToTopMsg, int video_timestamp, long payStars, long monoForumPeerId, MessageSuggestionParams suggestionParams) {
+        return sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDateOrig, scheduleRepeatPeriod, replyToTopMsg, video_timestamp, payStars, monoForumPeerId, suggestionParams, null);
+    }
+
+    public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDateOrig, int scheduleRepeatPeriod, MessageObject replyToTopMsg, int video_timestamp, long payStars, long monoForumPeerId, MessageSuggestionParams suggestionParams, SendObserver observer) {
+        if (observer != null && !observer.isActive()) return 0;
         if (messages == null || messages.isEmpty()) {
             return 0;
         }
 
         // --- Banana/AyuGram ghost scheduled send
-        if ((AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount))
-                && scheduleDateOrig == 0 && bananaCanGhostSchedule(peer, replyToTopMsg, payStars, false)) {
+        final boolean bananaAutomaticallyScheduled = (AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount))
+                && scheduleDateOrig == 0 && bananaCanGhostSchedule(peer, replyToTopMsg, payStars, false);
+        if (bananaAutomaticallyScheduled) {
             scheduleDateOrig = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 10; // min t = 10 sec
 
             // ..but here's the problem:
@@ -2262,11 +2278,14 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         final boolean bananaAyuForward = org.telegram.messenger.banana.BananaHooks.ayuForward(currentAccount);
         var ayuForwardNeeded = bananaAyuForward && AyuForwarder.isFullAyuForwardsNeeded(currentAccount, messages);
         if (ayuForwardNeeded) {
+            final ArrayList<MessageObject> forwardingBatch = new ArrayList<>(messages);
             new Thread(() -> {
                 try {
-                    AyuForwarder.forwardMessages(currentAccount, messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, replyToTopMsg);
+                    AyuForwarder.forwardMessages(currentAccount, forwardingBatch, peer, forwardFromMyName, hideCaption, notify, bananaAutomaticallyScheduled ? 0 : scheduleDate, replyToTopMsg);
                 } catch (Exception e) {
                     Log.e("AyuGram", "Failed to forward messages", e);
+                    AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(
+                            NotificationCenter.showBulletin, Bulletin.TYPE_ERROR, LocaleController.getString(R.string.ErrorOccurred)));
                 }
             }).start();
             return 0;
@@ -2274,11 +2293,14 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
         var ayuIntelligentForwardNeeded = bananaAyuForward && AyuForwarder.isAyuForwardNeeded(messages);
         if (ayuIntelligentForwardNeeded) {
+            final ArrayList<MessageObject> forwardingBatch = new ArrayList<>(messages);
             new Thread(() -> {
                 try {
-                    AyuForwarder.intelligentForward(currentAccount, messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, replyToTopMsg);
+                    AyuForwarder.intelligentForward(currentAccount, forwardingBatch, peer, forwardFromMyName, hideCaption, notify, bananaAutomaticallyScheduled ? 0 : scheduleDate, replyToTopMsg);
                 } catch (Exception e) {
                     Log.e("AyuGram", "Failed to forward messages", e);
+                    AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(
+                            NotificationCenter.showBulletin, Bulletin.TYPE_ERROR, LocaleController.getString(R.string.ErrorOccurred)));
                 }
             }).start();
             return 0;
@@ -2310,7 +2332,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             }
             if (currentPayStars != payStars) {
                 AlertsCreator.ensurePaidMessageConfirmation(currentAccount, peer, Math.max(1, messages.size()), newPayStars -> {
-                    sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, scheduleRepeatPeriod, replyToTopMsg, video_timestamp, newPayStars, monoForumPeerId, suggestionParams);
+                    sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, scheduleRepeatPeriod, replyToTopMsg, video_timestamp, newPayStars, monoForumPeerId, suggestionParams, observer);
                 });
                 return 0;
             }
@@ -2373,6 +2395,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         params.monoForumPeer = monoForumPeerId;
                         params.quick_reply_shortcut = msgObj.getQuickReplyName();
                         params.quick_reply_shortcut_id = msgObj.getQuickReplyId();
+                        params.bananaSendObserver = observer;
+                        params.bananaAutomaticallyScheduled = bananaAutomaticallyScheduled;
                         sendMessage(params);
                     }
                     continue;
@@ -2702,6 +2726,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 }
 
                 MessageObject newMsgObj = new MessageObject(currentAccount, newMsg, true, true);
+                if (bananaAutomaticallyScheduled) newMsg.params.put(BANANA_GHOST_SCHEDULE, "1");
+                if (observer != null) observer.onMessageCreated(newMsg.id);
                 newMsgObj.scheduled = scheduleDate != 0;
                 newMsgObj.messageOwner.send_state = MessageObject.MESSAGE_SEND_STATE_SENDING;
                 newMsgObj.wasJustSent = true;
@@ -2795,6 +2821,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     final LongSparseArray<TLRPC.Message> messagesByRandomIdsFinal = messagesByRandomIds;
                     final boolean scheduledOnline = scheduleDate == 0x7FFFFFFE;
                     final Runnable send = () -> {
+                        if (observer != null && !observer.isActive()) return;
+                        bananaRefreshGhostSchedule(req, bananaAutomaticallyScheduled);
                         getConnectionsManager().sendRequest(req, (response, error) -> {
                             if (error == null) {
                                 SparseLongArray newMessagesByIds = new SparseLongArray();
@@ -3018,7 +3046,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             }
             if (sendResult == 0) {
                 for (int a = 0; a < messages.size(); a++) {
-                    processForwardFromMyName(messages.get(a), peer, payStars, monoForumPeerId, suggestionParams);
+                    processForwardFromMyName(messages.get(a), peer, payStars, monoForumPeerId, suggestionParams, observer);
                 }
             }
         }
@@ -4468,6 +4496,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     public void sendMessage(SendMessageParams sendMessageParams) {
+        if (sendMessageParams.bananaSendObserver != null && !sendMessageParams.bananaSendObserver.isActive()) return;
         final SendMessageChatArguments sendMessageChatArguments = sendMessageParams.sendMessageChatArguments != null ?
                 sendMessageParams.sendMessageChatArguments : SendMessageChatArguments.EMPTY;
         String message = sendMessageParams.message;
@@ -4587,6 +4616,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         if ((AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount))
                 && scheduleDate == 0 && bananaCanGhostSchedule(peer, replyToTopMsg, payStars,
                         quick_reply_shortcut != null || quick_reply_shortcut_id != 0 || sendMessageChatArguments.welcomeMessageChatId != 0)) {
+            sendMessageParams.bananaAutomaticallyScheduled = true;
             scheduleDate = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 10; // min t = 10 sec
 
             // ..but here's the problem:
@@ -5140,6 +5170,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 newMsg.flags |= TLRPC.MESSAGE_FLAG_HAS_BOT_ID;
             }
             newMsg.params = params;
+            if (sendMessageParams.bananaAutomaticallyScheduled) {
+                newMsg.params = params == null ? new HashMap<>() : new HashMap<>(params);
+                newMsg.params.put(BANANA_GHOST_SCHEDULE, "1");
+            }
             if (retryMessageObject == null || !retryMessageObject.resendAsIs) {
                 if (quick_reply_shortcut != null) {
                     newMsg.date = 0;
@@ -5425,6 +5459,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 reply = null;
             }
             newMsgObj = new MessageObject(currentAccount, newMsg, reply, true, true);
+            if (sendMessageParams.bananaSendObserver != null) sendMessageParams.bananaSendObserver.onMessageCreated(newMsg.id);
             newMsgObj.sendAnimationData = sendAnimationData;
             newMsgObj.wasJustSent = true;
             newMsgObj.sentHighQuality = sendMessageParams.sendingHighQuality;
@@ -6672,6 +6707,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         } catch (Exception e) {
             FileLog.e(e);
             getMessagesStorage().markMessageAsSendError(newMsg, scheduleDate != 0 ? 1 : 0);
+            if (sendMessageParams.bananaSendObserver != null) sendMessageParams.bananaSendObserver.onError();
             if (newMsgObj != null) {
                 newMsgObj.messageOwner.send_state = MessageObject.MESSAGE_SEND_STATE_SEND_ERROR;
                 newMsgObj.messageOwner.errorAllowedPriceStars = 0;
@@ -7832,20 +7868,28 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     // uploaded first. A video or round that took longer than the margin went out with a date in
     // the past, which the server sends at once: visible online and out of step with the scheduled
     // copy the client keeps, so it looked unsent. Re-arm the date when the request really leaves.
-    private void bananaRefreshGhostSchedule(TLObject req) {
-        if (!(AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount))) {
-            return;
-        }
-        final int earliest = getConnectionsManager().getCurrentTime() + 11;
+    private static final String BANANA_GHOST_SCHEDULE = "bananaGhostScheduled";
+
+    private static boolean bananaIsGhostScheduled(MessageObject message) {
+        return message != null && message.messageOwner.params != null &&
+                "1".equals(message.messageOwner.params.get(BANANA_GHOST_SCHEDULE));
+    }
+
+    private void bananaRefreshGhostSchedule(TLObject req, boolean automatic) {
+        if (!automatic) return;
+        final int now = getConnectionsManager().getCurrentTime();
         if (req instanceof TLRPC.TL_messages_sendMedia) {
             TLRPC.TL_messages_sendMedia r = (TLRPC.TL_messages_sendMedia) req;
-            if (r.schedule_date != 0 && r.schedule_date < earliest) r.schedule_date = earliest;
+            r.schedule_date = org.telegram.messenger.banana.GhostPolicy.refreshSchedule(r.schedule_date, now, true);
         } else if (req instanceof TLRPC.TL_messages_sendMultiMedia) {
             TLRPC.TL_messages_sendMultiMedia r = (TLRPC.TL_messages_sendMultiMedia) req;
-            if (r.schedule_date != 0 && r.schedule_date < earliest) r.schedule_date = earliest;
+            r.schedule_date = org.telegram.messenger.banana.GhostPolicy.refreshSchedule(r.schedule_date, now, true);
         } else if (req instanceof TLRPC.TL_messages_sendMessage) {
             TLRPC.TL_messages_sendMessage r = (TLRPC.TL_messages_sendMessage) req;
-            if (r.schedule_date != 0 && r.schedule_date < earliest) r.schedule_date = earliest;
+            r.schedule_date = org.telegram.messenger.banana.GhostPolicy.refreshSchedule(r.schedule_date, now, true);
+        } else if (req instanceof TLRPC.TL_messages_forwardMessages) {
+            TLRPC.TL_messages_forwardMessages r = (TLRPC.TL_messages_forwardMessages) req;
+            r.schedule_date = org.telegram.messenger.banana.GhostPolicy.refreshSchedule(r.schedule_date, now, true);
         }
     }
 
@@ -7876,7 +7920,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             return;
         }
 
-        bananaRefreshGhostSchedule(request);
+        boolean automaticSchedule = !msgObjs.isEmpty();
+        for (MessageObject message : msgObjs) automaticSchedule &= bananaIsGhostScheduled(message);
+        bananaRefreshGhostSchedule(request, automaticSchedule);
         getConnectionsManager().sendRequest(request, (response, error) -> {
             if (error != null && FileRefController.isFileRefError(error.text)) {
                 final int fileRefIndex = FileRefController.getFileRefErrorIndex(error.text);
@@ -8268,7 +8314,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             return;
         }
 
-        bananaRefreshGhostSchedule(req);
+        bananaRefreshGhostSchedule(req, bananaIsGhostScheduled(msgObj));
         newMsgObj.reqId = getConnectionsManager().sendRequest(req, (response, error) -> {
             if (error != null && (req instanceof TLRPC.TL_messages_sendMedia || req instanceof TL_ephemeral.TL_sendMessage || req instanceof TLRPC.TL_messages_editMessage || req instanceof TLRPC.TL_messages_addPollAnswer) && FileRefController.isFileRefError(error.text)) {
                 if (FileRefController.isFileRefErrorCover(error.text)) {
@@ -12449,7 +12495,15 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }).start();
     }
 
+    public interface SendObserver {
+        boolean isActive();
+        void onMessageCreated(int messageId);
+        void onError();
+    }
+
     public static class SendMessageParams {
+        public SendObserver bananaSendObserver;
+        public boolean bananaAutomaticallyScheduled;
         public String message;
         public String caption;
         public TLRPC.MessageMedia location;

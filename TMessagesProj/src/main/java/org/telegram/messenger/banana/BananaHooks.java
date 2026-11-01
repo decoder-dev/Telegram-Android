@@ -35,7 +35,7 @@ public final class BananaHooks {
     private static final ThreadLocal<String> confirmedUrlBypass = new ThreadLocal<>();
 
     public static boolean hideAds(int account) {
-        return BananaConfig.get(account, BananaConfig.Option.HIDE_ADS) || AyuConfig.disableAds;
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_ADS);
     }
 
     public static boolean hideBlockedMessages(int account) {
@@ -411,6 +411,23 @@ public final class BananaHooks {
         return BananaConfig.get(account, BananaConfig.Option.FORCE_BUILT_IN_MIC);
     }
 
+    public static android.media.AudioDeviceInfo preferredMicrophone(int account) {
+        if (!forceBuiltInMic(account)) return null;
+        android.media.AudioManager manager = (android.media.AudioManager)
+                org.telegram.messenger.ApplicationLoader.applicationContext.getSystemService(Context.AUDIO_SERVICE);
+        if (manager != null) for (android.media.AudioDeviceInfo device : manager.getDevices(android.media.AudioManager.GET_DEVICES_INPUTS)) {
+            if (device.isSource() && device.getType() == android.media.AudioDeviceInfo.TYPE_BUILTIN_MIC) return device;
+        }
+        throw new IllegalStateException("Built-in microphone is unavailable");
+    }
+
+    public static void applyMicrophonePreference(int account, android.media.AudioRouting recorder) {
+        android.media.AudioDeviceInfo device = preferredMicrophone(account);
+        if (device != null && !recorder.setPreferredDevice(device)) {
+            throw new IllegalStateException("Built-in microphone routing was rejected");
+        }
+    }
+
     public static boolean downloadTikTok(int account) {
         return BananaConfig.get(account, BananaConfig.Option.DOWNLOAD_TIK_TOK);
     }
@@ -661,6 +678,15 @@ public final class BananaHooks {
 
     public static boolean pollResultsBeforeVoting(int account) {
         return BananaConfig.get(account, BananaConfig.Option.POLL_RESULTS_BEFORE_VOTING);
+    }
+
+    public static boolean previewPollResults(int account, org.telegram.messenger.MessageObject message) {
+        if (message == null || message.messageOwner == null) return false;
+        if (message.forceShowPollResults) return true;
+        TLRPC.MessageMedia media = org.telegram.messenger.MessageObject.getMedia(message.messageOwner);
+        if (!(media instanceof TLRPC.TL_messageMediaPoll)) return false;
+        TLRPC.Poll poll = ((TLRPC.TL_messageMediaPoll) media).poll;
+        return poll != null && !poll.hide_results_until_close && !message.isVoted() && pollResultsBeforeVoting(account);
     }
 
     public static boolean removeLinkPreviews(int account) {
@@ -1235,7 +1261,8 @@ public final class BananaHooks {
         if (profileIdBotApiFormat(account)) {
             TLRPC.Chat chat = MessagesController.getInstance(account).getChat(chatId);
             if (chat != null && (chat.megagroup || chat.broadcast || ChatObjectIsChannel(chat))) {
-                return "-100" + chatId;
+                // Bot API IDs use a numeric offset, including short IDs and monoforums.
+                return Long.toString(-1_000_000_000_000L - chatId);
             }
             return Long.toString(-chatId);
         }
@@ -1375,6 +1402,14 @@ public final class BananaHooks {
         return BananaConfig.get(account, BananaConfig.Option.REMOVE_PINGS);
     }
 
+    public static boolean useMentionNotificationOverride(int account, long dialogId, boolean mentioned) {
+        return mentioned && (dialogId >= 0 || !removePings(account));
+    }
+
+    public static int visibleMentionCount(int account, int count) {
+        return removePings(account) ? 0 : count;
+    }
+
     /** When off (default), suppress analytics TL requests. */
     public static boolean sendTelegramStatistics(int account) {
         return BananaConfig.get(account, BananaConfig.Option.SEND_TELEGRAM_STATISTICS);
@@ -1429,27 +1464,26 @@ public final class BananaHooks {
         return name.substring(0, cut) + "…";
     }
 
-    private static final String BOOKMARKS_KEY = "bananaMessageBookmarks";
-
     public static java.util.ArrayList<String> getBookmarks(int account) {
         java.util.ArrayList<String> out = new java.util.ArrayList<>();
         if (!messageBookmarks(account)) {
             return out;
         }
-        String raw = MessagesController.getMainSettings(account).getString(BOOKMARKS_KEY, "");
+        String raw = MessagesController.getMainSettings(account).getString(BananaConfig.BOOKMARK_ENTRIES_KEY, "");
         if (TextUtils.isEmpty(raw)) {
             return out;
         }
         for (String part : raw.split(",")) {
-            if (!TextUtils.isEmpty(part)) {
+            if (bookmarkArguments(part) != null && !out.contains(part)) {
                 out.add(part);
+                if (out.size() == 50) break;
             }
         }
         return out;
     }
 
     public static void addBookmark(int account, long dialogId, int messageId) {
-        if (!messageBookmarks(account) || messageId <= 0) {
+        if (!messageBookmarks(account) || bookmarkArguments(dialogId + ":" + messageId) == null) {
             return;
         }
         String entry = dialogId + ":" + messageId;
@@ -1459,6 +1493,26 @@ public final class BananaHooks {
         while (list.size() > 50) {
             list.remove(list.size() - 1);
         }
+        writeBookmarks(account, list);
+    }
+
+    public static void removeBookmark(int account, String entry) {
+        java.util.ArrayList<String> list = getBookmarks(account);
+        if (list.remove(entry)) writeBookmarks(account, list);
+    }
+
+    public static void clearBookmarks(int account) {
+        // Logout can run before MessagesController initialization.
+        android.content.SharedPreferences prefs = org.telegram.messenger.ApplicationLoader.applicationContext
+                .getSharedPreferences(account == 0 ? "mainconfig" : "mainconfig" + account, android.content.Context.MODE_PRIVATE);
+        android.content.SharedPreferences.Editor edit = prefs.edit().remove(BananaConfig.BOOKMARK_ENTRIES_KEY);
+        if (prefs.getAll().get(BananaConfig.Option.MESSAGE_BOOKMARKS.key) instanceof String) {
+            edit.remove(BananaConfig.Option.MESSAGE_BOOKMARKS.key);
+        }
+        edit.apply();
+    }
+
+    private static void writeBookmarks(int account, java.util.ArrayList<String> list) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < list.size(); i++) {
             if (i > 0) {
@@ -1466,7 +1520,28 @@ public final class BananaHooks {
             }
             sb.append(list.get(i));
         }
-        MessagesController.getMainSettings(account).edit().putString(BOOKMARKS_KEY, sb.toString()).apply();
+        MessagesController.getMainSettings(account).edit().putString(BananaConfig.BOOKMARK_ENTRIES_KEY, sb.toString()).apply();
+    }
+
+    public static android.os.Bundle bookmarkArguments(String entry) {
+        if (entry == null) return null;
+        String[] parts = entry.split(":", -1);
+        if (parts.length != 2) return null;
+        try {
+            long dialog = Long.parseLong(parts[0]);
+            int message = Integer.parseInt(parts[1]);
+            boolean secret = org.telegram.messenger.DialogObject.isEncryptedDialog(dialog);
+            if (dialog == 0 || dialog == Long.MIN_VALUE || message == 0 || (!secret && message < 0)
+                    || (secret && org.telegram.messenger.DialogObject.getEncryptedChatId(dialog) <= 0)
+                    || org.telegram.messenger.DialogObject.isFolderDialogId(dialog)) return null;
+            android.os.Bundle args = new android.os.Bundle();
+            if (secret) {
+                args.putInt("enc_id", org.telegram.messenger.DialogObject.getEncryptedChatId(dialog));
+            } else if (dialog > 0) args.putLong("user_id", dialog);
+            else args.putLong("chat_id", -dialog);
+            args.putInt("message_id", message);
+            return args;
+        } catch (NumberFormatException invalid) { return null; }
     }
 
     public static boolean isAnalyticsRequest(TLObject object) {

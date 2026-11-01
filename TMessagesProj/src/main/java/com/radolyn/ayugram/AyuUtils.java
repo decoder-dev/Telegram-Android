@@ -36,6 +36,17 @@ import static org.telegram.messenger.Utilities.random;
 public class AyuUtils {
     private static final char[] chars = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();
 
+    /** Resolve media in its owning account, including an explicit local/archive attachment. */
+    public static File getLocalMessageFile(MessageObject message) {
+        if (message == null || message.messageOwner == null) return null;
+        if (!TextUtils.isEmpty(message.messageOwner.attachPath)) {
+            File attached = new File(message.messageOwner.attachPath);
+            if (attached.isFile() && attached.length() > 0) return attached;
+        }
+        File cached = FileLoader.getInstance(message.currentAccount).getPathToMessage(message.messageOwner);
+        return cached != null && cached.isFile() && cached.length() > 0 ? cached : null;
+    }
+
     public static boolean moveOrCopyFile(File from, File to) {
         boolean success;
         try {

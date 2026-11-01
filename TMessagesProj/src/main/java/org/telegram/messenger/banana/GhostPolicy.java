@@ -4,6 +4,11 @@ package org.telegram.messenger.banana;
 public final class GhostPolicy {
     private GhostPolicy() {}
 
+    public static int refreshSchedule(int date, int now, boolean automatic) {
+        if (!automatic || date <= 0) return date;
+        return (int) Math.min(Integer.MAX_VALUE, Math.max((long) date, (long) now + 11));
+    }
+
     public static boolean shouldWarnStory(boolean enabled, boolean privateViews, long owner, long target) {
         return enabled && !privateViews && owner > 0 && target != 0 && target != owner;
     }

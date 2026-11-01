@@ -1,0 +1,127 @@
+{
+  "date": "2026-11-01",
+  "status": "in_progress",
+  "language_migration": "deferred_until_audit_complete",
+  "default_option_status": "pending_semantic_comparison",
+  "scope": "Every current Android Extras option is listed in feature-attestation.json. Only the explicit entries below record this cross-source review; source references alone never count as completed behavior review.",
+  "options": {
+    "AYU_FORWARD": {
+      "status": "source_compared_local_regressions_passed_server_acceptance_pending",
+      "severity": "Major",
+      "sources": [
+        "https://github.com/AyuGram/AyuGram4A/blob/7013145676d36d82ee13c02a89f72097b7490dcd/TMessagesProj/src/main/java/com/radolyn/ayugram/AyuForwarder.java",
+        "https://github.com/shashachkaaa/Glassgram/blob/888a66f1d325aeb3a4344a8a97c396bd199cf0fa/TMessagesProj/src/main/java/org/telegram/messenger/GlassgramCopySender.java"
+      ],
+      "findings": [
+        "Resolve explicit local attachments before the owning account's cache.",
+        "Preflight missing media before the first upload; preserve 64-bit document sizes and independent attribute lists.",
+        "Stop waits on transfer failures/interruption/timeouts and release all subscriptions.",
+        "Snapshot UI selection before a worker reads it; distinguish private dialog IDs from chat IDs.",
+        "Predecode every photo before any upload; a corrupt second photo must not leave an incomplete album.",
+        "Track exact IDs at creation, including scheduled sends, and wait for every album item's server completion. An unrelated send or transport ACK cannot advance the batch."
+      ],
+      "remaining": [
+        "Authenticated server acceptance, album delivery/order, scheduled sends and retry behavior are not certified.",
+        "Unsupported media now fails explicitly. Reply mapping and protected non-media types are not declared full parity."
+      ]
+    },
+    "MESSAGE_BOOKMARKS": {
+      "status": "basic_flow_locally_tested_extended_parity_pending",
+      "severity": "Major",
+      "sources": [
+        "https://github.com/decoder-dev/Telegram-iOS/blob/2eced049d263ae5e265e06e295b32c681a909ce7/submodules/SettingsUI/Sources/ForkMessageBookmarksController.swift",
+        "https://github.com/decoder-dev/Telegram-iOS/blob/2eced049d263ae5e265e06e295b32c681a909ce7/submodules/TelegramUIPreferences/Sources/ForkLocalChatData.swift"
+      ],
+      "findings": ["Boolean switch and string entries shared one preference key, causing ClassCastException; split keys and migrate legacy entries.", "Existing Extras now includes the list, jump and removal, with malformed-record checks and 64-bit/private/secret navigation arguments. Native dialogs were exercised in EN/RU UI tests.", "Secret messages use negative local IDs: retain them while rejecting unsent negative cloud IDs and invalid encrypted-chat IDs. Logout clears current and legacy bookmark data before account-slot reuse."],
+      "remaining": ["iOS tags and stored snippets are not ported. Real jump-to-message still requires an authenticated account."]
+    },
+    "PROFILE_ID_BOT_API_FORMAT": {
+      "status": "spec_compared_android_regression_passed",
+      "severity": "Minor",
+      "sources": ["https://core.telegram.org/api/bots/ids"],
+      "findings": ["Replace string prefix concatenation with the numeric channel offset, including short, long and monoforum IDs."]
+    },
+    "HIDE_ADS": {
+      "status": "account_regressions_passed_pending_external_comparison",
+      "severity": "Major",
+      "findings": ["The account's switch wrote AyuGram's global flag, and a global OR prevented disabling ads for one account. Stop global writes, honor the per-account value in both directions and use the legacy global preference only as an unset slot's initial value."]
+    },
+    "REGEX_MESSAGE_FILTERS_ENABLED": {
+      "status": "account_regressions_passed_pending_external_comparison",
+      "severity": "Major",
+      "findings": ["Extras now updates only the account's option and FilterStore; it no longer switches the separate process-wide legacy Ayu filter on other accounts."]
+    },
+    "REGEX_MESSAGE_FILTERS_CASE_INSENSITIVE": {
+      "status": "account_regressions_passed_pending_external_comparison",
+      "severity": "Major",
+      "findings": ["Extras must not overwrite the process-wide legacy Ayu filter's case policy when one account changes its own matching option."]
+    },
+    "GHOST_SCHEDULE_MESSAGES": {
+      "status": "local_policy_and_request_mutation_regressions_passed_server_acceptance_pending",
+      "severity": "Major",
+      "findings": ["Tag automatically scheduled local messages, refresh only their request dates after slow upload and preserve manually chosen dates. Track their exact completion rather than polling an ordinary-send map."],
+      "remaining": ["Actual scheduled delivery, Ghost receipts and delayed paid-send interactions require a test account."]
+    },
+    "POLL_RESULTS_BEFORE_VOTING": {
+      "status": "source_compared_local_regression_passed",
+      "severity": "Major",
+      "sources": ["https://github.com/decoder-dev/Telegram-iOS/tree/2eced049d263ae5e265e06e295b32c681a909ce7/submodules/TelegramUI/Components/Chat/ChatMessagePollBubbleContentNode"],
+      "findings": ["Automatic preview no longer overwrites forceShowPollResults or blocks voting. Hidden-until-close polls retain their restriction; disabling the option removes only automatic preview."]
+    },
+    "REMOVE_PINGS": {
+      "status": "source_compared_notification_and_folder_regressions_passed",
+      "severity": "Major",
+      "sources": ["https://github.com/decoder-dev/Telegram-iOS/blob/2eced049d263ae5e265e06e295b32c681a909ce7/submodules/TelegramCore/Sources/Utils/MessageUtils.swift"],
+      "findings": ["Previously it dropped reaction notifications and claimed to strip outgoing mentions. It now suppresses group personal-notification overrides, mention badges and mention exceptions in muted/read folders, preserving private routing and server counts."]
+    },
+    "FORCE_BUILT_IN_MIC": {
+      "status": "source_compared_real_emulator_capture_passed_physical_bluetooth_pending",
+      "severity": "Major",
+      "sources": ["https://developer.android.com/reference/android/media/AudioRecord#setPreferredDevice(android.media.AudioDeviceInfo)"],
+      "findings": ["AudioSource.MIC alone did not select a physical microphone and recorder V2 ignored the preference. Both voice recorders and round video now use the owning account's selected built-in input, validate routing and avoid starting Bluetooth SCO for it.", "Failed legacy resumes now release the recorder and preserve the prior draft segment."],
+      "remaining": ["Physical Bluetooth route changes need acceptance. This option does not change VoIP call routing."]
+    },
+    "HIDE_BOT_AUTOMATION": {
+      "status": "source_compared_compiled_authenticated_ui_pending",
+      "severity": "Minor",
+      "sources": ["https://github.com/decoder-dev/Telegram-iOS/blob/2eced049d263ae5e265e06e295b32c681a909ce7/submodules/TelegramUI/Sources/ChatControllerNode.swift"],
+      "findings": ["Gate the actual managing-business-bot panel; the old hook incorrectly hid bot verification information."]
+    },
+    "ALLOW_SECRET_SCREENSHOTS": {
+      "status": "source_compared_local_service_message_regression_passed",
+      "severity": "Major",
+      "sources": ["https://github.com/decoder-dev/Telegram-iOS/blob/2eced049d263ae5e265e06e295b32c681a909ce7/submodules/TelegramUI/Sources/ChatController.swift"],
+      "findings": ["Allowing screenshots removed FLAG_SECURE but still created an outgoing screenshot notification. The secret-chat sending boundary now honors the same per-account policy, including retries."]
+    },
+    "SHOW_DISAPPEARED_GIFTS": {
+      "status": "source_compared_storage_regressions_passed_authenticated_ui_pending",
+      "severity": "Major",
+      "sources": ["https://github.com/decoder-dev/Telegram-iOS/blob/2eced049d263ae5e265e06e295b32c681a909ce7/submodules/TelegramCore/Sources/TelegramEngine/Payments/StarGifts.swift"],
+      "findings": ["The old option only disabled a server filter; it never retained vanished gifts. Opt-in private snapshots now retain up to 200 historical gifts per profile, 1000 current gifts, 20 profiles and 2 MiB per file. Only complete unfiltered lists are reconciled; duplicates/short pages cannot infer disappearance. Reappearing/upgraded gifts are reconciled; logout clears storage.", "The profile grid separates historical snapshots and blocks ownership actions on them."],
+      "remaining": ["Server pagination, real profile rendering and transfers need account acceptance. Evicted or never-observed gifts cannot be reconstructed."]
+    },
+    "GLASS_BUBBLES": {
+      "status": "source_compared_pending_physical_device_acceptance",
+      "sources": [
+        "https://github.com/shashachkaaa/Glassgram/commit/4930f7ab837e",
+        "https://github.com/shashachkaaa/Glassgram/commit/f42b98d9de09"
+      ],
+      "findings": ["Photo-viewer return requires backdrop recapture; the earlier main commit adds it. Compose switch-lens changes do not directly apply to this native renderer."],
+      "remaining": ["Exact keyboard flicker from the recording and 120/60/30 Hz behavior require physical-device reproduction and measurements."]
+    }
+  },
+  "cross_cutting": [
+    {
+      "severity": "Critical",
+      "component": "AudioCapture",
+      "status": "fixed_real_emulator_stall_regression_passed",
+      "finding": "Captured PCM accumulated without a bound while the encoder queue was blocked. Bound it to 500 20-ms chunks, stop capture with an explicit error, and handle allocation failures rather than dropping audio or growing until OOM."
+    }
+  ],
+  "release_gate": [
+    "Complete remaining semantic comparisons instead of treating all 157 wired switches as accepted features.",
+    "Pass CI for the exact release commit; local results cannot stand in for the API 33–36 matrix after these changes.",
+    "Reproduce the recorded keyboard/refresh-rate issue on a physical device and validate Bluetooth input routing.",
+    "Ghost, Telegram edits/deletes, story receipts, session restoration and sending still lack authenticated acceptance; the user has no test account."
+  ]
+}

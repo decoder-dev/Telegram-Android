@@ -12,6 +12,8 @@ import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--serial', required=True)
+parser.add_argument('--app-apk', type=Path, help='Exact debug app APK; required when several variants exist locally')
+parser.add_argument('--test-apk', type=Path, help='Matching instrumentation APK')
 parser.add_argument('--voice-probe', action='store_true', help='Download the public English model and decode a public Opus fixture')
 parser.add_argument('--expected-api', type=int)
 parser.add_argument('--expected-page-size', type=int)
@@ -92,6 +94,13 @@ app_apks = [path for path in all_apks
 test_apks = [path for path in all_apks
              if 'androidtest' in path.name.lower()
              or 'androidtest' in str(path.relative_to(root)).lower()]
+if args.app_apk is not None:
+    app_apks = [args.app_apk.resolve()]
+if args.test_apk is not None:
+    test_apks = [args.test_apk.resolve()]
+for path in app_apks + test_apks:
+    if not path.is_file():
+        raise SystemExit(f'APK does not exist: {path}')
 if len(app_apks) != 1:
     candidates = ', '.join(str(path.relative_to(root)) for path in all_apks) or 'none found'
     raise SystemExit(f'Expected exactly one standalone app APK under build dirs ({build_roots}); found: {candidates}')
@@ -176,14 +185,18 @@ SUITE = ('org.telegram.banana.MediaConversionAndroidTest,org.telegram.banana.Vid
          'org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,'
          'org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest,'
          'org.telegram.banana.ForwardWaiterTest,org.telegram.banana.ArchiveLockPersistenceTest,'
-         'org.telegram.banana.GlassRedrawTest')
+         'org.telegram.banana.GlassRedrawTest,org.telegram.banana.BookmarkPreferencesTest,'
+         'org.telegram.banana.ProfileIdTest,org.telegram.banana.GhostScheduleTest,'
+         'org.telegram.banana.PollPreviewTest,org.telegram.banana.MentionPingTest,'
+         'org.telegram.banana.AudioRecordingTest,org.telegram.banana.GiftHistoryTest')
 
 
 def run_suite():
     try:
-        # A healthy run takes about two minutes; a hung UI wait must not burn the whole job.
+        # EN/RU rendering in four themes plus native regressions takes 5–8 minutes on
+        # older images. Individual UI waits remain bounded; cap the whole suite too.
         result = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class', SUITE,
-                     'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner', timeout=420)
+                     'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner', timeout=600)
         return result, False
     except SystemExit as error:
         return str(error), True
@@ -196,7 +209,7 @@ def run_suite():
 
 def suite_passed(result, failed):
     count = re.search(r'OK \((\d+) tests?\)', result)
-    return not failed and count is not None and int(count.group(1)) >= 30 and 'FAILURES!!!' not in result
+    return not failed and count is not None and int(count.group(1)) >= 56 and 'FAILURES!!!' not in result
 
 
 output, instrumentation_failed = run_suite()

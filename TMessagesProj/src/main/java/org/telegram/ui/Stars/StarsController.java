@@ -3633,6 +3633,8 @@ public class StarsController {
         public boolean endReached;
         public String lastOffset;
         public ArrayList<TL_stars.SavedStarGift> gifts = new ArrayList<>();
+        public final ArrayList<TL_stars.SavedStarGift> disappearedGifts = new ArrayList<>();
+        private int giftHistoryGeneration;
         public int currentRequestId = -1;
         public int totalCount;
 
@@ -3657,6 +3659,8 @@ public class StarsController {
         public boolean shown;
 
         public void invalidate(boolean load) {
+            giftHistoryGeneration++;
+            disappearedGifts.clear();
             if (currentRequestId != -1) {
                 ConnectionsManager.getInstance(currentAccount).cancelRequest(currentRequestId, true);
                 currentRequestId = -1;
@@ -3693,9 +3697,7 @@ public class StarsController {
                 req.exclude_unlimited = !isInclude_unlimited();
                 req.exclude_unique = !isInclude_unique();
                 req.exclude_saved = !isInclude_displayed();
-                req.exclude_unsaved = org.telegram.messenger.banana.BananaHooks.showDisappearedGifts(currentAccount)
-                        ? false
-                        : !isInclude_hidden();
+                req.exclude_unsaved = !isInclude_hidden();
                 req.peer_color_available = peer_color_available;
                 if (dialogId == 0) {
                     req.peer = new TLRPC.TL_inputPeerSelf();
@@ -3728,6 +3730,15 @@ public class StarsController {
                     totalCount = rez.count;
                     chat_notifications_enabled = (rez.flags & 2) != 0 ? rez.chat_notifications_enabled : null;
                     endReached = gifts.size() > totalCount || lastOffset == null;
+                    if (endReached && !isCollection && !hasFilters() && !peer_color_available && craftingGiftId == 0) {
+                        final int generation = giftHistoryGeneration;
+                        org.telegram.messenger.banana.GiftHistory.reconcile(currentAccount, dialogId, gifts, totalCount, missing -> {
+                            if (generation != giftHistoryGeneration) return;
+                            disappearedGifts.clear();
+                            disappearedGifts.addAll(missing);
+                            notifyUpdate();
+                        });
+                    }
                 } else {
                     endReached = true;
                 }
@@ -3736,6 +3747,7 @@ public class StarsController {
         }
 
         public void cancel() {
+            giftHistoryGeneration++;
             if (currentRequestId != -1) {
                 ConnectionsManager.getInstance(currentAccount).cancelRequest(currentRequestId, true);
                 currentRequestId = -1;

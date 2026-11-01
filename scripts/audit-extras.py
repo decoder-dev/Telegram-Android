@@ -52,6 +52,10 @@ def audit():
         entries.append({'option': option, 'label_ru': ru.get('BananaOpt_' + option),
                         'source_references': references[option], 'runtime_acceptance': 'not_certified'})
     inventory = json.loads((ROOT / 'docs/phone-port-inventory.json').read_text())
+    review = json.loads((ROOT / 'docs/feature-source-review.json').read_text())
+    checks['known_review_options'] = set(review['options']) <= set(options)
+    for entry in entries:
+        entry['source_review'] = review['options'].get(entry['option'], {'status': review['default_option_status']})
     suites = []
     for file in sorted((ROOT / 'TMessagesProj/build/test-results/testDebugUnitTest').glob('TEST-*.xml')):
         result = ET.parse(file).getroot()
@@ -63,14 +67,15 @@ def audit():
         'options_count': len(options), 'options': entries,
         'ios_inventory_count': len(inventory['settings']), 'ios_settings': inventory['settings'],
         'inventory_status_counts': dict(collections.Counter(x['status'] for x in inventory['settings'])),
+        'source_review': review,
         'jvm': {'totals': totals, 'suites': suites},
-        'runtime': {'instrumentation': 'not_run', 'gpu': 'not_run', 'authenticated_server': 'not_run'},
+        'runtime': {'instrumentation': 'see_feature_attestation_validation', 'gpu': 'not_certified', 'authenticated_server': 'not_run'},
     }
 
 
 def markdown(report):
     lines = ['# Аттестация новых функций BananaGram Android', '',
-             'Проверка исходников охватывает все 176 настроек каталога iOS и 157 переключателей Android. '
+             f"Проверка исходников охватывает {report['ios_inventory_count']} настроек каталога iOS и {report['options_count']} переключателей Android. "
              'Наличие вызова или переключателя не означает успешной проверки поведения на устройстве.', '',
              '## Подтверждённые проверки', '',
              '- XML ресурсов разбирается; у каждого переключателя есть английская и русская подпись.',
@@ -80,6 +85,9 @@ def markdown(report):
              f"пропусков {report['jvm']['totals']['skipped']}.",
              '- Результаты сборки и ограничения среды зафиксированы в `feature-attestation-validation.md`.', '',
              '## Реальные ограничения', '',
+             '- Сверка поведения с другими реализациями ещё идёт; индивидуальные результаты и незакрытые дефекты — в `feature-source-review.json`. Переход к Kotlin/Rust отложен до окончания аудита.',
+             '- Закладки: исправлено столкновение ключей, добавлены список и переход/удаление; теги/сниппеты iOS не перенесены, живая навигация требует аккаунта.',
+             '- Исчезнувшие подарки: локальные снимки полных списков и отдельные элементы без операций владения. Серверная пагинация требует приёмки с аккаунтом.',
              '- Сессии Android: Keystore для локальных копий, пароль для экспорта; перенос настоящей сессии требует отдельной приёмки.',
              '- Локальная расшифровка: Vosk RU/EN, без серверного запроса; выполнение MediaCodec/Vosk проверяется отдельным Android-сценарием.',
              '- TikTok/Shorts: встроенный yt-dlp/FFmpeg; реальные сайты, отмена и сохранение в галерею требуют сетевой приёмки.',

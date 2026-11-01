@@ -3391,6 +3391,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 reactionMentionCount = forumTopic.unread_reactions_count;
                 pollVotesMentionCount = forumTopic.unread_poll_votes_count;
             }
+            mentionCount = org.telegram.messenger.banana.BananaHooks.visibleMentionCount(currentAccount, mentionCount);
             if (dialogsType == DialogsActivity.DIALOGS_TYPE_ADD_USERS_TO) {
                 drawPin = false;
             }
@@ -3540,6 +3541,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         if (ChatObject.isMonoForum(localChat)) {
                             newMentionCount = 0;
                         }
+                        newMentionCount = org.telegram.messenger.banana.BananaHooks.visibleMentionCount(currentAccount, newMentionCount);
                         if (dialog != null && (unreadCount != newCount || markUnread != dialog.unread_mark || mentionCount != newMentionCount || reactionMentionCount != newReactionCout)) {
                             unreadCount = newCount;
                             mentionCount = newMentionCount;

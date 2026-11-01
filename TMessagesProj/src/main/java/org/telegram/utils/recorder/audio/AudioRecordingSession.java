@@ -1,6 +1,7 @@
 package org.telegram.utils.recorder.audio;
 
 import android.content.Context;
+import android.media.AudioDeviceInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -171,6 +172,7 @@ public final class AudioRecordingSession {
         private long maximumDurationMs;
         private NoiseSuppression noiseSuppression = NoiseSuppression.DISABLED;
         private boolean previewPlaybackEnabled = true;
+        private AudioDeviceInfo preferredInputDevice;
         private Listener listener;
         private OutputListener outputListener;
         private Logger logger = NO_OP_LOGGER;
@@ -213,6 +215,13 @@ public final class AudioRecordingSession {
          */
         public @NonNull Builder setPreviewPlaybackEnabled(boolean enabled) {
             previewPlaybackEnabled = enabled;
+            return this;
+        }
+
+        /** Selects an input device, or null to use Android's default routing. */
+        public @NonNull Builder setPreferredInputDevice(@Nullable AudioDeviceInfo device) {
+            if (device != null && !device.isSource()) throw new IllegalArgumentException("An input device is required");
+            preferredInputDevice = device;
             return this;
         }
 
@@ -416,6 +425,7 @@ public final class AudioRecordingSession {
     private final long maximumDurationMs;
     private final NoiseSuppression noiseSuppression;
     private final boolean previewPlaybackEnabled;
+    private final AudioDeviceInfo preferredInputDevice;
     private final Listener listener;
     private final OutputListener outputListener;
     private final AudioRecorderDiagnostics diagnostics;
@@ -481,6 +491,7 @@ public final class AudioRecordingSession {
         maximumDurationMs = builder.maximumDurationMs;
         noiseSuppression = builder.noiseSuppression;
         previewPlaybackEnabled = builder.previewPlaybackEnabled;
+        preferredInputDevice = builder.preferredInputDevice;
         listener = builder.listener;
         outputListener = builder.outputListener;
         diagnostics = new AudioRecorderDiagnostics(builder.logger);
@@ -730,6 +741,7 @@ public final class AudioRecordingSession {
                 prefixStartMs,
                 prefixEndMs,
                 noiseSuppression,
+                preferredInputDevice,
                 diagnostics,
                 new AudioCapture.Callback() {
                     @Override

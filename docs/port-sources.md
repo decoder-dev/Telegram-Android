@@ -10,8 +10,24 @@ the tracking URL projection and Ghost Mode behavior. Android uses its own UI,
 account preferences and message delivery paths; iOS-specific framework code is
 not copied into the Android client.
 
+The current comparison pins the iOS catalog to
+[`2eced049d263ae5e265e06e295b32c681a909ce7`](https://github.com/decoder-dev/Telegram-iOS/commit/2eced049d263ae5e265e06e295b32c681a909ce7)
+(185 stored fields). In particular, `MessageUtils.swift` and `ChatListNodeLocation.swift`
+define Remove Pings as group mention routing/badge/filter behavior;
+`ChatMessagePollBubbleContentNode.swift` preserves voting and hidden-until-close polls;
+`ChatControllerNode.swift` gates the managing-bot panel, not verification;
+`ChatController.swift` suppresses secret screenshot reports when allowed; and
+`TelegramEngine/Payments/StarGifts.swift` reconciles disappeared gifts only from
+complete snapshots. Android uses its own bounded private storage and a separate
+read-only history section, and does not claim server acceptance from these references.
+Bot API IDs follow the [official numeric mapping](https://core.telegram.org/api/bots/ids).
+Microphone routing follows Android's
+[`AudioRecord.setPreferredDevice`](https://developer.android.com/reference/android/media/AudioRecord#setPreferredDevice(android.media.AudioDeviceInfo));
+the preferred device is checked against the actual routed input in emulator tests.
+
 Adapted fixes from other Android forks:
 
+- [Glassgram copy sender](https://github.com/shashachkaaa/Glassgram/blob/888a66f1d325aeb3a4344a8a97c396bd199cf0fa/TMessagesProj/src/main/java/org/telegram/messenger/GlassgramCopySender.java): compared explicit local attachment resolution, whole-batch validation and failure cleanup with the existing AyuGram forwarding path. The Android implementation retains its own synchronous helpers, caption, notification and schedule parameters.
 - [Nekogram: use the owning account for file path lookup](https://github.com/Nekogram/Nekogram/commit/1a9dda22f6abd4ac8da5e9b83fe6af6a440d5bc9).
 - [Nekogram: avoid mono-forum database reads on UI paths](https://github.com/Nekogram/Nekogram/commit/a2fd001a9bae88072673cf8a6195c89251368839).
 - GPL-2.0 message-history compatibility helpers (`AyuMessageUtils`, `AyuHistoryHook`) adapted from [Fun4Android/NotSoAndroidAyuGram](https://github.com/Fun4Android/NotSoAndroidAyuGram/tree/rewrite). These replace AyuGram's unavailable proprietary submodule; local capture/storage behavior remains in this repository's `AyuMessagesController` and database layer.
