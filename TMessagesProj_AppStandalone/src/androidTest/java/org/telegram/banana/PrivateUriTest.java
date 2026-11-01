@@ -76,7 +76,7 @@ public class PrivateUriTest {
         File external=new File(AndroidUtilities.getCacheDir(),"audit-canonical-"+UUID.randomUUID());
         try {
             try(FileOutputStream output=new FileOutputStream(external)) {output.write(3);}
-            assertEquals(external.getCanonicalPath(),Uri.fromFile(external).getCanonicalPath());
+            assertEquals(external.getCanonicalPath(),Uri.fromFile(external).getPath());
             assertFalse(AndroidUtilities.isInternalUri(Uri.fromFile(external)));
         } finally {external.delete();}
     }
