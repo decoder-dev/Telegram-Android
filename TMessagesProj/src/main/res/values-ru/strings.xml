@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="BananaDisappearedGiftsHistory">Ранее замеченные подарки</string>
+    <string name="BananaDisappearedGiftsInfo">Этот подарок был замечен в профиле, но отсутствовал при следующей полной загрузке списка. Его могли скрыть, передать или удалить. Это локальный снимок, а не подтверждение владения. Действия недоступны.</string>
     <string name="AppName">BananaGram</string>
     <string name="AppNameBeta">BananaGram Beta</string>
     <string name="LanguageName">Русский</string>
@@ -381,6 +383,10 @@
 <string name="BananaSelectFromAuthor">Выбрать от автора</string>
 <string name="BananaBookmarkMessage">В закладки</string>
 <string name="BananaBookmarkAdded">Добавлено в закладки</string>
+<string name="BananaBookmarks">Закладки сообщений</string>
+<string name="BananaBookmarksEmpty">Закладок пока нет. Добавьте их из меню сообщения.</string>
+<string name="BananaBookmarkOpen">Перейти к сообщению</string>
+<string name="BananaBookmarkRemove">Удалить закладку</string>
 <string name="BananaJumpToStart">К началу чата</string>
 <string name="BananaExpireTtlNow">Удалить сейчас</string>
 <string name="BananaLocalGroupAlias">Локальное имя группы</string>
@@ -490,7 +496,7 @@
     <string name="BananaHubAppearance">Оформление</string>
     <string name="BananaCat_APPEARANCE">Оформление</string>
     <string name="BananaCat_NETWORK">Сеть</string>
-    <string name="BananaOpt_REMOVE_PINGS">Убирать упоминания при отправке</string>
+    <string name="BananaOpt_REMOVE_PINGS">Убрать пинги упоминаний</string>
     <string name="BananaOpt_SEND_TELEGRAM_STATISTICS">Отправлять статистику Telegram</string>
     <string name="BananaOpt_BANANA_ISLAND_ENABLED">Показывать островок BananaGram</string>
     <string name="BananaOpt_BANANA_ISLAND_SHOWS_NAME">Название чата в островке</string>

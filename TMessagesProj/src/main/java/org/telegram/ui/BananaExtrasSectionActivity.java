@@ -2,6 +2,7 @@ package org.telegram.ui;
 
 import android.view.View;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
@@ -61,6 +62,9 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
             items.add(BananaValueCell.Factory.of(9100,
                     LocaleController.getString(R.string.BananaVisualLabel),
                     BananaVisualLabels.labelName(currentAccount)));
+        } else if ("MESSAGES".equals(section) && BananaConfig.get(currentAccount, Option.MESSAGE_BOOKMARKS)) {
+            items.add(UItem.asShadow(null));
+            items.add(UItem.asButton(9200, LocaleController.getString(R.string.BananaBookmarks)));
         } else if ("NINJA".equals(section)) {
             items.add(UItem.asShadow(LocaleController.getString(R.string.BananaGhostModeInfo)));
             items.add(UItem.asButton(9001, LocaleController.getString(R.string.BananaHistoryOpen)));
@@ -71,6 +75,7 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
 
     @Override
     protected void onClick(UItem item, View view, int position, float x, float y) {
+        if (item.id == 9200) { showBookmarks(); return; }
         if (item.id == 9100) {
             CharSequence[] labels = new CharSequence[]{
                     LocaleController.getString(R.string.BananaVisualLabelNone),
@@ -104,6 +109,12 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
 
             boolean next = !BananaConfig.get(currentAccount, option);
             BananaConfig.set(currentAccount, option, next);
+            if (option == Option.REMOVE_PINGS) {
+                getMessagesController().sortDialogs(null);
+                NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.dialogsNeedReload);
+                NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces,
+                        MessagesController.UPDATE_MASK_READ_DIALOG_MESSAGE);
+            }
             if (option == Option.SESSION_KEYCHAIN_BACKUP) {
                 if (next) org.telegram.messenger.banana.BananaSessionBackup.schedule(currentAccount);
                 else org.telegram.messenger.banana.BananaSessionBackup.clear(currentAccount);
@@ -117,21 +128,11 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
                 BananaConfig.set(currentAccount, Option.HIDE_RECORDING, next);
                 BananaConfig.set(currentAccount, Option.HIDE_UPLOAD, next);
             }
-            if (option == Option.HIDE_ADS) {
-                com.radolyn.ayugram.AyuConfig.disableAds = next;
-                com.radolyn.ayugram.AyuConfig.editor.putBoolean("disableAds", next).apply();
-            }
             if (option == Option.REGEX_MESSAGE_FILTERS_ENABLED) {
                 org.telegram.messenger.banana.FilterStore.get(currentAccount).setEnabled(next);
-                com.radolyn.ayugram.AyuConfig.regexFiltersEnabled = next;
-                com.radolyn.ayugram.AyuConfig.editor.putBoolean("regexFiltersEnabled", next).apply();
-                com.radolyn.ayugram.AyuFilter.rebuildCache();
                 org.telegram.messenger.banana.MessageFilters.settingsChanged(currentAccount);
             }
             if (option == Option.REGEX_MESSAGE_FILTERS_CASE_INSENSITIVE) {
-                com.radolyn.ayugram.AyuConfig.regexFiltersCaseInsensitive = next;
-                com.radolyn.ayugram.AyuConfig.editor.putBoolean("regexFiltersCaseInsensitive", next).apply();
-                com.radolyn.ayugram.AyuFilter.rebuildCache();
                 org.telegram.messenger.banana.MessageFilters.settingsChanged(currentAccount);
             }
             if (option == Option.HIDE_ONLINE || option == Option.OFFLINE_AFTER_ACTIVITY) {
@@ -144,6 +145,52 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
             }
             listView.adapter.update(true);
         }
+    }
+
+    private void showBookmarks() {
+        ArrayList<String> entries = org.telegram.messenger.banana.BananaHooks.getBookmarks(currentAccount);
+        AlertDialog.Builder list = new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                .setTitle(LocaleController.getString(R.string.BananaBookmarks))
+                .setNegativeButton(LocaleController.getString(R.string.Close), null);
+        if (entries.isEmpty()) {
+            list.setMessage(LocaleController.getString(R.string.BananaBookmarksEmpty));
+        } else {
+            CharSequence[] labels = new CharSequence[entries.size()];
+            for (int i = 0; i < entries.size(); i++) {
+                android.os.Bundle args = org.telegram.messenger.banana.BananaHooks.bookmarkArguments(entries.get(i));
+                long userId = args.getLong("user_id"), chatId = args.getLong("chat_id");
+                String name = null;
+                if (userId != 0) {
+                    org.telegram.tgnet.TLRPC.User user = getMessagesController().getUser(userId);
+                    if (user != null) name = org.telegram.messenger.UserObject.getUserName(user);
+                } else if (chatId != 0) {
+                    org.telegram.tgnet.TLRPC.Chat chat = getMessagesController().getChat(chatId);
+                    if (chat != null) name = chat.title;
+                }
+                labels[i] = android.text.TextUtils.isEmpty(name) ? entries.get(i) :
+                        LocaleController.formatString(R.string.BananaHistoryPeerNamed, name, args.getInt("message_id"));
+            }
+            list.setItems(labels, (dialog, which) -> {
+                String entry = entries.get(which);
+                showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                        .setTitle(labels[which])
+                        .setItems(new CharSequence[]{LocaleController.getString(R.string.BananaBookmarkOpen),
+                                LocaleController.getString(R.string.BananaBookmarkRemove)}, (actions, action) -> {
+                            if (action == 0) {
+                                android.os.Bundle args = org.telegram.messenger.banana.BananaHooks.bookmarkArguments(entry);
+                                if (args != null && getMessagesController().checkCanOpenChat(args, this)) {
+                                    ChatActivity chat = new ChatActivity(args);
+                                    chat.setCurrentAccount(currentAccount);
+                                    presentFragment(chat);
+                                }
+                            } else {
+                                org.telegram.messenger.banana.BananaHooks.removeBookmark(currentAccount, entry);
+                                AndroidUtilities.runOnUIThread(this::showBookmarks);
+                            }
+                        }).setNegativeButton(LocaleController.getString(R.string.Cancel), null).create());
+            });
+        }
+        showDialog(list.create());
     }
 
     @Override

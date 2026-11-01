@@ -4557,7 +4557,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         audioRecorderV2StartRunnable = () -> {
             audioRecorderV2StartRunnable = null;
             if (!audioRecorderV2Active) return;
-            setBluetoothScoOn(true);
+            if (!org.telegram.messenger.banana.BananaHooks.forceBuiltInMic(currentAccount)) setBluetoothScoOn(true);
 
             recordingAudio = new TLRPC.TL_document();
             recordingAudio.file_reference = new byte[0];
@@ -4571,7 +4571,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 audioRecorderV2Controller = new AudioRecorderV2Controller(
                         ApplicationLoader.applicationContext,
                         FileLoader.getDirectory(FileLoader.MEDIA_DIR_AUDIO),
-                        createAudioRecorderV2Listener()
+                        createAudioRecorderV2Listener(),
+                        org.telegram.messenger.banana.BananaHooks.preferredMicrophone(currentAccount)
                 );
                 if (!audioRecorderV2Controller.start()) {
                     throw new IllegalStateException("Unable to start AudioRecorderV2");
@@ -4949,7 +4950,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         requestRecordAudioFocus(true);
         recordQueue.cancelRunnable(recordStartRunnable);
         recordQueue.postRunnable(() -> {
-            setBluetoothScoOn(true);
+            if (!org.telegram.messenger.banana.BananaHooks.forceBuiltInMic(currentAccount)) setBluetoothScoOn(true);
             sendAfterDone = 0;
             recordingAudio = new TLRPC.TL_document();
             recordingGuid = guid;
@@ -5123,7 +5124,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             if (audioRecorderV2Controller != null) {
                 if (audioRecorderV2Controller.isPreviewing()) {
                     requestRecordAudioFocus(true);
-                    setBluetoothScoOn(true);
+                    if (!org.telegram.messenger.banana.BananaHooks.forceBuiltInMic(recordingCurrentAccount)) setBluetoothScoOn(true);
                 }
                 audioRecorderV2Controller.togglePause();
             }
@@ -5200,19 +5201,38 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
 
                     AndroidUtilities.runOnUIThread(() -> {
                         requestRecordAudioFocus(true);
-//                        MediaDataController.getInstance(recordingCurrentAccount).pushDraftVoiceMessage(recordDialogId, recordTopicId, null);
-//
-                        int bananaMicSource = org.telegram.messenger.banana.BananaHooks.forceBuiltInMic(UserConfig.selectedAccount)
-                                ? MediaRecorder.AudioSource.MIC : MediaRecorder.AudioSource.DEFAULT;
-                        audioRecorder = new AudioRecord(bananaMicSource, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
-                        recordStartTime = System.currentTimeMillis();
-                        writtenFrame = 0;
-                        samplesCount = 0;
-                        fileBuffer.rewind();
-                        audioRecorder.startRecording();
-                        recordQueue.postRunnable(recordRunnable);
+                        try {
+                            int bananaMicSource = org.telegram.messenger.banana.BananaHooks.forceBuiltInMic(recordingCurrentAccount)
+                                    ? MediaRecorder.AudioSource.MIC : MediaRecorder.AudioSource.DEFAULT;
+                            audioRecorder = new AudioRecord(bananaMicSource, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
+                            org.telegram.messenger.banana.BananaHooks.applyMicrophonePreference(recordingCurrentAccount, audioRecorder);
+                            recordStartTime = System.currentTimeMillis();
+                            writtenFrame = 0;
+                            samplesCount = 0;
+                            fileBuffer.rewind();
+                            audioRecorder.startRecording();
+                            recordQueue.postRunnable(recordRunnable);
 
-                        NotificationCenter.getInstance(recordingCurrentAccount).postNotificationName(NotificationCenter.recordResumed);
+                            NotificationCenter.getInstance(recordingCurrentAccount).postNotificationName(NotificationCenter.recordResumed);
+                        } catch (RuntimeException failure) {
+                            FileLog.e(failure);
+                            if (audioRecorder != null) {
+                                try { audioRecorder.release(); } catch (RuntimeException cleanup) { FileLog.e(cleanup); }
+                                audioRecorder = null;
+                            }
+                            audioRecorderPaused = true;
+                            requestRecordAudioFocus(false);
+                            setBluetoothScoOn(false);
+                            recordQueue.postRunnable(() -> {
+                                stopRecord();
+                                File failedSegment = recordingAudioFile;
+                                recordingAudioFile = recordingPrevAudioFile;
+                                recordingPrevAudioFile = null;
+                                if (failedSegment != null && !failedSegment.equals(recordingAudioFile)) failedSegment.delete();
+                                AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(recordingCurrentAccount)
+                                        .postNotificationName(NotificationCenter.recordStartError, recordingGuid));
+                            });
+                        }
                     });
                 });
             }
@@ -5266,7 +5286,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 return;
             }
 
-            setBluetoothScoOn(true);
+            if (!org.telegram.messenger.banana.BananaHooks.forceBuiltInMic(currentAccount)) setBluetoothScoOn(true);
 
 
             sendAfterDone = 0;
@@ -5307,9 +5327,10 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 }
 
                 audioRecorderPaused = false;
-                int bananaMicSource = org.telegram.messenger.banana.BananaHooks.forceBuiltInMic(UserConfig.selectedAccount)
+                int bananaMicSource = org.telegram.messenger.banana.BananaHooks.forceBuiltInMic(currentAccount)
                         ? MediaRecorder.AudioSource.MIC : MediaRecorder.AudioSource.DEFAULT;
                 audioRecorder = new AudioRecord(bananaMicSource, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
+                org.telegram.messenger.banana.BananaHooks.applyMicrophonePreference(currentAccount, audioRecorder);
                 recordStartTime = System.currentTimeMillis();
                 recordTimeCount = 0;
                 writtenFrame = 0;

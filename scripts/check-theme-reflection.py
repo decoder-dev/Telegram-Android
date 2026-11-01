@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check live theme reflection fields in DEX, using R8 only to resolve classes."""
+"""Check theme and Extras label reflection fields in DEX, using R8 to resolve classes."""
 import argparse
 from pathlib import Path
 import re
@@ -76,6 +76,13 @@ def main():
     source.add_argument('--dex-dir', type=Path)
     args = parser.parse_args()
     expected = {'org.telegram.ui.Cells.' + name: fields for name, fields in REQUIRED.items()}
+    config = (Path(__file__).resolve().parents[1] /
+              'TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaConfig.java').read_text()
+    options = config.split('public enum Option {', 1)[1].split('public enum SilentSending', 1)[0]
+    labels = {'BananaOpt_' + name for name in re.findall(r'^        ([A-Z_]+)\(', options, re.M)}
+    if not labels:
+        parser.error('Could not parse the Extras option labels')
+    expected['org.telegram.messenger.R$string'] = labels
     classes = dict((name, name) for name in expected)
     with args.mapping.open() as source:
         for line in source:
@@ -100,7 +107,7 @@ def main():
               if field not in found.get(descriptors[name], set())]
     if broken:
         raise SystemExit('Live theme reflection fields were renamed or removed:\n' + '\n'.join(broken))
-    print('All nine live Extras theme reflection fields verified in the actual DEX')
+    print(f'All nine live theme fields and {len(labels)} Extras label fields verified in the actual DEX')
 
 
 if __name__ == '__main__':

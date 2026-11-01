@@ -627,6 +627,12 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
                         items.add(UItem.asFlicker(1 + i, FlickerLoadingView.STAR_GIFT).setSpanCount(1));
                     }
                 }
+                if (!list.disappearedGifts.isEmpty() && org.telegram.messenger.banana.BananaHooks.showDisappearedGifts(currentAccount)) {
+                    items.add(UItem.asHeader(LocaleController.getString(R.string.BananaDisappearedGiftsHistory)));
+                    for (TL_stars.SavedStarGift gift : list.disappearedGifts) {
+                        items.add(GiftSheet.GiftCell.Factory.asStarGift(0, gift, true, false, false));
+                    }
+                }
             }
             if (parent.list == list) {
                 items.add(UItem.asSpace(dp(20)));
@@ -660,6 +666,13 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
             if (list == null) return;
             if (item.object instanceof TL_stars.SavedStarGift) {
                 final TL_stars.SavedStarGift userGift = (TL_stars.SavedStarGift) item.object;
+                if (list.disappearedGifts.contains(userGift)) {
+                    new org.telegram.ui.ActionBar.AlertDialog.Builder(getContext(), resourcesProvider)
+                        .setTitle(LocaleController.getString(R.string.BananaDisappearedGiftsHistory))
+                        .setMessage(LocaleController.getString(R.string.BananaDisappearedGiftsInfo))
+                        .setPositiveButton(LocaleController.getString(R.string.OK), null).show();
+                    return;
+                }
                 if (reordering) {
                     if (isCollection) return;
                     if (!(userGift.gift instanceof TL_stars.TL_starGiftUnique)) {
@@ -717,6 +730,7 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
             if (view instanceof GiftSheet.GiftCell && item.object instanceof TL_stars.SavedStarGift) {
                 final GiftSheet.GiftCell cell = (GiftSheet.GiftCell) view;
                 final TL_stars.SavedStarGift savedStarGift = (TL_stars.SavedStarGift) item.object;
+                if (list.disappearedGifts.contains(savedStarGift)) return false;
                 final ItemOptions o = ItemOptions.makeOptions(parent.fragment, view, true);
                 parent.currentMenu = o;
                 if (parent.collections.isMine() && (isCollection || parent.collections.getCollections().size() > 0 || true)) {

@@ -1,6 +1,7 @@
 package org.telegram.utils.recorder.audio;
 
 import android.media.AudioFormat;
+import android.media.AudioDeviceInfo;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Handler;
@@ -47,12 +48,15 @@ final class AudioCapture {
 
     private static final long OUTPUT_FLUSH_INTERVAL_MS = 100L;
     private static final long PROGRESS_INTERVAL_MS = 32L;
+    // Ten seconds of 48 kHz mono PCM; never retain an unbounded native-buffer queue.
+    private static final int MAX_QUEUED_CHUNKS = 500;
 
     private final File outputFile;
     private final File prefixFile;
     private final long prefixStartMs;
     private final long prefixEndMs;
     private final AudioRecordingSession.NoiseSuppression noiseSuppression;
+    private final AudioDeviceInfo preferredInputDevice;
     private final AudioRecorderDiagnostics diagnostics;
     private final Callback callback;
     private final HandlerThread captureThread;
@@ -94,6 +98,7 @@ final class AudioCapture {
             long prefixStartMs,
             long prefixEndMs,
             @NonNull AudioRecordingSession.NoiseSuppression noiseSuppression,
+            @Nullable AudioDeviceInfo preferredInputDevice,
             @NonNull AudioRecorderDiagnostics diagnostics,
             @NonNull Callback callback
     ) {
@@ -102,6 +107,7 @@ final class AudioCapture {
         this.prefixStartMs = prefixStartMs;
         this.prefixEndMs = prefixEndMs;
         this.noiseSuppression = noiseSuppression;
+        this.preferredInputDevice = preferredInputDevice;
         this.diagnostics = diagnostics;
         this.callback = callback;
         captureThread = new HandlerThread("AudioRecorderCapture", Process.THREAD_PRIORITY_AUDIO);
@@ -149,6 +155,9 @@ final class AudioCapture {
             if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
                 throw new IllegalStateException("Unable to initialize AudioRecord");
             }
+            if (preferredInputDevice != null && !audioRecord.setPreferredDevice(preferredInputDevice)) {
+                throw new IllegalStateException("Preferred microphone routing was rejected");
+            }
             audioRecord.startRecording();
             if (audioRecord.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING) {
                 throw new IllegalStateException("Unable to start AudioRecord");
@@ -170,7 +179,16 @@ final class AudioCapture {
             stopCapture(null);
             return;
         }
-        ByteBuffer chunk = obtainChunk();
+        ByteBuffer chunk;
+        try {
+            if (queuedChunks.get() >= MAX_QUEUED_CHUNKS) {
+                throw new IllegalStateException("Audio encoder cannot keep up with capture");
+            }
+            chunk = obtainChunk();
+        } catch (Throwable error) {
+            stopCapture(asException(error));
+            return;
+        }
         boolean queued = false;
         try {
             int bytesRead = audioRecord.read(chunk, chunk.capacity());

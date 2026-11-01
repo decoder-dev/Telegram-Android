@@ -20,6 +20,7 @@ public class DummyFileUploadWaiter extends EasyWaiter {
 
         notifications.add(NotificationCenter.fileUploaded);
         notifications.add(NotificationCenter.fileUploadFailed);
+        notifications.add(NotificationCenter.appDidLogout);
     }
 
     private void process(String path) {
@@ -30,6 +31,9 @@ public class DummyFileUploadWaiter extends EasyWaiter {
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
+        if (account != currentAccount) return;
+        if (id == NotificationCenter.appDidLogout) { fail("Forward account changed"); return; }
+        if (args.length == 0 || !(args[0] instanceof String)) return;
         if (id == NotificationCenter.fileUploaded) {
             final String location = (String) args[0];
 
@@ -37,7 +41,7 @@ public class DummyFileUploadWaiter extends EasyWaiter {
         } else if (id == NotificationCenter.fileUploadFailed) {
             final String location = (String) args[0];
 
-            process(location);
+            if (path != null && path.equals(location)) fail("Forward upload failed");
         }
     }
 }

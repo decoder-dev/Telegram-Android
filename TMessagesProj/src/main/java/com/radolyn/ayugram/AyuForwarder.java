@@ -14,6 +14,7 @@ import android.util.LongSparseArray;
 import com.exteragram.messenger.utils.ChatUtils;
 import android.util.Log;
 import com.radolyn.ayugram.easy.AyuEasyUtils;
+import com.radolyn.ayugram.easy.DummyMessageWaiter;
 import org.telegram.messenger.*;
 import org.telegram.tgnet.TLRPC;
 
@@ -27,8 +28,11 @@ public class AyuForwarder {
         if (messages == null || messages.isEmpty()) {
             return false;
         }
-        var dialogId = messages.get(0).getDialogId();
-        var chat = MessagesController.getInstance(currentAccount).getChat(Math.abs(dialogId));
+        MessageObject first = messages.get(0);
+        if (first == null || first.messageOwner == null) return false;
+        var dialogId = first.getDialogId();
+        if (dialogId >= 0) return false;
+        var chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
 
         return chat != null && chat.ayuNoforwards;
     }
@@ -96,6 +100,11 @@ public class AyuForwarder {
         var fullNoforwards = isFullAyuForwardsNeeded(currentAccount, messages);
 
         for (var message : messages) {
+            if (message == null || message.messageOwner == null ||
+                    (!MessageObject.isMediaEmpty(message.messageOwner) || message.getGroupId() != 0) &&
+                            !AyuUtils.isMediaDownloadable(message, false)) {
+                throw new IllegalArgumentException("Unsupported forward media");
+            }
             if (fullNoforwards || message.messageOwner.ayuNoforwards || message.messageOwner.ayuDeleted) {
                 if (AyuUtils.isMediaDownloadable(message, false)) {
                     toBeDownloaded.add(message);
@@ -117,87 +126,111 @@ public class AyuForwarder {
             AyuEasyUtils.loadDocumentsSync(currentAccount, toBeDownloaded);
         }
 
-        for (var message : messages) {
-            var textExtracted = ChatUtils.getMessageText(message, null);
-            var text = textExtracted == null ? "" : textExtracted.toString();
-            var mediaDownloadable = AyuUtils.isMediaDownloadable(message, false);
-            var groupId = message.getGroupId();
-            var newGroupId = groupIds.get(groupId, 0L);
-
-            var isFinalInGroup = false;
-            if (groupId != 0) {
-                groups.put(groupId, groups.get(groupId) - 1);
-                isFinalInGroup = groups.get(groupId) == 0;
+        // Validate the entire batch before uploading its first item. A failed/expired download
+        // must not create an empty document, crash photo decoding or leave an unfinished album.
+        var mediaPaths = new java.util.IdentityHashMap<MessageObject, File>();
+        var photos = new java.util.IdentityHashMap<MessageObject, TLRPC.TL_photo>();
+        for (MessageObject message : messages) {
+            if (AyuUtils.isMediaDownloadable(message, false)) {
+                File path = AyuUtils.getLocalMessageFile(message);
+                if (path == null) throw new IllegalStateException("Forward media is not available locally");
+                mediaPaths.put(message, path);
+                if (message.isPhoto()) photos.put(message, mapPhoto(currentAccount, MessageObject.getPhoto(message.messageOwner), path));
             }
-
-            var messagePath = FileLoader.getInstance(currentAccount).getPathToMessage(message.messageOwner);
-            // todo: if not exists, try to take from cache forcefully
-
-            if (TextUtils.isEmpty(text) && !mediaDownloadable) {
-                continue;
-            }
-
-            if (!mediaDownloadable) {
-                AyuEasyUtils.sendTextMessageSync(
-                        currentAccount,
-                        text,
-                        peer,
-                        null,
-                        replyToTopMsg,
-                        null, // todo
-                        false,
-                        message.messageOwner.entities,
-                        notify,
-                        scheduleDate
-                );
-            } else if (message.getDocument() != null) {
-                var doc = message.getDocument();
-                var newDoc = mapDocument(currentAccount, doc, messagePath);
-                var caption = hideCaption ? "" : text;
-                var entities = hideCaption ? null : message.messageOwner.entities;
-
-                AyuEasyUtils.sendDocumentMessageSync(
-                        currentAccount,
-                        newDoc,
-                        messagePath.getAbsolutePath(),
-                        peer,
-                        null,
-                        replyToTopMsg,
-                        caption,
-                        entities,
-                        notify,
-                        scheduleDate,
-                        newGroupId,
-                        isFinalInGroup
-                );
-            } else if (message.isPhoto()) {
-                var photo = MessageObject.getPhoto(message.messageOwner);
-                var newPhoto = mapPhoto(currentAccount, photo, messagePath);
-
-                var caption = hideCaption ? "" : (TextUtils.isEmpty(photo.caption) ? text : photo.caption);
-                var entities = hideCaption ? null : message.messageOwner.entities;
-
-                AyuEasyUtils.sendPhotoMessageSync(
-                        currentAccount,
-                        newPhoto,
-                        messagePath.getAbsolutePath(),
-                        peer,
-                        null,
-                        replyToTopMsg,
-                        caption,
-                        entities,
-                        notify,
-                        scheduleDate,
-                        newGroupId,
-                        isFinalInGroup
-                );
-            } else {
-                Log.w("AyuGram", "Unsupported message type: " + message.messageOwner);
-            }
-
-            Log.w("AyuGram", "Message forwarded");
         }
 
+        var albumWaiters = new LongSparseArray<DummyMessageWaiter>();
+        try {
+            for (int i = 0; i < groups.size(); i++) {
+                DummyMessageWaiter waiter = new DummyMessageWaiter(currentAccount, groups.valueAt(i).intValue());
+                albumWaiters.put(groups.keyAt(i), waiter);
+                waiter.subscribe();
+            }
+            for (var message : messages) {
+                var textExtracted = ChatUtils.getMessageText(message, null);
+                var text = textExtracted == null ? "" : textExtracted.toString();
+                var mediaDownloadable = AyuUtils.isMediaDownloadable(message, false);
+                var groupId = message.getGroupId();
+                var newGroupId = groupIds.get(groupId, 0L);
+
+                var isFinalInGroup = false;
+                if (groupId != 0) {
+                    groups.put(groupId, groups.get(groupId) - 1);
+                    isFinalInGroup = groups.get(groupId) == 0;
+                }
+
+                var messagePath = mediaPaths.get(message);
+
+                if (TextUtils.isEmpty(text) && !mediaDownloadable) {
+                    continue;
+                }
+
+                if (!mediaDownloadable) {
+                    AyuEasyUtils.sendTextMessageSync(
+                            currentAccount,
+                            text,
+                            peer,
+                            null,
+                            replyToTopMsg,
+                            null, // todo
+                            false,
+                            message.messageOwner.entities,
+                            notify,
+                            scheduleDate
+                    );
+                } else if (message.getDocument() != null) {
+                    var doc = message.getDocument();
+                    var newDoc = mapDocument(currentAccount, doc, messagePath);
+                    var caption = hideCaption ? "" : text;
+                    var entities = hideCaption ? null : message.messageOwner.entities;
+
+                    AyuEasyUtils.sendDocumentMessageSync(
+                            currentAccount,
+                            newDoc,
+                            messagePath.getAbsolutePath(),
+                            peer,
+                            null,
+                            replyToTopMsg,
+                            caption,
+                            entities,
+                            notify,
+                            scheduleDate,
+                            newGroupId,
+                            isFinalInGroup,
+                            albumWaiters.get(groupId)
+                    );
+                } else if (message.isPhoto()) {
+                    var photo = MessageObject.getPhoto(message.messageOwner);
+                    var newPhoto = photos.get(message);
+
+                    var caption = hideCaption ? "" : (TextUtils.isEmpty(photo.caption) ? text : photo.caption);
+                    var entities = hideCaption ? null : message.messageOwner.entities;
+
+                    AyuEasyUtils.sendPhotoMessageSync(
+                            currentAccount,
+                            newPhoto,
+                            messagePath.getAbsolutePath(),
+                            peer,
+                            null,
+                            replyToTopMsg,
+                            caption,
+                            entities,
+                            notify,
+                            scheduleDate,
+                            newGroupId,
+                            isFinalInGroup,
+                            albumWaiters.get(groupId)
+                    );
+                } else {
+                    Log.w("AyuGram", "Unsupported message type: " + message.messageOwner);
+                }
+
+                Log.w("AyuGram", "Message forwarded");
+            }
+
+        } finally {
+            for (int i = 0; i < albumWaiters.size(); i++) albumWaiters.valueAt(i).close();
+        }
         Log.w("AyuGram", "All messages forwarded");
     }
 
@@ -210,9 +243,9 @@ public class AyuForwarder {
         newDoc.file_name = doc.file_name;
         newDoc.file_name_fixed = doc.file_name_fixed;
         newDoc.date = AccountInstance.getInstance(currentAccount).getConnectionsManager().getCurrentTime();
-        newDoc.size = (int) messagePath.length();
+        newDoc.size = messagePath.length();
 
-        newDoc.attributes = doc.attributes;
+        newDoc.attributes = new ArrayList<>(doc.attributes);
         newDoc.localPath = messagePath.getAbsolutePath();
 
         return newDoc;
@@ -222,6 +255,7 @@ public class AyuForwarder {
         var helper = SendMessagesHelper.getInstance(currentAccount);
 
         var newPhoto = helper.generatePhotoSizes(messagePath.getAbsolutePath(), null); // todo: mapPhoto
+        if (newPhoto == null) throw new IllegalStateException("Forward photo could not be decoded");
         newPhoto.flags = photo.flags;
         newPhoto.has_stickers = photo.has_stickers;
         newPhoto.date = AccountInstance.getInstance(currentAccount).getConnectionsManager().getCurrentTime();

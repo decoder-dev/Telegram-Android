@@ -22,12 +22,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 // music for real coders
 // https://music.youtube.com/watch?v=Cw_tD7MXeEI
 // https://music.youtube.com/watch?v=uLxUmn3qOjA
-public abstract class EasyWaiter implements NotificationCenter.NotificationCenterDelegate {
+public abstract class EasyWaiter implements NotificationCenter.NotificationCenterDelegate, AutoCloseable {
 
     protected final ArrayList<Integer> notifications;
     protected final CountDownLatch latch;
     protected final int currentAccount;
     private final AtomicBoolean closed = new AtomicBoolean();
+    private volatile String failure;
 
     public EasyWaiter(int currentAccount) {
         this.currentAccount = currentAccount;
@@ -85,6 +86,18 @@ public abstract class EasyWaiter implements NotificationCenter.NotificationCente
         else AndroidUtilities.runOnUIThread(remove);
     }
 
+    protected void fail(String reason) {
+        failure = reason;
+        unsubscribe();
+    }
+
+    protected boolean isClosed() { return closed.get(); }
+
+    @Override
+    public void close() {
+        unsubscribe();
+    }
+
     // Long enough for a large download or upload on a slow link. Without a bound, a send or load
     // that never reports success or failure kept this thread and its observers alive forever.
     private static final long MAX_WAIT_MINUTES = 15;
@@ -96,13 +109,12 @@ public abstract class EasyWaiter implements NotificationCenter.NotificationCente
         }
         try {
             if (!latch.await(MAX_WAIT_MINUTES, TimeUnit.MINUTES)) {
-                Log.w("AyuGram", getClass().getSimpleName() + " timed out; continuing without its event");
-                unsubscribe();
+                fail("Transfer timed out");
             }
         } catch (InterruptedException e) {
-            Log.w("AyuGram", "wait interrupted", e);
             Thread.currentThread().interrupt();
-            unsubscribe();
+            fail("Transfer interrupted");
         }
+        if (failure != null) throw new IllegalStateException(failure);
     }
 }

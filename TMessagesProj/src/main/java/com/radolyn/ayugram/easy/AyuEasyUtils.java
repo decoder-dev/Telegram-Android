@@ -9,9 +9,6 @@
 
 package com.radolyn.ayugram.easy;
 
-import org.telegram.messenger.SendMessagesHelper;
-
-import com.radolyn.ayugram.utils.AyuGhostUtils;
 import org.telegram.messenger.*;
 import org.telegram.tgnet.TLRPC;
 
@@ -20,24 +17,26 @@ import java.util.HashMap;
 
 public class AyuEasyUtils {
     public static void loadDocumentsSync(int currentAccount, ArrayList<MessageObject> toBeDownloaded) {
-        var waiter = new DummyFileLoadWaiter(currentAccount, toBeDownloaded);
-        waiter.subscribe();
+        try (var waiter = new DummyFileLoadWaiter(currentAccount, toBeDownloaded)) {
+            waiter.subscribe();
 
-        var fileLoader = FileLoader.getInstance(currentAccount);
+            var fileLoader = FileLoader.getInstance(currentAccount);
 
-        for (var message : toBeDownloaded) {
-            var doc = message.getDocument();
-            var photo = MessageObject.getPhoto(message.messageOwner);
+            for (var message : toBeDownloaded) {
+                if (com.radolyn.ayugram.AyuUtils.getLocalMessageFile(message) != null) continue;
+                var doc = message.getDocument();
+                var photo = MessageObject.getPhoto(message.messageOwner);
 
-            if (doc != null) {
-                fileLoader.loadFile(doc, message, FileLoader.PRIORITY_HIGH, 0);
-            } else if (photo != null) {
-                var path = ImageLocation.getForPhoto(FileLoader.getClosestPhotoSizeWithSize(photo.sizes, AndroidUtilities.getPhotoSize()), photo);
-                fileLoader.loadFile(path, message, null, FileLoader.PRIORITY_HIGH, 0);
+                if (doc != null) {
+                    fileLoader.loadFile(doc, message, FileLoader.PRIORITY_HIGH, 0);
+                } else if (photo != null) {
+                    var path = ImageLocation.getForPhoto(FileLoader.getClosestPhotoSizeWithSize(photo.sizes, AndroidUtilities.getPhotoSize()), photo);
+                    fileLoader.loadFile(path, message, null, FileLoader.PRIORITY_HIGH, 0);
+                }
             }
-        }
 
-        waiter.await();
+            waiter.await();
+        }
     }
 
     public static void sendTextMessageSync(
@@ -52,15 +51,10 @@ public class AyuEasyUtils {
             boolean notify,
             int scheduleDate
     ) {
-        var dialogId = AyuGhostUtils.getDialogId(MessagesController.getInstance(currentAccount).getInputPeer(peer));
+        try (var waiter = new DummyMessageWaiter(currentAccount)) {
+            waiter.subscribe();
 
-        var waiter = new DummyMessageWaiter(currentAccount);
-        waiter.subscribe();
-
-        var helper = SendMessagesHelper.getInstance(currentAccount);
-
-        AndroidUtilities.runOnUIThread(() -> {
-            helper.sendMessage(SendMessagesHelper.SendMessageParams.of(
+            var sendParams = SendMessagesHelper.SendMessageParams.of(
                     message,
                     peer,
                     replyToMsg,
@@ -75,12 +69,11 @@ public class AyuEasyUtils {
                     0,
                     null,
                     false
-            ));
-        });
+            );
+            postSend(currentAccount, sendParams, waiter);
 
-        waiter.trySetSendingId(dialogId);
-
-        waiter.await();
+            waiter.await();
+        }
     }
 
     public static void sendDocumentMessageSync(
@@ -97,23 +90,36 @@ public class AyuEasyUtils {
             Long groupId,
             boolean isFinalInGroup
     ) {
-        var dialogId = AyuGhostUtils.getDialogId(MessagesController.getInstance(currentAccount).getInputPeer(peer));
+        sendDocumentMessageSync(currentAccount, document, path, peer, replyToMsg, replyToTopMsg, caption,
+                entities, notify, scheduleDate, groupId, isFinalInGroup, null);
+    }
 
+    public static void sendDocumentMessageSync(
+            int currentAccount,
+            TLRPC.TL_document document,
+            String path,
+            long peer,
+            MessageObject replyToMsg,
+            MessageObject replyToTopMsg,
+            String caption,
+            ArrayList<TLRPC.MessageEntity> entities,
+            boolean notify,
+            int scheduleDate,
+            Long groupId,
+            boolean isFinalInGroup,
+            DummyMessageWaiter batchWaiter
+    ) {
         var waitToSend = groupId == 0 || isFinalInGroup;
-        var sendWaiter = new DummyMessageWaiter(currentAccount);
-        if (waitToSend) {
-            sendWaiter.subscribe();
-        }
-
+        var sendWaiter = new DummyMessageWaiter(currentAccount, 1, batchWaiter == null && waitToSend, batchWaiter);
         var uploadWaiter = new DummyFileUploadWaiter(currentAccount, path);
-        if (groupId == 0) uploadWaiter.subscribe();
+        try (sendWaiter; uploadWaiter) {
+            sendWaiter.subscribe();
 
-        var helper = SendMessagesHelper.getInstance(currentAccount);
+            if (groupId == 0) uploadWaiter.subscribe();
 
-        var params = createParams(groupId, isFinalInGroup);
+            var params = createParams(groupId, isFinalInGroup);
 
-        AndroidUtilities.runOnUIThread(() -> {
-            helper.sendMessage(SendMessagesHelper.SendMessageParams.of(
+            var sendParams = SendMessagesHelper.SendMessageParams.of(
                     document,
                     null,
                     path,
@@ -131,19 +137,15 @@ public class AyuEasyUtils {
                     null,
                     null,
                     false
-            ));
-        });
+            );
+            postSend(currentAccount, sendParams, sendWaiter);
 
-        if (waitToSend) {
-            sendWaiter.trySetSendingId(dialogId);
-        }
+            if (groupId == 0) {
+                uploadWaiter.await();
+            }
 
-        if (groupId == 0) {
-            uploadWaiter.await();
-        }
-
-        if (waitToSend) {
             sendWaiter.await();
+            if (batchWaiter != null && isFinalInGroup) batchWaiter.await();
         }
     }
 
@@ -161,27 +163,39 @@ public class AyuEasyUtils {
             Long groupId,
             boolean isFinalInGroup
     ) {
-        // why? because.
+        sendPhotoMessageSync(currentAccount, photo, path, peer, replyToMsg, replyToTopMsg, caption,
+                entities, notify, scheduleDate, groupId, isFinalInGroup, null);
+    }
+
+    public static void sendPhotoMessageSync(
+            int currentAccount,
+            TLRPC.TL_photo photo,
+            String path,
+            long peer,
+            MessageObject replyToMsg,
+            MessageObject replyToTopMsg,
+            String caption,
+            ArrayList<TLRPC.MessageEntity> entities,
+            boolean notify,
+            int scheduleDate,
+            Long groupId,
+            boolean isFinalInGroup,
+            DummyMessageWaiter batchWaiter
+    ) {
         var bigPhoto = FileLoader.getClosestPhotoSizeWithSize(photo.sizes, AndroidUtilities.getPhotoSize());
         var filename = FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE) + "/" + bigPhoto.location.volume_id + "_" + bigPhoto.location.local_id + ".jpg";
 
-        var dialogId = AyuGhostUtils.getDialogId(MessagesController.getInstance(currentAccount).getInputPeer(peer));
-
         var waitToSend = groupId == 0 || isFinalInGroup;
-        var sendWaiter = new DummyMessageWaiter(currentAccount);
-        if (waitToSend) {
-            sendWaiter.subscribe();
-        }
-
+        var sendWaiter = new DummyMessageWaiter(currentAccount, 1, batchWaiter == null && waitToSend, batchWaiter);
         var uploadWaiter = new DummyFileUploadWaiter(currentAccount, filename);
-        if (groupId == 0) uploadWaiter.subscribe();
+        try (sendWaiter; uploadWaiter) {
+            sendWaiter.subscribe();
 
-        var helper = SendMessagesHelper.getInstance(currentAccount);
+            if (groupId == 0) uploadWaiter.subscribe();
 
-        var params = createParams(groupId, isFinalInGroup);
+            var params = createParams(groupId, isFinalInGroup);
 
-        AndroidUtilities.runOnUIThread(() -> {
-            helper.sendMessage(SendMessagesHelper.SendMessageParams.of(
+            var sendParams = SendMessagesHelper.SendMessageParams.of(
                     photo,
                     path,
                     peer,
@@ -198,19 +212,15 @@ public class AyuEasyUtils {
                     null,
                     false,
                     false
-            ));
-        });
+            );
+            postSend(currentAccount, sendParams, sendWaiter);
 
-        if (waitToSend) {
-            sendWaiter.trySetSendingId(dialogId);
-        }
+            if (groupId == 0) {
+                uploadWaiter.await();
+            }
 
-        if (groupId == 0) {
-            uploadWaiter.await();
-        }
-
-        if (waitToSend) {
             sendWaiter.await();
+            if (batchWaiter != null && isFinalInGroup) batchWaiter.await();
         }
     }
 
@@ -224,20 +234,34 @@ public class AyuEasyUtils {
             int scheduleDate,
             MessageObject replyToTopMsg
     ) {
-        var dialogId = AyuGhostUtils.getDialogId(MessagesController.getInstance(currentAccount).getInputPeer(peer));
+        try (var waiter = new DummyMessageWaiter(currentAccount, messages.size())) {
+            waiter.subscribe();
 
-        var waiter = new DummyMessageWaiter(currentAccount);
-        waiter.subscribe();
+            postTransfer(waiter, () -> {
+                int error = SendMessagesHelper.getInstance(currentAccount).sendMessage(messages, peer, forwardFromMyName,
+                        hideCaption, notify, scheduleDate, 0, replyToTopMsg, -1, 0, 0, null, waiter);
+                if (error != 0) waiter.onError();
+            });
 
-        var helper = SendMessagesHelper.getInstance(currentAccount);
+            waiter.await();
+        }
+    }
 
+
+    private static void postSend(int account, SendMessagesHelper.SendMessageParams params, DummyMessageWaiter waiter) {
+        params.bananaSendObserver = waiter;
+        postTransfer(waiter, () -> SendMessagesHelper.getInstance(account).sendMessage(params));
+    }
+
+    private static void postTransfer(DummyMessageWaiter waiter, Runnable send) {
         AndroidUtilities.runOnUIThread(() -> {
-            helper.sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, replyToTopMsg);
+            if (!waiter.isActive()) return;
+            try { send.run(); }
+            catch (RuntimeException failure) {
+                waiter.onError();
+                FileLog.e("Copy send failed: " + failure.getClass().getSimpleName());
+            }
         });
-
-        waiter.trySetSendingId(dialogId);
-
-        waiter.await();
     }
 
     private static HashMap<String, String> createParams(long groupId, boolean isFinalInGroup) {

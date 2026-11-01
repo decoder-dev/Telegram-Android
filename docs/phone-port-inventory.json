@@ -1,6 +1,6 @@
 {
   "source_repo": "decoder-dev/Telegram-iOS",
-  "source_commit": "4fe480d8f395b6d3cb1d099508145d5225cc9d9e",
+  "source_commit": "2eced049d263ae5e265e06e295b32c681a909ce7",
   "source_file": "submodules/TelegramUIPreferences/Sources/ForkExtrasSettings.swift",
   "meaning": "Stored iOS Extras settings inventory. Pending includes native Android equivalents that still need explicit verification. This is not a list of shipped Android features. Settings alone do not cover fixed styling, playback limits, protocol backends or message-menu actions.",
   "settings": [
@@ -469,8 +469,8 @@
     {
       "setting": "messageBookmarks",
       "type": "Bool",
-      "status": "implemented_behavior_wired",
-      "android": "BananaConfig.Option.MESSAGE_BOOKMARKS via BananaHooks call sites"
+      "status": "implemented_basic_browse_pending_authenticated_acceptance",
+      "android": "Account-scoped toggle and entry storage with legacy type migration; Extras → Messages offers list, jump/remove and 64-bit/secret navigation. iOS tags/snippets are not ported; live navigation needs account acceptance."
     },
     {
       "setting": "localGroupAlias",
@@ -781,8 +781,8 @@
     {
       "setting": "showDisappearedGifts",
       "type": "Bool",
-      "status": "implemented_behavior_wired",
-      "android": "BananaConfig.Option.SHOW_DISAPPEARED_GIFTS via BananaHooks call sites"
+      "status": "implemented_local_history_pending_authenticated_acceptance",
+      "android": "GiftHistory stores bounded account/owner/backend-scoped complete-list snapshots in no-backup private storage. Profile grid separates read-only previously seen gifts; incomplete/filtered lists do not infer disappearance. Reappearance and upgrades are reconciled; live server pagination acceptance pending."
     },
     {
       "setting": "roundVideoStartsWithRear",
@@ -1059,6 +1059,60 @@
       "type": "Int32",
       "status": "implemented_behavior_wired",
       "android": "BananaHooks.defaultVideoQuality (VideoPlayer)"
+    },
+    {
+      "setting": "anonymousStickers",
+      "type": "Bool",
+      "status": "pending_new_ios_reference_review",
+      "android": "New in the refreshed iOS reference; not included in Android's current Extras catalog. Review sticker set references before deciding parity."
+    },
+    {
+      "setting": "approximateLastSeen",
+      "type": "Bool",
+      "status": "pending_new_ios_reference_review",
+      "android": "New iOS estimate mode; Android exact/relative formatting is a separate feature and does not prove this behavior."
+    },
+    {
+      "setting": "profileExpansionAnimation",
+      "type": "Bool",
+      "status": "pending_new_ios_reference_review",
+      "android": "Platform-specific animation choice; Android navigation/transition equivalence remains unreviewed."
+    },
+    {
+      "setting": "securityBlockPhoneSharing",
+      "type": "Bool",
+      "status": "pending_new_ios_reference_review",
+      "android": "Compare bot/contact/mini-app phone sharing against existing Android confirmation paths; not attested."
+    },
+    {
+      "setting": "securityBlockQrLogin",
+      "type": "Bool",
+      "status": "pending_new_ios_reference_review",
+      "android": "Compare QR-login guards and session-creation flow; not attested."
+    },
+    {
+      "setting": "securityConfirmExternalLinks",
+      "type": "Bool",
+      "status": "pending_new_ios_reference_review",
+      "android": "Existing Telegram/share-link confirmations do not attest confirmation of every external website."
+    },
+    {
+      "setting": "securityFlagFakeSupport",
+      "type": "Bool",
+      "status": "pending_new_ios_reference_review",
+      "android": "Compare impersonation warnings with Android's existing peer warning UI; not attested."
+    },
+    {
+      "setting": "securityGuardLoginCodes",
+      "type": "Bool",
+      "status": "pending_new_ios_reference_review",
+      "android": "Compare login-code forwarding/copy protection with upstream Android; not attested."
+    },
+    {
+      "setting": "securityWarnMiniApps",
+      "type": "Bool",
+      "status": "pending_new_ios_reference_review",
+      "android": "Compare first-use mini-app warnings with Android's existing web-app confirmation; not attested."
     }
   ]
 }

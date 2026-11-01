@@ -6,6 +6,17 @@ import static org.junit.Assert.*;
 
 public class GhostPolicyTest {
     @Test
+    public void onlyAutomaticSchedulesAreRearmedAfterUpload() {
+        assertEquals(1011, GhostPolicy.refreshSchedule(990, 1000, true));
+        assertEquals(1011, GhostPolicy.refreshSchedule(1005, 1000, true));
+        assertEquals(2000, GhostPolicy.refreshSchedule(2000, 1000, true));
+        assertEquals(990, GhostPolicy.refreshSchedule(990, 1000, false));
+        assertEquals(1005, GhostPolicy.refreshSchedule(1005, 1000, false));
+        assertEquals(0, GhostPolicy.refreshSchedule(0, 1000, true));
+        assertEquals(0x7ffffffe, GhostPolicy.refreshSchedule(0x7ffffffe, 1000, true));
+        assertEquals(Integer.MAX_VALUE, GhostPolicy.refreshSchedule(1, Integer.MAX_VALUE, true));
+    }
+    @Test
     public void storyPromptRequiresAnOptInAndAnotherPeersUnprotectedStory() {
         assertTrue(GhostPolicy.shouldWarnStory(true, false, 12, 13));
         assertTrue(GhostPolicy.shouldWarnStory(true, false, 12, -13));

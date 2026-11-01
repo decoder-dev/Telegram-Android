@@ -57,6 +57,15 @@ final class AudioRecorderV2Controller {
             @NonNull File outputDirectory,
             @NonNull Listener listener
     ) {
+        this(context, outputDirectory, listener, null);
+    }
+
+    AudioRecorderV2Controller(
+            @NonNull Context context,
+            @NonNull File outputDirectory,
+            @NonNull Listener listener,
+            @Nullable android.media.AudioDeviceInfo preferredInputDevice
+    ) {
         this.listener = listener;
         session = new AudioRecordingSession.Builder(context)
                 .setOutputDirectory(outputDirectory)
@@ -64,6 +73,7 @@ final class AudioRecorderV2Controller {
                 .setMaximumDurationMs(0L)
                 .setNoiseSuppression(SharedSettings.audioRecorderNoiseSuppression.get())
                 .setPreviewPlaybackEnabled(false)
+                .setPreferredInputDevice(preferredInputDevice)
                 .setListener(new AudioRecordingSession.Listener() {
                     @Override
                     public void onStateChanged(@NonNull AudioRecordingSession.StateInfo stateInfo) {

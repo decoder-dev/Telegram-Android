@@ -1260,13 +1260,11 @@ public class NotificationsController extends BaseController implements Notificat
                             && messageObject.messageOwner.action instanceof TLRPC.TL_messageActionPinMessage) {
                         continue;
                     }
-                    dialogId = messageObject.getFromChatId();
+                    if (org.telegram.messenger.banana.BananaHooks.useMentionNotificationOverride(currentAccount, dialogId, true)) {
+                        dialogId = messageObject.getFromChatId();
+                    }
                 } else if (messageObject.messageOwner.action instanceof TLRPC.TL_messageActionPinMessage
                         && org.telegram.messenger.banana.BananaHooks.hidePinnedNotifications(currentAccount)) {
-                    continue;
-                }
-                if (org.telegram.messenger.banana.BananaHooks.removePings(currentAccount)
-                        && (messageObject.isReactionPush || messageObject.isStoryReactionPush)) {
                     continue;
                 }
                 if (org.telegram.messenger.banana.MessageFilters.shouldHideNotification(currentAccount, messageObject)
@@ -1625,7 +1623,7 @@ public class NotificationsController extends BaseController implements Notificat
                     long dialog_id = messageObject.getDialogId();
                     long original_dialog_id = dialog_id;
                     long topicId = MessageObject.getTopicId(currentAccount, messageObject.messageOwner, getMessagesController().isForum(messageObject));
-                    if (messageObject.messageOwner.mentioned) {
+                    if (org.telegram.messenger.banana.BananaHooks.useMentionNotificationOverride(currentAccount, dialog_id, messageObject.messageOwner.mentioned)) {
                         dialog_id = messageObject.getFromChatId();
                     }
                     int index = settingsCache.indexOfKey(dialog_id);
@@ -1700,7 +1698,7 @@ public class NotificationsController extends BaseController implements Notificat
                     long originalDialogId = dialogId;
                     long topicId = MessageObject.getTopicId(currentAccount, messageObject.messageOwner, getMessagesController().isForum(messageObject));
                     long randomId = messageObject.messageOwner.random_id;
-                    if (messageObject.messageOwner.mentioned) {
+                    if (org.telegram.messenger.banana.BananaHooks.useMentionNotificationOverride(currentAccount, dialogId, messageObject.messageOwner.mentioned)) {
                         dialogId = messageObject.getFromChatId();
                     }
                     int index = settingsCache.indexOfKey(dialogId);
@@ -4264,7 +4262,7 @@ public class NotificationsController extends BaseController implements Notificat
 
             boolean isChannel = false;
             long override_dialog_id = dialog_id;
-            if (lastMessageObject.messageOwner.mentioned) {
+            if (org.telegram.messenger.banana.BananaHooks.useMentionNotificationOverride(currentAccount, dialog_id, lastMessageObject.messageOwner.mentioned)) {
                 override_dialog_id = lastMessageObject.getFromChatId();
             }
             int mid = lastMessageObject.getId();

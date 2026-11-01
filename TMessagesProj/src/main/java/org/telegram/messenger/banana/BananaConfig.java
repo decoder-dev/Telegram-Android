@@ -354,11 +354,29 @@ public final class BananaConfig {
     }
 
     public static boolean get(int account, Option option) {
-        return MessagesController.getMainSettings(account).getBoolean(option.key, defaultFor(option));
+        SharedPreferences prefs = MessagesController.getMainSettings(account);
+        if (option == Option.MESSAGE_BOOKMARKS) migrateBookmarks(prefs);
+        // Preserve a legacy global ad preference only as the initial value of an unset slot.
+        // An explicit account switch must override it in both directions.
+        boolean fallback = option == Option.HIDE_ADS && AyuConfig.preferences != null ? AyuConfig.disableAds : defaultFor(option);
+        return prefs.getBoolean(option.key, fallback);
+    }
+
+    static final String BOOKMARK_ENTRIES_KEY = "bananaMessageBookmarkEntries";
+
+    private static synchronized void migrateBookmarks(SharedPreferences prefs) {
+        Object legacy = prefs.getAll().get(Option.MESSAGE_BOOKMARKS.key);
+        if (legacy instanceof String) {
+            SharedPreferences.Editor editor = prefs.edit().putBoolean(Option.MESSAGE_BOOKMARKS.key, true);
+            if (!prefs.contains(BOOKMARK_ENTRIES_KEY)) editor.putString(BOOKMARK_ENTRIES_KEY, (String) legacy);
+            editor.apply();
+        }
     }
 
     public static void set(int account, Option option, boolean enabled) {
-        SharedPreferences.Editor editor = MessagesController.getMainSettings(account).edit().putBoolean(option.key, enabled);
+        SharedPreferences prefs = MessagesController.getMainSettings(account);
+        if (option == Option.MESSAGE_BOOKMARKS) migrateBookmarks(prefs);
+        SharedPreferences.Editor editor = prefs.edit().putBoolean(option.key, enabled);
         if (option == Option.DOUBLE_TAP_TO_EDIT) {
             // The switch is a shortcut for the "Edit" double-tap action; both read one value.
             int action = getInt(account, IntValue.DOUBLE_TAP_ACTION);

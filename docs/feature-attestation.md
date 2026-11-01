@@ -1,16 +1,19 @@
 # Аттестация новых функций BananaGram Android
 
-Проверка исходников охватывает все 176 настроек каталога iOS и 157 переключателей Android. Наличие вызова или переключателя не означает успешной проверки поведения на устройстве.
+Проверка исходников охватывает 185 настроек каталога iOS и 157 переключателей Android. Наличие вызова или переключателя не означает успешной проверки поведения на устройстве.
 
 ## Подтверждённые проверки
 
 - XML ресурсов разбирается; у каждого переключателя есть английская и русская подпись.
 - Каждый переключатель включён в каталог Extras; неизвестных пунктов в каталоге нет.
-- Записанные результаты JVM: 67 тестов; ошибок 0, падений 0, пропусков 0.
+- Записанные результаты JVM: 80 тестов; ошибок 0, падений 0, пропусков 0.
 - Результаты сборки и ограничения среды зафиксированы в `feature-attestation-validation.md`.
 
 ## Реальные ограничения
 
+- Сверка поведения с другими реализациями ещё идёт; индивидуальные результаты и незакрытые дефекты — в `feature-source-review.json`. Переход к Kotlin/Rust отложен до окончания аудита.
+- Закладки: исправлено столкновение ключей, добавлены список и переход/удаление; теги/сниппеты iOS не перенесены, живая навигация требует аккаунта.
+- Исчезнувшие подарки: локальные снимки полных списков и отдельные элементы без операций владения. Серверная пагинация требует приёмки с аккаунтом.
 - Сессии Android: Keystore для локальных копий, пароль для экспорта; перенос настоящей сессии требует отдельной приёмки.
 - Локальная расшифровка: Vosk RU/EN, без серверного запроса; выполнение MediaCodec/Vosk проверяется отдельным Android-сценарием.
 - TikTok/Shorts: встроенный yt-dlp/FFmpeg; реальные сайты, отмена и сохранение в галерею требуют сетевой приёмки.
@@ -107,7 +110,7 @@
 | `hideStickerReplyColors` | `implemented_behavior_wired` | BananaConfig.Option.HIDE_STICKER_REPLY_COLORS via BananaHooks call sites |
 | `chooseFolderAfterJoin` | `implemented_behavior_wired` | BananaHooks.maybePromptFolderAfterJoin |
 | `recentChatsMenu` | `implemented_behavior_wired` | BananaConfig.Option.RECENT_CHATS_MENU via BananaHooks call sites |
-| `messageBookmarks` | `implemented_behavior_wired` | BananaConfig.Option.MESSAGE_BOOKMARKS via BananaHooks call sites |
+| `messageBookmarks` | `implemented_basic_browse_pending_authenticated_acceptance` | Account-scoped toggle and entry storage with legacy type migration; Extras → Messages offers list, jump/remove and 64-bit/secret navigation. iOS tags/snippets are not ported; live navigation needs account acceptance. |
 | `localGroupAlias` | `implemented_behavior_wired` | BananaConfig.Option.LOCAL_GROUP_ALIAS via BananaHooks call sites |
 | `disableStoryCameraSwipe` | `implemented_behavior_wired` | BananaConfig.Option.DISABLE_STORY_CAMERA_SWIPE via BananaHooks call sites |
 | `jumpToStartInChatMenu` | `implemented_behavior_wired` | BananaConfig.Option.JUMP_TO_START_IN_CHAT_MENU via BananaHooks call sites |
@@ -159,7 +162,7 @@
 | `glassBubbleRimTop` | `implemented_pending_gpu_acceptance` | MessageDrawable directional highlight; independent top/sides/bottom. |
 | `glassBubbleRimSides` | `implemented_pending_gpu_acceptance` | MessageDrawable directional highlight; independent top/sides/bottom. |
 | `glassBubbleRimBottom` | `implemented_pending_gpu_acceptance` | MessageDrawable directional highlight; independent top/sides/bottom. |
-| `showDisappearedGifts` | `implemented_behavior_wired` | BananaConfig.Option.SHOW_DISAPPEARED_GIFTS via BananaHooks call sites |
+| `showDisappearedGifts` | `implemented_local_history_pending_authenticated_acceptance` | GiftHistory stores bounded account/owner/backend-scoped complete-list snapshots in no-backup private storage. Profile grid separates read-only previously seen gifts; incomplete/filtered lists do not infer disappearance. Reappearance and upgrades are reconciled; live server pagination acceptance pending. |
 | `roundVideoStartsWithRear` | `implemented_behavior_wired` | BananaHooks.initialRoundVideoFrontface |
 | `roundVideoRemembersCamera` | `implemented_behavior_wired` | BananaHooks.rememberRoundVideoFrontface |
 | `chatListHidesConnectionStatus` | `implemented_behavior_wired` | BananaConfig.Option.CHAT_LIST_HIDES_CONNECTION_STATUS via BananaHooks call sites |
@@ -206,6 +209,15 @@
 | `hidePrivateChatActivities` | `implemented_behavior_wired` | BananaConfig.Option.HIDE_PRIVATE_CHAT_ACTIVITIES via BananaHooks call sites |
 | `stayAtLatestMessageAfterRefresh` | `implemented_behavior_wired` | BananaConfig.Option.STAY_AT_LATEST_MESSAGE_AFTER_REFRESH via BananaHooks call sites |
 | `defaultVideoQuality` | `implemented_behavior_wired` | BananaHooks.defaultVideoQuality (VideoPlayer) |
+| `anonymousStickers` | `pending_new_ios_reference_review` | New in the refreshed iOS reference; not included in Android's current Extras catalog. Review sticker set references before deciding parity. |
+| `approximateLastSeen` | `pending_new_ios_reference_review` | New iOS estimate mode; Android exact/relative formatting is a separate feature and does not prove this behavior. |
+| `profileExpansionAnimation` | `pending_new_ios_reference_review` | Platform-specific animation choice; Android navigation/transition equivalence remains unreviewed. |
+| `securityBlockPhoneSharing` | `pending_new_ios_reference_review` | Compare bot/contact/mini-app phone sharing against existing Android confirmation paths; not attested. |
+| `securityBlockQrLogin` | `pending_new_ios_reference_review` | Compare QR-login guards and session-creation flow; not attested. |
+| `securityConfirmExternalLinks` | `pending_new_ios_reference_review` | Existing Telegram/share-link confirmations do not attest confirmation of every external website. |
+| `securityFlagFakeSupport` | `pending_new_ios_reference_review` | Compare impersonation warnings with Android's existing peer warning UI; not attested. |
+| `securityGuardLoginCodes` | `pending_new_ios_reference_review` | Compare login-code forwarding/copy protection with upstream Android; not attested. |
+| `securityWarnMiniApps` | `pending_new_ios_reference_review` | Compare first-use mini-app warnings with Android's existing web-app confirmation; not attested. |
 
 Полный машинный отчёт с местами использования: `feature-attestation.json`.
 

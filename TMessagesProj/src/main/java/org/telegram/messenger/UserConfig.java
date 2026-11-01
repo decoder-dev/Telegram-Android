@@ -464,6 +464,7 @@ public class UserConfig extends BaseController {
     }
 
     public void clearConfig() {
+        org.telegram.messenger.banana.BananaHooks.clearBookmarks(currentAccount);
         org.telegram.messenger.banana.BananaSessionBackup.clear(currentAccount);
         if (clientUserId > 0) {
             com.radolyn.ayugram.messages.AyuMessagesController.clearForUser(clientUserId);
