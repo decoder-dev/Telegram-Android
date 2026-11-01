@@ -11799,6 +11799,10 @@
 <string name="AppIconBananaGraphite">Graphite</string>
 <string name="AppIconBananaCream">Cream</string>
 <string name="BananaUpdatesChannel">App updates</string>
+<string name="BananaRefreshRate">Display refresh rate</string>
+<string name="BananaRefreshSystem">System</string>
+<string name="BananaRefreshMaximum">Maximum available</string>
+<string name="BananaRefreshHz">%1$d Hz</string>
 <string name="BananaCrashTitle">The app stopped unexpectedly</string>
 <string name="BananaCrashInfo">A technical report was saved on this device. It contains the error type, call stack, memory usage and screen counts. It excludes exception messages and is never sent automatically. You can copy it to report the problem or delete it.</string>
 <string name="BananaUpdateAvailableTitle">BananaGram %1$s is available</string>

@@ -17615,6 +17615,8 @@ public class ChatActivity extends BaseFragment implements
                     if (chatActivityEnterView != null) {
                         chatActivityEnterView.onAdjustPanTransitionEnd();
                     }
+                    invalidateMergedVisibleBlurredPositionsAndSources(
+                            BLUR_INVALIDATE_FLAG_POSITIONS | BLUR_INVALIDATE_FLAG_SCROLL | BLUR_INVALIDATE_FLAG_CLIP);
                     if (mentionContainer != null) {
                         // mentionContainer.onPanTransitionEnd();
                     }

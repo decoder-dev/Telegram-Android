@@ -7626,6 +7626,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     @Override
     protected void onResume() {
         super.onResume();
+        AndroidUtilities.setPreferredMaxRefreshRate(getWindow());
         org.telegram.messenger.banana.BananaArchiveLock.onHostResume();
         if (archiveSecureReason == null) {
             archiveSecureReason = new FlagSecureReason(getWindow(), () -> org.telegram.messenger.banana.BananaArchiveLock.shouldSecureWindow(currentAccount));

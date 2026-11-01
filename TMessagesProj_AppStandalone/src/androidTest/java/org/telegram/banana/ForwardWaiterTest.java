@@ -3,6 +3,7 @@ package org.telegram.banana;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.radolyn.ayugram.easy.DummyFileLoadWaiter;
 import com.radolyn.ayugram.easy.DummyFileUploadWaiter;
+import com.radolyn.ayugram.easy.EasyWaiter;
 import org.junit.Test;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLoader;
@@ -14,6 +15,13 @@ import static org.junit.Assert.*;
 
 /** Synthetic completion events only; never starts downloads or sends messages. */
 public class ForwardWaiterTest {
+    // An isolated event ID: real upload notifications also reach Telegram controllers.
+    private static final int TEST_EVENT = -117001;
+    private static class Events extends EasyWaiter {
+        int delivered;
+        Events() { super(0); notifications.add(TEST_EVENT); }
+        @Override public void didReceivedNotification(int id, int account, Object... args) { delivered++; }
+    }
     private static class Downloads extends DummyFileLoadWaiter {
         Downloads(ArrayList<MessageObject> messages) { super(0, messages); }
         boolean completed() { return latch.getCount() == 0; }
@@ -67,6 +75,38 @@ public class ForwardWaiterTest {
             assertFalse(waiter.completed());
             waiter.didReceivedNotification(NotificationCenter.fileUploadFailed, 0, "/cache/fixture/video.mp4");
             assertTrue(waiter.completed());
+        });
+    }
+
+    @Test
+    public void blockingUiWaitFailsAndRemovesObserver() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            Events waiter = new Events();
+            waiter.subscribe();
+            try {
+                waiter.await();
+                fail("An active transfer must never block the main thread");
+            } catch (IllegalStateException expected) { }
+            NotificationCenter.getInstance(0).postNotificationName(TEST_EVENT);
+            assertEquals(0, waiter.delivered);
+        });
+    }
+
+    @Test
+    public void interruptedSubscriptionCannotLeaveObserverBehind() throws Exception {
+        Events waiter = new Events();
+        java.util.concurrent.atomic.AtomicBoolean interrupted = new java.util.concurrent.atomic.AtomicBoolean();
+        Thread worker = new Thread(() -> {
+            Thread.currentThread().interrupt();
+            try { waiter.subscribe(); }
+            catch (IllegalStateException expected) { interrupted.set(Thread.currentThread().isInterrupted()); }
+        });
+        worker.start(); worker.join(5000);
+        assertFalse("Cleanup must not wait for the UI", worker.isAlive());
+        assertTrue("Interrupt must survive cleanup", interrupted.get());
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            NotificationCenter.getInstance(0).postNotificationName(TEST_EVENT);
+            assertEquals(0, waiter.delivered);
         });
     }
 }

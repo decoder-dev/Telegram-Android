@@ -17,6 +17,7 @@ import org.telegram.messenger.NotificationCenter;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 // music for real coders
 // https://music.youtube.com/watch?v=Cw_tD7MXeEI
@@ -26,6 +27,7 @@ public abstract class EasyWaiter implements NotificationCenter.NotificationCente
     protected final ArrayList<Integer> notifications;
     protected final CountDownLatch latch;
     protected final int currentAccount;
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     public EasyWaiter(int currentAccount) {
         this.currentAccount = currentAccount;
@@ -44,49 +46,43 @@ public abstract class EasyWaiter implements NotificationCenter.NotificationCente
             var subscribeLatch = new CountDownLatch(1);
 
             AndroidUtilities.runOnUIThread(() -> {
-                for (var notification : notifications) {
-                    NotificationCenter.getInstance(currentAccount).addObserver(this, notification);
+                try {
+                    if (!closed.get()) for (var notification : notifications) {
+                        NotificationCenter.getInstance(currentAccount).addObserver(this, notification);
+                    }
+                } finally {
+                    subscribeLatch.countDown();
                 }
-
-                subscribeLatch.countDown();
             });
 
             try {
-                subscribeLatch.await();
+                if (!subscribeLatch.await(5, TimeUnit.SECONDS)) {
+                    unsubscribe();
+                    throw new IllegalStateException("Timed out subscribing to transfer events");
+                }
             } catch (InterruptedException e) {
-                Log.w("AyuGran", "wtf", e);
+                unsubscribe();
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Transfer subscription interrupted", e);
             }
         } else {
-            for (var notification : notifications) {
+            if (!closed.get()) for (var notification : notifications) {
                 NotificationCenter.getInstance(currentAccount).addObserver(this, notification);
             }
         }
     }
 
     protected void unsubscribe() {
-        if (Thread.currentThread() != ApplicationLoader.applicationHandler.getLooper().getThread()) {
-            var unsubscribeLatch = new CountDownLatch(1);
-
-            AndroidUtilities.runOnUIThread(() -> {
-                for (var notification : notifications) {
-                    NotificationCenter.getInstance(currentAccount).removeObserver(this, notification);
-                }
-
-                unsubscribeLatch.countDown();
-            });
-
-            try {
-                unsubscribeLatch.await();
-            } catch (InterruptedException e) {
-                Log.w("AyuGran", "wtf", e);
-            }
-        } else {
+        if (!closed.compareAndSet(false, true)) return;
+        // A stalled UI must not make timeout/interruption cleanup wait forever too.
+        latch.countDown();
+        Runnable remove = () -> {
             for (var notification : notifications) {
                 NotificationCenter.getInstance(currentAccount).removeObserver(this, notification);
             }
-        }
-
-        latch.countDown();
+        };
+        if (Thread.currentThread() == ApplicationLoader.applicationHandler.getLooper().getThread()) remove.run();
+        else AndroidUtilities.runOnUIThread(remove);
     }
 
     // Long enough for a large download or upload on a slow link. Without a bound, a send or load
@@ -94,6 +90,10 @@ public abstract class EasyWaiter implements NotificationCenter.NotificationCente
     private static final long MAX_WAIT_MINUTES = 15;
 
     public void await() {
+        if (latch.getCount() != 0 && Thread.currentThread() == ApplicationLoader.applicationHandler.getLooper().getThread()) {
+            unsubscribe();
+            throw new IllegalStateException("Transfer waits must not block the UI thread");
+        }
         try {
             if (!latch.await(MAX_WAIT_MINUTES, TimeUnit.MINUTES)) {
                 Log.w("AyuGram", getClass().getSimpleName() + " timed out; continuing without its event");

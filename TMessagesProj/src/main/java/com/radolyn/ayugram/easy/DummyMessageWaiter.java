@@ -9,7 +9,8 @@
 
 package com.radolyn.ayugram.easy;
 
-import android.util.Log;
+import android.os.SystemClock;
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SendMessagesHelper;
 
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 public class DummyMessageWaiter extends EasyWaiter {
     private final ArrayList<Integer> alreadySent;
     private int sendingId;
+    private Runnable lookup;
 
     public DummyMessageWaiter(int currentAccount) {
         super(currentAccount);
@@ -30,32 +32,26 @@ public class DummyMessageWaiter extends EasyWaiter {
     }
 
     public void trySetSendingId(long dialogId) {
-        var helper = SendMessagesHelper.getInstance(currentAccount);
-
-        var time = System.currentTimeMillis();
-
-        int sendingId = 0;
-        while (sendingId >= 0) {
-            try {
-                sendingId = helper.getSendingMessageId(dialogId);
-            } catch (Exception e) {
-                // похуй. телеграм для даунов. пусть крашится.
-                // java.lang.ClassCastException: java.lang.Object cannot be cast to org.telegram.tgnet.TLRPC$Message
-            }
-
-            if (System.currentTimeMillis() - time > 3500) {
-                Log.w("AyuGram", "Failed to get sending message id, possibly sent already");
-
-                unsubscribe();
-                break;
-            }
-        }
-
-        Log.w("AyuGram", "Sending message id: " + sendingId);
-
-        if (sendingId != 0) {
-            setSendingId(sendingId);
-        }
+        // SendMessagesHelper's collections and notification callbacks belong to the UI thread.
+        // The old tight worker loop both raced those collections and burned a CPU core for 3.5s.
+        AndroidUtilities.runOnUIThread(() -> {
+            if (lookup != null) AndroidUtilities.cancelRunOnUIThread(lookup);
+            final long deadline = SystemClock.elapsedRealtime() + 3500;
+            lookup = new Runnable() {
+                @Override public void run() {
+                    if (latch.getCount() == 0) return;
+                    int id = SendMessagesHelper.getInstance(currentAccount).getSendingMessageId(dialogId);
+                    if (id < 0) {
+                        setSendingId(id);
+                    } else if (SystemClock.elapsedRealtime() >= deadline) {
+                        unsubscribe();
+                    } else {
+                        AndroidUtilities.runOnUIThread(this, 50);
+                    }
+                }
+            };
+            lookup.run();
+        });
     }
 
     private void setSendingId(int sendingId) {

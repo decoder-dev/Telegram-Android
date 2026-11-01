@@ -42,6 +42,7 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     private static final int ID_DELETED_MARK = 15;
     private static final int ID_EDITED_MARK = 16;
     private static final int ID_VISUAL_PHONE = 17;
+    private static final int ID_REFRESH_RATE = 18;
 
     public BananaExtrasValuesActivity(int account) {
         setCurrentAccount(account);
@@ -60,6 +61,9 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     @Override
     protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaValuesAppearance)));
+        float refresh = org.telegram.messenger.MessagesController.getGlobalMainSettings().getFloat(
+                org.telegram.messenger.banana.RefreshRatePolicy.KEY, -1f);
+        items.add(cell(ID_REFRESH_RATE, R.string.BananaRefreshRate, refreshRateLabel(refresh)));
         items.add(cell(ID_ACCENT, R.string.BananaVal_AccentSaturation, percent(BananaConfig.accentColorSaturation(currentAccount))));
         items.add(cell(ID_STICKER_SIZE, R.string.BananaVal_StickerSize, percent(BananaConfig.stickerSizePercent(currentAccount))));
         items.add(cell(ID_STICKER_SHAPE, R.string.BananaVal_StickerShape, stickerShapeLabel(BananaConfig.stickerShape(currentAccount))));
@@ -98,6 +102,9 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     @Override
     protected void onClick(UItem item, View view, int position, float x, float y) {
         switch (item.id) {
+            case ID_REFRESH_RATE:
+                pickRefreshRate();
+                break;
             case ID_ACCENT:
                 pickPercent(R.string.BananaVal_AccentSaturation, IntValue.ACCENT_COLOR_SATURATION, 0, 100, 5);
                 break;
@@ -201,6 +208,36 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
 
     private UItem cell(int id, int title, CharSequence value) {
         return BananaValueCell.Factory.of(id, LocaleController.getString(title), value);
+    }
+
+    private String refreshRateLabel(float rate) {
+        return rate < 0 ? LocaleController.getString(R.string.BananaRefreshMaximum)
+                : rate == 0 ? LocaleController.getString(R.string.BananaRefreshSystem)
+                : LocaleController.formatString(R.string.BananaRefreshHz, Math.round(rate));
+    }
+
+    private void pickRefreshRate() {
+        if (getParentActivity() == null) return;
+        ArrayList<Float> rates = new ArrayList<>();
+        rates.add(0f); rates.add(-1f);
+        android.view.Display display = getParentActivity().getWindowManager().getDefaultDisplay();
+        if (display != null) {
+            java.util.TreeSet<Float> supported = new java.util.TreeSet<>();
+            for (float rate : display.getSupportedRefreshRates()) {
+                if (Float.isFinite(rate) && rate > 0) supported.add(rate);
+            }
+            rates.addAll(supported);
+        }
+        CharSequence[] labels = new CharSequence[rates.size()];
+        for (int i = 0; i < labels.length; i++) labels[i] = refreshRateLabel(rates.get(i));
+        showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                .setTitle(LocaleController.getString(R.string.BananaRefreshRate))
+                .setItems(labels, (dialog, which) -> {
+                    org.telegram.messenger.MessagesController.getGlobalMainSettings().edit()
+                            .putFloat(org.telegram.messenger.banana.RefreshRatePolicy.KEY, rates.get(which)).apply();
+                    if (getParentActivity() != null) AndroidUtilities.setPreferredMaxRefreshRate(getParentActivity().getWindow());
+                    if (listView != null) listView.adapter.update(true);
+                }).create());
     }
 
     private void pickFrom(int title, IntValue value, CharSequence[] labels, int[] codes) {
