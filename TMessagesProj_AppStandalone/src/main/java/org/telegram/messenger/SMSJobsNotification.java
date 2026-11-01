@@ -3,6 +3,7 @@ package org.telegram.messenger;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
@@ -30,14 +31,23 @@ public class SMSJobsNotification extends Service {
     }
 
     public static boolean check() {
-        boolean shown = false;
+        int preferred = UserConfig.selectedAccount;
+        if (shouldShow(preferred)) return check(preferred);
         for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
-            shown = check(i) || shown;
+            if (shouldShow(i)) return check(i);
         }
-        return shown;
+        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
+            if (service[i] != null) {
+                ApplicationLoader.applicationContext.stopService(service[i]);
+                service[i] = null;
+            }
+        }
+        return false;
     }
 
-    public static boolean check(int currentAccount) {
+    private static boolean shouldShow(int currentAccount) {
+        if (currentAccount < 0 || currentAccount >= UserConfig.MAX_ACCOUNT_COUNT
+                || !UserConfig.getInstance(currentAccount).isClientActivated()) return false;
         boolean showNotification = ApplicationLoader.mainInterfacePaused;
         if (showNotification) {
             showNotification = MessagesController.getInstance(currentAccount).smsjobsStickyNotificationEnabled;
@@ -49,15 +59,23 @@ public class SMSJobsNotification extends Service {
             );
         }
 
+        return showNotification;
+    }
+
+    public static boolean check(int currentAccount) {
+        boolean showNotification = shouldShow(currentAccount);
+        if (currentAccount < 0 || currentAccount >= UserConfig.MAX_ACCOUNT_COUNT) return false;
         final boolean shownNow = instance[currentAccount] != null && instance[currentAccount].shown;
         if (shownNow != showNotification) {
             if (showNotification) {
                 service[currentAccount] = new Intent(ApplicationLoader.applicationContext, SMSJobsNotification.class);
                 service[currentAccount].putExtra("account", currentAccount);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                try {
                     ApplicationLoader.applicationContext.startForegroundService(service[currentAccount]);
-                } else {
-                    ApplicationLoader.applicationContext.startService(service[currentAccount]);
+                } catch (IllegalStateException | SecurityException unavailable) {
+                    service[currentAccount] = null;
+                    FileLog.e(unavailable);
+                    return false;
                 }
             } else {
                 if (service[currentAccount] != null) {
@@ -75,12 +93,18 @@ public class SMSJobsNotification extends Service {
     @Override
     public void onDestroy() {
         shown = false;
+        builder = null;
+        boolean anotherInstance = false;
+        for (int account = 0; account < instance.length; account++) {
+            if (instance[account] == this) { instance[account] = null; service[account] = null; }
+            else if (instance[account] != null && instance[account].shown) anotherInstance = true;
+        }
         super.onDestroy();
         try {
             stopForeground(true);
         } catch (Throwable ignore) {}
         try {
-            NotificationManagerCompat.from(ApplicationLoader.applicationContext).cancel(38);
+            if (!anotherInstance) NotificationManagerCompat.from(ApplicationLoader.applicationContext).cancel(38);
         } catch (Throwable ignore) {}
     }
 
@@ -94,7 +118,15 @@ public class SMSJobsNotification extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        currentAccount = intent.getIntExtra("account", UserConfig.selectedAccount);
+        int account = intent == null ? -1 : intent.getIntExtra("account", UserConfig.selectedAccount);
+        if (account < 0 || account >= UserConfig.MAX_ACCOUNT_COUNT) {
+            stopSelfResult(startId);
+            return START_NOT_STICKY;
+        }
+        for (int old = 0; old < instance.length; old++) {
+            if (instance[old] == this) { instance[old] = null; service[old] = null; }
+        }
+        currentAccount = account;
 
         if (instance[currentAccount] != this && instance[currentAccount] != null) {
             instance[currentAccount].stopSelf();
@@ -121,9 +153,12 @@ public class SMSJobsNotification extends Service {
         builder.setContentText(LocaleController.formatString(R.string.SmsNotificationSubtitle, sent, all));
         builder.setProgress(all, sent, false);
         try {
-            startForeground(38, builder.build());
-        } catch (Throwable e) {
+            ServiceCompat.startForeground(this, 38, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING);
+        } catch (RuntimeException e) {
             FileLog.e(e);
+            shown = false;
+            stopSelfResult(startId);
+            return START_NOT_STICKY;
         }
         AndroidUtilities.runOnUIThread(this::updateNotify);
         return Service.START_NOT_STICKY;
@@ -142,10 +177,12 @@ public class SMSJobsNotification extends Service {
     }
 
     private void updateNotify() {
-        if (builder == null) return;
+        if (!shown || builder == null) return;
         try {
             NotificationManagerCompat.from(ApplicationLoader.applicationContext).notify(38, builder.build());
-        } catch (Throwable e) {
+        } catch (SecurityException revoked) {
+            FileLog.e(revoked);
+        } catch (RuntimeException e) {
             FileLog.e(e);
         }
     }

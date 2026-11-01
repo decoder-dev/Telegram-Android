@@ -164,14 +164,15 @@ public class BotDownloads {
             downloadManager.remove(file.id);
             file.id = null;
         }
+        AndroidUtilities.cancelRunOnUIThread(file.updateProgressRunnable);
         files.remove(file);
+        save();
         postNotify();
     }
 
     public void save() {
         final SharedPreferences prefs = context.getSharedPreferences(PREF + currentAccount, Activity.MODE_PRIVATE);
         final SharedPreferences.Editor edit = prefs.edit();
-        edit.clear();
         final HashSet<String> set = new HashSet<>();
         for (FileDownload file : files) {
             set.add(file.toJSON().toString());
@@ -244,7 +245,7 @@ public class BotDownloads {
 
         private final Runnable updateProgressRunnable = this::updateProgress;
         private void updateProgress() {
-            if (done || cancelled)
+            if (done || cancelled || id == null)
                 return;
             AndroidUtilities.cancelRunOnUIThread(updateProgressRunnable);
             last_progress_time = System.currentTimeMillis();
@@ -253,23 +254,30 @@ public class BotDownloads {
             Cursor cursor = null;
             try {
                 cursor = downloadManager.query(query);
-                if (cursor.moveToFirst()) {
-                    int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
+                if (cursor != null && cursor.moveToFirst()) {
+                    int status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
                     if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                        String localUri = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI));
-                        this.file = new File(Uri.parse(localUri).getPath());
-                        done = true;
+                        String localUri = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI));
+                        Uri location = localUri == null ? null : Uri.parse(localUri);
+                        if (location == null || !"file".equals(location.getScheme()) || location.getPath() == null) {
+                            cancel();
+                            return;
+                        }
+                        this.file = new File(location.getPath());
                         size = this.file.length();
                         if (size <= 0) {
                             cancel();
+                            return;
                         }
+                        loaded_size = size;
+                        done = true;
                         save();
                     } else if (status == DownloadManager.STATUS_FAILED) {
                         cancel();
                         return;
                     } else {
-                        loaded_size = cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
-                        size = cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                        loaded_size = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                        size = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
                         AndroidUtilities.runOnUIThread(updateProgressRunnable, 160L);
                     }
                 } else {
@@ -279,6 +287,7 @@ public class BotDownloads {
                 }
             } catch (Exception e) {
                 FileLog.e(e);
+                cancel();
             } finally {
                 if (cursor != null) {
                     cursor.close();

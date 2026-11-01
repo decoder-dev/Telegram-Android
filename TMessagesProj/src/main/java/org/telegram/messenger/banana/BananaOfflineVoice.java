@@ -285,18 +285,18 @@ public class BananaOfflineVoice {
             FileLoader.getInstance(account).loadFile(document, messageObject, FileLoader.PRIORITY_HIGH, 0);
         }
         final String lang = language(account);
-        final long owner = UserConfig.getInstance(account).getClientUserId();
+        final AccountScope scope = AccountScope.capture(account);
         queue.postRunnable(() -> {
             String text = null;
             try {
                 File file = locate(messageObject);
                 final long until = android.os.SystemClock.elapsedRealtime() + FILE_WAIT_MS;
-                while (file == null && !cancellation.isCanceled() && android.os.SystemClock.elapsedRealtime() < until && UserConfig.getInstance(account).getClientUserId() == owner) {
+                while (file == null && !cancellation.isCanceled() && android.os.SystemClock.elapsedRealtime() < until && scope.isCurrent()) {
                     Thread.sleep(250);
                     file = locate(messageObject);
                 }
-                if (file != null && !cancellation.isCanceled() && UserConfig.getInstance(account).getClientUserId() == owner) {
-                    text = recognize(file, lang, () -> cancellation.isCanceled() || UserConfig.getInstance(account).getClientUserId() != owner);
+                if (file != null && !cancellation.isCanceled() && scope.isCurrent()) {
+                    text = recognize(file, lang, () -> cancellation.isCanceled() || !scope.isCurrent());
                 }
             } catch (Throwable e) {
                 FileLog.e(e);
@@ -305,7 +305,7 @@ public class BananaOfflineVoice {
             queue.cancelRunnable(releaseModel);
             queue.postRunnable(releaseModel, MODEL_KEEP_MS);
             final String result = text;
-            AndroidUtilities.runOnUIThread(() -> done.run(UserConfig.getInstance(account).getClientUserId() == owner ? result : null));
+            AndroidUtilities.runOnUIThread(() -> done.run(scope.isCurrent() && !cancellation.isCanceled() ? result : null));
         });
     }
 

@@ -690,9 +690,9 @@ public class TranscribeButton {
             if (isTranscribing(messageObject)) return;
             org.telegram.ui.ActionBar.BaseFragment host = org.telegram.ui.LaunchActivity.getLastFragment();
             if (host == null || host.getParentActivity() == null) return;
-            final long transcriptionOwner = UserConfig.getInstance(account).getClientUserId();
+            final org.telegram.messenger.banana.AccountScope transcriptionScope = org.telegram.messenger.banana.AccountScope.capture(account);
             org.telegram.messenger.banana.BananaOfflineVoice.ensureModel(account, host.getParentActivity(), () -> {
-                if (UserConfig.getInstance(account).getClientUserId() != transcriptionOwner || host.getParentActivity() == null) return;
+                if (!transcriptionScope.isCurrent() || host.getParentActivity() == null) return;
                 if (transcribeOperationsByDialogPosition == null) transcribeOperationsByDialogPosition = new HashMap<>();
                 transcribeOperationsByDialogPosition.put((Integer) reqInfoHash(messageObject), messageObject);
                 android.os.CancellationSignal operation = new android.os.CancellationSignal();
@@ -702,7 +702,7 @@ public class TranscribeButton {
                     if (localOperations.get(reqInfoHash(messageObject)) != operation) return;
                     localOperations.remove(reqInfoHash(messageObject));
                     if (transcribeOperationsByDialogPosition != null) transcribeOperationsByDialogPosition.remove((Integer) reqInfoHash(messageObject));
-                    if (UserConfig.getInstance(account).getClientUserId() != transcriptionOwner) return;
+                    if (!transcriptionScope.isCurrent()) return;
                     if (text == null) {
                         NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.voiceTranscriptionUpdate, messageObject);
                         android.widget.Toast.makeText(org.telegram.messenger.ApplicationLoader.applicationContext, LocaleController.getString(R.string.BananaVoiceFailed), android.widget.Toast.LENGTH_LONG).show();

@@ -25,4 +25,28 @@ public class VideoDownloadPolicyTest {
         try(RandomAccessFile output=new RandomAccessFile(video,"rw")){output.setLength(VideoDownloadPolicy.MAX_BYTES+1);try{VideoDownloadPolicy.completedVideo(dir);fail();}catch(IOException expected){}}
         finally {video.delete();dir.delete();}
     }
+    @Test public void cleanupDoesNotFollowLinksOutsideTheJobDirectory() throws Exception {
+        Path job=Files.createTempDirectory("download-job"), other=Files.createTempDirectory("download-other");
+        Path protectedFile=Files.write(other.resolve("keep.bin"),new byte[]{1,2,3});
+        try {
+            Files.createSymbolicLink(job.resolve("outside"),other);
+            assertEquals(Long.MAX_VALUE,VideoDownloadPolicy.directoryBytes(job.toFile()));
+            assertTrue(VideoDownloadPolicy.erase(job.toFile()));
+            assertArrayEquals(new byte[]{1,2,3},Files.readAllBytes(protectedFile));
+        } finally {VideoDownloadPolicy.erase(job.toFile());VideoDownloadPolicy.erase(other.toFile());}
+    }
+    @Test public void oversizedTemporaryFilesExhaustTheBudgetBeforePromotion() throws Exception {
+        File dir=Files.createTempDirectory("download-budget").toFile();
+        try {
+            try(RandomAccessFile file=new RandomAccessFile(new File(dir,"video.part"),"rw")){file.setLength(VideoDownloadPolicy.MAX_BYTES*2+1);}
+            assertEquals(Long.MAX_VALUE,VideoDownloadPolicy.directoryBytes(dir));
+        } finally {assertTrue(VideoDownloadPolicy.erase(dir));}
+    }
+    @Test public void normalTemporaryFilesAreCountedAndCanBeRemovedTwice() throws Exception {
+        File dir=Files.createTempDirectory("download-normal").toFile();
+        Files.write(new File(dir,"video.part").toPath(),new byte[]{1,2,3});
+        assertEquals(3,VideoDownloadPolicy.directoryBytes(dir));
+        assertTrue(VideoDownloadPolicy.erase(dir));
+        assertTrue(VideoDownloadPolicy.erase(dir));
+    }
 }

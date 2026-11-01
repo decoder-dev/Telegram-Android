@@ -5925,9 +5925,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             try (FileInputStream inputStream = new FileInputStream(sourceFile); FileChannel source = inputStream.getChannel(); FileChannel destination = new FileOutputStream(destFile).getChannel()) {
                 long size = source.size();
                 try {
-                    @SuppressLint("DiscouragedPrivateApi") Method getInt = FileDescriptor.class.getDeclaredMethod("getInt$");
-                    int fdint = (Integer) getInt.invoke(inputStream.getFD());
-                    if (AndroidUtilities.isInternalUri(fdint)) {
+                    if (AndroidUtilities.isInternalFileDescriptor(inputStream.getFD())) {
                         if (progressDialog != null) {
                             AndroidUtilities.runOnUIThread(() -> {
                                 try {
@@ -6042,8 +6040,14 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
     }
 
     public static void saveFile(String fullPath, Context context, final int type, final String name, final String mime, final Utilities.Callback<Uri> onSaved, boolean showProgress) {
+        saveFile(fullPath, context, type, name, mime, onSaved, showProgress, null);
+    }
+
+    public static android.os.CancellationSignal saveFile(String fullPath, Context context, final int type, final String name, final String mime, final Utilities.Callback<Uri> onSaved, boolean showProgress, Runnable onFailure) {
+        final android.os.CancellationSignal cancellation = new android.os.CancellationSignal();
         if (fullPath == null || context == null) {
-            return;
+            if (onFailure != null) AndroidUtilities.runOnUIThread(onFailure);
+            return cancellation;
         }
 
         File file = null;
@@ -6055,27 +6059,29 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         }
 
         if (file == null) {
-            return;
+            if (onFailure != null) AndroidUtilities.runOnUIThread(onFailure);
+            return cancellation;
         }
 
         final String bananaSignedName = org.telegram.messenger.banana.BananaHooks.maybeSignDownloadedFileName(
                 UserConfig.selectedAccount, name);
         final File sourceFile = file;
-        final boolean[] cancelled = new boolean[]{false};
-        if (sourceFile.exists()) {
+        {
 
             AlertDialog progressDialog = null;
-            final boolean[] finished = new boolean[1];
-            if (context != null && type != 0) {
+            final java.util.concurrent.atomic.AtomicBoolean finished = new java.util.concurrent.atomic.AtomicBoolean();
+            final Activity activity = AndroidUtilities.findActivity(context);
+            if (showProgress && activity != null && type != 0 && !activity.isFinishing() && !activity.isDestroyed()) {
                 try {
                     final AlertDialog dialog = new AlertDialog(context, AlertDialog.ALERT_TYPE_LOADING);
                     dialog.setMessage(LocaleController.getString(R.string.Loading));
                     dialog.setCanceledOnTouchOutside(false);
                     dialog.setCancelable(true);
-                    dialog.setOnCancelListener(d -> cancelled[0] = true);
+                    dialog.setOnCancelListener(d -> cancellation.cancel());
                     AndroidUtilities.runOnUIThread(() -> {
-                        if (!finished[0]) {
-                            dialog.show();
+                        if (!finished.get() && !cancellation.isCanceled() && !activity.isFinishing() && !activity.isDestroyed()) {
+                            try { dialog.show(); }
+                            catch (WindowManager.BadTokenException detached) { FileLog.e(detached); }
                         }
                     }, 250);
                     progressDialog = dialog;
@@ -6087,11 +6093,12 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             final AlertDialog finalProgress = progressDialog;
 
             new Thread(() -> {
+                Uri savedUri = null;
                 try {
                     Uri uri;
                     boolean result = true;
                     if (Build.VERSION.SDK_INT >= 29) {
-                        uri = saveFileInternal(type, sourceFile, null);
+                        uri = saveFileInternal(type, sourceFile, bananaSignedName, cancellation);
                         result = uri != null;
                     } else {
                         File destFile;
@@ -6137,9 +6144,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                         try (FileInputStream inputStream = new FileInputStream(sourceFile); FileChannel source = inputStream.getChannel(); FileChannel destination = new FileOutputStream(destFile).getChannel()) {
                             long size = source.size();
                             try {
-                                @SuppressLint("DiscouragedPrivateApi") Method getInt = FileDescriptor.class.getDeclaredMethod("getInt$");
-                                int fdint = (Integer) getInt.invoke(inputStream.getFD());
-                                if (AndroidUtilities.isInternalUri(fdint)) {
+                                if (AndroidUtilities.isInternalFileDescriptor(inputStream.getFD())) {
                                     if (finalProgress != null) {
                                         AndroidUtilities.runOnUIThread(() -> {
                                             try {
@@ -6155,7 +6160,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                                 FileLog.e(e);
                             }
                             for (long a = 0; a < size; a += 4096) {
-                                if (cancelled[0]) {
+                                if (cancellation.isCanceled()) {
                                     break;
                                 }
                                 destination.transferFrom(source, a, Math.min(4096, size - a));
@@ -6177,7 +6182,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                             FileLog.e(e);
                             result = false;
                         }
-                        if (cancelled[0]) {
+                        if (cancellation.isCanceled()) {
                             destFile.delete();
                             result = false;
                         }
@@ -6191,27 +6196,27 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                         }
                         uri = Uri.fromFile(destFile);
                     }
-                    if (result && onSaved != null) {
-                        AndroidUtilities.runOnUIThread(() -> onSaved.run(uri));
-                    }
+                    if (result) savedUri = uri;
                 } catch (Exception e) {
                     FileLog.e(e);
-                }
-                if (finalProgress != null) {
+                } finally {
+                    finished.set(true);
+                    final Uri completedUri = savedUri;
                     AndroidUtilities.runOnUIThread(() -> {
-                        try {
-                            if (finalProgress.isShowing()) {
-                                finalProgress.dismiss();
-                            } else {
-                                finished[0] = true;
-                            }
-                        } catch (Exception e) {
-                            FileLog.e(e);
+                        if (finalProgress != null) {
+                            try { finalProgress.dismiss(); } catch (RuntimeException detached) { FileLog.e(detached); }
+                        }
+                        if (completedUri != null && !cancellation.isCanceled()) {
+                            if (onSaved != null) onSaved.run(completedUri);
+                        } else {
+                            if (completedUri != null) deleteMediaUri(completedUri);
+                            if (onFailure != null) onFailure.run();
                         }
                     });
                 }
             }).start();
         }
+        return cancellation;
     }
 
     public static void saveFile(String fullPath, String liveVideoPath, Context context, final Utilities.Callback<Uri> onSaved) {
@@ -6324,7 +6329,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
     private static void writeMotionPhoto(File photoFile, File videoFile, OutputStream out, boolean[] cancelled) throws IOException {
         final long videoLength = videoFile.length();
         final String xmp = buildMotionPhotoXmp(videoLength);
-        final byte[] xmpHeader = "http://ns.adobe.com/xap/1.0/ ".getBytes("UTF-8");
+        final byte[] xmpHeader = "http://ns.adobe.com/xap/1.0/\0".getBytes("UTF-8");
         final byte[] xmpBytes = xmp.getBytes("UTF-8");
         final int segLen = xmpHeader.length + xmpBytes.length + 2;
         if (segLen > 65535) {
@@ -6363,7 +6368,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
     }
 
     private static String buildMotionPhotoXmp(long videoLength) {
-        return "<?xpacket begin=\"﻿\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?>" +
+        return "<?xpacket begin=\"\uFEFF\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?>" +
                 "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\">" +
                 "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">" +
                 "<rdf:Description rdf:about=\"\" " +
@@ -6436,8 +6441,13 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
     }
 
     private static Uri saveFileInternal(int type, File sourceFile, String filename) {
+        return saveFileInternal(type, sourceFile, filename, null);
+    }
+
+    private static Uri saveFileInternal(int type, File sourceFile, String filename, android.os.CancellationSignal cancellation) {
         Uri dstUri = null;
         try {
+            if (cancellation != null) cancellation.throwIfCanceled();
             int selectedType = type;
             ContentValues contentValues = new ContentValues();
             String extension = fixExtension(FileLoader.getFileExtension(sourceFile));
@@ -6517,7 +6527,13 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 try (FileInputStream fileInputStream = new FileInputStream(sourceFile);
                      OutputStream outputStream = openGalleryOutput(dstUri)) {
                     if (outputStream != null) {
-                        AndroidUtilities.copyFile(fileInputStream, outputStream);
+                        if (AndroidUtilities.isInternalFileDescriptor(fileInputStream.getFD())) throw new IOException("Cannot export app-private data");
+                        byte[] buffer = new byte[64 * 1024];
+                        int read;
+                        while ((read = fileInputStream.read(buffer)) != -1) {
+                            if (cancellation != null) cancellation.throwIfCanceled();
+                            outputStream.write(buffer, 0, read);
+                        }
                         copied = true;
                     }
                 }
@@ -6525,9 +6541,13 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                     deleteMediaUri(dstUri);
                     return null;
                 }
+                if (cancellation != null) cancellation.throwIfCanceled();
                 finishPendingMediaUri(dstUri);
             }
             return dstUri;
+        } catch (android.os.OperationCanceledException cancelled) {
+            deleteMediaUri(dstUri);
+            return null;
         } catch (Exception e) {
             FileLog.e(e);
             deleteMediaUri(dstUri);
@@ -6637,10 +6657,11 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         }
         try {
             String result = null;
-            if (uri.getScheme().equals("content")) {
+            if ("content".equals(uri.getScheme())) {
                 try (Cursor cursor = ApplicationLoader.applicationContext.getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
-                    if (cursor.moveToFirst()) {
-                        result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int column = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                        if (column >= 0) result = cursor.getString(column);
                     }
                 } catch (Exception e) {
                     FileLog.e(e);
@@ -6648,6 +6669,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             }
             if (result == null) {
                 result = uri.getPath();
+                if (result == null) return "";
                 int cut = result.lastIndexOf('/');
                 if (cut != -1) {
                     result = result.substring(cut + 1);
@@ -6694,85 +6716,60 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         return copyFileToCache(uri, ext, -1);
     }
 
-    @SuppressLint("DiscouragedPrivateApi")
     public static String copyFileToCache(Uri uri, String ext, long sizeLimit) {
-        InputStream inputStream = null;
-        FileOutputStream output = null;
-        int totalLen = 0;
-        File f = null;
+        File target = null;
+        boolean complete = false;
         try {
             String name = FileLoader.fixFileName(getFileName(uri));
-            if (name == null) {
+            if (TextUtils.isEmpty(name)) {
                 int id = SharedConfig.getLastLocalId();
                 SharedConfig.saveConfig();
                 name = String.format(Locale.US, "%d.%s", id, ext);
             }
-            f = AndroidUtilities.getSharingDirectory();
-            f.mkdirs();
-            if (AndroidUtilities.isInternalUri(Uri.fromFile(f))) {
-                return null;
-            }
-            int count = 0;
-            do {
-                f = AndroidUtilities.getSharingDirectory();
-                if (count == 0) {
-                    f = new File(f, name);
-                } else {
-                    int lastDotIndex = name.lastIndexOf(".");
-                    if (lastDotIndex > 0) {
-                        f = new File(f, name.substring(0, lastDotIndex) + " (" + count + ")" + name.substring(lastDotIndex));
-                    } else {
-                        f = new File(f, name + " (" + count + ")");
+            File directory = AndroidUtilities.getSharingDirectory();
+            if (!directory.isDirectory() && !directory.mkdirs()) return null;
+            if (AndroidUtilities.isInternalUri(Uri.fromFile(directory))) return null;
+            try (InputStream input = ApplicationLoader.applicationContext.getContentResolver().openInputStream(uri)) {
+                if (input == null) return null;
+                if (input instanceof FileInputStream
+                        && AndroidUtilities.isInternalFileDescriptor(((FileInputStream) input).getFD())) return null;
+                java.io.OutputStream output;
+                for (int count = 0; ; count++) {
+                    int dot = name.lastIndexOf('.');
+                    String candidate = count == 0 ? name : dot > 0
+                            ? name.substring(0, dot) + " (" + count + ")" + name.substring(dot)
+                            : name + " (" + count + ")";
+                    File file = new File(directory, candidate);
+                    try {
+                        output = java.nio.file.Files.newOutputStream(file.toPath(),
+                                java.nio.file.StandardOpenOption.CREATE_NEW, java.nio.file.StandardOpenOption.WRITE);
+                        target = file;
+                        break;
+                    } catch (java.nio.file.FileAlreadyExistsException occupied) {
+                        // Another import may have reserved this name concurrently.
                     }
                 }
-                count++;
-            } while (f.exists());
-            inputStream = ApplicationLoader.applicationContext.getContentResolver().openInputStream(uri);
-            if (inputStream instanceof FileInputStream) {
-                FileInputStream fileInputStream = (FileInputStream) inputStream;
-                try {
-                    Method getInt = FileDescriptor.class.getDeclaredMethod("getInt$");
-                    int fdint = (Integer) getInt.invoke(fileInputStream.getFD());
-                    if (AndroidUtilities.isInternalUri(fdint)) {
-                        return null;
+                try (java.io.OutputStream destination = output) {
+                    byte[] buffer = new byte[20 * 1024];
+                    long total = 0;
+                    int length;
+                    while ((length = input.read(buffer)) != -1) {
+                        if (sizeLimit > 0 && length > sizeLimit - total) return null;
+                        destination.write(buffer, 0, length);
+                        total += length;
                     }
-                } catch (Throwable e) {
-                    FileLog.e(e);
                 }
             }
-            output = new FileOutputStream(f);
-            byte[] buffer = new byte[1024 * 20];
-            int len;
-            while ((len = inputStream.read(buffer)) != -1) {
-                output.write(buffer, 0, len);
-                totalLen += len;
-                if (sizeLimit > 0 && totalLen > sizeLimit) {
-                    return null;
-                }
-            }
-            return f.getAbsolutePath();
-        } catch (Exception e) {
-            FileLog.e(e);
+            complete = true;
+            return target.getAbsolutePath();
+        } catch (Exception error) {
+            FileLog.e(error);
+            return null;
         } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (Exception e2) {
-                FileLog.e(e2);
-            }
-            try {
-                if (output != null) {
-                    output.close();
-                }
-            } catch (Exception e2) {
-                FileLog.e(e2);
-            }
-            if (sizeLimit > 0 && totalLen > sizeLimit) {
-                f.delete();
+            if (!complete && target != null && !target.delete() && target.exists()) {
+                FileLog.e("Cannot remove incomplete shared file");
             }
         }
-        return null;
     }
 
     public static void loadGalleryPhotosAlbums(final int guid) {

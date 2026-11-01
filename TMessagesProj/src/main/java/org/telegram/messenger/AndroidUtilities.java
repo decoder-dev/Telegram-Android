@@ -1841,15 +1841,20 @@ public class AndroidUtilities {
         return isInternalUri(null, fd);
     }
 
+    public static boolean isInternalFileDescriptor(java.io.FileDescriptor descriptor) {
+        if (descriptor == null || !descriptor.valid()) return true;
+        try (android.os.ParcelFileDescriptor copy = android.os.ParcelFileDescriptor.dup(descriptor)) {
+            return isInternalUri(copy.getFd());
+        } catch (java.io.IOException | RuntimeException unavailable) {
+            return true;
+        }
+    }
+
     private static boolean isInternalUri(Uri uri, int fd) {
         String pathString;
         if (uri != null) {
             pathString = uri.getPath();
             if (pathString == null) {
-                return false;
-            }
-            // Allow sending VoIP logs from cache/voip_logs
-            if (pathString.matches(Pattern.quote(new File(ApplicationLoader.applicationContext.getCacheDir(), "voip_logs").getAbsolutePath()) + "/\\d+\\.log")) {
                 return false;
             }
             int tries = 0;
@@ -1881,7 +1886,7 @@ public class AndroidUtilities {
                 }
                 String newPath;
                 try {
-                    newPath = Utilities.readlinkFd(fd);
+                    newPath = android.system.Os.readlink("/proc/self/fd/" + fd);
                 } catch (Throwable e) {
                     return true;
                 }
@@ -1897,19 +1902,29 @@ public class AndroidUtilities {
         }
         if (pathString != null) {
             try {
-                String path = new File(pathString).getCanonicalPath();
-                if (path != null) {
-                    pathString = path;
-                }
-            } catch (Exception e) {
-                pathString.replace("/./", "/");
-                //igonre
+                pathString = new File(pathString).getCanonicalPath();
+                String logs = new File(ApplicationLoader.applicationContext.getCacheDir(), "voip_logs").getCanonicalPath();
+                if (pathString.matches(Pattern.quote(logs) + "/\\d+\\.log")) return false;
+            } catch (java.io.IOException | SecurityException unavailable) {
+                return true;
             }
         }
+        if (pathString == null) return true;
         if (pathString.endsWith(".attheme")) {
             return false;
         }
-        return pathString != null && pathString.toLowerCase().contains("/data/data/" + ApplicationLoader.applicationContext.getPackageName());
+        Context context = ApplicationLoader.applicationContext;
+        File[] roots = {context.getDataDir(), context.createDeviceProtectedStorageContext().getDataDir(),
+                new File("/data/user/0", context.getPackageName()), new File("/data/user_de/0", context.getPackageName()),
+                new File("/data/data", context.getPackageName())};
+        try {
+            for (File root : roots) {
+                String absolute = root.getAbsolutePath(), canonical = root.getCanonicalPath();
+                if (pathString.equals(absolute) || pathString.startsWith(absolute + File.separator)
+                        || pathString.equals(canonical) || pathString.startsWith(canonical + File.separator)) return true;
+            }
+            return false;
+        } catch (java.io.IOException | SecurityException unavailable) { return true; }
     }
 
     @SuppressLint("WrongConstant")

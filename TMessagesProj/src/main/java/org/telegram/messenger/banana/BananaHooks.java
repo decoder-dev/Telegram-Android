@@ -631,6 +631,7 @@ public final class BananaHooks {
             return;
         }
         final android.widget.EditText input = new android.widget.EditText(fragment.getParentActivity());
+        final AccountScope scope = AccountScope.capture(account);
         input.setSingleLine(true);
         String existing = getLocalGroupAlias(account, dialogId);
         if (!TextUtils.isEmpty(existing)) {
@@ -643,6 +644,7 @@ public final class BananaHooks {
         builder.setTitle(LocaleController.getString(R.string.BananaLocalGroupAlias));
         builder.setView(input);
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (d, w) -> {
+            if (!scope.isCurrent()) return;
             setLocalGroupAlias(account, dialogId, input.getText() != null ? input.getText().toString() : null);
             if (fragment instanceof org.telegram.ui.ChatActivity) {
                 ((org.telegram.ui.ChatActivity) fragment).updateTitle(true);
@@ -652,6 +654,7 @@ public final class BananaHooks {
                             MessagesController.UPDATE_MASK_NAME);
         });
         builder.setNeutralButton(LocaleController.getString(R.string.Delete), (d, w) -> {
+            if (!scope.isCurrent()) return;
             setLocalGroupAlias(account, dialogId, null);
             if (fragment instanceof org.telegram.ui.ChatActivity) {
                 ((org.telegram.ui.ChatActivity) fragment).updateTitle(true);
@@ -1508,6 +1511,17 @@ public final class BananaHooks {
         android.content.SharedPreferences.Editor edit = prefs.edit().remove(BananaConfig.BOOKMARK_ENTRIES_KEY);
         if (prefs.getAll().get(BananaConfig.Option.MESSAGE_BOOKMARKS.key) instanceof String) {
             edit.remove(BananaConfig.Option.MESSAGE_BOOKMARKS.key);
+        }
+        edit.apply();
+    }
+
+    public static void clearAccountLocalData(int account) {
+        clearBookmarks(account);
+        android.content.SharedPreferences prefs = org.telegram.messenger.ApplicationLoader.applicationContext
+                .getSharedPreferences(account == 0 ? "mainconfig" : "mainconfig" + account, android.content.Context.MODE_PRIVATE);
+        android.content.SharedPreferences.Editor edit = prefs.edit().remove(BananaConfig.StringValue.VISUAL_PHONE_NUMBER.key);
+        for (String key : prefs.getAll().keySet()) {
+            if (key.startsWith(LOCAL_ALIAS_KEY_PREFIX)) edit.remove(key);
         }
         edit.apply();
     }

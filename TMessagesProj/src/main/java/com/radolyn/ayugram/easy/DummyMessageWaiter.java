@@ -11,8 +11,7 @@ package com.radolyn.ayugram.easy;
 
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SendMessagesHelper;
-import org.telegram.messenger.UserConfig;
-import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.messenger.banana.AccountScope;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,8 +22,7 @@ public class DummyMessageWaiter extends EasyWaiter implements SendMessagesHelper
     private final int expectedCount;
     private final boolean awaitServer;
     private final SendMessagesHelper.SendObserver batch;
-    private final long owner;
-    private final boolean testBackend;
+    private final AccountScope scope;
 
     public DummyMessageWaiter(int currentAccount) { this(currentAccount, 1); }
 
@@ -42,8 +40,7 @@ public class DummyMessageWaiter extends EasyWaiter implements SendMessagesHelper
         this.expectedCount = expectedCount;
         this.awaitServer = awaitServer;
         this.batch = batch;
-        owner = UserConfig.getInstance(currentAccount).getClientUserId();
-        testBackend = ConnectionsManager.getInstance(currentAccount).isTestBackend();
+        scope = AccountScope.capture(currentAccount);
         notifications.add(NotificationCenter.messageReceivedByServer);
         notifications.add(NotificationCenter.messageSendError);
         notifications.add(NotificationCenter.appDidLogout);
@@ -53,8 +50,7 @@ public class DummyMessageWaiter extends EasyWaiter implements SendMessagesHelper
     public boolean isActive() {
         if (isClosed()) return false;
         if (batch != null && !batch.isActive()) { onError(); return false; }
-        if (UserConfig.getInstance(currentAccount).getClientUserId() != owner ||
-                ConnectionsManager.getInstance(currentAccount).isTestBackend() != testBackend) {
+        if (!scope.isCurrent()) {
             fail("Forward account changed");
             return false;
         }

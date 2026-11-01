@@ -283,17 +283,7 @@ public class FileUploadOperation {
 //                    throw new FileLog.IgnoreSentException("trying to upload internal file");
 //                }
                 stream = new RandomAccessFile(cacheFile, "r");
-                boolean isInternalFile = false;
-                try {
-                    @SuppressLint("DiscouragedPrivateApi") Method getInt = FileDescriptor.class.getDeclaredMethod("getInt$");
-                    int fdint = (Integer) getInt.invoke(stream.getFD());
-                    if (AndroidUtilities.isInternalUri(fdint)) {
-                        isInternalFile = true;
-                    }
-                } catch (Throwable e) {
-                    FileLog.e(e);
-                }
-                if (isInternalFile) {
+                if (AndroidUtilities.isInternalFileDescriptor(stream.getFD())) {
                     throw new Exception("trying to upload internal file");
                 }
                 if (estimatedSize != 0) {

@@ -737,16 +737,19 @@ public class SMSJobController implements NotificationCenter.NotificationCenterDe
         }
 
         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP_MR1)
-        @RequiresPermission(Manifest.permission.READ_PHONE_NUMBERS)
         public static SIM from(SubscriptionManager subscriptionManager, SubscriptionInfo info) {
             if (info == null) {
                 return null;
             }
-            String phoneNumber;
-            if (android.os.Build.VERSION.SDK_INT >= 33) {
-                phoneNumber = subscriptionManager.getPhoneNumber(info.getSubscriptionId());
-            } else {
-                phoneNumber = info.getNumber();
+            String phoneNumber = "";
+            if (ApplicationLoader.applicationContext.checkSelfPermission(Manifest.permission.READ_PHONE_NUMBERS)
+                    == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                try {
+                    phoneNumber = android.os.Build.VERSION.SDK_INT >= 33
+                            ? subscriptionManager.getPhoneNumber(info.getSubscriptionId()) : info.getNumber();
+                } catch (SecurityException revoked) {
+                    // Permission can be revoked after the check; SIM selection still works without its number.
+                }
             }
             return new SIM(
                     info.getSubscriptionId(),
@@ -768,32 +771,38 @@ public class SMSJobController implements NotificationCenter.NotificationCenterDe
 
     private static ArrayList<SIM> getSIMs(Context context) {
         final ArrayList<SIM> simInfoList = new ArrayList<>();
-        if (Build.VERSION.SDK_INT >= 22) {
-            final SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
-            List<SubscriptionInfo> infos = null;
-            if (Build.VERSION.SDK_INT >= 30) {
-                infos = subscriptionManager.getCompleteActiveSubscriptionInfoList();
-            }
-            if ((infos == null || infos.isEmpty()) && Build.VERSION.SDK_INT >= 28) {
-                infos = subscriptionManager.getAccessibleSubscriptionInfoList();
-            }
-            if (infos == null || infos.isEmpty()) {
-                infos = subscriptionManager.getActiveSubscriptionInfoList();
-            }
-            if (infos != null) {
-                for (int i = 0; i < infos.size(); ++i) {
-                    SIM sim = SIM.from(subscriptionManager, infos.get(i));
-                    if (sim != null) {
-                        simInfoList.add(sim);
+        if (context == null || context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE)
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) return simInfoList;
+        try {
+            if (Build.VERSION.SDK_INT >= 22) {
+                final SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
+                List<SubscriptionInfo> infos = null;
+                if (Build.VERSION.SDK_INT >= 30) {
+                    infos = subscriptionManager.getCompleteActiveSubscriptionInfoList();
+                }
+                if ((infos == null || infos.isEmpty()) && Build.VERSION.SDK_INT >= 28) {
+                    infos = subscriptionManager.getAccessibleSubscriptionInfoList();
+                }
+                if (infos == null || infos.isEmpty()) {
+                    infos = subscriptionManager.getActiveSubscriptionInfoList();
+                }
+                if (infos != null) {
+                    for (int i = 0; i < infos.size(); ++i) {
+                        SIM sim = SIM.from(subscriptionManager, infos.get(i));
+                        if (sim != null) {
+                            simInfoList.add(sim);
+                        }
                     }
                 }
+            } else {
+                final TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+                if (telephonyManager.getSimState() == TelephonyManager.SIM_STATE_READY) {
+                    SIM sim = new SIM(0, 0, telephonyManager.getSimCountryIso());
+                    simInfoList.add(sim);
+                }
             }
-        } else {
-            final TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            if (telephonyManager.getSimState() == TelephonyManager.SIM_STATE_READY) {
-                SIM sim = new SIM(0, 0, telephonyManager.getSimCountryIso());
-                simInfoList.add(sim);
-            }
+        } catch (SecurityException revoked) {
+            simInfoList.clear();
         }
         return simInfoList;
     }
