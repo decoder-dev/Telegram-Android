@@ -72,4 +72,12 @@ public class PrivateUriTest {
             }
         } finally {log.delete();theme.delete();}
     }
+    @Test public void externalFileUriRetainsItsCanonicalPath() throws Exception {
+        File external=new File(AndroidUtilities.getCacheDir(),"audit-canonical-"+UUID.randomUUID());
+        try {
+            try(FileOutputStream output=new FileOutputStream(external)) {output.write(3);}
+            assertEquals(external.getCanonicalPath(),Uri.fromFile(external).getCanonicalPath());
+            assertFalse(AndroidUtilities.isInternalUri(Uri.fromFile(external)));
+        } finally {external.delete();}
+    }
 }
