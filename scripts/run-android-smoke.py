@@ -188,7 +188,10 @@ SUITE = ('org.telegram.banana.MediaConversionAndroidTest,org.telegram.banana.Vid
          'org.telegram.banana.GlassRedrawTest,org.telegram.banana.BookmarkPreferencesTest,'
          'org.telegram.banana.ProfileIdTest,org.telegram.banana.GhostScheduleTest,'
          'org.telegram.banana.PollPreviewTest,org.telegram.banana.MentionPingTest,'
-         'org.telegram.banana.AudioRecordingTest,org.telegram.banana.GiftHistoryTest')
+         'org.telegram.banana.AudioRecordingTest,org.telegram.banana.GiftHistoryTest,'
+         'org.telegram.banana.AccountLifecycleTest,org.telegram.banana.GalleryExportTest,'
+         'org.telegram.banana.PrivateUriTest,org.telegram.banana.VideoDownloadLifecycleTest,'
+         'org.telegram.banana.CacheImportTest,org.telegram.banana.BotDownloadsTest')
 
 
 def run_suite():
@@ -209,7 +212,7 @@ def run_suite():
 
 def suite_passed(result, failed):
     count = re.search(r'OK \((\d+) tests?\)', result)
-    return not failed and count is not None and int(count.group(1)) >= 56 and 'FAILURES!!!' not in result
+    return not failed and count is not None and int(count.group(1)) >= 80 and 'FAILURES!!!' not in result
 
 
 output, instrumentation_failed = run_suite()

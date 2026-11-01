@@ -81,10 +81,10 @@ public final class BananaMediaConverter {
     /** Missing Telegram media is downloaded using its owning account before local conversion. */
     public static Job convertMessage(MessageObject source, Kind kind, double start, double end, Consumer<Result> done) {
         int account = source.currentAccount;
-        long owner = UserConfig.getInstance(account).getClientUserId();
+        AccountScope scope = AccountScope.capture(account);
         File file = locate(source);
         if (!file.isFile()) FileLoader.getInstance(account).loadFile(source.getDocument(), source, FileLoader.PRIORITY_HIGH, 0);
-        return submit(file, kind, start, end, true, () -> UserConfig.getInstance(account).getClientUserId() != owner, done);
+        return submit(file, kind, start, end, true, () -> !scope.isCurrent(), done);
     }
     public static Job convertFile(File file, Kind kind, double start, double end, Consumer<Result> done) {
         return submit(file, kind, start, end, false, () -> false, done);
