@@ -10729,8 +10729,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (communityId != 0 ) {
                 if ((mask & MessagesController.UPDATE_MASK_CHAT) != 0 || (mask & MessagesController.UPDATE_MASK_AVATAR) != 0 || (mask & MessagesController.UPDATE_MASK_CHAT_AVATAR) != 0 || (mask & MessagesController.UPDATE_MASK_CHAT_NAME) != 0) {
                     community = getMessagesController().getChat(communityId);
-                    actionBar.setTitle(DialogObject.getName(community));
-                    communityAvatarImage.setForUserOrChat(community, communityAvatarDrawable);
+                    if (actionBar != null && communityAvatarImage != null) {
+                        actionBar.setTitle(DialogObject.getName(community));
+                        communityAvatarImage.setForUserOrChat(community, communityAvatarDrawable);
+                    }
                 }
             }
             if (viewPages != null) {

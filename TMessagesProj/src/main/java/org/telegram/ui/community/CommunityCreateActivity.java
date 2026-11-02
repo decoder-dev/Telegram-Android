@@ -235,11 +235,11 @@ public class CommunityCreateActivity extends BaseFragment implements Notificatio
         if (id == NotificationCenter.chatInfoDidLoad) {
             TLRPC.ChatFull chatFull = (TLRPC.ChatFull) args[0];
             final int viewId = Long.hashCode(chatFull.id);
-            final View view = listView.findViewByItemId(viewId);
+            final View view = listView != null ? listView.findViewByItemId(viewId) : null;
             if (view instanceof ProfileSearchCell) {
                 ProfileSearchCell cell = (ProfileSearchCell) view;
                 cell.setSubLabel(formatPluralString("Chats", chatFull.linked_peers != null ? chatFull.linked_peers.size() : 0));
-            } else {
+            } else if (listView != null && listView.adapter != null) {
                 listView.adapter.update(false);
             }
         }

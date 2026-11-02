@@ -4268,9 +4268,15 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                     }
                 }
                 loading = false;
-                progressView.showTextView();
-                adapter.notifyDataSetChanged();
-                cameraAttachAdapter.notifyDataSetChanged();
+                if (progressView != null) {
+                    progressView.showTextView();
+                }
+                if (adapter != null) {
+                    adapter.notifyDataSetChanged();
+                }
+                if (cameraAttachAdapter != null) {
+                    cameraAttachAdapter.notifyDataSetChanged();
+                }
                 if (!selectedPhotosOrder.isEmpty() && galleryAlbumEntry != null) {
                     for (int a = 0, N = selectedPhotosOrder.size(); a < N; a++) {
                         Integer imageId = (Integer) selectedPhotosOrder.get(a);

@@ -1902,9 +1902,13 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
         } else if (id == NotificationCenter.moreMusicDidLoad) {
             savedMusicList = MediaController.getInstance().currentSavedMusicList;
             playlist = MediaController.getInstance().getPlaylist();
-            listAdapter.notifyDataSetChanged();
+            if (listAdapter != null) {
+                listAdapter.notifyDataSetChanged();
+            }
             if (SharedConfig.playOrderReversed) {
-                listView.stopScroll();
+                if (listView != null) {
+                    listView.stopScroll();
+                }
                 int addedCount = (Integer) args[0];
                 int firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
                 int position = layoutManager.findLastVisibleItemPosition();

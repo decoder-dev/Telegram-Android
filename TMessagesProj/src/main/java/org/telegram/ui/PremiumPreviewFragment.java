@@ -1498,6 +1498,11 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
     @SuppressLint("NotifyDataSetChanged")
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
+        if (backgroundView == null) {
+            // The fragment can still be subscribed while its view is destroyed; every
+            // branch below touches view-owned objects.
+            return;
+        }
         if (id == NotificationCenter.billingProductDetailsUpdated || id == NotificationCenter.premiumPromoUpdated) {
             updateButtonText(false);
             backgroundView.updatePremiumTiers();
@@ -1506,7 +1511,9 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
             backgroundView.updateText();
             backgroundView.updatePremiumTiers();
             updateRows();
-            listView.getAdapter().notifyDataSetChanged();
+            if (listView != null && listView.getAdapter() != null) {
+                listView.getAdapter().notifyDataSetChanged();
+            }
         }
     }
 
