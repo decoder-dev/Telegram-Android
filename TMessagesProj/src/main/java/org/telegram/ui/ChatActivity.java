@@ -32576,7 +32576,12 @@ public class ChatActivity extends BaseFragment implements
                         TLRPC.InputPeer inputPeer = selectedObject != null && (selectedObject.isPoll() || selectedObject.isVoiceTranscriptionOpen() || selectedObject.isSponsored() || selectedObject.scheduled || chatMode == MODE_QUICK_REPLIES) ? null : getMessagesController().getInputPeer(dialog_id);
 //                        final boolean shouldTranslateByText = selectedObject != null && (selectedObject.isPoll() || selectedObject.isVoiceTranscriptionOpen() || selectedObject.isSponsored() || selectedObject.scheduled || chatMode == MODE_QUICK_REPLIES);
                         final TL_iv.RichMessage richMessageToTranslate = selectedObject != null && selectedObject.type == MessageObject.TYPE_ARTICLE && selectedObject.messageOwner != null ? selectedObject.messageOwner.rich_message : null;
-                        if (richMessageToTranslate != null) {
+                        if (finalMessageText == null) {
+                            // Nothing to translate (already translated, restricted or emoji-only):
+                            // hide the item; every branch below dereferences the text.
+                            waitForLangDetection.set(false);
+                            cell.setVisibility(View.GONE);
+                        } else if (richMessageToTranslate != null) {
                             final String fromLang = selectedObject.messageOwner.originalLanguage;
                             cell.setVisibility(View.VISIBLE);
                             cell.setOnClickListener(e -> {
