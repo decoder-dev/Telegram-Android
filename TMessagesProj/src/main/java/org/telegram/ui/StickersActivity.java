@@ -295,11 +295,15 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
             if (type == currentType) {
                 loadingFeaturedStickerSets.clear();
             }
-            listView.adapter.update(true);
+            if (listView != null && listView.adapter != null) {
+                listView.adapter.update(true);
+            }
         } else if (id == NotificationCenter.featuredStickersDidLoad || id == NotificationCenter.featuredEmojiDidLoad) {
-            listView.adapter.update(true);
+            if (listView != null && listView.adapter != null) {
+                listView.adapter.update(true);
+            }
         } else if (id == NotificationCenter.archivedStickersCountDidLoad) {
-            if ((Integer) args[0] == currentType) {
+            if ((Integer) args[0] == currentType && listView != null && listView.adapter != null) {
                 listView.adapter.update(true);
             }
         } else if (id == NotificationCenter.currentUserPremiumStatusChanged) {

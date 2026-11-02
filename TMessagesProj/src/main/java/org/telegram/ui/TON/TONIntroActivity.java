@@ -669,8 +669,10 @@ public class TONIntroActivity extends GradientHeaderActivity implements Notifica
                 }
 
                 AmountUtils.Amount balance = StarsController.getTonInstance(currentAccount).getBalanceAmount();
-                headerView.titleView.setText(formatString(R.string.TonNeededTitle,
-                    AmountUtils.Amount.fromNano(requiredAmount.asNano() - balance.asNano(), AmountUtils.Currency.TON).asFormatString()));
+                if (headerView != null) {
+                    headerView.titleView.setText(formatString(R.string.TonNeededTitle,
+                        AmountUtils.Amount.fromNano(requiredAmount.asNano() - balance.asNano(), AmountUtils.Currency.TON).asFormatString()));
+                }
                 if (actionBar != null) {
                     actionBar.setTitle(getTitle());
                 }

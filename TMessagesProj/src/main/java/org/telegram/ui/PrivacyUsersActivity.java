@@ -363,7 +363,9 @@ public class PrivacyUsersActivity extends BaseFragment implements NotificationCe
                 updateVisibleRows(mask);
             }
         } else if (id == NotificationCenter.blockedUsersDidLoad) {
-            emptyView.showTextView();
+            if (emptyView != null) {
+                emptyView.showTextView();
+            }
             updateRows();
         }
     }

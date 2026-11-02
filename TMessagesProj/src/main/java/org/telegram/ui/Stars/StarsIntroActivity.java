@@ -2664,7 +2664,9 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
                     adapter.update(true);
                 }
                 long balance = StarsController.getInstance(currentAccount).getBalance().amount;
-                headerView.titleView.setText(formatPluralStringComma("StarsNeededTitle", (int) (starsNeeded - balance)));
+                if (headerView != null) {
+                    headerView.titleView.setText(formatPluralStringComma("StarsNeededTitle", (int) (starsNeeded - balance)));
+                }
                 if (actionBar != null) {
                     actionBar.setTitle(getTitle());
                 }

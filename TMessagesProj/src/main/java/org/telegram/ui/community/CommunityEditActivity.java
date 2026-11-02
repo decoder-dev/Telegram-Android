@@ -607,7 +607,9 @@ public class CommunityEditActivity extends BaseFragment implements ImageUpdater.
             TLRPC.ChatFull chatFull = (TLRPC.ChatFull) args[0];
             if (chatFull.id == communityId) {
                 info = chatFull;
-                listView.adapter.update(true);
+                if (listView != null && listView.adapter != null) {
+                    listView.adapter.update(true);
+                }
             }
         }
     }

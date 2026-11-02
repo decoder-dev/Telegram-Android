@@ -319,7 +319,9 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 					row.type = callType;
 					row.video = msg.isVideoCall();
 					calls.add(0, row);
-					listView.adapter.update(true);
+					if (listView != null && listView.adapter != null) {
+						listView.adapter.update(true);
+					}
 				} else if (msg.messageOwner.action instanceof TLRPC.TL_messageActionConferenceCall) {
 					final TLRPC.TL_messageActionConferenceCall action = (TLRPC.TL_messageActionConferenceCall) msg.messageOwner.action;
 					long fromId = msg.getFromChatId();
@@ -360,7 +362,9 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 									}
 								}
 							}
-							listView.adapter.update(true);
+							if (listView != null && listView.adapter != null) {
+								listView.adapter.update(true);
+							}
 							continue;
 						}
 					}
@@ -378,7 +382,9 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 					row.type = callType;
 					row.video = msg.isVideoCall();
 					calls.add(0, row);
-					listView.adapter.update(true);
+					if (listView != null && listView.adapter != null) {
+						listView.adapter.update(true);
+					}
 				}
 			}
 			if (otherItem != null) {
@@ -410,12 +416,16 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 				}
 			}
 			if (didChange && listView != null) {
-				listView.adapter.update(true);
+				if (listView != null && listView.adapter != null) {
+					listView.adapter.update(true);
+				}
 			}
 		} else if (id == NotificationCenter.activeGroupCallsUpdated) {
 			activeGroupCalls = getMessagesController().getActiveGroupCalls();
 			if (listView != null) {
-				listView.adapter.update(true);
+				if (listView != null && listView.adapter != null) {
+					listView.adapter.update(true);
+				}
 			}
 		} else if (id == NotificationCenter.chatInfoDidLoad) {
 			if (waitingForCallChatId == null) {

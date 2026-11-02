@@ -4489,14 +4489,18 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             MessageObject messageObject = (MessageObject) args[0];
             if (loadInitialVideo) {
                 loadInitialVideo = false;
-                progressView.setVisibility(View.INVISIBLE);
+                if (progressView != null) {
+                    progressView.setVisibility(View.INVISIBLE);
+                }
                 preparePlayer(currentPlayingVideoQualityFiles, currentPlayingVideoFile, false, false, editState.savedFilterState, false, 0);
             } else if (tryStartRequestPreviewOnFinish) {
                 releasePlayer(false);
                 tryStartRequestPreviewOnFinish = !MediaController.getInstance().scheduleVideoConvert(videoPreviewMessageObject, true, true, false);
             } else if (messageObject == videoPreviewMessageObject) {
                 requestingPreview = false;
-                progressView.setVisibility(View.INVISIBLE);
+                if (progressView != null) {
+                    progressView.setVisibility(View.INVISIBLE);
+                }
             }
         } else if (id == NotificationCenter.fileNewChunkAvailable) {
             MessageObject messageObject = (MessageObject) args[0];

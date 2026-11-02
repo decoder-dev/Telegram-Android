@@ -881,7 +881,9 @@ public class PrivacyControlActivity extends BaseFragment implements Notification
         if (id == NotificationCenter.privacyRulesUpdated) {
             checkPrivacy();
         } else if (id == NotificationCenter.emojiLoaded) {
-            listView.invalidateViews();
+            if (listView != null) {
+                listView.invalidateViews();
+            }
         } else if (id == NotificationCenter.didSetNewWallpapper) {
             if (messageCell != null) {
                 messageCell.invalidate();
