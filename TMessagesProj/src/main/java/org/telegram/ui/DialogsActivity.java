@@ -10952,9 +10952,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         } else if (id == NotificationCenter.userEmojiStatusUpdated) {
             updateStatus((TLRPC.User) args[0], true);
         } else if (id == NotificationCenter.currentUserPremiumStatusChanged) {
-            actionBar.setTitle(actionBarDefaultTitle = LocaleUtils.getActionBarTitle(), statusDrawable);
-            updateStatus(UserConfig.getInstance(account).getCurrentUser(), true);
-            updateStoriesPosting();
+            if (actionBar != null && statusDrawable != null) {
+                actionBar.setTitle(actionBarDefaultTitle = LocaleUtils.getActionBarTitle(), statusDrawable);
+                updateStatus(UserConfig.getInstance(account).getCurrentUser(), true);
+                updateStoriesPosting();
+            }
         } else if (id == NotificationCenter.onDatabaseReset) {
             dialogsLoaded[currentAccount] = false;
             loadDialogs(getAccountInstance());
