@@ -3908,6 +3908,54 @@ public class MessageObject {
         return replyUpdated || false;
     }
 
+    // links, link previews and bot buttons of incoming messages are hidden in chats with report spam bar until we write there
+    public boolean linksHidden;
+    private boolean textLinksHidden;
+
+    public boolean shouldHideLinks() {
+        return messageOwner != null && messageOwner.peer_id != null && !isOut() && !isSponsored() && MessagesController.getInstance(currentAccount).isUntrustedDialog(getDialogId());
+    }
+
+    public boolean updateLinksHidden() {
+        final boolean hide = shouldHideLinks();
+        boolean updated = false;
+        if (textLinksHidden != hide && (type == TYPE_TEXT || type == TYPE_EMOJIS) && messageOwner.action == null && !TextUtils.isEmpty(messageOwner.message)) {
+            final boolean wasTranslated = translated || summarized;
+            translated = false;
+            summarized = false;
+            applyNewText(messageOwner.message);
+            if (wasTranslated) {
+                updateTranslation(false);
+            }
+            updated = true;
+        }
+        if (caption != null && captionLinksHidden != hide) {
+            generateCaption();
+            updated = true;
+        }
+        if (linksHidden != hide) {
+            final boolean hadButtons = hasInlineBotButtons();
+            measureInlineBotButtons();
+            linksHidden = hide;
+            updated = updated || hadButtons != hasInlineBotButtons() || getMedia(messageOwner) instanceof TLRPC.TL_messageMediaWebPage;
+        }
+        return updated;
+    }
+
+    private static void removeLinks(CharSequence text) {
+        if (!(text instanceof Spannable)) {
+            return;
+        }
+        final Spannable spannable = (Spannable) text;
+        final URLSpan[] spans = spannable.getSpans(0, spannable.length(), URLSpan.class);
+        for (int i = 0; i < spans.length; ++i) {
+            if (spans[i] instanceof FormattedDateSpan) {
+                continue;
+            }
+            spannable.removeSpan(spans[i]);
+        }
+    }
+
     public void applyNewText() {
         translated = false;
         summarized = false;
@@ -4662,7 +4710,7 @@ public class MessageObject {
     }
 
     public boolean hasInlineBotButtons() {
-        return !isRestrictedMessage && !isRepostPreview && messageOwner != null && (messageOwner.reply_markup instanceof TLRPC.TL_replyInlineMarkup && !((TLRPC.TL_replyInlineMarkup) messageOwner.reply_markup).rows.isEmpty() || getInlineBotButtons() != null);
+        return !isRestrictedMessage && !isRepostPreview && messageOwner != null && (!linksHidden && messageOwner.reply_markup instanceof TLRPC.TL_replyInlineMarkup && !((TLRPC.TL_replyInlineMarkup) messageOwner.reply_markup).rows.isEmpty() || getInlineBotButtons() != null);
     }
 
     public void measureInlineBotButtons() {
@@ -4675,7 +4723,8 @@ public class MessageObject {
 
         BotInlineKeyboard.Builder builder = new BotInlineKeyboard.Builder();
 
-        if (messageOwner != null && messageOwner.reply_markup instanceof TLRPC.TL_replyInlineMarkup && ((TLRPC.TL_replyInlineMarkup) messageOwner.reply_markup).rows != null) {
+        linksHidden = shouldHideLinks();
+        if (!linksHidden && messageOwner != null && messageOwner.reply_markup instanceof TLRPC.TL_replyInlineMarkup && ((TLRPC.TL_replyInlineMarkup) messageOwner.reply_markup).rows != null) {
             builder.addBotKeyboard((TLRPC.TL_replyInlineMarkup) messageOwner.reply_markup);
         }
         if (hasSuggestionInlineButtons()) {
@@ -6337,6 +6386,7 @@ public class MessageObject {
     }
 
     public static CharSequence formatTextWithEntities(TLRPC.TL_textWithEntities text, boolean out, boolean photoViewer, TextPaint paint) {
+        if (text == null || text.text == null) return "";
         CharSequence taskText = new SpannableStringBuilder(text.text);
         addEntitiesToText(taskText, text.entities, out, false, photoViewer, false);
         taskText = Emoji.replaceEmoji(taskText, paint.getFontMetricsInt(), false);
@@ -6620,6 +6670,7 @@ public class MessageObject {
     }
 
     public static TLRPC.TL_textWithEntities removeLinks(TLRPC.TL_textWithEntities text) {
+        if (text == null) return null;
         final TLRPC.TL_textWithEntities newText = new TLRPC.TL_textWithEntities();
         newText.text = text.text;
         for (int i = 0; i < text.entities.size(); ++i) {
@@ -7797,6 +7848,7 @@ public class MessageObject {
     }
 
     private boolean captionTranslated;
+    private boolean captionLinksHidden;
     private boolean captionSummarized;
 
     public void generateExplanation() {
@@ -7825,12 +7877,15 @@ public class MessageObject {
 
     public void generateCaption() {
         if (isRoundVideo()) return;
+        final boolean hideLinks = shouldHideLinks();
         if (caption != null &&
             (translated && (messageOwner.translatedText != null || summarized && messageOwner.translatedSummaryText != null)) == captionTranslated &&
-            summarized == captionSummarized
+            summarized == captionSummarized &&
+            hideLinks == captionLinksHidden
         ) {
             return;
         }
+        captionLinksHidden = hideLinks;
         String text = messageOwner.message;
         ArrayList<TLRPC.MessageEntity> entities = messageOwner.entities;
         boolean forceManualEntities = false;
@@ -7907,6 +7962,9 @@ public class MessageObject {
                 addUrlsByPattern(isOutOwner(), caption, true, 4, (int) getDuration(), false);
             }
             applyTimestampsHighlightForReplyMsg(caption);
+            if (captionLinksHidden) {
+                removeLinks(caption);
+            }
         }
     }
 
@@ -8844,7 +8902,13 @@ public class MessageObject {
         if (!(messageText instanceof Spannable)) {
             messageText = new SpannableStringBuilder(messageText);
         }
-        return addEntitiesToText(messageText, useManualParse);
+        final boolean hasUrls = addEntitiesToText(messageText, useManualParse);
+        textLinksHidden = shouldHideLinks();
+        if (textLinksHidden) {
+            removeLinks(messageText);
+            return false;
+        }
+        return hasUrls;
     }
 
     public static StaticLayout makeStaticLayout(CharSequence text_, TextPaint paint, int width, float lineSpacingMult, float lineSpacingAdd, boolean dontIncludePad) {
@@ -12277,7 +12341,12 @@ public class MessageObject {
                 attachPathExists = f.exists();
             }
             if (!attachPathExists) {
-                File file = FileLoader.getInstance(currentAccount).getPathToMessage(messageOwner, useFileDatabaseQueue);
+                File file;
+                if (type == TYPE_VIDEO && needDrawBluredPreview(true) && isLivePhoto() && getDocument() != null) {
+                    file = FileLoader.getInstance(currentAccount).getPathToAttach(getDocument(), null, true, useFileDatabaseQueue);
+                } else {
+                    file = FileLoader.getInstance(currentAccount).getPathToMessage(messageOwner, useFileDatabaseQueue);
+                }
                 if (type == TYPE_VIDEO && needDrawBluredPreview(true) || isVoiceOnce() || isRoundOnce()) {
                     mediaExists = new File(file.getAbsolutePath() + ".enc").exists();
                 }
@@ -13070,7 +13139,7 @@ public class MessageObject {
     }
 
     public boolean hasLinkMediaToMakeSmall() {
-        final boolean hasLinkPreview = !isRestrictedMessage && MessageObject.getMedia(messageOwner) instanceof TLRPC.TL_messageMediaWebPage && MessageObject.getMedia(messageOwner).webpage instanceof TLRPC.TL_webPage;
+        final boolean hasLinkPreview = !isRestrictedMessage && !linksHidden && MessageObject.getMedia(messageOwner) instanceof TLRPC.TL_messageMediaWebPage && MessageObject.getMedia(messageOwner).webpage instanceof TLRPC.TL_webPage;
         final TLRPC.WebPage webpage = hasLinkPreview ? MessageObject.getMedia(messageOwner).webpage : null;
         final String webpageType = webpage != null ? webpage.type : null;
         return hasLinkPreview && !isGiveawayOrGiveawayResults() &&
@@ -13091,7 +13160,7 @@ public class MessageObject {
     }
 
     public boolean isLinkMediaSmall() {
-        final boolean hasLinkPreview = !isRestrictedMessage && MessageObject.getMedia(messageOwner) instanceof TLRPC.TL_messageMediaWebPage && MessageObject.getMedia(messageOwner).webpage instanceof TLRPC.TL_webPage;
+        final boolean hasLinkPreview = !isRestrictedMessage && !linksHidden && MessageObject.getMedia(messageOwner) instanceof TLRPC.TL_messageMediaWebPage && MessageObject.getMedia(messageOwner).webpage instanceof TLRPC.TL_webPage;
         final TLRPC.WebPage webpage = hasLinkPreview ? MessageObject.getMedia(messageOwner).webpage : null;
         final String webpageType = webpage != null ? webpage.type : null;
         return !(webpage != null && TextUtils.isEmpty(webpage.description) && TextUtils.isEmpty(webpage.title)) && (
