@@ -25,6 +25,19 @@ public class BananaThemePolicyTest {
         assertEquals(0, BananaThemePolicy.paletteOrdinal(Integer.MAX_VALUE));
     }
 
+    @Test public void dayNightSwitchesStayWithinTheFourPalettes() {
+        assertArrayEquals(new String[]{"Classic White", "Classic Black"}, BananaThemePolicy.dayNightPair("Classic White", false));
+        assertArrayEquals(new String[]{"Classic White", "Classic Black"}, BananaThemePolicy.dayNightPair("Classic Black", true));
+        assertArrayEquals(new String[]{"Banana Cream", "Banana Graphite"}, BananaThemePolicy.dayNightPair("Banana Cream", false));
+        assertArrayEquals(new String[]{"Banana Cream", "Banana Graphite"}, BananaThemePolicy.dayNightPair("Banana Graphite", true));
+        assertArrayEquals(new String[]{"Banana Cream", "Banana Graphite"}, BananaThemePolicy.dayNightPair("Blue", false));
+        assertArrayEquals(new String[]{"Banana Cream", "Banana Graphite"}, BananaThemePolicy.dayNightPair(null, true));
+        for (String name : new String[]{"Classic White", "Classic Black", "Banana Cream", "Banana Graphite"}) {
+            assertTrue(BananaThemePolicy.isAllowed(BananaThemePolicy.counterpart(name)));
+            assertEquals(name, BananaThemePolicy.counterpart(BananaThemePolicy.counterpart(name)));
+        }
+    }
+
     @Test public void freshAndUnsupportedThemesUseBrandedDefaults() {
         assertEquals("Banana Cream", BananaThemePolicy.migrate(null, false));
         assertEquals("Banana Graphite", BananaThemePolicy.migrate(null, true));

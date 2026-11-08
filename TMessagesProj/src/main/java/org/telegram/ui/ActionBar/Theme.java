@@ -5459,6 +5459,13 @@ public class Theme {
         previousTheme = null;
     }
 
+    /** BananaGram: {day, night} theme names for the day/night switches, from the active palette. */
+    public static String[] bananaDayNightPair() {
+        ThemeInfo active = getActiveTheme();
+        return org.telegram.messenger.banana.BananaThemePolicy.dayNightPair(active != null ? active.name : null,
+                active != null && active.isDark());
+    }
+
     public static boolean isBananaTheme(ThemeInfo theme) {
         return theme != null && org.telegram.messenger.banana.BananaThemePolicy.isAllowed(theme.name)
                 && theme.pathToFile == null && theme.info == null
