@@ -31,6 +31,11 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 - A bulletin shown with no activity window (app in the background) or while the activity closes is skipped instead of crashing with BadTokenException. Ported from Glassgram.
 - Opening a photo from the attachment sheet no longer redraws the whole gallery on every frame of the viewer's animation. Ported from Glassgram.
 - Message text drawn at an animation alpha outside 0..1 no longer crashes. Ported from Glassgram.
+- Group video chats served as a stream start playing at once instead of after about 25 seconds of silence. Upstream PR 2246.
+- With limited photo access on Android 14+, the media permission prompt no longer reopens at every start. Upstream PR 2226.
+- Media navigation actions are back in forum topics. Upstream PR 2206.
+- Notifications: no more re-creation jank with several chats, the status bar icon stays, notifications read elsewhere are dismissed, "Mark as read" acts at once, inline replies show as sent only after the server confirms, push texts get their formatting and photos and stickers are downloaded for the notification. Upstream PRs 2197–2203 by Zensonaton.
+- A locked Archive chat's notification shows neither its photo nor its caption. Photos are now downloaded for notifications, which would otherwise have exposed them.
 - The "change language" suggestion is offered once per language and never over a language you picked or a custom pack; switching a proxy on and off made it come back each time. Ported from Nagram.
 
 ### Changed
