@@ -128,6 +128,7 @@ public class NotificationsController extends BaseController implements Notificat
     private final LongSparseIntArray readFromNotificationMaxIds = new LongSparseIntArray();
     private final LongSparseArray<ArrayList<NotificationReply>> notificationReplies = new LongSparseArray<>();
     private final LongSparseIntArray repliedDialogsMaxIds = new LongSparseIntArray();
+    private final HashSet<String> pendingMediaLoads = new HashSet<>();
     public final ArrayList<MessageObject> popupMessages = new ArrayList<>();
     public ArrayList<MessageObject> popupReplyMessages = new ArrayList<>();
     private final HashSet<Long> openedInBubbleDialogs = new HashSet<>();
@@ -1272,6 +1273,7 @@ public class NotificationsController extends BaseController implements Notificat
             boolean edited = false;
             boolean storiesUpdated = false;
             boolean formattingReplaced = false;
+            boolean mediaReplaced = false;
 
             LongSparseArray<Boolean> settingsCache = new LongSparseArray<>();
             SharedPreferences preferences = getAccountInstance().getNotificationsSettings();
@@ -1372,6 +1374,8 @@ public class NotificationsController extends BaseController implements Notificat
                             popup = addToPopupMessages(popupArrayAdd, messageObject, dialogId, isChannel, preferences);
                             // a push has no formatting, redraw once the full message arrives
                             formattingReplaced |= !isFcm && messageObject.messageOwner.entities != null && !messageObject.messageOwner.entities.isEmpty();
+                            // a push has no media, redraw once the full message with the photo or sticker arrives
+                            mediaReplaced |= !isFcm && (messageObject.type == MessageObject.TYPE_PHOTO || messageObject.isSticker());
                         }
                         if (isFcm && (edited = messageObject.localEdit)) {
                             getMessagesStorage().putPushMessage(messageObject);
@@ -1510,7 +1514,7 @@ public class NotificationsController extends BaseController implements Notificat
                     }
                 });
             }
-            if (formattingReplaced && !added) {
+            if ((formattingReplaced || mediaReplaced) && !added) {
                 showOrUpdateNotification(false);
             }
             if (isFcm || hasScheduled) {
@@ -3596,6 +3600,8 @@ public class NotificationsController extends BaseController implements Notificat
             notificationsQueue.postRunnable(() -> {
                 if (pendingVoiceLoads.remove(path)) {
                     showOrUpdateNotification(true);
+                } else if (pendingMediaLoads.remove(path)) {
+                    showOrUpdateNotification(false);
                 }
             });
         } else if (id == NotificationCenter.messageReceivedByServer || id == NotificationCenter.messageSendError) {
@@ -5679,11 +5685,13 @@ public class NotificationsController extends BaseController implements Notificat
                     if (!DialogObject.isEncryptedDialog(dialogId)) {
                         boolean setPhoto = false;
                         if (preview[0] && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !((ActivityManager) ApplicationLoader.applicationContext.getSystemService(Context.ACTIVITY_SERVICE)).isLowRamDevice()) {
-                            if (!waitingForPasscode && !messageObject.isSecretMedia() && (messageObject.type == MessageObject.TYPE_PHOTO || messageObject.isSticker())) {
-                                File attach = getFileLoader().getPathToMessage(messageObject.messageOwner);
-                                File blurredAttach;
-                                if (attach.exists() && messageObject.hasMediaSpoilers()) {
-                                    blurredAttach = new File(attach.getParentFile(), attach.getName() + ".blur.jpg");
+                            if (!waitingForPasscode && !messageObject.isSecretMedia() && (messageObject.type == MessageObject.TYPE_PHOTO || messageObject.isSticker() && !messageObject.isVideoSticker())) {
+                                File attach = getNotificationMediaFile(messageObject);
+                                if (attach == null) {
+                                    loadNotificationMedia(messageObject);
+                                }
+                                if (attach != null && messageObject.hasMediaSpoilers()) {
+                                    File blurredAttach = new File(attach.getParentFile(), attach.getName() + ".blur.jpg");
                                     if (!blurredAttach.exists()) {
                                         try {
                                             Bitmap bitmap = BitmapFactory.decodeFile(attach.getAbsolutePath());
@@ -5706,56 +5714,28 @@ public class NotificationsController extends BaseController implements Notificat
                                             fos.close();
 
                                             scaledBitmap.recycle();
-
-                                            attach = blurredAttach;
-                                        } catch (Exception e) {
+                                        } catch (Throwable e) {
                                             FileLog.e(e);
                                         }
                                     }
-                                } else {
-                                    blurredAttach = null;
+                                    // never fall back to the original file of a media with a spoiler
+                                    attach = blurredAttach.exists() ? blurredAttach : null;
                                 }
                                 NotificationCompat.MessagingStyle.Message msg = new NotificationCompat.MessagingStyle.Message(applyMessageEntities(messageObject, message), ((long) messageObject.messageOwner.date) * 1000L, person);
                                 String mimeType = messageObject.isSticker() ? "image/webp" : "image/jpeg";
-                                Uri uri;
-                                if (attach.exists()) {
+                                Uri uri = null;
+                                if (attach != null) {
                                     try {
                                         uri = FileProvider.getUriForFile(ApplicationLoader.applicationContext, ApplicationLoader.getApplicationId() + ".provider", attach);
                                     } catch (Exception e) {
                                         FileLog.e(e);
-                                        uri = null;
                                     }
-                                } else if (getFileLoader().isLoadingFile(attach.getName())) {
-                                    Uri.Builder _uri = new Uri.Builder()
-                                            .scheme("content")
-                                            .authority(NotificationImageProvider.getAuthority())
-                                            .appendPath("msg_media_raw")
-                                            .appendPath(currentAccount + "")
-                                            .appendPath(attach.getName())
-                                            .appendQueryParameter("final_path", attach.getAbsolutePath());
-                                    uri = _uri.build();
-                                } else {
-                                    uri = null;
                                 }
                                 if (uri != null) {
                                     msg.setData(mimeType, uri);
                                     messagingStyle.addMessage(msg);
-                                    Uri uriFinal = uri;
+                                    // the grant is kept, silent redraws of the same notification reuse it
                                     ApplicationLoader.applicationContext.grantUriPermission("com.android.systemui", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                    AndroidUtilities.runOnUIThread(() -> {
-                                        try {
-                                            ApplicationLoader.applicationContext.revokeUriPermission(uriFinal, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                        } catch (Exception e) {
-                                            FileLog.e(e);
-                                        }
-                                        try {
-                                            if (blurredAttach != null) {
-                                                blurredAttach.delete();
-                                            }
-                                        } catch (Exception e) {
-                                            FileLog.e(e);
-                                        }
-                                    }, 20_000);
 
                                     final String caption = replaceSpoilers(messageObject);
                                     if (!TextUtils.isEmpty(caption)) {
@@ -6156,6 +6136,56 @@ public class NotificationsController extends BaseController implements Notificat
             avatars.clear();
         }
         return new Pair<>(storiesCount, hidden);
+    }
+
+    private File getNotificationMediaFile(MessageObject messageObject) {
+        final TLRPC.MessageMedia media = MessageObject.getMedia(messageObject.messageOwner);
+        if (messageObject.isSticker()) {
+            final TLRPC.Document document = messageObject.getDocument();
+            File file = getFileLoader().getPathToAttach(document, false);
+            if (!file.exists()) {
+                file = getFileLoader().getPathToAttach(document, true);
+            }
+            return file.exists() ? file : null;
+        }
+        File file = getFileLoader().getPathToMessage(messageObject.messageOwner);
+        if (file.exists()) {
+            return file;
+        }
+        if (!(media instanceof TLRPC.TL_messageMediaPhoto) || media.photo == null) {
+            return null;
+        }
+        // any downloaded size is good enough for a notification, not only the largest one
+        File bestFile = null;
+        int bestSide = 0;
+        for (int a = 0, size = media.photo.sizes.size(); a < size; a++) {
+            final TLRPC.PhotoSize photoSize = media.photo.sizes.get(a);
+            final int side = Math.max(photoSize.w, photoSize.h);
+            if (photoSize instanceof TLRPC.TL_photoStrippedSize || photoSize instanceof TLRPC.TL_photoPathSize || side <= bestSide) {
+                continue;
+            }
+            file = getFileLoader().getPathToAttach(photoSize, false);
+            if (file.exists()) {
+                bestFile = file;
+                bestSide = side;
+            }
+        }
+        return bestFile;
+    }
+
+    private void loadNotificationMedia(MessageObject messageObject) {
+        final TLRPC.MessageMedia media = MessageObject.getMedia(messageObject.messageOwner);
+        if (messageObject.isSticker()) {
+            final TLRPC.Document document = messageObject.getDocument();
+            if (document != null && pendingMediaLoads.add(FileLoader.getAttachFileName(document))) {
+                getFileLoader().loadFile(document, messageObject, FileLoader.PRIORITY_NORMAL, 1);
+            }
+        } else if (media instanceof TLRPC.TL_messageMediaPhoto && media.photo != null && getDownloadController().canDownloadMedia(messageObject)) {
+            final TLRPC.PhotoSize photoSize = FileLoader.getClosestPhotoSizeWithSize(media.photo.sizes, AndroidUtilities.getPhotoSize());
+            if (photoSize != null && pendingMediaLoads.add(FileLoader.getAttachFileName(photoSize))) {
+                getFileLoader().loadFile(ImageLocation.getForPhoto(photoSize, media.photo), messageObject, "jpg", FileLoader.PRIORITY_NORMAL, 0);
+            }
+        }
     }
 
     public static Person.Builder loadRoundAvatar(long dialogId, File avatar, Person.Builder personBuilder) {
