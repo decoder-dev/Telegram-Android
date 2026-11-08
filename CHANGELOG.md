@@ -22,6 +22,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Changed
 
+- The sign-in screen always shows the proxy button, so a proxy or Auto MTProxy can be set up before signing in. Telegram showed it only once a proxy was on or after 5 seconds of failing to connect. The icon fills while a proxy or Auto MTProxy is in use.
 - BananaGram Extras follows the iOS layout: Ninja, Ghost, Privacy, Appearance, Chat list, Tab bar, Messages, Media, Profile, Network, with an icon per section. The new Appearance section holds the island, glass, glow, snow and chat look; Network holds keep-alive and the download and upload boosts. Long sections are split under headers, such as Display, Composer and links, Message menu, Reactions and stickers, Channels and gifts.
 - The AyuGram screen no longer repeats BananaGram switches: ghost mode and its packets, read after send, scheduled sending, the push service, ad hiding, local Premium and the marks live in BananaGram Extras. A one-time migration carries any value set on the AyuGram screen into every account.
 
