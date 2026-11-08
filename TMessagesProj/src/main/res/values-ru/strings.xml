@@ -771,4 +771,6 @@
     <string name="BananaConversionSaveEdits">Сначала сохраните отредактированное видео, затем выберите сохранённый файл для отправки кружком.</string>
     <string name="BananaRoundCaptionInfo">Видео будет обрезано до квадрата и длительности не более 60 секунд. Кружки отправляются без подписи. Продолжить?</string>
     <string name="BananaConvertedVoiceTitle">Голосовое сообщение</string>
+    <string name="NotificationReplySending">Отправка...</string>
+    <string name="NotificationReplyNotSent">Сообщение не отправлено</string>
 </resources>
