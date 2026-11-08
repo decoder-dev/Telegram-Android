@@ -2536,14 +2536,10 @@ public class ChannelColorActivity extends BaseFragment implements NotificationCe
 
     public void updateThemeColors() {
         SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("themeconfig", Activity.MODE_PRIVATE);
-        String dayThemeName = preferences.getString("lastDayTheme", "Blue");
-        if (Theme.getTheme(dayThemeName) == null || Theme.getTheme(dayThemeName).isDark()) {
-            dayThemeName = "Blue";
-        }
-        String nightThemeName = preferences.getString("lastDarkTheme", "Dark Blue");
-        if (Theme.getTheme(nightThemeName) == null || !Theme.getTheme(nightThemeName).isDark()) {
-            nightThemeName = "Dark Blue";
-        }
+        // BananaGram applies only its four palettes; Telegram's Blue and Dark Blue were silently ignored.
+        String[] bananaPair = Theme.bananaDayNightPair();
+        String dayThemeName = bananaPair[0];
+        String nightThemeName = bananaPair[1];
         Theme.ThemeInfo themeInfo = Theme.getActiveTheme();
         if (dayThemeName.equals(nightThemeName)) {
             if (themeInfo.isDark() || dayThemeName.equals("Dark Blue") || dayThemeName.equals("Night")) {

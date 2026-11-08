@@ -225,9 +225,10 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
             if (DialogsActivity.switchingTheme) return;
             DialogsActivity.switchingTheme = true;
 
-            // TODO: Generify this part, currently it's a clone of another theme switch toggle
-            String dayThemeName = "Blue";
-            String nightThemeName = "Night";
+            // BananaGram applies only its four palettes; Telegram's Blue and Night were silently ignored.
+            String[] bananaPair = Theme.bananaDayNightPair();
+            String dayThemeName = bananaPair[0];
+            String nightThemeName = bananaPair[1];
 
             Theme.ThemeInfo themeInfo;
             boolean toDark;

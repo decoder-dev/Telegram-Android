@@ -64,6 +64,12 @@ public final class BananaAutomaticProxy {
      * again every few seconds reconnects every account and never lets any route connect.
      */
     private static final long FAILURE_SWITCH_MIN_MS = 20L * 1000L;
+    /**
+     * Fallback checks in a row that may find the selected route answering while Telegram is still
+     * connecting through it. A route that answers is kept (the stall is the network or the
+     * handshake), but not for ever: after this many checks it counts as failed.
+     */
+    private static final int MAX_ALIVE_STALLS = 3;
     private static final int STORED_LIMIT = 40;
     /** Candidates dialed in one refresh. Kept at the concurrency cap so a pass cannot queue a second wave. */
     private static final int PROBE_LIMIT = 4;
@@ -105,6 +111,8 @@ public final class BananaAutomaticProxy {
     private static boolean listenersInstalled;
     private static boolean pendingProbe;
     private static boolean failureDrivenSwitch;
+    private static boolean verifyingCurrent;
+    private static int aliveStalls;
 
     private static int probeGeneration;
     private static int probesInFlight;
@@ -156,6 +164,8 @@ public final class BananaAutomaticProxy {
         refreshGeneration++;
         refreshing = false;
         pendingProbe = false;
+        verifyingCurrent = false;
+        aliveStalls = 0;
         lastAdded = new ArrayList<>();
         if (enabled) {
             // iOS clears the dwell stamp when the user turns the feature on.
@@ -501,9 +511,13 @@ public final class BananaAutomaticProxy {
     }
 
     private static void startProbe(List<SharedConfig.ProxyInfo> added) {
+        startProbe(added, false);
+    }
+
+    private static void startProbe(List<SharedConfig.ProxyInfo> added, boolean failureDriven) {
         cancelProbes();
         pendingProbe = false;
-        failureDrivenSwitch = false;
+        failureDrivenSwitch = failureDriven;
         if (!isEnabled() || added == null || added.isEmpty()) {
             lastAdded = new ArrayList<>();
             return;
@@ -593,7 +607,19 @@ public final class BananaAutomaticProxy {
         if (probeQueue == null) {
             return;
         }
-        maybeSwitch(probeQueue, failureDrivenSwitch);
+        boolean failureDriven = failureDrivenSwitch;
+        SharedConfig.ProxyInfo before = SharedConfig.currentProxy;
+        maybeSwitch(probeQueue, failureDriven);
+        if (failureDriven && SharedConfig.currentProxy == before && isEnabled() && canProbe()) {
+            // No live candidate in this pool: fetch fresh lists instead of waiting ten minutes
+            // on a dead route, and look again if Telegram is still stuck after that.
+            failureDrivenSwitch = false;
+            if (SystemClock.elapsedRealtime() - lastRefreshAt >= MIN_SWITCH_MS) {
+                refresh();
+            }
+            AndroidUtilities.cancelRunOnUIThread(FALLBACK);
+            AndroidUtilities.runOnUIThread(FALLBACK, FAILURE_SWITCH_MIN_MS);
+        }
     }
 
     private static void cancelProbes() {
@@ -627,12 +653,41 @@ public final class BananaAutomaticProxy {
             AndroidUtilities.runOnUIThread(FALLBACK, FAILURE_SWITCH_MIN_MS - sinceSwitch);
             return;
         }
-        failureDrivenSwitch = true;
-        if (lastAdded != null && !lastAdded.isEmpty()) {
-            maybeSwitch(lastAdded, true);
+        if (lastAdded == null || lastAdded.isEmpty() || verifyingCurrent) {
             return;
         }
-        failureDrivenSwitch = false;
+        // Check the selected route before leaving it. Switching on pings up to ten minutes old
+        // after any slow reconnect (a network change, a lift) dropped a working route, and a
+        // stale "fastest" candidate could be dead too, so the next fallback switched again.
+        final SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
+        if (current == null || current.settings == null || !isAutomatic(current)) {
+            startProbe(lastAdded, true);
+            return;
+        }
+        verifyingCurrent = true;
+        final int account = UserConfig.selectedAccount;
+        ConnectionsManager.getInstance(account).checkProxy(current.settings, time -> AndroidUtilities.runOnUIThread(() -> {
+            verifyingCurrent = false;
+            if (!isEnabled() || !canProbe() || SharedConfig.currentProxy != current) {
+                return;
+            }
+            current.availableCheckTime = System.currentTimeMillis();
+            current.available = time != -1;
+            current.ping = time == -1 ? 0 : time;
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxyCheckDone, current);
+            if (ConnectionsManager.getInstance(account).getConnectionState() != ConnectionsManager.ConnectionStateConnectingToProxy) {
+                aliveStalls = 0;
+                return;
+            }
+            if (current.available && ++aliveStalls < MAX_ALIVE_STALLS) {
+                AndroidUtilities.cancelRunOnUIThread(FALLBACK);
+                AndroidUtilities.runOnUIThread(FALLBACK, CONNECTION_FALLBACK_MS);
+                return;
+            }
+            aliveStalls = 0;
+            // Fresh pings for the candidates, then the fastest live one other than this route.
+            startProbe(lastAdded, true);
+        }));
     }
 
     private static void maybeSwitch(List<SharedConfig.ProxyInfo> probed, boolean failureDriven) {
@@ -667,6 +722,13 @@ public final class BananaAutomaticProxy {
         }
         long now = System.currentTimeMillis();
         boolean currentDown = failureDriven || !currentUsed || !current.available || current.ping <= 0;
+        int connectionState = ConnectionsManager.getInstance(UserConfig.selectedAccount).getConnectionState();
+        if (!currentDown && (connectionState == ConnectionsManager.ConnectionStateConnected
+                || connectionState == ConnectionsManager.ConnectionStateUpdating)) {
+            // A working connection is never dropped for a faster ping: every switch reconnects
+            // every account, which showed as the proxy suddenly falling off every ten minutes.
+            return;
+        }
         if (!currentDown) {
             if (now - lastSwitchAt < MIN_SWITCH_MS) {
                 return;
@@ -677,6 +739,7 @@ public final class BananaAutomaticProxy {
         }
         lastSwitchAt = now;
         failureDrivenSwitch = false;
+        aliveStalls = 0;
         android.content.SharedPreferences.Editor editor = MessagesController.getGlobalMainSettings().edit();
         editor.putBoolean("proxy_enabled", true);
         best.settings.toSharedPreferences(editor);

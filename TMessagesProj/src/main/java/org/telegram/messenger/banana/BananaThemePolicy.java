@@ -20,6 +20,24 @@ public final class BananaThemePolicy {
         return night ? GRAPHITE : CREAM;
     }
 
+    /**
+     * The palette a day/night switch moves to: Classic White and Black, Cream and Graphite pair up.
+     * Telegram's switches named Blue, Night and Dark Blue, which BananaGram never applies, so a tap did nothing.
+     */
+    public static String counterpart(String name) {
+        if (WHITE.equals(name)) return BLACK;
+        if (BLACK.equals(name)) return WHITE;
+        if (GRAPHITE.equals(name)) return CREAM;
+        return GRAPHITE;
+    }
+
+    /** Day and night palettes for a switch, from the palette in use and whether it is dark. */
+    public static String[] dayNightPair(String active, boolean activeDark) {
+        String current = migrate(active, activeDark);
+        String other = counterpart(current);
+        return activeDark ? new String[]{other, current} : new String[]{current, other};
+    }
+
     /** Retains the four published ordinals and migrates the retired glass palettes. */
     public static int paletteOrdinal(int value) {
         if (value == 5) return 3;
