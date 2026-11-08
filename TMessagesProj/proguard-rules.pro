@@ -11,6 +11,9 @@
 -keep class org.webrtc.* { *; }
 -keep class org.webrtc.audio.* { *; }
 -keep class org.webrtc.voiceengine.* { *; }
+# BananaGram keeps the whole package as before Telegram 13.2: Extras resolves R.string.BananaOpt_* by
+# name and AyuGram/BananaGram code reflects on messenger classes, which only a release build would break.
+-keep class org.telegram.messenger.* { *; }
 # org.telegram.messenger: only the names that native code and reflection resolve at runtime.
 # Before changing these rules see TMessagesProj/proguard-checklist.md and run Tools/r8_keep_check.py.
 # Static JNI exports Java_org_telegram_messenger_<Class>_<method> (Utilities, Intro, MediaController, MrzRecognizer).
