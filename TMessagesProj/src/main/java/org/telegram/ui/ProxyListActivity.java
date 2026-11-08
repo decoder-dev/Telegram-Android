@@ -718,7 +718,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
             connectionsHeaderRow = proxyStartRow = proxyEndRow = proxyAddRow = proxyShadowRow = deleteAllRow = -1;
             proxyList.clear();
             selectedItems.clear();
-            if (actionBar != null && actionBar.isActionModeShowed()) actionBar.hideActionMode();
+            if (simpleActionBar != null && simpleActionBar.isActionModeShowed()) simpleActionBar.hideActionMode();
             if (notify && listAdapter != null) listAdapter.notifyDataSetChanged();
             return;
         }

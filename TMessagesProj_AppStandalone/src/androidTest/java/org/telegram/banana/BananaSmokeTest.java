@@ -665,11 +665,11 @@ public class BananaSmokeTest {
                         break;
                     }
                 }
-                assertTrue("The manual proxy selection must enter action mode", screen.getActionBar().isActionModeShowed());
+                assertTrue("The manual proxy selection must enter action mode", screen.getSimpleActionBar().isActionModeShowed());
                 clickAutomaticProxy(list[0]);
             });
             await(instrumentation, () -> org.telegram.messenger.banana.BananaAutomaticProxy.isEnabled()
-                    && countProxyRows(list[0]) == 0 && list[0].getAdapter().getItemCount() == 4 && !screen.getActionBar().isActionModeShowed()
+                    && countProxyRows(list[0]) == 0 && list[0].getAdapter().getItemCount() == 4 && !screen.getSimpleActionBar().isActionModeShowed()
                     && !hasRenderedProxyRow(list[0]) && !list[0].isLayoutRequested() && !list[0].isComputingLayout()
                     && (list[0].getItemAnimator() == null || !list[0].getItemAnimator().isRunning()),
                     "Automatic mode must hide the list and clear manual selection immediately");
