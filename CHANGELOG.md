@@ -27,6 +27,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- The app no longer crashes when an update finishes downloading while BananaGram may not install apps yet. The download receiver lives on the application context and showed the permission dialog without a window; the dialog now opens only over a running screen, and Install in the updater asks again.
 - The image cache no longer crashes with ConcurrentModificationException when an image thread reorders it while another evicts; filter keys are kept under the same lock. Ported from Glassgram.
 - A bulletin shown with no activity window (app in the background) or while the activity closes is skipped instead of crashing with BadTokenException. Ported from Glassgram.
 - Opening a photo from the attachment sheet no longer redraws the whole gallery on every frame of the viewer's animation. Ported from Glassgram.
