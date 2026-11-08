@@ -1914,6 +1914,16 @@ public class AndroidUtilities {
             return false;
         }
         Context context = ApplicationLoader.applicationContext;
+        // Telegram keeps outgoing media in its cache, which falls back to the private cache dir
+        // when shared storage is unavailable, and AyuGram may keep archived media in no_backup.
+        // Official Telegram never rejected those; refusing them made photos and files fail to send.
+        File[] allowed = {context.getCacheDir(), new File(context.getNoBackupFilesDir(), "ayu-attachments")};
+        try {
+            for (File root : allowed) {
+                String canonical = root.getCanonicalPath();
+                if (pathString.startsWith(canonical + File.separator)) return false;
+            }
+        } catch (java.io.IOException | SecurityException unavailable) { return true; }
         File[] roots = {context.getDataDir(), context.createDeviceProtectedStorageContext().getDataDir(),
                 new File("/data/user/0", context.getPackageName()), new File("/data/user_de/0", context.getPackageName()),
                 new File("/data/data", context.getPackageName())};

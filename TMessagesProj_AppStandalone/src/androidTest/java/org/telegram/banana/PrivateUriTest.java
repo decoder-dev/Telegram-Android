@@ -39,6 +39,17 @@ public class PrivateUriTest {
         } finally {file.delete();}
     }
 
+    @Test public void privateCacheMediaCanBeUploaded() throws Exception {
+        fixture().delete();
+        // Outgoing photos fall back to the private cache when shared storage is unavailable.
+        File file=new File(ApplicationLoader.applicationContext.getCacheDir(),"audit-cache-"+UUID.randomUUID()+".jpg");
+        try(FileOutputStream output=new FileOutputStream(file)) {output.write(3);}
+        try(FileInputStream input=new FileInputStream(file)) {
+            assertFalse(AndroidUtilities.isInternalUri(Uri.fromFile(file)));
+            assertFalse(AndroidUtilities.isInternalFileDescriptor(input.getFD()));
+        } finally {file.delete();}
+    }
+
     @Test public void deviceProtectedStorageIsRejected() throws Exception {
         fixture().delete();
         File file=new File(ApplicationLoader.applicationContext.createDeviceProtectedStorageContext().getFilesDir(),"audit-device-"+UUID.randomUUID());

@@ -4636,6 +4636,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             }
         }
 
+        if (replyQuote != null && replyQuote.message != null && replyToMsg != null) {
+            replyToMsg = replyQuote.message;
+        }
+
         // user can't reply to deleted messages
         if (replyToMsg != null && replyToMsg.messageOwner != null && replyToMsg.messageOwner.ayuDeleted) {
             if ((!TextUtils.isEmpty(message) || !TextUtils.isEmpty(caption) || photo != null) && !TextUtils.isEmpty(replyToMsg.messageText)) {
@@ -11902,6 +11906,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                         sendMessageParams.sendMessageChatArguments = sendMessageChatArguments;
                                         sendMessageParams.effect_id = effectId;
                                         sendMessageParams.invert_media = invertMedia;
+                                        sendMessageParams.stars = info.stars;
                                         sendMessageParams.payStars = payStars;
                                         sendMessageParams.monoForumPeer = monoForumPeerId;
                                         sendMessageParams.suggestionParams = suggestionParams;
