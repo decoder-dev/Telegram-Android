@@ -35,6 +35,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 - With limited photo access on Android 14+, the media permission prompt no longer reopens at every start. Upstream PR 2226.
 - Media navigation actions are back in forum topics. Upstream PR 2206.
 - Notifications: no more re-creation jank with several chats, the status bar icon stays, notifications read elsewhere are dismissed, "Mark as read" acts at once, inline replies show as sent only after the server confirms, push texts get their formatting and photos and stickers are downloaded for the notification. Upstream PRs 2197–2203 by Zensonaton.
+- AV1 videos are converted before sending when this device can decode them, instead of going out untouched as files other phones may not play. Playback falls back to software AV1 decoders up to 1080p, and a failing AV1 decoder is skipped after three failures for 30 days instead of forever. Ported from Forkgram.
 - A locked Archive chat's notification shows neither its photo nor its caption. Photos are now downloaded for notifications, which would otherwise have exposed them.
 - The "change language" suggestion is offered once per language and never over a language you picked or a custom pack; switching a proxy on and off made it come back each time. Ported from Nagram.
 
