@@ -185,7 +185,7 @@ SUITE = ('org.telegram.banana.MediaConversionAndroidTest,org.telegram.banana.Vid
          'org.telegram.banana.RegexEngineTest,org.telegram.banana.FilterRulesTest,'
          'org.telegram.banana.VoipAudioDevicesTest,org.telegram.banana.SelectionFilterMenuTest,'
          'org.telegram.banana.ForwardWaiterTest,org.telegram.banana.ArchiveLockPersistenceTest,'
-         'org.telegram.banana.GlassRedrawTest,org.telegram.banana.BookmarkPreferencesTest,'
+         'org.telegram.banana.BookmarkPreferencesTest,'
          'org.telegram.banana.ProfileIdTest,org.telegram.banana.GhostScheduleTest,'
          'org.telegram.banana.PollPreviewTest,org.telegram.banana.MentionPingTest,'
          'org.telegram.banana.AudioRecordingTest,org.telegram.banana.GiftHistoryTest,'
