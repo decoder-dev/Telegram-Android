@@ -45,6 +45,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -106,6 +107,8 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
     private TextView startMessagingButton;
     private FrameLayout frameLayout2;
     private FrameLayout frameContainerView;
+    private FrameLayout proxyFrameLayout;
+    private org.telegram.ui.Components.ProxyDrawable proxyDrawable;
 
     private RLottieDrawable darkThemeDrawable;
 
@@ -198,6 +201,11 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
                 if (marginLayoutParams.topMargin != newTopMargin) {
                     marginLayoutParams.topMargin = newTopMargin;
                     themeFrameLayout.requestLayout();
+                }
+                MarginLayoutParams proxyParams = (MarginLayoutParams) proxyFrameLayout.getLayoutParams();
+                if (proxyParams.topMargin != newTopMargin) {
+                    proxyParams.topMargin = newTopMargin;
+                    proxyFrameLayout.requestLayout();
                 }
             }
         };
@@ -424,10 +432,23 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
 
         frameContainerView.addView(themeFrameLayout, LayoutHelper.createFrame(64, 64, Gravity.TOP | Gravity.RIGHT, 0, themeMargin, themeMargin, 0));
 
+        // BananaGram: proxies, Auto MTProxy included, can be set up before the phone number screen.
+        proxyFrameLayout = new FrameLayout(context);
+        ImageView proxyIconView = new ImageView(context);
+        proxyIconView.setImageDrawable(proxyDrawable = new org.telegram.ui.Components.ProxyDrawable(context));
+        proxyIconView.setScaleType(ImageView.ScaleType.CENTER);
+        proxyFrameLayout.addView(proxyIconView, LayoutHelper.createFrame(32, 32, Gravity.CENTER));
+        proxyFrameLayout.setContentDescription(LocaleController.getString(R.string.ProxySettings));
+        proxyFrameLayout.setOnClickListener(v -> presentFragment(new ProxyListActivity()));
+        frameContainerView.addView(proxyFrameLayout, LayoutHelper.createFrame(64, 64, Gravity.TOP | Gravity.RIGHT, 0, themeMargin, themeMargin + 52, 0));
+        updateProxyButton();
+
         fragmentView = scrollView;
 
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.suggestedLangpack);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.configLoaded);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.proxySettingsChanged);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didUpdateConnectionState);
         ConnectionsManager.getInstance(currentAccount).updateDcSettings();
         LocaleController.getInstance().loadRemoteLanguages(currentAccount);
         checkContinueText();
@@ -472,6 +493,8 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
         destroyed = true;
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.suggestedLangpack);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.configLoaded);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.proxySettingsChanged);
+        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.didUpdateConnectionState);
         MessagesController.getGlobalMainSettings().edit().putLong("intro_crashed_time", 0).apply();
     }
 
@@ -538,7 +561,20 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.suggestedLangpack || id == NotificationCenter.configLoaded) {
             checkContinueText();
+        } else if (id == NotificationCenter.proxySettingsChanged || id == NotificationCenter.didUpdateConnectionState) {
+            updateProxyButton();
         }
+    }
+
+    /** Filled while a proxy or Auto MTProxy carries the connection, as on the sign-in screen. */
+    private void updateProxyButton() {
+        if (proxyDrawable == null) {
+            return;
+        }
+        int state = ConnectionsManager.getInstance(currentAccount).getConnectionState();
+        boolean connected = state == ConnectionsManager.ConnectionStateConnected || state == ConnectionsManager.ConnectionStateUpdating;
+        boolean routed = org.telegram.messenger.SharedConfig.isProxyEnabled() || org.telegram.messenger.banana.BananaAutomaticProxy.isActive();
+        proxyDrawable.setConnected(routed, connected, true);
     }
 
     public IntroActivity setOnLogout() {
@@ -968,6 +1004,9 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
         startMessagingButton.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
         startMessagingButton.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(24), Color.TRANSPARENT, Theme.getColor(Theme.key_featuredStickers_addButtonPressed)));
         darkThemeDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_featuredStickers_addButton), PorterDuff.Mode.SRC_IN));
+        if (proxyDrawable != null) {
+            proxyDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_featuredStickers_addButton), PorterDuff.Mode.SRC_IN));
+        }
         bottomPages.invalidate();
         if (fromTheme) {
             if (eglThread != null) {
