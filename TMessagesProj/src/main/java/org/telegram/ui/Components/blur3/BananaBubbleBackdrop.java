@@ -15,9 +15,9 @@ import androidx.annotation.RequiresApi;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.MessageDrawable;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSource;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceWrapped;
 import org.telegram.ui.Components.chat.ViewPositionWatcher;
+import org.telegram.utils.glass.source.GlassSource;
+import org.telegram.utils.glass.source.GlassSourceWrapped;
 
 /**
  * A cell-owned lens over the wallpaper only. It never captures the chat/cell itself,
@@ -41,7 +41,7 @@ public final class BananaBubbleBackdrop {
     private long recordedAt;
     private static final long MAX_REUSE_MS = 1000;
 
-    public boolean draw(Canvas canvas, View cell, View root, BlurredBackgroundSource source,
+    public boolean draw(Canvas canvas, View cell, View root, GlassSource source,
                         MessageDrawable shape, MessageDrawable.PathDrawParams cache) {
         if (!canvas.isHardwareAccelerated() || source == null || root == null || root == cell
                 || !ViewPositionWatcher.computeRectInParent(cell, root, position)) return false;
@@ -55,8 +55,8 @@ public final class BananaBubbleBackdrop {
             recordedWidth = -1;
         }
         float left = position.left + bounds.left, top = position.top + bounds.top;
-        Object sourceKey = source instanceof BlurredBackgroundSourceWrapped
-                ? ((BlurredBackgroundSourceWrapped) source).getSource() : source;
+        Object sourceKey = source instanceof GlassSourceWrapped
+                ? ((GlassSourceWrapped) source).getSource() : source;
         long now = SystemClock.uptimeMillis();
         // Re-recording every frame made HWUI recompute this bubble's blur and refraction each
         // frame, even when only a typing dot or an emoji elsewhere in the chat animated.
@@ -75,9 +75,10 @@ public final class BananaBubbleBackdrop {
             }
             lens.setPosition(0, 0, width, height);
             float radius = Math.min(AndroidUtilities.dpf2(18), Math.min(width, height) / 2f);
-            effect.update(0, 0, width, height, radius, radius, radius, radius,
+            effect.update(width, height, 0, 0, radius, radius, radius, radius,
                     Math.max(1, Math.min(AndroidUtilities.dpf2(9), Math.min(width, height) / 5f)),
-                    0.75f, 1.5f, 0);
+                    0.75f, 1.5f, 0,
+                    0, 0, 1);
             recording = lens.beginRecording(width, height);
             try {
                 recording.drawRenderNode(backdrop);
