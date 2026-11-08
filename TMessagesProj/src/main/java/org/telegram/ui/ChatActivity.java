@@ -18040,7 +18040,8 @@ public class ChatActivity extends BaseFragment implements
         // Refresh after PhotoViewer stops hiding the chat, including its closing animation.
         private final Runnable bananaRecaptureGlass = () -> {
             if (isAttachedToWindow() && isShown()) {
-                invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_POSITIONS | BLUR_INVALIDATE_FLAG_SCROLL);
+                invalidateGlassSources();
+                invalidateAllGlassAttachedViews();
                 if (chatListView != null) chatListView.invalidate();
             }
         };
@@ -18093,8 +18094,7 @@ public class ChatActivity extends BaseFragment implements
                     if (chatActivityEnterView != null) {
                         chatActivityEnterView.onAdjustPanTransitionEnd();
                     }
-                    invalidateMergedVisibleBlurredPositionsAndSources(
-                            BLUR_INVALIDATE_FLAG_POSITIONS | BLUR_INVALIDATE_FLAG_SCROLL | BLUR_INVALIDATE_FLAG_CLIP);
+                    invalidateGlassSources();
                     if (mentionContainer != null) {
                         // mentionContainer.onPanTransitionEnd();
                     }

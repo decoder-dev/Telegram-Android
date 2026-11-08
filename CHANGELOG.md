@@ -20,6 +20,19 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 - Track disappeared profile gifts using opt-in, private, bounded complete-list snapshots. Present historical gifts separately with no ownership actions; reconcile reappearances and upgrades, and clear the cache on logout.
 - Refresh the pinned iOS settings inventory to 185 fields. Cross-source audit and physical-device/authenticated acceptance remain explicitly tracked; Kotlin/Rust work waits for the audit.
 
+### Telegram 13.2.1
+
+- Based on official Telegram 13.2.0 (7280) and 13.2.1 (7291). BananaGram's poll-results preview, seconds in call times, edited/deleted marks, hidden badges and visual labels in profiles, and the bubble glass were moved onto Telegram's reworked message cell, profile header and glass sources.
+- Restored Telegram code that an old AyuGram port had dropped: messages re-lay out when their effect or the side menu changes, and stale timers and sticker-set icons are released; clearing the local database clears poll mentions again.
+
+### Fixed
+
+- The image cache no longer crashes with ConcurrentModificationException when an image thread reorders it while another evicts; filter keys are kept under the same lock. Ported from Glassgram.
+- A bulletin shown with no activity window (app in the background) or while the activity closes is skipped instead of crashing with BadTokenException. Ported from Glassgram.
+- Opening a photo from the attachment sheet no longer redraws the whole gallery on every frame of the viewer's animation. Ported from Glassgram.
+- Message text drawn at an animation alpha outside 0..1 no longer crashes. Ported from Glassgram.
+- The "change language" suggestion is offered once per language and never over a language you picked or a custom pack; switching a proxy on and off made it come back each time. Ported from Nagram.
+
 ### Changed
 
 - The welcome screen and the sign-in screen always show a proxy button, so a proxy or Auto MTProxy can be set up before signing in. Telegram showed it only once a proxy was on or after 5 seconds of failing to connect. The icon fills while a proxy or Auto MTProxy is in use.

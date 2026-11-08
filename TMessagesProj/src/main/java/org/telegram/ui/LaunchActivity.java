@@ -8813,7 +8813,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             });
             localeDialog = showAlertDialog(builder);
             SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-            preferences.edit().putString("language_showed2", systemLang).commit();
+            // Remember every suggested language already offered, not only the last one.
+            java.util.HashSet<String> shownLangs = new java.util.HashSet<>(preferences.getStringSet(LANGUAGE_SHOWED_SET_KEY, new java.util.HashSet<>()));
+            String previousShowedLang = preferences.getString("language_showed2", "");
+            if (!TextUtils.isEmpty(previousShowedLang)) {
+                shownLangs.add(previousShowedLang);
+            }
+            shownLangs.add(systemLang);
+            preferences.edit().putString("language_showed2", systemLang).putStringSet(LANGUAGE_SHOWED_SET_KEY, shownLangs).commit();
         } catch (Exception e) {
             FileLog.e(e);
         }
@@ -8838,6 +8845,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         canvas.restore();
     }
 
+    private static final String LANGUAGE_SHOWED_SET_KEY = "banana_language_showed_set";
+
     private void showLanguageAlert(boolean force) {
         if (!UserConfig.getInstance(currentAccount).isClientActivated()) {
             return;
@@ -8854,6 +8863,19 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     FileLog.d("alert already showed for " + showedLang);
                 }
                 return;
+            }
+            // The server suggests a language by IP, so switching a proxy on and off flips the suggestion
+            // and the alert came back every time. Offer each suggestion once, and never over a language
+            // the user picked or a custom language pack. (Ported from Nagram 39989ea0d.)
+            if (!force) {
+                if (preferences.getStringSet(LANGUAGE_SHOWED_SET_KEY, java.util.Collections.emptySet()).contains(systemLang)) {
+                    return;
+                }
+                final LocaleController.LocaleInfo currentInfo = LocaleController.getInstance().getCurrentLocaleInfo();
+                if (preferences.getString("language", null) != null
+                        || currentInfo != null && (currentInfo.isUnofficial() || currentInfo.isLocal())) {
+                    return;
+                }
             }
 
             final LocaleController.LocaleInfo[] infos = new LocaleController.LocaleInfo[2];

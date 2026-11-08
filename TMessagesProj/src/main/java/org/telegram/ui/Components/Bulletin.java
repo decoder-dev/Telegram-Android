@@ -2571,8 +2571,15 @@ public class Bulletin {
 
         @Override
         public void show() {
-            if (!AndroidUtilities.isSafeToShow(getContext())) return;
-            super.show();
+            // The window needs a running activity's token: made with the application's context
+            // (BulletinFactory.global() with no screen open) or as the activity closes, it is not
+            // shown rather than taking the app down.
+            if (AndroidUtilities.findActivity(getContext()) == null || !AndroidUtilities.isSafeToShow(getContext())) return;
+            try {
+                super.show();
+            } catch (WindowManager.BadTokenException e) {
+                FileLog.e(e);
+            }
         }
 
         private void applyInsets(Insets insets) {
