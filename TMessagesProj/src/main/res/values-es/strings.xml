@@ -1316,4 +1316,6 @@
     <string name="RemindDayYearAt">\'Recordar el\' d \'de\' MMM \'de\' yyyy \'a las\' HH:mm</string>
     <string name="BotsMenuTitle">Menu</string>
     <string name="Understood">👍 Entendido</string>
+    <string name="NotificationReplySending">Enviando...</string>
+    <string name="NotificationReplyNotSent">Mensaje no enviado</string>
 </resources>
