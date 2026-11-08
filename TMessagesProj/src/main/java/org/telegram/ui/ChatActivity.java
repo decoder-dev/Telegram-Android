@@ -40555,7 +40555,7 @@ public class ChatActivity extends BaseFragment implements
 
     private class ChatMessageCellDelegate implements ChatMessageCell.ChatMessageCellDelegate {
         @Override
-        public BlurredBackgroundSource getBananaWallpaperSource() {
+        public org.telegram.utils.glass.source.GlassSource getBananaWallpaperSource() {
             return navbarContentSourceWallpaper;
         }
 

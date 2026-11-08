@@ -562,7 +562,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     public interface ChatMessageCellDelegate {
-        default org.telegram.ui.Components.blur3.source.BlurredBackgroundSource getBananaWallpaperSource() { return null; }
+        default org.telegram.utils.glass.source.GlassSource getBananaWallpaperSource() { return null; }
         default View getBananaWallpaperRoot() { return null; }
 
         default boolean isReplyOrSelf() {
@@ -15570,7 +15570,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && org.telegram.messenger.banana.BananaHooks.glassBubbles(currentAccount)
                 && org.telegram.messenger.LiteMode.isEnabled(org.telegram.messenger.LiteMode.FLAG_LIQUID_GLASS)) {
-            org.telegram.ui.Components.blur3.source.BlurredBackgroundSource source = delegate.getBananaWallpaperSource();
+            org.telegram.utils.glass.source.GlassSource source = delegate.getBananaWallpaperSource();
             View root = delegate.getBananaWallpaperRoot();
             if (source != null && root != null) {
                 try {
