@@ -774,12 +774,12 @@ public class BananaSmokeTest {
                 assertEquals(LocaleController.getString(label), Theme.getActiveTheme().getName());
             });
             assertHeaderContrast(instrumentation, screen);
-            instrumentation.runOnMainSync(() -> {
-                assertVisibleRowsUseActivePalette(screen);
-                LaunchActivity host = (LaunchActivity) screen.getParentActivity();
-                assertEquals("The rendered navigation strip must follow the current palette after the dialog closes",
-                        screen.getThemedColor(Theme.key_windowBackgroundGray), host.drawerLayoutContainer.getInternalNavbarPaint().getColor());
-            });
+            instrumentation.runOnMainSync(() -> assertVisibleRowsUseActivePalette(screen));
+            // Telegram 13.2 switches the palette with a reveal: the navigation strip is held until the
+            // circle reaches the bottom of the screen, then follows the new palette.
+            LaunchActivity host = (LaunchActivity) screen.getParentActivity();
+            await(instrumentation, () -> screen.getThemedColor(Theme.key_windowBackgroundGray) == host.drawerLayoutContainer.getInternalNavbarPaint().getColor(),
+                    "The rendered navigation strip must follow the current palette " + name);
             assertEveryRowFits(instrumentation, screen);
             instrumentation.runOnMainSync(() -> screen.listView.layoutManager.scrollToPositionWithOffset(0, 0));
             await(instrumentation, () -> screen.listView.findViewByPosition(0) != null && !screen.listView.canScrollVertically(-1),
