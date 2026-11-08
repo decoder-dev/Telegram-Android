@@ -58,12 +58,19 @@ public final class BananaSessionBackup {
         return snapshot;
     }
     private static void verifyIdentity(SessionBackupCodec.Snapshot snapshot) throws IOException {
-        Object encoded = snapshot.preferences.get("user"); if (!(encoded instanceof String)) throw new IOException("User missing");
-        SerializedData data = new SerializedData(android.util.Base64.decode((String) encoded, android.util.Base64.DEFAULT));
+        if (userId(snapshot.preferences.get("user")) != snapshot.owner) throw new IOException("Session owner mismatch");
+    }
+    /** The id in a serialized "user" preference, or 0. Works before UserConfig is loaded. */
+    private static long userId(Object encoded) {
+        if (!(encoded instanceof String)) return 0;
+        SerializedData data = null;
         try {
+            data = new SerializedData(android.util.Base64.decode((String) encoded, android.util.Base64.DEFAULT));
             TLRPC.User user = TLRPC.User.TLdeserialize(data, data.readInt32(true), true);
-            if (user == null || user.id != snapshot.owner) throw new IOException("Session owner mismatch");
-        } finally { data.cleanup(); }
+            return user != null ? user.id : 0;
+        } catch (Exception broken) {
+            return 0;
+        } finally { if (data != null) data.cleanup(); }
     }
     public static void schedule(int account) {
         synchronized (pending) {
@@ -141,6 +148,7 @@ public final class BananaSessionBackup {
         if (slot < 0) throw new IOException("No free account slot");
         byte[] plain = SessionBackupCodec.encode(snapshot);
         try {
+            // One import is staged at a time: the confirmation dialog follows each import at once.
             for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) new AtomicFile(new File(directory(), "pending-" + i + ".bin")).delete();
             atomicWrite(new File(directory(), "pending-" + slot + ".bin"), SessionBackupCodec.seal(plain, deviceKey(), new byte[16]));
         } finally { Arrays.fill(plain, (byte) 0); }
@@ -163,20 +171,41 @@ public final class BananaSessionBackup {
         });
     }
 
+    /** Failed applications of one staged restore before it is dropped. */
+    private static final int MAX_RESTORE_ATTEMPTS = 3;
+
     /** Called once before native libraries/UserConfig initialize after a confirmed restart. */
     public static void applyPending() {
-        for (int slot = 0; slot < UserConfig.MAX_ACCOUNT_COUNT; slot++) {
-            File staged = new File(directory(), "restore-" + slot + ".bin"); if (!staged.isFile()) continue;
+        // A pending import is confirmed within the process that staged it; one left from a
+        // process that died with the confirmation dialog open can never be confirmed.
+        for (int slot = 0; slot < UserConfig.MAX_ACCOUNT_COUNT; slot++) new AtomicFile(new File(directory(), "pending-" + slot + ".bin")).delete();
+        SharedPreferences attempts = ApplicationLoader.applicationContext.getSharedPreferences("bananaSessionRestore", Context.MODE_PRIVATE);
+        for (int stagedSlot = 0; stagedSlot < UserConfig.MAX_ACCOUNT_COUNT; stagedSlot++) {
+            File staged = new File(directory(), "restore-" + stagedSlot + ".bin"); if (!staged.isFile()) continue;
             byte[] plain = null;
+            boolean done = false;
             try {
-                // A restore never overwrites an account added between staging and restart.
                 plain = SessionBackupCodec.open(read(staged), deviceKey());
                 SessionBackupCodec.Snapshot snapshot = SessionBackupCodec.decode(plain); verifyIdentity(snapshot);
-                if (preferences(slot).contains("user")) {
-                    if (!java.util.Objects.equals(preferences(slot).getString("user", null), snapshot.preferences.get("user"))) continue;
-                    // A crash after preference commit can finish selecting this same restored account.
-                    if (preferences(0).edit().putInt("selectedAccount", slot).commit()) new AtomicFile(staged).delete();
+                int slot = stagedSlot;
+                int present = -1;
+                for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+                    if (userId(preferences(i).getString("user", null)) == snapshot.owner) { present = i; break; }
+                }
+                if (present >= 0) {
+                    // Already signed in, by an earlier attempt that crashed after committing or by
+                    // a manual sign-in since staging. Select it; never add a second copy.
+                    preferences(0).edit().putInt("selectedAccount", present).commit();
+                    done = true;
                     continue;
+                }
+                if (preferences(slot).contains("user")) {
+                    // A restore never overwrites an account added between staging and restart: use another free slot.
+                    slot = -1;
+                    for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+                        if (!preferences(i).contains("user") && (i == stagedSlot || !new File(directory(), "restore-" + i + ".bin").isFile())) { slot = i; break; }
+                    }
+                    if (slot < 0) throw new IOException("No free account slot");
                 }
                 atomicWrite(new File(configDirectory(slot), "tgnet.dat"), snapshot.network);
                 new File(configDirectory(slot), "tgnet.dat.bak").delete();
@@ -191,9 +220,21 @@ public final class BananaSessionBackup {
                 }
                 if (!editor.commit()) throw new IOException("Cannot restore preferences");
                 if (!preferences(0).edit().putInt("selectedAccount", slot).commit()) throw new IOException("Cannot select restored account");
-                new AtomicFile(staged).delete();
-            } catch (Exception failure) { /* Keep the authenticated staged backup for retry. */ }
-            finally { if (plain != null) Arrays.fill(plain, (byte) 0); }
+                done = true;
+            } catch (Exception failure) {
+                // Keep the staged backup for a retry on the next launch, but not forever: a
+                // backup that cannot be opened (a lost keystore key) would otherwise be retried on every start.
+                String key = "attempts" + stagedSlot;
+                int failed = attempts.getInt(key, 0) + 1;
+                if (failed >= MAX_RESTORE_ATTEMPTS) done = true;
+                else attempts.edit().putInt(key, failed).commit();
+            } finally {
+                if (plain != null) Arrays.fill(plain, (byte) 0);
+                if (done) {
+                    new AtomicFile(staged).delete();
+                    attempts.edit().remove("attempts" + stagedSlot).commit();
+                }
+            }
         }
     }
     @SuppressWarnings("unchecked")

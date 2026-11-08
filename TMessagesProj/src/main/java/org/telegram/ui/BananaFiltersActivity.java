@@ -137,7 +137,8 @@ public final class BananaFiltersActivity extends BananaSettingsFragment {
                 }).create());
     }
     private void previewImport(String json) {
-        if (destroyed || !store.isCurrent()) return;
+        // Also reached from an asynchronous download, which can finish after the activity went away.
+        if (destroyed || !store.isCurrent() || getParentActivity() == null) return;
         try {
             FilterRules previous = store.rules(), preview = previous.merge(json);
             String description = LocaleController.formatString(R.string.BananaFiltersPreviewInfo, previous.rules.size(), preview.rules.size());
@@ -180,6 +181,7 @@ public final class BananaFiltersActivity extends BananaSettingsFragment {
                 .setPositiveButton(text(R.string.OK), null).create());
     }
     private void error() {
+        if (destroyed || getParentActivity() == null) return;
         showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider()).setMessage(text(R.string.BananaFiltersInvalidData))
                 .setPositiveButton(text(R.string.OK), null).create());
     }
