@@ -383,15 +383,31 @@ public class UpdaterUtils {
         } else {
             fileUri = Uri.fromFile(file);
         }
+        // The download receiver lives on the application context, which has no window: a dialog needs a
+        // running activity's token, or show() throws BadTokenException after the download finishes.
+        final android.app.Activity activity = AndroidUtilities.getActivity(context);
+        final boolean activityRunning = activity != null && AndroidUtilities.isActivityRunning(activity);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !ApplicationLoader.applicationContext.getPackageManager().canRequestPackageInstalls()) {
-            AlertsCreator.createApkRestrictedDialog(context, null).show();
+            // The verified file stays; Install in the updater asks again once the app is on screen.
+            if (activityRunning) {
+                try {
+                    AlertsCreator.createApkRestrictedDialog(activity, null).show();
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+            }
             return;
         }
         if (fileUri != null) {
             install.setDataAndType(fileUri, "application/vnd.android.package-archive");
             install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-            if (install.resolveActivity(context.getPackageManager()) != null) {
-                context.startActivity(install);
+            final Context launcher = activityRunning ? activity : context;
+            try {
+                if (install.resolveActivity(launcher.getPackageManager()) != null) {
+                    launcher.startActivity(install);
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
             }
         }
     }
