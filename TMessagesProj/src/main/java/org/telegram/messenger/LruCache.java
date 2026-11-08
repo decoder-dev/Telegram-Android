@@ -66,17 +66,22 @@ public class LruCache<T> {
     }
 
     public ArrayList<String> getFilterKeys(String key) {
-        ArrayList<String> arr = mapFilters.get(key);
-        if (arr != null) {
-            return new ArrayList<>(arr);
+        synchronized (this) {
+            ArrayList<String> arr = mapFilters.get(key);
+            if (arr != null) {
+                return new ArrayList<>(arr);
+            }
+            return null;
         }
-        return null;
     }
 
     public void moveToFront(String key) {
-        T value = map.remove(key);
-        if (value != null) {
-            map.put(key, value);
+        // The image loading thread moves entries while the main thread may walk the map to evict.
+        synchronized (this) {
+            T value = map.remove(key);
+            if (value != null) {
+                map.put(key, value);
+            }
         }
     }
 
@@ -98,17 +103,17 @@ public class LruCache<T> {
             if (previous != null) {
                 size -= safeSizeOf(key, previous);
             }
-        }
 
-        String[] args = key.split("@");
-        if (args.length > 1) {
-            ArrayList<String> arr = mapFilters.get(args[0]);
-            if (arr == null) {
-                arr = new ArrayList<>();
-                mapFilters.put(args[0], arr);
-            }
-            if (!arr.contains(args[1])) {
-                arr.add(args[1]);
+            String[] args = key.split("@");
+            if (args.length > 1) {
+                ArrayList<String> arr = mapFilters.get(args[0]);
+                if (arr == null) {
+                    arr = new ArrayList<>();
+                    mapFilters.put(args[0], arr);
+                }
+                if (!arr.contains(args[1])) {
+                    arr.add(args[1]);
+                }
             }
         }
 
@@ -125,6 +130,10 @@ public class LruCache<T> {
      *     to evict even 0-sized elements.
      */
     private void trimToSize(int maxSize, String justAdded) {
+        // entryRemoved runs after the walk: it may use the cache, and an eviction during the walk
+        // threw ConcurrentModificationException.
+        ArrayList<String> removedKeys = null;
+        ArrayList<T> removedValues = null;
         synchronized (this) {
             Iterator<HashMap.Entry<String, T>> iterator = map.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -152,7 +161,17 @@ public class LruCache<T> {
                     }
                 }
 
-                entryRemoved(true, key, value, null);
+                if (removedKeys == null) {
+                    removedKeys = new ArrayList<>();
+                    removedValues = new ArrayList<>();
+                }
+                removedKeys.add(key);
+                removedValues.add(value);
+            }
+        }
+        if (removedKeys != null) {
+            for (int i = 0; i < removedKeys.size(); i++) {
+                entryRemoved(true, removedKeys.get(i), removedValues.get(i), null);
             }
         }
     }
@@ -172,21 +191,20 @@ public class LruCache<T> {
             previous = map.remove(key);
             if (previous != null) {
                 size -= safeSizeOf(key, previous);
+                String[] args = key.split("@");
+                if (args.length > 1) {
+                    ArrayList<String> arr = mapFilters.get(args[0]);
+                    if (arr != null) {
+                        arr.remove(args[1]);
+                        if (arr.isEmpty()) {
+                            mapFilters.remove(args[0]);
+                        }
+                    }
+                }
             }
         }
 
         if (previous != null) {
-            String[] args = key.split("@");
-            if (args.length > 1) {
-                ArrayList<String> arr = mapFilters.get(args[0]);
-                if (arr != null) {
-                    arr.remove(args[1]);
-                    if (arr.isEmpty()) {
-                        mapFilters.remove(args[0]);
-                    }
-                }
-            }
-
             entryRemoved(false, key, previous, null);
         }
 
@@ -194,7 +212,9 @@ public class LruCache<T> {
     }
     
     public boolean contains(String key){
-    	return map.containsKey(key);
+        synchronized (this) {
+            return map.containsKey(key);
+        }
     }
 
     /**

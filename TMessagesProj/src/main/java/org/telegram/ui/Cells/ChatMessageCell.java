@@ -13927,9 +13927,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     public void drawMessageText(float textX, float textY, Canvas canvas, ArrayList<MessageObject.TextLayoutBlock> textLayoutBlocks, float rtlOffset, boolean origin, float alpha, boolean drawAllBlocks, boolean drawOnlyText, boolean caption, boolean explanation) {
-        if (textLayoutBlocks == null || textLayoutBlocks.isEmpty() || alpha == 0) {
+        if (textLayoutBlocks == null || textLayoutBlocks.isEmpty() || alpha <= 0) {
             return;
         }
+        // An animation's alpha past 1 would throw in ColorUtils.setAlphaComponent below.
+        alpha = Math.min(alpha, 1f);
 
         int firstVisibleBlockNum;
         int lastVisibleBlockNum;

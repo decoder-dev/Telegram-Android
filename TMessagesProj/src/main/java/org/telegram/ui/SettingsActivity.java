@@ -809,7 +809,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         items.add(SettingCell.Factory.of(8, IconBackgroundColors.CYAN.top, IconBackgroundColors.CYAN.bottom, R.drawable.settings_devices, getString(R.string.SettingsDevices), getString(R.string.SettingsDevicesInfo)));
         items.add(SettingCell.Factory.of(9, IconBackgroundColors.ORANGE_DEEP.top, IconBackgroundColors.ORANGE_DEEP.bottom, R.drawable.settings_power, getString(R.string.SettingsPowerSaving), getString(R.string.SettingsPowerSavingInfo)));
         items.add(SettingCell.Factory.of(10, IconBackgroundColors.PURPLE.top, IconBackgroundColors.PURPLE.bottom, R.drawable.settings_language, getString(R.string.SettingsLanguage), LocaleController.getCurrentLanguageName()));
-        items.add(SettingCell.Factory.of(27, IconBackgroundColors.ORANGE.top, IconBackgroundColors.ORANGE.bottom, R.drawable.settings_features, getString(R.string.BananaExtras), getString(R.string.BananaExtrasInfo)));
+        items.add(SettingCell.Factory.of(BANANA_EXTRAS_ID, IconBackgroundColors.ORANGE.top, IconBackgroundColors.ORANGE.bottom, R.drawable.settings_features, getString(R.string.BananaExtras), getString(R.string.BananaExtrasInfo)));
 
         items.add(UItem.asShadow(null));
         if (!walletAbove && getMessagesController().config.walletAvailable.get()) {
@@ -883,6 +883,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         }
     }
 
+    // Telegram 13.2 took 27 for the header settings.
+    private static final int BANANA_EXTRAS_ID = 1027;
+
     private void onClick(UItem item, View view, int position, float x, float y) {
         if (item.object instanceof TLRPC.TL_attachMenuBot) {
             TLRPC.TL_attachMenuBot attachMenuBot = (TLRPC.TL_attachMenuBot) item.object;
@@ -923,7 +926,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             return;
         }
         switch (item.id) {
-            case 27:
+            case BANANA_EXTRAS_ID:
                 presentSettingFragment(new BananaSettingsActivity(currentAccount));
                 break;
             case 1:
