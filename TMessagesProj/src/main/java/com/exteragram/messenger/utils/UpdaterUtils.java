@@ -273,15 +273,20 @@ public class UpdaterUtils {
         Matcher a = RELEASE_VERSION.matcher(left);
         Matcher b = RELEASE_VERSION.matcher(right);
         if (!a.matches() || !b.matches()) return 0;
-        for (int i = 1; i <= 3; i++) {
-            int result = Integer.compare(Integer.parseInt(a.group(i)), Integer.parseInt(b.group(i)));
-            if (result != 0) return result;
+        try {
+            for (int i = 1; i <= 3; i++) {
+                int result = Integer.compare(Integer.parseInt(a.group(i)), Integer.parseInt(b.group(i)));
+                if (result != 0) return result;
+            }
+            boolean aRc = a.group(4) != null;
+            boolean bRc = b.group(4) != null;
+            if (aRc != bRc) return aRc ? -1 : 1;
+            if (!aRc) return 0;
+            return Integer.compare(Integer.parseInt(a.group(4)), Integer.parseInt(b.group(4)));
+        } catch (NumberFormatException overflow) {
+            // One release tag with an out-of-range number must not fail the whole check.
+            return 0;
         }
-        boolean aRc = a.group(4) != null;
-        boolean bRc = b.group(4) != null;
-        if (aRc != bRc) return aRc ? -1 : 1;
-        if (!aRc) return 0;
-        return Integer.compare(Integer.parseInt(a.group(4)), Integer.parseInt(b.group(4)));
     }
 
     public static void downloadApk(Context context, String link, String title) {
