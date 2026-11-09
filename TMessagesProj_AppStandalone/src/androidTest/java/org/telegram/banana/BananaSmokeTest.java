@@ -739,10 +739,12 @@ public class BananaSmokeTest {
 
     private static void assertHeaderContrast(Instrumentation instrumentation, BananaSettingsActivity screen) {
         instrumentation.runOnMainSync(() -> {
-            int background = screen.getActionBar().getBackgroundColor();
-            int title = screen.getActionBar().getTitleTextView().getTextColor();
-            assertEquals("Extras must use the application's header surface", Theme.getColor(Theme.key_actionBarDefault), background);
-            assertEquals(Theme.getColor(Theme.key_actionBarDefaultTitle), title);
+            org.telegram.ui.ActionBar.SimpleActionBar header = screen.getSimpleActionBar();
+            assertNotNull("Extras must use the simple glass header", header);
+            // The glass header is see-through: its title sits on the screen background.
+            int background = screen.getThemedColor(Theme.key_windowBackgroundGray);
+            int title = header.getTitleTextView().getTextColor();
+            assertEquals(screen.getThemedColor(Theme.key_windowBackgroundWhiteBlackText), title);
             assertTrue("The actual rendered header must keep WCAG AA contrast",
                     androidx.core.graphics.ColorUtils.calculateContrast(title, background) >= 4.5);
         });
@@ -764,7 +766,7 @@ public class BananaSmokeTest {
                 carousel.selectTheme(Theme.getTheme(name));
             });
             await(instrumentation, () -> name.equals(Theme.getActiveTheme().name)
-                    && screen.getActionBar().getTitleTextView().getTextColor() == Theme.getColor(Theme.key_actionBarDefaultTitle)
+                    && screen.getSimpleActionBar().getTitleTextView().getTextColor() == screen.getThemedColor(Theme.key_windowBackgroundWhiteBlackText)
                     && screen.getParentLayout().getThemeAnimationValue() >= .999f,
                     "The open Extras screen must finish applying " + name);
             instrumentation.waitForIdleSync();
