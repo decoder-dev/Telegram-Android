@@ -1353,6 +1353,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_SEND_AS_ROUND = 124;
     public final static int OPTION_SEND_AS_VOICE = 125;
     public final static int OPTION_SEND_AS_AUDIO = 126;
+    public final static int OPTION_COPY_PHOTO = 127;
     private BananaMediaConverter.Job bananaMediaConversion;
     private AlertDialog bananaMediaProgress;
 
@@ -7059,6 +7060,10 @@ public class ChatActivity extends BaseFragment implements
                         scrollingChatListView = true;
                     } else if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
                         pollHintCell = null;
+                        if (chatActivityEnterView != null && chatActivityEnterView.isKeyboardVisible()
+                                && org.telegram.messenger.banana.BananaHooks.hideKeyboardOnChatScroll(currentAccount)) {
+                            chatActivityEnterView.closeKeyboard();
+                        }
                         wasManualScroll = true;
                         scrollingFloatingDate = true;
                         scrollingFloatingTopic = true;
@@ -32240,6 +32245,7 @@ public class ChatActivity extends BaseFragment implements
                     switch (option) {
                         case OPTION_SAVE_TO_GALLERY:
                         case OPTION_SAVE_TO_GALLERY2:
+                        case OPTION_COPY_PHOTO:
                         case OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC:
                         case OPTION_SHARE:
                         case OPTION_FORWARD:
@@ -35737,6 +35743,24 @@ public class ChatActivity extends BaseFragment implements
                     }
                 }
                 org.telegram.messenger.banana.BananaHooks.shareMessageShot(getParentActivity(), shotCell);
+                break;
+            }
+            case OPTION_COPY_PHOTO: {
+                if (selectedObject != null) {
+                    String attachPath = selectedObject.messageOwner.attachPath;
+                    File photo = !TextUtils.isEmpty(attachPath) && new File(attachPath).exists()
+                            ? new File(attachPath)
+                            : getFileLoader().getPathToMessage(selectedObject.messageOwner);
+                    org.telegram.messenger.banana.PhotoClipboard.copy(photo, () -> {
+                        if (AndroidUtilities.shouldShowClipboardToast() && getParentActivity() != null) {
+                            BulletinFactory.of(this).createCopyBulletin(LocaleController.getString(R.string.BananaPhotoCopied), themeDelegate).show();
+                        }
+                    }, () -> {
+                        if (getParentActivity() != null) {
+                            BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.BananaPhotoCopyFailed), themeDelegate).show();
+                        }
+                    });
+                }
                 break;
             }
             case OPTION_SAVE_TO_CLOUD: {
@@ -47496,6 +47520,11 @@ public class ChatActivity extends BaseFragment implements
                                 items.add(LocaleController.getString(R.string.SaveToGallery));
                                 options.add(OPTION_SAVE_TO_GALLERY);
                                 icons.add(R.drawable.msg_gallery);
+                                if (org.telegram.messenger.banana.BananaHooks.copyPhotoMenu(currentAccount) && selectedObject.isPhoto()) {
+                                    items.add(LocaleController.getString(R.string.BananaCopyPhoto));
+                                    options.add(OPTION_COPY_PHOTO);
+                                    icons.add(R.drawable.msg_copy);
+                                }
                             }
                         }
                     }
@@ -47755,6 +47784,11 @@ public class ChatActivity extends BaseFragment implements
                         items.add(LocaleController.getString(R.string.SaveToGallery));
                         options.add(OPTION_SAVE_TO_GALLERY);
                         icons.add(R.drawable.msg_gallery);
+                        if (org.telegram.messenger.banana.BananaHooks.copyPhotoMenu(currentAccount) && selectedObject.isPhoto()) {
+                            items.add(LocaleController.getString(R.string.BananaCopyPhoto));
+                            options.add(OPTION_COPY_PHOTO);
+                            icons.add(R.drawable.msg_copy);
+                        }
                     }
                 } else if (type == 5) {
                     items.add(LocaleController.getString(R.string.ApplyLocalizationFile));

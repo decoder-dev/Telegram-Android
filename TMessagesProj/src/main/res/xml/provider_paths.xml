@@ -8,5 +8,6 @@
     <external-files-path name="ayu_saved_attachments" path="ayu-attachments/"/>
     <files-path name="ayu_saved_attachments_internal" path="../no_backup/ayu-attachments/"/>
     <cache-path name="banana_message_shots" path="message_shots/"/>
+    <cache-path name="banana_copied_photos" path="copied_photos/"/>
     <root-path name="external_files" path="/storage/" />
 </paths>
