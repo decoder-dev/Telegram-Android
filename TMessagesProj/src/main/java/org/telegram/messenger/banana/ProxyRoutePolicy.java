@@ -53,4 +53,49 @@ public final class ProxyRoutePolicy {
             count = 0;
         }
     }
+
+    /** Whether the connection has been bad long enough to offer Auto MTProxy: stuck connecting, or falling off over and over. */
+    public static final class Trouble {
+        private final long stuckMs;
+        private final Drops drops;
+        private long stuckSince = -1;
+        private boolean connected;
+        private boolean dropping;
+
+        public Trouble(long stuckMs, int dropLimit, long dropSpanMs) {
+            this.stuckMs = stuckMs;
+            this.drops = new Drops(dropLimit, dropSpanMs);
+        }
+
+        public void connecting(long now) {
+            if (stuckSince < 0) {
+                stuckSince = now;
+            }
+            if (connected) {
+                connected = false;
+                dropping |= drops.record(now);
+            }
+        }
+
+        public void connected() {
+            stuckSince = -1;
+            connected = true;
+        }
+
+        /** No network: nothing a proxy could fix. */
+        public void reset() {
+            stuckSince = -1;
+            connected = false;
+            dropping = false;
+            drops.reset();
+        }
+
+        /** Milliseconds until an offer is due, 0 when it is due now, -1 while nothing is wrong. */
+        public long dueIn(long now) {
+            if (dropping) {
+                return 0;
+            }
+            return stuckSince < 0 ? -1 : Math.max(0, stuckSince + stuckMs - now);
+        }
+    }
 }
