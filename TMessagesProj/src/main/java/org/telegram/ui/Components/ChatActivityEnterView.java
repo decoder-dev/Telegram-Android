@@ -7422,17 +7422,8 @@ public class ChatActivityEnterView extends FrameLayout implements
                     && org.telegram.messenger.banana.BananaHooks.confirmVoiceSend(currentAccount)
                     && (audioToSend != null || videoToSendMessageObject != null)
                     && parentActivity != null) {
-                try {
-                    new org.telegram.ui.ActionBar.AlertDialog.Builder(parentActivity, resourcesProvider)
-                            .setTitle(LocaleController.getString(R.string.BananaOpt_CONFIRM_VOICE_SEND))
-                            .setPositiveButton(LocaleController.getString(R.string.Send), (d, w) ->
-                                    sendMessageInternal(notify, scheduleDate, scheduleRepeatPeriod, payStars, false))
-                            .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
-                            .show();
-                } catch (Exception e) {
-                    FileLog.e(e);
-                    sendMessageInternal(notify, scheduleDate, scheduleRepeatPeriod, payStars, false);
-                }
+                org.telegram.messenger.banana.BananaHooks.confirmSend(parentActivity, resourcesProvider, R.string.BananaOpt_CONFIRM_VOICE_SEND,
+                        () -> sendMessageInternal(notify, scheduleDate, scheduleRepeatPeriod, payStars, false));
                 return;
             }
             dismissSendPreviewSent = true;
@@ -7586,6 +7577,15 @@ public class ChatActivityEnterView extends FrameLayout implements
 
     protected boolean showConfirmAlert(Runnable onConfirmed) {
         return false;
+    }
+
+    private boolean bananaConfirmStickerSend(boolean gif, Runnable send) {
+        if (parentActivity == null || !org.telegram.messenger.banana.BananaHooks.confirmStickerSend(currentAccount, gif)) {
+            return false;
+        }
+        org.telegram.messenger.banana.BananaHooks.confirmSend(parentActivity, resourcesProvider,
+                gif ? R.string.BananaOpt_CONFIRM_GIF_SEND : R.string.BananaOpt_CONFIRM_STICKER_SEND, send);
+        return true;
     }
 
     public static boolean checkPremiumAnimatedEmoji(int currentAccount, long dialogId, BaseFragment parentFragment, FrameLayout container, CharSequence message) {
@@ -11367,7 +11367,8 @@ public class ChatActivityEnterView extends FrameLayout implements
             defPeer = delegate.getSendAsPeers().peers.get(0).peer;
         }
         boolean isVisible = defPeer != null && (delegate.getSendAsPeers() == null || delegate.getSendAsPeers().peers.size() > 1) &&
-            !isEditingMessage() && !isRecordingAudioVideo() && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != View.VISIBLE);
+            !isEditingMessage() && !isRecordingAudioVideo() && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != View.VISIBLE)
+            && (isLiveComment || !org.telegram.messenger.banana.BananaHooks.hideSendAsButton(currentAccount));
         if (isVisible) {
             createSenderSelectView();
         }
@@ -12546,7 +12547,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                                 delegate.onMessageSend(null, notify, scheduleDate, 0, 0);
                             }
                         };
-                        if (!showConfirmAlert(runnable)) {
+                        if (!showConfirmAlert(runnable) && !bananaConfirmStickerSend(true, runnable)) {
                             runnable.run();
                         }
                     });
@@ -12820,7 +12821,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                     }
                     MediaDataController.getInstance(currentAccount).addRecentSticker(MediaDataController.TYPE_IMAGE, parent, sticker, (int) (System.currentTimeMillis() / 1000), false);
                 };
-                if (!showConfirmAlert(runnable)) {
+                if (!showConfirmAlert(runnable) && !bananaConfirmStickerSend(MessageObject.isGifDocument(sticker), runnable)) {
                     runnable.run();
                 }
             });

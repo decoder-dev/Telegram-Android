@@ -267,6 +267,8 @@ public class MessageObject {
     public boolean forceExpired;
     public long actionDeleteGroupEventId = -1;
     public HashSet<Integer> expandedQuotes;
+    // Quotes the Expand Quotes switch has opened once; after that the user may collapse them again.
+    private HashSet<Integer> bananaSeededQuotes;
     public boolean expandedExplanation;
     public boolean forceShowPollResults;
 
@@ -975,6 +977,20 @@ public class MessageObject {
             }
             return null;
         }
+    }
+
+    void bananaSeedExpandedQuote(int index) {
+        if (!org.telegram.messenger.banana.BananaHooks.expandQuotes(currentAccount)) {
+            return;
+        }
+        if (bananaSeededQuotes == null) {
+            bananaSeededQuotes = new HashSet<>();
+        }
+        if (!bananaSeededQuotes.add(index)) {
+            return;
+        }
+        expandedQuotes = expandedQuotes == null ? new HashSet<>() : new HashSet<>(expandedQuotes);
+        expandedQuotes.add(index);
     }
 
     public static boolean expandedQuotesEquals(HashSet<Integer> a, HashSet<Integer> b) {
@@ -9186,6 +9202,9 @@ public class MessageObject {
             }
 
             block.index = a;
+            if (block.quoteCollapse) {
+                bananaSeedExpandedQuote(a);
+            }
             block.start = range.start;
             block.first = a == 0;
             block.last = a == textRanges.size() - 1;
@@ -9663,6 +9682,9 @@ public class MessageObject {
                 }
 
                 block.index = a;
+                if (block.quoteCollapse && messageObject != null) {
+                    messageObject.bananaSeedExpandedQuote(a);
+                }
                 block.start = range.start;
                 block.first = a == 0;
                 block.last = a == textRanges.size() - 1;

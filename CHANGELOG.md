@@ -52,6 +52,12 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Added
 
+- Extras switches from other forks, all off by default:
+  - Messages → Composer: **Hide keyboard on chat scroll**, which closes the keyboard when you start dragging the message list (Nekogram, OctoGram, Cherrygram), and **Hide Send As button**, which keeps sending as the chat's default identity without showing the avatar button (Cherrygram, OctoGram).
+  - Messages → Display: **Expand quotes**, which opens collapsible quotes once; you can still collapse them (OctoGram).
+  - Messages → Message menu: **Copy photo**, which puts a downloaded photo on the clipboard. It is hidden for protected, paid and spoiler media (Nekogram, OctoGram).
+  - Media → Calls and input: **Confirm sticker send** and **Confirm GIF send**, alongside voice confirmation (OctoGram).
+  - Privacy → Notifications: **Silence non-contacts**: private messages from people outside your contacts notify without sound or vibration. Bots and Telegram's service account stay audible (Nekogram, Cherrygram).
 - Two BananaGram app icons, Graphite and Cream, with the banana mark on the theme backgrounds. Every app icon is unlocked; none needs Telegram Premium or is hidden when Premium features are blocked.
 - The BananaGram hub picks a theme from live mini-chat previews of the four bundled themes, like the iOS theme picker, instead of a list of names.
 - The updater checks for a new release once a day in the background (an inexact alarm that never wakes the device) and posts a notification once per version. Tapping it opens the updater sheet. The check follows the updater's "Check on launch" switch.

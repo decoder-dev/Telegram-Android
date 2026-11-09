@@ -5060,7 +5060,8 @@ public class NotificationsController extends BaseController implements Notificat
     }
 
     private boolean isSilentMessage(MessageObject messageObject) {
-        return messageObject.messageOwner.silent || messageObject.isReactionPush;
+        return messageObject.messageOwner.silent || messageObject.isReactionPush
+                || org.telegram.messenger.banana.BananaHooks.silenceNonContact(currentAccount, messageObject);
     }
 
     @SuppressLint("NewApi")

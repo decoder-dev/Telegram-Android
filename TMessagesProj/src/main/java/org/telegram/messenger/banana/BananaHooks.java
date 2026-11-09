@@ -8,8 +8,10 @@ import android.text.TextUtils;
 import com.radolyn.ayugram.AyuConfig;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
@@ -20,6 +22,7 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.FilterCreateActivity;
 import org.telegram.ui.LaunchActivity;
 
@@ -160,6 +163,53 @@ public final class BananaHooks {
 
     public static boolean confirmVoiceSend(int account) {
         return BananaConfig.get(account, BananaConfig.Option.CONFIRM_VOICE_SEND);
+    }
+
+    public static boolean confirmStickerSend(int account, boolean gif) {
+        return BananaConfig.get(account, gif ? BananaConfig.Option.CONFIRM_GIF_SEND : BananaConfig.Option.CONFIRM_STICKER_SEND);
+    }
+
+    /** Shows a Send/Cancel question titled after the switch that asked for it. */
+    public static void confirmSend(Context context, Theme.ResourcesProvider resourcesProvider, int title, Runnable send) {
+        try {
+            new AlertDialog.Builder(context, resourcesProvider)
+                    .setTitle(LocaleController.getString(title))
+                    .setPositiveButton(LocaleController.getString(R.string.Send), (dialog, which) -> send.run())
+                    .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+                    .show();
+        } catch (Exception e) {
+            FileLog.e(e);
+            send.run();
+        }
+    }
+
+    public static boolean hideKeyboardOnChatScroll(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_KEYBOARD_ON_CHAT_SCROLL);
+    }
+
+    public static boolean expandQuotes(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.EXPAND_QUOTES);
+    }
+
+    public static boolean hideSendAsButton(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.HIDE_SEND_AS_BUTTON);
+    }
+
+    public static boolean copyPhotoMenu(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.COPY_PHOTO_MENU);
+    }
+
+    // Bots the user started and the service account (login codes) keep their sound.
+    public static boolean silenceNonContact(int account, MessageObject message) {
+        if (!BananaConfig.get(account, BananaConfig.Option.SILENCE_NON_CONTACTS)) {
+            return false;
+        }
+        long dialogId = message.getDialogId();
+        if (!DialogObject.isUserDialog(dialogId)) {
+            return false;
+        }
+        TLRPC.User user = MessagesController.getInstance(account).getUser(dialogId);
+        return user != null && !user.contact && !user.bot && !UserObject.isUserSelf(user) && !UserObject.isService(user.id);
     }
 
     public static boolean stopAfterVoice(int account) {

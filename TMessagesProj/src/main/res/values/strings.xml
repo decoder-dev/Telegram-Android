@@ -12066,6 +12066,16 @@
     <string name="BananaOpt_CONFIRM_UNPIN">Confirm Unpin</string>
     <string name="BananaOpt_HIDE_PRIVATE_CHAT_ACTIVITIES">Hide Private Chat Activities</string>
     <string name="BananaOpt_STAY_AT_LATEST_MESSAGE_AFTER_REFRESH">Stay At Latest Message After Refresh</string>
+    <string name="BananaOpt_HIDE_KEYBOARD_ON_CHAT_SCROLL">Hide Keyboard On Chat Scroll</string>
+    <string name="BananaOpt_EXPAND_QUOTES">Expand Quotes</string>
+    <string name="BananaOpt_COPY_PHOTO_MENU">Copy Photo Menu</string>
+    <string name="BananaOpt_CONFIRM_STICKER_SEND">Confirm Sticker Send</string>
+    <string name="BananaOpt_CONFIRM_GIF_SEND">Confirm GIF Send</string>
+    <string name="BananaOpt_SILENCE_NON_CONTACTS">Silence Non-Contacts</string>
+    <string name="BananaOpt_HIDE_SEND_AS_BUTTON">Hide Send As Button</string>
+    <string name="BananaCopyPhoto">Copy Photo</string>
+    <string name="BananaPhotoCopied">Photo copied to clipboard.</string>
+    <string name="BananaPhotoCopyFailed">Couldn\'t copy the photo.</string>
 
     <!-- BananaGram Extras values -->
     <string name="BananaValues">Values and marks</string>

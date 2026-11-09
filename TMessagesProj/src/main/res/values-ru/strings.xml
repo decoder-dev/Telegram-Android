@@ -653,6 +653,16 @@
     <string name="BananaOpt_CONFIRM_UNPIN">Подтверждать открепление сообщения</string>
     <string name="BananaOpt_HIDE_PRIVATE_CHAT_ACTIVITIES">Скрывать статусы действий в личных чатах</string>
     <string name="BananaOpt_STAY_AT_LATEST_MESSAGE_AFTER_REFRESH">Оставаться на последнем сообщении после обновления</string>
+    <string name="BananaOpt_HIDE_KEYBOARD_ON_CHAT_SCROLL">Скрывать клавиатуру при прокрутке чата</string>
+    <string name="BananaOpt_EXPAND_QUOTES">Разворачивать цитаты</string>
+    <string name="BananaOpt_COPY_PHOTO_MENU">Пункт «Копировать фото»</string>
+    <string name="BananaOpt_CONFIRM_STICKER_SEND">Подтверждать отправку стикера</string>
+    <string name="BananaOpt_CONFIRM_GIF_SEND">Подтверждать отправку GIF</string>
+    <string name="BananaOpt_SILENCE_NON_CONTACTS">Без звука от не-контактов</string>
+    <string name="BananaOpt_HIDE_SEND_AS_BUTTON">Скрывать кнопку «Отправить от имени»</string>
+    <string name="BananaCopyPhoto">Копировать фото</string>
+    <string name="BananaPhotoCopied">Фото скопировано в буфер обмена.</string>
+    <string name="BananaPhotoCopyFailed">Не удалось скопировать фото.</string>
 
     <!-- BananaGram Extras values -->
     <string name="BananaValues">Значения и метки</string>

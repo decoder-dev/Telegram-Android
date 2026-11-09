@@ -165,7 +165,14 @@ public final class BananaConfig {
         HIDE_FOLDER_UNREAD_COUNT("bananaHideFolderUnreadCount"),
         CONFIRM_UNPIN("bananaConfirmUnpin"),
         HIDE_PRIVATE_CHAT_ACTIVITIES("bananaHidePrivateChatActivities"),
-        STAY_AT_LATEST_MESSAGE_AFTER_REFRESH("bananaStayAtLatestMessageAfterRefresh");
+        STAY_AT_LATEST_MESSAGE_AFTER_REFRESH("bananaStayAtLatestMessageAfterRefresh"),
+        HIDE_KEYBOARD_ON_CHAT_SCROLL("bananaHideKeyboardOnChatScroll"),
+        EXPAND_QUOTES("bananaExpandQuotes"),
+        COPY_PHOTO_MENU("bananaCopyPhotoMenu"),
+        CONFIRM_STICKER_SEND("bananaConfirmStickerSend"),
+        CONFIRM_GIF_SEND("bananaConfirmGifSend"),
+        SILENCE_NON_CONTACTS("bananaSilenceNonContacts"),
+        HIDE_SEND_AS_BUTTON("bananaHideSendAsButton");
 
         public final String key;
         Option(String key) { this.key = key; }
