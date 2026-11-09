@@ -2,6 +2,9 @@ package org.telegram.ui;
 
 import android.content.Context;
 import android.text.InputFilter;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.TypefaceSpan;
 import android.view.View;
 import java.util.ArrayList;
 import org.telegram.messenger.AndroidUtilities;
@@ -101,8 +104,10 @@ public final class BananaFiltersActivity extends BananaSettingsFragment {
         else if (item.id == 5) {
             try {
                 String data = store.rules().export();
+                SpannableString json = new SpannableString(data);
+                json.setSpan(new TypefaceSpan("monospace"), 0, json.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
-                        .setTitle(text(R.string.BananaFiltersExport)).setMessage(data)
+                        .setTitle(text(R.string.BananaFiltersExport)).setMessage(json)
                         .setNegativeButton(text(R.string.Cancel), null)
                         .setPositiveButton(text(R.string.Copy), (dialog, which) -> AndroidUtilities.addToClipboard(data)).create());
             } catch (Exception exception) { error(); }
@@ -177,7 +182,8 @@ public final class BananaFiltersActivity extends BananaSettingsFragment {
     }
     private void sourceError() {
         if (destroyed || getParentActivity() == null) return;
-        showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider()).setMessage(text(R.string.BananaFiltersSourceError))
+        showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                .setTitle(text(R.string.BananaFiltersFromLink)).setMessage(text(R.string.BananaFiltersSourceError))
                 .setPositiveButton(text(R.string.OK), null).create());
     }
     private void error() {

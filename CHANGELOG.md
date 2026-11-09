@@ -42,6 +42,9 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Changed
 
+- Extras switches read as plain English in sentence case (“Avatar glow”, “Don't swipe to the next chat”) instead of iOS key names like “Avatar Glow Enabled”. Confirmation dialogs ask a question (“Start a call?”, “Send this sticker?”, “Open Telegram link?”) instead of repeating the switch name.
+- Theme names fit the picker: White, Cream, Graphite and Black (Белая, Кремовая, Графитовая, Чёрная). The selected Cream theme is marked in its accent; the white mark was invisible on the cream card.
+- Message bookmarks show the chat name, or “Chat unavailable”, instead of raw dialog and message IDs. Empty message history no longer offers “Clear local history” and, when saving is on, says nothing has been saved yet. Exported filter rules use a monospace font, and a failed link import has a title.
 - The welcome screen and the sign-in screen always show a proxy button, so a proxy or Auto MTProxy can be set up before signing in. Telegram showed it only once a proxy was on or after 5 seconds of failing to connect. The icon fills while a proxy or Auto MTProxy is in use.
 - BananaGram Extras follows the iOS layout: Ninja, Ghost, Privacy, Appearance, Chat list, Tab bar, Messages, Media, Profile, Network, with an icon per section. The new Appearance section holds the island, glass, glow, snow and chat look; Network holds keep-alive and the download and upload boosts. Long sections are split under headers, such as Display, Composer and links, Message menu, Reactions and stickers, Channels and gifts.
 - The AyuGram screen no longer repeats BananaGram switches: ghost mode and its packets, read after send, scheduled sending, the push service, ad hiding, local Premium and the marks live in BananaGram Extras. A one-time migration carries any value set on the AyuGram screen into every account.

@@ -494,7 +494,8 @@ public class ThemesHorizontalListCell extends RecyclerListView implements Notifi
             inColor = Theme.changeColorAccent(themeInfo, accentColor, themeInfo.getPreviewInColor());
             outColor = Theme.changeColorAccent(themeInfo, myAccentColor, themeInfo.getPreviewOutColor());
             backColor = Theme.changeColorAccent(themeInfo, backAccent, themeInfo.getPreviewBackgroundColor());
-            checkColor = outColor;
+            // Cream's outgoing bubble is nearly its background; mark the selection with the accent instead.
+            checkColor = "Banana Cream".equals(themeInfo.name) && accentColor != 0 ? accentColor : outColor;
             accentId = themeInfo.currentAccentId;
 
             if (accentAnimator != null) {
@@ -581,7 +582,7 @@ public class ThemesHorizontalListCell extends RecyclerListView implements Notifi
                 button.setColor(0x66ffffff, 0xffffffff);
 
                 if (themeInfo.accentBaseColor != 0) {
-                    if ("Day".equals(themeInfo.name) || "Arctic Blue".equals(themeInfo.name)) {
+                    if ("Day".equals(themeInfo.name) || "Arctic Blue".equals(themeInfo.name) || "Banana Cream".equals(themeInfo.name)) {
                         button.setColor(0xffb3b3b3, blend(oldCheckColor, checkColor));
                         Theme.chat_instantViewRectPaint.setColor(0x2bb0b5ba);
                         canvas.drawRoundRect(rect, AndroidUtilities.dp(6), AndroidUtilities.dp(6), Theme.chat_instantViewRectPaint);

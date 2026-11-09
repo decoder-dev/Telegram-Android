@@ -83,7 +83,7 @@ public class VoIPHelper {
 		if (org.telegram.messenger.banana.BananaHooks.confirmBeforeCall(bananaAccount) && activity != null && user != null) {
 			try {
 				new AlertDialog.Builder(activity)
-						.setTitle(LocaleController.getString(R.string.BananaOpt_CONFIRM_BEFORE_CALL))
+						.setTitle(LocaleController.getString(R.string.BananaConfirmCallTitle))
 						.setMessage(ContactsController.formatName(user.first_name, user.last_name))
 						.setPositiveButton(LocaleController.getString(R.string.Call), (d, w) ->
 								startCallConfirmed(user, videoCall, canVideoCall, activity, userFull, accountInstance))

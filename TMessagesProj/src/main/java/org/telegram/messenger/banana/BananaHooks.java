@@ -169,7 +169,6 @@ public final class BananaHooks {
         return BananaConfig.get(account, gif ? BananaConfig.Option.CONFIRM_GIF_SEND : BananaConfig.Option.CONFIRM_STICKER_SEND);
     }
 
-    /** Shows a Send/Cancel question titled after the switch that asked for it. */
     public static void confirmSend(Context context, Theme.ResourcesProvider resourcesProvider, int title, Runnable send) {
         try {
             new AlertDialog.Builder(context, resourcesProvider)
@@ -1210,15 +1209,15 @@ public final class BananaHooks {
         }
         if (isShareLink(url)) {
             if (confirmShareLinks(account)) {
-                return R.string.BananaOpt_CONFIRM_SHARE_LINKS;
+                return R.string.BananaConfirmShareLinkTitle;
             }
             if (confirmTelegramLinks(account)) {
-                return R.string.BananaOpt_CONFIRM_TELEGRAM_LINKS;
+                return R.string.BananaConfirmTelegramLinkTitle;
             }
             return 0;
         }
         if (confirmTelegramLinks(account) && isTelegramDeepLink(url)) {
-            return R.string.BananaOpt_CONFIRM_TELEGRAM_LINKS;
+            return R.string.BananaConfirmTelegramLinkTitle;
         }
         return 0;
     }

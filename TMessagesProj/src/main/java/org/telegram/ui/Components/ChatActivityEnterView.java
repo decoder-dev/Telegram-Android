@@ -7422,7 +7422,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                     && org.telegram.messenger.banana.BananaHooks.confirmVoiceSend(currentAccount)
                     && (audioToSend != null || videoToSendMessageObject != null)
                     && parentActivity != null) {
-                org.telegram.messenger.banana.BananaHooks.confirmSend(parentActivity, resourcesProvider, R.string.BananaOpt_CONFIRM_VOICE_SEND,
+                org.telegram.messenger.banana.BananaHooks.confirmSend(parentActivity, resourcesProvider, R.string.BananaConfirmVoiceTitle,
                         () -> sendMessageInternal(notify, scheduleDate, scheduleRepeatPeriod, payStars, false));
                 return;
             }
@@ -7584,7 +7584,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             return false;
         }
         org.telegram.messenger.banana.BananaHooks.confirmSend(parentActivity, resourcesProvider,
-                gif ? R.string.BananaOpt_CONFIRM_GIF_SEND : R.string.BananaOpt_CONFIRM_STICKER_SEND, send);
+                gif ? R.string.BananaConfirmGifTitle : R.string.BananaConfirmStickerTitle, send);
         return true;
     }
 
