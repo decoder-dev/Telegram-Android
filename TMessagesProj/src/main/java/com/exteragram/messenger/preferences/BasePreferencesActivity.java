@@ -28,6 +28,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.CheckBoxCell;
@@ -84,26 +85,54 @@ public abstract class BasePreferencesActivity extends BaseFragment {
         rowCount = 0;
     }
 
+    // Telegram's simple glass layout: centred title on a glass header, grouped rounded sections.
+    @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
+    @Override
+    protected RecyclerListView getListViewForSimpleGlass() {
+        return listView;
+    }
+
+    @Override
+    public boolean isSupportEdgeToEdge() {
+        return useSimpleActionBar();
+    }
+
     @Override
     public View createView(Context context) {
         fragmentView = new FrameLayout(context);
-        fragmentView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
         FrameLayout frameLayout = (FrameLayout) fragmentView;
 
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setTitle(getTitle());
-        actionBar.setOccupyStatusBar(!AndroidUtilities.isTablet());
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        ActionBar.ActionBarMenuOnItemClick onItemClick = new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
                     finishFragment();
                 }
             }
-        });
-        actionBar.setAllowOverlayTitle(false);
+        };
+        if (simpleActionBar != null) {
+            setHasOwnBackground(true);
+            simpleActionBar.setBackButtonDrawable(new BackDrawable(false));
+            simpleActionBar.setTitle(getTitle());
+            simpleActionBar.setActionBarMenuOnItemClick(onItemClick);
+        } else {
+            fragmentView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
+            actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+            actionBar.setTitle(getTitle());
+            actionBar.setOccupyStatusBar(!AndroidUtilities.isTablet());
+            actionBar.setActionBarMenuOnItemClick(onItemClick);
+            actionBar.setAllowOverlayTitle(false);
+        }
 
         listView = new RecyclerListView(context);
+        if (simpleActionBar != null) {
+            listView.setSections();
+            listView.setSectionsDrawBackground(true);
+        }
         listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         listView.setVerticalScrollBarEnabled(false);
 
@@ -170,6 +199,17 @@ public abstract class BasePreferencesActivity extends BaseFragment {
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             onBindViewHolder(holder, position, false);
+            // Screens bind the old grey divider shadow; sections draw their own gaps.
+            if (listView != null && listView.hasSections() && holder.itemView instanceof ShadowSectionCell) {
+                holder.itemView.setBackground(null);
+            }
+        }
+
+        /** Cards are drawn by the sections; only the legacy flat layout needs a white row. */
+        protected void setRowBackground(View view) {
+            if (listView == null || !listView.hasSections()) {
+                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            }
         }
 
         @NonNull
@@ -182,23 +222,23 @@ public abstract class BasePreferencesActivity extends BaseFragment {
                     break;
                 case 2:
                     view = new TextCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    setRowBackground(view);
                     break;
                 case 3:
                     view = new HeaderCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    setRowBackground(view);
                     break;
                 case 4:
                     view = new HeaderCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    setRowBackground(view);
                     break;
                 case 5:
                     view = new TextCheckCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    setRowBackground(view);
                     break;
                 case 7:
                     view = new TextSettingsCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    setRowBackground(view);
                     break;
                 case 8:
                     view = new TextInfoPrivacyCell(mContext);
@@ -209,7 +249,7 @@ public abstract class BasePreferencesActivity extends BaseFragment {
                 // case 12: Appearance > FabShapeCell
                 case 13:
                     view = new SlideChooseView(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    setRowBackground(view);
                     break;
                 // case 14: General > ActionBarSetupCell, Appearance > FoldersPreviewCell
                 // case 15: Chats > DoubleTapCell, Appearance > SolarIconsPreviewCell
@@ -217,7 +257,7 @@ public abstract class BasePreferencesActivity extends BaseFragment {
                 // case 17: General > CameraTypeSelector, Appearance > ChatListPreviewCell
                 case 18:
                     view = new TextCheckCell2(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    setRowBackground(view);
                     break;
                 case 19:
                     CheckBoxCell checkBoxCell = new CheckBoxCell(mContext, 4, 21, getResourceProvider());
@@ -225,7 +265,7 @@ public abstract class BasePreferencesActivity extends BaseFragment {
                     checkBoxCell.getCheckBoxRound().setColor(Theme.key_switch2TrackChecked, Theme.key_radioBackground, Theme.key_checkboxCheck);
                     checkBoxCell.setEnabled(true);
                     view = checkBoxCell;
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    setRowBackground(view);
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + viewType);

@@ -44,7 +44,7 @@ public final class BananaHistoryActivity extends BananaSettingsFragment {
     @Override
     public View createView(Context context) {
         View view = super.createView(context);
-        actionBar.createMenu().addItem(1, R.drawable.outline_header_search).setIsSearchField(true)
+        simpleActionBar.createMenu().addItem(1, R.drawable.outline_header_search).setIsSearchField(true)
                 .setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
                     @Override public void onTextChanged(EditText editText) {
                         String text = editText.getText().toString();

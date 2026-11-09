@@ -42,6 +42,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Changed
 
+- BananaGram Extras and the AyuGram and exteraGram settings screens use Telegram 13.2's simple glass layout, the closest Telegram has to iOS inset grouped lists: a glass header with a centred title and round back button, and rows grouped into rounded cards on a grey background. Rows no longer paint flat white strips or grey divider shadows. The exteraGram hub keeps its own logo header.
 - Extras switches read as plain English in sentence case (“Avatar glow”, “Don't swipe to the next chat”) instead of iOS key names like “Avatar Glow Enabled”. Confirmation dialogs ask a question (“Start a call?”, “Send this sticker?”, “Open Telegram link?”) instead of repeating the switch name.
 - Theme names fit the picker: White, Cream, Graphite and Black (Белая, Кремовая, Графитовая, Чёрная). The selected Cream theme is marked in its accent; the white mark was invisible on the cream card.
 - Message bookmarks show the chat name, or “Chat unavailable”, instead of raw dialog and message IDs. Empty message history no longer offers “Clear local history” and, when saving is on, says nothing has been saved yet. Exported filter rules use a monospace font, and a failed link import has a title.
