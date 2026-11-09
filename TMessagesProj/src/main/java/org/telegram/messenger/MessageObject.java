@@ -989,8 +989,9 @@ public class MessageObject {
         if (!bananaSeededQuotes.add(index)) {
             return;
         }
-        expandedQuotes = expandedQuotes == null ? new HashSet<>() : new HashSet<>(expandedQuotes);
-        expandedQuotes.add(index);
+        HashSet<Integer> expanded = expandedQuotes == null ? new HashSet<>() : new HashSet<>(expandedQuotes);
+        expanded.add(index);
+        expandedQuotes = expanded;
     }
 
     public static boolean expandedQuotesEquals(HashSet<Integer> a, HashSet<Integer> b) {
