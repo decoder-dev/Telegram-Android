@@ -25,6 +25,22 @@ public class AccountLifecycleTest {
         });
     }
 
+    // Slots 5..9 used to fall through to native instance 4; now each one answers on its own.
+    @Test public void allTenSlotsStartWithoutPremium() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            assertEquals(10,UserConfig.MAX_ACCOUNT_COUNT);
+            assertEquals(UserConfig.MAX_ACCOUNT_COUNT,UserConfig.getMaxAccountCount());
+            assertFalse(UserConfig.hasPremiumOnAccounts());
+            Set<Integer> summaries=new HashSet<>();
+            for(int i=0;i<UserConfig.MAX_ACCOUNT_COUNT;i++) {
+                assertNotNull(org.telegram.tgnet.ConnectionsManager.getInstance(i));
+                assertTrue(org.telegram.tgnet.ConnectionsManager.native_getCurrentTime(i)>0);
+                assertTrue(summaries.add(AccountSlots.summaryNotificationId(i)));
+                assertTrue(new File(ApplicationLoader.getFilesDirFixed(),i==0?".":"account"+i).isDirectory());
+            }
+        });
+    }
+
     @Test public void clearedAccountLifetimeCannotBeReusedEvenWithTheSameUserId() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
             AccountScope old=AccountScope.capture(0), other=AccountScope.capture(1);

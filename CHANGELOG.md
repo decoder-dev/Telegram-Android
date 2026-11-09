@@ -56,6 +56,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Added
 
+- Up to ten accounts without Telegram Premium (Nekogram allows eight). The add-account rows, the account list footer and the Premium limits sheet no longer offer Premium for more slots. From the fourth account on, the account's notification summary no longer replaces the video encoding, music, import or live location notification.
 - Extras switches from other forks, all off by default:
   - Messages → Composer: **Hide keyboard on chat scroll**, which closes the keyboard when you start dragging the message list (Nekogram, OctoGram, Cherrygram), and **Hide Send As button**, which keeps sending as the chat's default identity without showing the avatar button (Cherrygram, OctoGram).
   - Messages → Display: **Expand quotes**, which opens collapsible quotes once; you can still collapse them (OctoGram).
