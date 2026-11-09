@@ -6,7 +6,7 @@ BananaGram brings together our [iOS client](https://github.com/decoder-dev/Teleg
 
 [Android source](https://github.com/decoder-dev/Telegram-Android) · [iOS source](https://github.com/decoder-dev/Telegram-iOS) · [Issues](https://github.com/decoder-dev/Telegram-Android/issues) · [Releases](https://github.com/decoder-dev/Telegram-Android/releases)
 
-> **Published candidate: [13.1.1-rc.10](https://github.com/decoder-dev/Telegram-Android/releases/tag/v13.1.1-rc.10).** The release includes a signed APK and checksum/signature information. `main` can contain newer fixes that are not yet in that APK. Candidates remain under testing; see [Android checks](https://github.com/decoder-dev/Telegram-Android/actions/workflows/android.yml) for each commit's results.
+> **Published candidate: [13.2.1-rc.15](https://github.com/decoder-dev/Telegram-Android/releases/tag/v13.2.1-rc.15).** The release includes a signed APK and checksum/signature information. `main` can contain newer fixes that are not yet in that APK. Candidates remain under testing; see [Android checks](https://github.com/decoder-dev/Telegram-Android/actions/workflows/android.yml) for each commit's results.
 
 ## Feature scope
 
@@ -68,7 +68,7 @@ Use the [changelog](CHANGELOG.md), [import record](docs/ayugram-upstream-import.
 
 Переносим возможности нашего iOS-клиента и AyuGram: гибкий Ghost Mode, историю правок и удалений, фильтры сообщений, инструменты отправки и управление скоростью воспроизведения.
 
-**Опубликованный кандидат: [13.1.1-rc.10](https://github.com/decoder-dev/Telegram-Android/releases/tag/v13.1.1-rc.10).** В релизе доступны подписанный APK, контрольная сумма и сведения о подписи. В `main` могут быть более свежие исправления, ещё не вошедшие в APK. Результаты проверок каждого коммита — в [GitHub Actions](https://github.com/decoder-dev/Telegram-Android/actions/workflows/android.yml).
+**Опубликованный кандидат: [13.2.1-rc.15](https://github.com/decoder-dev/Telegram-Android/releases/tag/v13.2.1-rc.15).** В релизе доступны подписанный APK, контрольная сумма и сведения о подписи. В `main` могут быть более свежие исправления, ещё не вошедшие в APK. Результаты проверок каждого коммита — в [GitHub Actions](https://github.com/decoder-dev/Telegram-Android/actions/workflows/android.yml).
 
 Частота экрана выбирается в Extras → Значения и метки → Внешний вид → Частота обновления экрана. Настройка общая для приложения: системная, максимальная или доступная частота. Android может ограничивать запрос из-за энергосбережения, температуры или политики устройства. Выбор 120 Гц сам по себе не устраняет пропуски кадров.
 
