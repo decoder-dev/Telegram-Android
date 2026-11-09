@@ -295,12 +295,14 @@
     <string name="BananaHistoryInfo">Локальный архив включается отдельно и не зависит от кэша Telegram. До 5000 записей, 32 версий сообщения и 32 МБ текста. Можно сохранить только уже полученные этим устройством сообщения. Секретные чаты и исчезающие сообщения пока не архивируются.</string>
     <string name="BananaHistoryError">Не удалось прочитать или изменить локальную историю. Попробуйте снова.</string>
     <string name="BananaHistoryEmpty">Локальная история пуста. Включите сохранение текста в возможностях BananaGram, чтобы собирать будущие изменения.</string>
+    <string name="BananaHistoryNothingYet">Пока ничего не сохранено. Здесь появятся изменённые и удалённые сообщения.</string>
     <string name="BananaHistoryDeleted">Удалено</string>
     <string name="BananaHistoryEdited">Предыдущая версия</string>
     <string name="BananaHistoryClear">Очистить локальную историю</string>
     <string name="BananaHistoryClearInfo">Удалить сохранённую историю текста этого аккаунта с устройства без возможности восстановления? Сообщения в Telegram останутся прежними. Чтобы прекратить сохранение новых версий, также выключите настройки истории в возможностях BananaGram.</string>
     <string name="BananaHistoryPeer">Чат %1$d · сообщение %2$d</string>
     <string name="BananaHistoryPeerNamed">%1$s · сообщение %2$d</string>
+    <string name="BananaBookmarkUnavailable">Чат недоступен · сообщение %1$d</string>
     <string name="BananaHistoryIntro">Сохранённый текст остаётся на этом устройстве. Поиск показывает 100 последних совпадений.</string>
     <string name="BananaHistoryNoMatches">Сохранённых сообщений по этому запросу нет.</string>
     <string name="BananaSaveMediaHistory">Сохранять скачанные вложения</string>
@@ -414,10 +416,10 @@
     <string name="BananaHubProfile">Профиль</string>
     <string name="BananaHubProfileLabel">Диагностика, свечение, Premium</string>
 
-    <string name="BananaThemeCream">BananaGram Кремовая</string>
-    <string name="BananaThemeGraphite">BananaGram Графитовая</string>
-    <string name="BananaThemeClassicWhite">Классическая светлая</string>
-    <string name="BananaThemeClassicBlack">Классическая тёмная</string>
+    <string name="BananaThemeCream">Кремовая</string>
+    <string name="BananaThemeGraphite">Графитовая</string>
+    <string name="BananaThemeClassicWhite">Белая</string>
+    <string name="BananaThemeClassicBlack">Чёрная</string>
     <string name="BananaThemeGlass">BananaGram Стекло</string>
     <string name="BananaThemeGlassNight">BananaGram Стекло, ночь</string>
     <string name="BananaArchivePasswordSection">ПАРОЛЬ</string>
@@ -544,7 +546,7 @@
     <string name="BananaOpt_HIDE_ADS">Скрыть рекламу</string>
     <string name="BananaOpt_HIDE_BLOCKED_MESSAGES">Скрыть заблокированных</string>
     <string name="BananaOpt_ALLOW_SECRET_SCREENSHOTS">Скриншоты в секретных чатах</string>
-    <string name="BananaOpt_EXPIRE_TTL_BUTTON">Кнопка Expire TTL</string>
+    <string name="BananaOpt_EXPIRE_TTL_BUTTON">«Удалить сейчас» для исчезающих сообщений</string>
     <string name="BananaOpt_KEEP_BANNED_CHATS">Сохранять забаненные чаты</string>
     <string name="BananaOpt_REGEX_MESSAGE_FILTERS_ENABLED">Фильтровать сообщения регулярными выражениями</string>
     <string name="BananaOpt_REGEX_MESSAGE_FILTERS_CASE_INSENSITIVE">Не учитывать регистр в фильтрах</string>
@@ -572,7 +574,7 @@
     <string name="BananaOpt_HIDE_SERVICE_MESSAGES">Скрывать служебные сообщения</string>
     <string name="BananaOpt_CONFIRM_REACTIONS_IN_UNJOINED_CHATS">Подтверждать реакции до вступления в чат</string>
     <string name="BananaOpt_CONFIRM_TELEGRAM_LINKS">Подтверждать открытие ссылок Telegram</string>
-    <string name="BananaOpt_CONFIRM_SHARE_LINKS">Подтверждать отправку по ссылке</string>
+    <string name="BananaOpt_CONFIRM_SHARE_LINKS">Подтверждать ссылки «Поделиться»</string>
     <string name="BananaOpt_CONFIRM_CHAT_PREVIEW_ENTRY">Подтверждать вход в чат из предпросмотра</string>
     <string name="BananaOpt_DISABLE_GIFT_STARS_REDIRECT">Не открывать звёзды после продажи подарка</string>
     <string name="BananaOpt_HIDE_STICKER_REPLY_EMOJI">Скрывать эмодзи в ответах на стикеры</string>
@@ -622,7 +624,7 @@
     <string name="BananaOpt_SIGN_DOWNLOADED_MEDIA">Подписывать загруженные медиа</string>
     <string name="BananaOpt_QUOTE_REPLIES_TO_DELETED">Цитировать удалённое сообщение в ответе</string>
     <string name="BananaOpt_EXACT_COUNTS">Точные значения счётчиков</string>
-    <string name="BananaOpt_CONFIRM_VOICE_SEND">Подтверждать отправку голосового</string>
+    <string name="BananaOpt_CONFIRM_VOICE_SEND">Подтверждать отправку голосовых и кружков</string>
     <string name="BananaOpt_HIDE_TYPING">Не отправлять статус набора текста</string>
     <string name="BananaOpt_HIDE_RECORDING">Не отправлять статус записи голосового и кружка</string>
     <string name="BananaOpt_HIDE_UPLOAD">Не отправлять статус загрузки файлов</string>
@@ -658,8 +660,17 @@
     <string name="BananaOpt_COPY_PHOTO_MENU">Пункт «Копировать фото»</string>
     <string name="BananaOpt_CONFIRM_STICKER_SEND">Подтверждать отправку стикера</string>
     <string name="BananaOpt_CONFIRM_GIF_SEND">Подтверждать отправку GIF</string>
-    <string name="BananaOpt_SILENCE_NON_CONTACTS">Без звука от не-контактов</string>
+    <string name="BananaOpt_SILENCE_NON_CONTACTS">Без звука от тех, кого нет в контактах</string>
     <string name="BananaOpt_HIDE_SEND_AS_BUTTON">Скрывать кнопку «Отправить от имени»</string>
+    <string name="BananaConfirmCallTitle">Позвонить?</string>
+    <string name="BananaConfirmVoiceTitle">Отправить запись?</string>
+    <string name="BananaConfirmStickerTitle">Отправить стикер?</string>
+    <string name="BananaConfirmGifTitle">Отправить GIF?</string>
+    <string name="BananaConfirmReactionTitle">Поставить реакцию?</string>
+    <string name="BananaConfirmReactionText">Вы не состоите в этом чате. Участники увидят вашу реакцию.</string>
+    <string name="BananaConfirmPreviewTitle">Показать превью чата?</string>
+    <string name="BananaConfirmShareLinkTitle">Открыть ссылку «Поделиться»?</string>
+    <string name="BananaConfirmTelegramLinkTitle">Открыть ссылку Telegram?</string>
     <string name="BananaCopyPhoto">Копировать фото</string>
     <string name="BananaPhotoCopied">Фото скопировано в буфер обмена.</string>
     <string name="BananaPhotoCopyFailed">Не удалось скопировать фото.</string>
@@ -671,7 +682,7 @@
     <string name="BananaStableChannel">Стабильные</string>
     <string name="BananaRcChannel">Релиз-кандидаты</string>
     <string name="BananaAutoDownloadUpdates">Автозагрузка по Wi-Fi без тарификации</string>
-    <string name="BananaValuesInfo">Числовые и текстовые настройки. Значения по умолчанию совпадают с BananaGram iOS, где они известны. Поведение части опций ещё подключается.</string>
+    <string name="BananaValuesInfo">Числовые и текстовые настройки. Значения по умолчанию такие же, как в BananaGram для iOS.</string>
     <string name="BananaValuesAppearance">Внешний вид</string>
     <string name="BananaValuesGlass">Стеклянные пузыри</string>
     <string name="BananaValuesMedia">Медиа</string>

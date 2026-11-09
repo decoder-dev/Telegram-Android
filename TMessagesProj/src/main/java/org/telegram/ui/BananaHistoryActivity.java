@@ -75,7 +75,8 @@ public final class BananaHistoryActivity extends BananaSettingsFragment {
         items.add(UItem.asShadow(LocaleController.getString(R.string.BananaHistoryIntro)));
         if (loading || failed || records.isEmpty()) {
             items.add(UItem.asShadow(LocaleController.getString(loading ? R.string.Loading : failed ?
-                    R.string.BananaHistoryError : query.isEmpty() ? R.string.BananaHistoryEmpty : R.string.BananaHistoryNoMatches)));
+                    R.string.BananaHistoryError : !query.isEmpty() ? R.string.BananaHistoryNoMatches : savingEnabled() ?
+                    R.string.BananaHistoryNothingYet : R.string.BananaHistoryEmpty)));
         }
         for (int i = 0; i < records.size(); i++) {
             HistoryDatabase.Record record = records.get(i);
@@ -86,7 +87,14 @@ public final class BananaHistoryActivity extends BananaSettingsFragment {
             String text = end < display.length() ? display.substring(0, end) + "…" : display;
             items.add(BananaValueCell.Factory.of(100 + i, title, text));
         }
-        items.add(UItem.asButton(2, LocaleController.getString(R.string.BananaHistoryClear)).red());
+        // An empty history with no search has nothing to clear.
+        if (!records.isEmpty() || !query.isEmpty()) {
+            items.add(UItem.asButton(2, LocaleController.getString(R.string.BananaHistoryClear)).red());
+        }
+    }
+
+    private boolean savingEnabled() {
+        return BananaConfig.get(currentAccount, BananaConfig.Option.SAVE_EDITS) || BananaConfig.get(currentAccount, BananaConfig.Option.SAVE_DELETED);
     }
 
     @Override

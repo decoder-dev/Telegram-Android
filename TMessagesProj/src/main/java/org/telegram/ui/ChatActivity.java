@@ -34181,8 +34181,8 @@ public class ChatActivity extends BaseFragment implements
             final boolean bananaRecent = addToRecent;
             final boolean bananaWithout = withoutAnimation;
             new AlertDialog.Builder(getParentActivity(), themeDelegate)
-                    .setTitle(LocaleController.getString(R.string.BananaOpt_CONFIRM_REACTIONS_IN_UNJOINED_CHATS))
-                    .setMessage(LocaleController.getString(R.string.AreYouSure))
+                    .setTitle(LocaleController.getString(R.string.BananaConfirmReactionTitle))
+                    .setMessage(LocaleController.getString(R.string.BananaConfirmReactionText))
                     .setPositiveButton(LocaleController.getString(R.string.OK), (d, w) ->
                             selectReactionConfirmed(bananaCell, bananaMsg, bananaLayout, bananaFrom, bananaX, bananaY, bananaReaction, bananaDouble, bananaBig, bananaRecent, bananaWithout))
                     .setNegativeButton(LocaleController.getString(R.string.Cancel), null)

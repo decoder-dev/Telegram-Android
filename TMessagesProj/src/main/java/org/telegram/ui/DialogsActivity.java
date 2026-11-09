@@ -8512,8 +8512,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 bananaPreviewConfirmSkip = false;
             } else {
                 new org.telegram.ui.ActionBar.AlertDialog.Builder(getParentActivity())
-                        .setTitle(LocaleController.getString(R.string.BananaOpt_CONFIRM_CHAT_PREVIEW_ENTRY))
-                        .setMessage(LocaleController.getString(R.string.AreYouSure))
+                        .setTitle(LocaleController.getString(R.string.BananaConfirmPreviewTitle))
                         .setPositiveButton(LocaleController.getString(R.string.OK), (d, w) -> {
                             bananaPreviewConfirmSkip = true;
                             showChatPreview(cell);

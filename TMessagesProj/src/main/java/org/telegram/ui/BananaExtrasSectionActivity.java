@@ -1,5 +1,7 @@
 package org.telegram.ui;
 
+import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 
 import org.telegram.messenger.AndroidUtilities;
@@ -7,11 +9,14 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.messenger.banana.BananaConfig.Option;
 import org.telegram.messenger.banana.BananaExtrasCatalog;
+import org.telegram.messenger.banana.BananaHooks;
 import org.telegram.messenger.banana.BananaVisualLabels;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.BananaSwitchCell;
@@ -148,7 +153,7 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
     }
 
     private void showBookmarks() {
-        ArrayList<String> entries = org.telegram.messenger.banana.BananaHooks.getBookmarks(currentAccount);
+        ArrayList<String> entries = BananaHooks.getBookmarks(currentAccount);
         AlertDialog.Builder list = new AlertDialog.Builder(getParentActivity(), getResourceProvider())
                 .setTitle(LocaleController.getString(R.string.BananaBookmarks))
                 .setNegativeButton(LocaleController.getString(R.string.Close), null);
@@ -157,18 +162,7 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
         } else {
             CharSequence[] labels = new CharSequence[entries.size()];
             for (int i = 0; i < entries.size(); i++) {
-                android.os.Bundle args = org.telegram.messenger.banana.BananaHooks.bookmarkArguments(entries.get(i));
-                long userId = args.getLong("user_id"), chatId = args.getLong("chat_id");
-                String name = null;
-                if (userId != 0) {
-                    org.telegram.tgnet.TLRPC.User user = getMessagesController().getUser(userId);
-                    if (user != null) name = org.telegram.messenger.UserObject.getUserName(user);
-                } else if (chatId != 0) {
-                    org.telegram.tgnet.TLRPC.Chat chat = getMessagesController().getChat(chatId);
-                    if (chat != null) name = chat.title;
-                }
-                labels[i] = android.text.TextUtils.isEmpty(name) ? entries.get(i) :
-                        LocaleController.formatString(R.string.BananaHistoryPeerNamed, name, args.getInt("message_id"));
+                labels[i] = bookmarkLabel(BananaHooks.bookmarkArguments(entries.get(i)));
             }
             list.setItems(labels, (dialog, which) -> {
                 String entry = entries.get(which);
@@ -177,20 +171,45 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
                         .setItems(new CharSequence[]{LocaleController.getString(R.string.BananaBookmarkOpen),
                                 LocaleController.getString(R.string.BananaBookmarkRemove)}, (actions, action) -> {
                             if (action == 0) {
-                                android.os.Bundle args = org.telegram.messenger.banana.BananaHooks.bookmarkArguments(entry);
+                                Bundle args = BananaHooks.bookmarkArguments(entry);
                                 if (args != null && getMessagesController().checkCanOpenChat(args, this)) {
                                     ChatActivity chat = new ChatActivity(args);
                                     chat.setCurrentAccount(currentAccount);
                                     presentFragment(chat);
                                 }
                             } else {
-                                org.telegram.messenger.banana.BananaHooks.removeBookmark(currentAccount, entry);
+                                BananaHooks.removeBookmark(currentAccount, entry);
                                 AndroidUtilities.runOnUIThread(this::showBookmarks);
                             }
                         }).setNegativeButton(LocaleController.getString(R.string.Cancel), null).create());
             });
         }
         showDialog(list.create());
+    }
+
+    private String bookmarkLabel(Bundle args) {
+        int messageId = args.getInt("message_id");
+        long userId = args.getLong("user_id");
+        long chatId = args.getLong("chat_id");
+        int encryptedId = args.getInt("enc_id");
+        String name = null;
+        if (encryptedId != 0) {
+            TLRPC.EncryptedChat encryptedChat = getMessagesController().getEncryptedChat(encryptedId);
+            if (encryptedChat != null) {
+                userId = encryptedChat.user_id;
+            }
+        }
+        if (userId != 0) {
+            TLRPC.User user = getMessagesController().getUser(userId);
+            if (user != null) name = UserObject.getUserName(user);
+        } else if (chatId != 0) {
+            TLRPC.Chat chat = getMessagesController().getChat(chatId);
+            if (chat != null) name = chat.title;
+        }
+        if (TextUtils.isEmpty(name)) {
+            return LocaleController.formatString(R.string.BananaBookmarkUnavailable, messageId);
+        }
+        return LocaleController.formatString(R.string.BananaHistoryPeerNamed, name, messageId);
     }
 
     @Override
