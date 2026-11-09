@@ -213,7 +213,7 @@ public class NotificationsController extends BaseController implements Notificat
 
     public NotificationsController(int instance) {
         super(instance);
-        notificationId = currentAccount + 1;
+        notificationId = org.telegram.messenger.banana.AccountSlots.summaryNotificationId(currentAccount);
         notificationGroup = "messages" + (currentAccount == 0 ? "" : currentAccount);
         SharedPreferences preferences = getAccountInstance().getNotificationsSettings();
         inChatSoundEnabled = preferences.getBoolean("EnableInChatSound", true);
