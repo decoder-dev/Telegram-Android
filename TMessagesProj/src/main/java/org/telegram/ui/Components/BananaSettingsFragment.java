@@ -57,6 +57,7 @@ public abstract class BananaSettingsFragment extends UniversalFragment {
         for (int i = 0; i < listView.getCachedChildCount(); i++) updateTextRow(listView.getCachedChildAt(i));
         for (int i = 0; i < listView.getHiddenChildCount(); i++) updateTextRow(listView.getHiddenChildAt(i));
         for (int i = 0; i < listView.getAttachedScrapChildCount(); i++) updateTextRow(listView.getAttachedScrapChildAt(i));
+        listView.invalidate();
     }
 
     @Override
@@ -76,9 +77,8 @@ public abstract class BananaSettingsFragment extends UniversalFragment {
         ArrayList<ThemeDescription> colors = new ArrayList<>();
         colors.add(new ThemeDescription(listView, ThemeDescription.FLAG_LISTGLOWCOLOR, null, null, null, null, Theme.key_actionBarDefault));
         colors.add(new ThemeDescription(listView, ThemeDescription.FLAG_SELECTOR, null, null, null, null, Theme.key_listSelector));
-        colors.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR,
-                new Class[]{HeaderCell.class, TextCell.class, TextSettingsCell.class, TextCheckCell.class, TextDetailSettingsCell.class},
-                null, null, this::updateTextRows, Theme.key_windowBackgroundWhite));
+        // The sections paint the rounded cards; giving rows a background here would square their corners.
+        colors.add(new ThemeDescription(null, 0, null, null, null, this::updateTextRows, Theme.key_windowBackgroundWhite));
         colors.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR,
                 new Class[]{TextSettingsCell.class, TextCheckCell.class, TextDetailSettingsCell.class},
                 new String[]{"textView", "textView", "textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
