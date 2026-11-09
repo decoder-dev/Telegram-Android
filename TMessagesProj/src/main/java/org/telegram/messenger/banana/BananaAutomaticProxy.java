@@ -34,7 +34,8 @@ import java.util.Set;
  *
  * iOS refreshes every 10 minutes and may consider a larger pool. This client probes at most
  * {@link #PROBE_LIMIT} candidates per pass, at most {@link #PROBE_CONCURRENCY} at a time, with
- * {@link #PROBE_GAP_MS} between dials. While enabled it owns routing whatever "Use proxy" was
+ * {@link #PROBE_GAP_MS} between dials. A pass that leaves it without a usable route moves on to
+ * the next candidates of the stored pool. While enabled it owns routing whatever "Use proxy" was
  * set to and whichever proxy was selected; turning it off brings that earlier state back.
  * Turning "Use proxy" off while it is enabled pauses it instead of being undone by a later switch.
  * The refresh runnable is not re-armed while the process stays in the background, the screen
@@ -71,8 +72,14 @@ public final class BananaAutomaticProxy {
      */
     private static final int MAX_ALIVE_STALLS = 3;
     private static final int STORED_LIMIT = 40;
-    /** Candidates dialed in one refresh. Kept at the concurrency cap so a pass cannot queue a second wave. */
+    /** Candidates dialed in one pass. Kept at the concurrency cap so a pass cannot queue a second wave. */
     private static final int PROBE_LIMIT = 4;
+    /**
+     * Drops of a connected route, within {@link #DROP_SPAN_MS}, after which it is left. A route
+     * that stalls and reconnects every few seconds answers every probe and was kept for ever.
+     */
+    private static final int MAX_ROUTE_DROPS = 3;
+    private static final long DROP_SPAN_MS = 2L * 60L * 1000L;
     /** {@code ProxyStatusProbeQueue(limit: 4)}. */
     private static final int PROBE_CONCURRENCY = 4;
     /** Extra gap so Android does not open even those four sockets in one burst. */
@@ -119,7 +126,17 @@ public final class BananaAutomaticProxy {
     private static int probeCursor;
     private static int probePending;
     private static List<SharedConfig.ProxyInfo> probeQueue;
-    private static List<SharedConfig.ProxyInfo> lastAdded = new ArrayList<>();
+    /** Every stored automatic route; a pass dials {@link #PROBE_LIMIT} of them from {@link #probeOffset}. */
+    private static List<SharedConfig.ProxyInfo> pool = new ArrayList<>();
+    private static int probeOffset;
+    /** Pool candidates the running pass takes; the active route holds the remaining slot. */
+    private static int probeStep = PROBE_LIMIT;
+    /** Candidates dialed in a row without finding a usable route. */
+    private static int dialedInVain;
+
+    private static final ProxyRoutePolicy.Drops routeDrops = new ProxyRoutePolicy.Drops(MAX_ROUTE_DROPS, DROP_SPAN_MS);
+    private static int lastState;
+    private static int lastStateAccount = -1;
 
     private BananaAutomaticProxy() {}
 
@@ -166,7 +183,9 @@ public final class BananaAutomaticProxy {
         pendingProbe = false;
         verifyingCurrent = false;
         aliveStalls = 0;
-        lastAdded = new ArrayList<>();
+        dialedInVain = 0;
+        routeDrops.reset();
+        pool = new ArrayList<>();
         if (enabled) {
             // iOS clears the dwell stamp when the user turns the feature on.
             lastSwitchAt = 0L;
@@ -250,8 +269,8 @@ public final class BananaAutomaticProxy {
             return;
         }
         lastSwitchAt = 0L;
-        if (lastAdded != null && !lastAdded.isEmpty()) {
-            startProbe(lastAdded);
+        if (!pool.isEmpty()) {
+            startProbe(pool);
         } else {
             refresh();
         }
@@ -514,24 +533,25 @@ public final class BananaAutomaticProxy {
         startProbe(added, false);
     }
 
-    private static void startProbe(List<SharedConfig.ProxyInfo> added, boolean failureDriven) {
+    private static void startProbe(List<SharedConfig.ProxyInfo> candidates, boolean failureDriven) {
         cancelProbes();
         pendingProbe = false;
         failureDrivenSwitch = failureDriven;
-        if (!isEnabled() || added == null || added.isEmpty()) {
-            lastAdded = new ArrayList<>();
+        if (!isEnabled() || candidates == null || candidates.isEmpty()) {
+            pool = new ArrayList<>();
             return;
         }
-        int limit = Math.min(PROBE_LIMIT, added.size());
-        List<SharedConfig.ProxyInfo> probe = new ArrayList<>(added.subList(0, limit));
+        pool = candidates;
         SharedConfig.ProxyInfo active = SharedConfig.currentProxy;
-        if (active != null && isAutomatic(active) && !probe.contains(active)) {
-            if (probe.size() >= PROBE_LIMIT) {
-                probe.remove(probe.size() - 1);
-            }
+        boolean keepActive = active != null && isAutomatic(active);
+        probeStep = keepActive ? PROBE_LIMIT - 1 : PROBE_LIMIT;
+        List<SharedConfig.ProxyInfo> probe = new ArrayList<>(PROBE_LIMIT);
+        for (int index : ProxyRoutePolicy.window(candidates.size(), probeOffset, probeStep)) {
+            probe.add(candidates.get(index));
+        }
+        if (keepActive && !probe.contains(active)) {
             probe.add(0, active);
         }
-        lastAdded = probe;
         if (!canProbe()) {
             pendingProbe = true;
             return;
@@ -610,16 +630,48 @@ public final class BananaAutomaticProxy {
         boolean failureDriven = failureDrivenSwitch;
         SharedConfig.ProxyInfo before = SharedConfig.currentProxy;
         maybeSwitch(probeQueue, failureDriven);
-        if (failureDriven && SharedConfig.currentProxy == before && isEnabled() && canProbe()) {
-            // No live candidate in this pool: fetch fresh lists instead of waiting ten minutes
-            // on a dead route, and look again if Telegram is still stuck after that.
-            failureDrivenSwitch = false;
-            if (SystemClock.elapsedRealtime() - lastRefreshAt >= MIN_SWITCH_MS) {
-                refresh();
-            }
+        if (!isEnabled() || !canProbe()) {
+            return;
+        }
+        SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
+        boolean routed = current != null && isAutomatic(current) && SharedConfig.isProxyEnabled();
+        if (current != before) {
+            dialedInVain = 0;
+            // A switch made while already connecting changes no connection state, so nothing
+            // else would look again if the new route does not come up either.
             AndroidUtilities.cancelRunOnUIThread(FALLBACK);
             AndroidUtilities.runOnUIThread(FALLBACK, FAILURE_SWITCH_MIN_MS);
+            return;
         }
+        if (routed && !failureDriven) {
+            dialedInVain = 0;
+            return;
+        }
+        // Nothing usable among these candidates. Only the first few of the pool used to be
+        // dialed, so with those dead the rest of the stored routes were never tried.
+        probeOffset = ProxyRoutePolicy.nextOffset(pool.size(), probeOffset, probeStep);
+        dialedInVain += probeStep;
+        if (dialedInVain < pool.size()) {
+            startProbe(pool, failureDriven);
+            return;
+        }
+        // The whole pool is down: fetch fresh lists instead of waiting ten minutes, and look
+        // again if Telegram is still stuck after that.
+        dialedInVain = 0;
+        failureDrivenSwitch = false;
+        if (!failureDriven) {
+            // Telegram may still be reachable directly; then the usual refresh is soon enough.
+            int state = ConnectionsManager.getInstance(UserConfig.selectedAccount).getConnectionState();
+            if (state != ConnectionsManager.ConnectionStateConnected && state != ConnectionsManager.ConnectionStateUpdating) {
+                scheduleRefresh(MIN_SWITCH_MS);
+            }
+            return;
+        }
+        if (SystemClock.elapsedRealtime() - lastRefreshAt >= MIN_SWITCH_MS) {
+            refresh();
+        }
+        AndroidUtilities.cancelRunOnUIThread(FALLBACK);
+        AndroidUtilities.runOnUIThread(FALLBACK, FAILURE_SWITCH_MIN_MS);
     }
 
     private static void cancelProbes() {
@@ -653,7 +705,7 @@ public final class BananaAutomaticProxy {
             AndroidUtilities.runOnUIThread(FALLBACK, FAILURE_SWITCH_MIN_MS - sinceSwitch);
             return;
         }
-        if (lastAdded == null || lastAdded.isEmpty() || verifyingCurrent) {
+        if (pool.isEmpty() || verifyingCurrent) {
             return;
         }
         // Check the selected route before leaving it. Switching on pings up to ten minutes old
@@ -661,7 +713,7 @@ public final class BananaAutomaticProxy {
         // stale "fastest" candidate could be dead too, so the next fallback switched again.
         final SharedConfig.ProxyInfo current = SharedConfig.currentProxy;
         if (current == null || current.settings == null || !isAutomatic(current)) {
-            startProbe(lastAdded, true);
+            startProbe(pool, true);
             return;
         }
         verifyingCurrent = true;
@@ -686,7 +738,7 @@ public final class BananaAutomaticProxy {
             }
             aliveStalls = 0;
             // Fresh pings for the candidates, then the fastest live one other than this route.
-            startProbe(lastAdded, true);
+            startProbe(pool, true);
         }));
     }
 
@@ -740,6 +792,7 @@ public final class BananaAutomaticProxy {
         lastSwitchAt = now;
         failureDrivenSwitch = false;
         aliveStalls = 0;
+        routeDrops.reset();
         android.content.SharedPreferences.Editor editor = MessagesController.getGlobalMainSettings().edit();
         editor.putBoolean("proxy_enabled", true);
         best.settings.toSharedPreferences(editor);
@@ -925,7 +978,7 @@ public final class BananaAutomaticProxy {
                 cancelProbes();
                 AndroidUtilities.cancelRunOnUIThread(FALLBACK);
             } else if (pendingProbe && isEnabled()) {
-                startProbe(lastAdded);
+                startProbe(pool);
             }
         }, NotificationCenter.screenStateChanged);
         for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
@@ -935,17 +988,26 @@ public final class BananaAutomaticProxy {
                 }
                 AndroidUtilities.cancelRunOnUIThread(FALLBACK);
                 int state = ConnectionsManager.getInstance(account).getConnectionState();
+                final boolean wasConnected = lastStateAccount == account
+                        && (lastState == ConnectionsManager.ConnectionStateConnected || lastState == ConnectionsManager.ConnectionStateUpdating);
+                lastState = state;
+                lastStateAccount = account;
                 if (state == ConnectionsManager.ConnectionStateWaitingForNetwork) {
                     if (probeQueue != null) {
                         pendingProbe = true;
                     }
                     cancelProbes();
+                    routeDrops.reset();
                     return;
                 }
                 if (!isEnabled()) {
                     return;
                 }
                 if (state == ConnectionsManager.ConnectionStateConnectingToProxy) {
+                    if (wasConnected && routeKeepsDropping()) {
+                        startProbe(pool, true);
+                        return;
+                    }
                     AndroidUtilities.runOnUIThread(FALLBACK, CONNECTION_FALLBACK_MS);
                 }
             }, NotificationCenter.didUpdateConnectionState);
@@ -966,8 +1028,21 @@ public final class BananaAutomaticProxy {
         }
     }
 
+    /** The selected automatic route just dropped a working connection: whether it did so too often. */
+    private static boolean routeKeepsDropping() {
+        if (!canProbe() || pool.isEmpty() || verifyingCurrent || !isAutomatic(SharedConfig.currentProxy)) {
+            return false;
+        }
+        // Switching the route closes the connection too; that one is not the new route's fault.
+        if (System.currentTimeMillis() - lastSwitchAt < FAILURE_SWITCH_MIN_MS) {
+            return false;
+        }
+        return routeDrops.record(SystemClock.elapsedRealtime());
+    }
+
     private static void onForeground() {
         backgroundedAt = 0L;
+        routeDrops.reset();
         ApplicationLoader.startPushService();
         if (!isEnabled()) {
             return;
@@ -979,13 +1054,15 @@ public final class BananaAutomaticProxy {
         } else {
             scheduleRefresh(REFRESH_MS - elapsed);
             if (pendingProbe) {
-                startProbe(lastAdded);
+                startProbe(pool);
             }
         }
     }
 
     private static void onBackground() {
         backgroundedAt = SystemClock.elapsedRealtime();
+        // The network is paused in the background; those closes say nothing about the route.
+        routeDrops.reset();
         if (probeQueue != null) {
             pendingProbe = true;
         }

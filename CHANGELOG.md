@@ -27,6 +27,8 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Fixed
 
+- Automatic proxy tries every stored route. It only ever dialed the first four of up to forty, so with those dead it stayed on a dead or slow route until the lists changed. A pass that finds nothing usable now moves on through the pool, a route that connects and falls off three times in two minutes is left, and a route chosen while reconnecting is checked again after 20 s.
+- Opening a forum topic before the chat's info has loaded no longer crashes (rc.15, seen on an Honor phone with Android 16).
 - The app no longer crashes when an update finishes downloading while BananaGram may not install apps yet. The download receiver lives on the application context and showed the permission dialog without a window; the dialog now opens only over a running screen, and Install in the updater asks again.
 - The image cache no longer crashes with ConcurrentModificationException when an image thread reorders it while another evicts; filter keys are kept under the same lock. Ported from Glassgram.
 - A bulletin shown with no activity window (app in the background) or while the activity closes is skipped instead of crashing with BadTokenException. Ported from Glassgram.
