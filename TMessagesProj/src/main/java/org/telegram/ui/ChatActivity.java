@@ -22121,7 +22121,8 @@ public class ChatActivity extends BaseFragment implements
 
                 TLRPC.TL_forumTopic topic = null;
                 if (isTopic) {
-                    topic = getMessagesController().getTopicsController().findTopic(getCurrentChatInfo().id, getTopicId());
+                    // chatInfo may not be loaded yet when the first page arrives.
+                    topic = getMessagesController().getTopicsController().findTopic(-dialogId, topicId);
                 }
 
                 // todo: check if these's any messages between current loaded and newly loaded
