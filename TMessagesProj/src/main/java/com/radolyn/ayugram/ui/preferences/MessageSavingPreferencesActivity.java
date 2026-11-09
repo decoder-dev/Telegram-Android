@@ -182,7 +182,7 @@ public class MessageSavingPreferencesActivity extends BasePreferencesActivity {
         public RecyclerView.ViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup parent, int viewType) {
             if (viewType == TOGGLE_BUTTON_VIEW) {
                 var view = new NotificationsCheckCell(mContext);
-                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                setRowBackground(view);
                 return new RecyclerListView.Holder(view);
             }
             return super.onCreateViewHolder(parent, viewType);

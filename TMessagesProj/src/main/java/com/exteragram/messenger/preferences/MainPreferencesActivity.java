@@ -63,6 +63,12 @@ public class MainPreferencesActivity extends BasePreferencesActivity {
     private int sourceCodeRow;
     private int infoDividerRow;
 
+    // Keeps its own collapsing logo header instead of the simple glass one.
+    @Override
+    protected boolean useSimpleActionBar() {
+        return false;
+    }
+
     @Override
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);

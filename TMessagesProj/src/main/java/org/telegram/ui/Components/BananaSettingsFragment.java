@@ -1,6 +1,7 @@
 package org.telegram.ui.Components;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.view.View;
 
 import org.telegram.ui.ActionBar.Theme;
@@ -15,8 +16,35 @@ import org.telegram.ui.LaunchActivity;
 
 import java.util.ArrayList;
 
-/** Theme animation bindings shared by every Extras screen, including the palette chooser. */
+/**
+ * Base of every Extras screen. Uses Telegram's simple glass layout: a glass header with a centred
+ * title and grouped rounded sections, the closest Telegram has to iOS inset grouped lists.
+ */
 public abstract class BananaSettingsFragment extends UniversalFragment {
+    @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
+    @Override
+    public View createView(Context context) {
+        setHasOwnBackground(true);
+        View view = super.createView(context);
+        listView.setSections();
+        listView.setSectionsDrawBackground(true);
+        return view;
+    }
+
+    @Override
+    protected RecyclerListView getListViewForSimpleGlass() {
+        return listView;
+    }
+
+    @Override
+    public boolean isSupportEdgeToEdge() {
+        return true;
+    }
+
     private void updateTextRow(View row) {
         if (row instanceof TextCell) ((TextCell) row).updateColors();
     }
@@ -46,12 +74,6 @@ public abstract class BananaSettingsFragment extends UniversalFragment {
     @Override
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> colors = new ArrayList<>();
-        colors.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
-        colors.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
-        colors.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, null, null, Theme.key_actionBarDefaultTitle));
-        colors.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SUBTITLECOLOR, null, null, null, null, Theme.key_actionBarDefaultSubtitle));
-        colors.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, null, Theme.key_actionBarDefaultIcon));
-        colors.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarDefaultSelector));
         colors.add(new ThemeDescription(listView, ThemeDescription.FLAG_LISTGLOWCOLOR, null, null, null, null, Theme.key_actionBarDefault));
         colors.add(new ThemeDescription(listView, ThemeDescription.FLAG_SELECTOR, null, null, null, null, Theme.key_listSelector));
         colors.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR,
