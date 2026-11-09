@@ -9054,6 +9054,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         int titleId = 0;
         Runnable action = null;
         currentConnectionState = ConnectionsManager.getInstance(currentAccount).getConnectionState();
+        org.telegram.messenger.banana.AutomaticProxyOffer.onConnectionState(currentConnectionState);
         if (currentConnectionState == ConnectionsManager.ConnectionStateWaitingForNetwork) {
             title = "WaitingForNetwork";
             titleId = R.string.WaitingForNetwork;

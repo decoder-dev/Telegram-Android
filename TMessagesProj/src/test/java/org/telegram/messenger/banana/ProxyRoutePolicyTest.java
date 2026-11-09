@@ -58,6 +58,44 @@ public class ProxyRoutePolicyTest {
         assertTrue(drops.record(210_000));
     }
 
+    @Test public void troubleIsDueAfterConnectingTooLong() {
+        ProxyRoutePolicy.Trouble trouble = new ProxyRoutePolicy.Trouble(15_000, 3, 120_000);
+        assertEquals(-1, trouble.dueIn(0));
+        trouble.connecting(1_000);
+        trouble.connecting(5_000);
+        assertEquals(6_000, trouble.dueIn(10_000));
+        assertEquals(0, trouble.dueIn(16_000));
+        trouble.connected();
+        assertEquals(-1, trouble.dueIn(20_000));
+    }
+
+    @Test public void troubleIsDueWhenTheConnectionKeepsFallingOff() {
+        ProxyRoutePolicy.Trouble trouble = new ProxyRoutePolicy.Trouble(15_000, 3, 120_000);
+        trouble.connecting(0);
+        // The first connection is not a drop.
+        trouble.connected();
+        for (long at : new long[] {10_000, 40_000}) {
+            trouble.connecting(at);
+            trouble.connected();
+            assertEquals(-1, trouble.dueIn(at + 1_000));
+        }
+        trouble.connecting(70_000);
+        trouble.connected();
+        assertEquals(0, trouble.dueIn(71_000));
+    }
+
+    @Test public void troubleForgetsEverythingWithoutNetwork() {
+        ProxyRoutePolicy.Trouble trouble = new ProxyRoutePolicy.Trouble(15_000, 2, 120_000);
+        trouble.connected();
+        trouble.connecting(1_000);
+        trouble.reset();
+        trouble.connected();
+        trouble.connecting(2_000);
+        assertEquals(15_000, trouble.dueIn(2_000));
+        trouble.reset();
+        assertEquals(-1, trouble.dueIn(2_000));
+    }
+
     @Test public void resetForgetsDrops() {
         ProxyRoutePolicy.Drops drops = new ProxyRoutePolicy.Drops(2, 60_000);
         assertFalse(drops.record(1_000));
