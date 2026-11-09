@@ -823,10 +823,18 @@ public class BananaSmokeTest {
                 cell = false;
             }
             if (!cell) continue;
-            assertTrue("A native settings row must have its palette surface: " + row.getClass().getSimpleName(),
-                    row.getBackground() instanceof android.graphics.drawable.ColorDrawable);
-            int background = ((android.graphics.drawable.ColorDrawable) row.getBackground()).getColor();
-            assertEquals("The rendered row background must change with the palette: " + row.getClass().getSimpleName(), surface, background);
+            int background;
+            if (screen.listView.hasSections()) {
+                // Grouped sections paint the card; a row's own flat strip would cover its rounded corners.
+                assertFalse("A grouped row must not paint its own background: " + row.getClass().getSimpleName(),
+                        row.getBackground() instanceof android.graphics.drawable.ColorDrawable);
+                background = surface;
+            } else {
+                assertTrue("A native settings row must have its palette surface: " + row.getClass().getSimpleName(),
+                        row.getBackground() instanceof android.graphics.drawable.ColorDrawable);
+                background = ((android.graphics.drawable.ColorDrawable) row.getBackground()).getColor();
+                assertEquals("The rendered row background must change with the palette: " + row.getClass().getSimpleName(), surface, background);
+            }
             assertEquals("The rendered row text must change with the palette: " + row.getClass().getSimpleName(), screen.getThemedColor(textKey), text);
             if (textKey == Theme.key_windowBackgroundWhiteBlackText || textKey == Theme.key_windowBackgroundWhiteBlueHeader) {
                 assertTrue("Actual row text needs readable contrast against its actual background",
