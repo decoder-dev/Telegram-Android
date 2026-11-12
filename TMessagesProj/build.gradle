@@ -251,7 +251,7 @@ android {
                 if (compilerCache) {
                     arguments "-DCMAKE_C_COMPILER_LAUNCHER=${compilerCache}", "-DCMAKE_CXX_COMPILER_LAUNCHER=${compilerCache}"
                 }
-                targets 'tmessages.49', 'sharpyuv', 'webpdecoder', 'webp', 'webpdemux', 'libwebpmux'
+                targets 'tmessages.49', 'twidget', 'sharpyuv', 'webpdecoder', 'webp', 'webpdemux', 'libwebpmux'
             }
         }
     }

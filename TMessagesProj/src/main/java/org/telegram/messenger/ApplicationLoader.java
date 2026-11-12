@@ -290,6 +290,10 @@ public class ApplicationLoader extends Application {
             DownloadController.getInstance(a);
         }
         BillingController.getInstance().startConnection();
+        // HTML widgets: the isolated engine's process up front, after the app's own start, so that a widget's first
+        // frame does not wait for it.
+        AndroidUtilities.runOnUIThread(() -> Utilities.globalQueue.postRunnable(
+                () -> org.telegram.utils.twidget.WidgetSandboxSession.prewarmEngine(applicationContext)), 3000);
 
         // AyuGram: start sync
         AyuSyncController.create();
@@ -313,6 +317,11 @@ public class ApplicationLoader extends Application {
         // The permission-less regex worker must not initialize Telegram sessions,
         // native libraries, preferences, push providers or account databases.
         if (org.telegram.messenger.banana.RegexProcess.isWorker(this)) return;
+
+        // The widget engine's isolated process has no files, network or accounts: none of the client starts there.
+        if (org.telegram.utils.twidget.WidgetEngineService.isEngineProcess()) {
+            return;
+        }
 
         org.telegram.messenger.banana.BananaCrashReporter.install(this);
         org.telegram.messenger.banana.BananaSessionBackup.applyPending();
