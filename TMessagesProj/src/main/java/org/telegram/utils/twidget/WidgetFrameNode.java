@@ -94,7 +94,7 @@ public abstract class WidgetFrameNode {
 
         @Override
         public boolean recorded() {
-            return node.hasDisplayList();
+            return node.hasDisplayList() || software != null;
         }
 
         @Override

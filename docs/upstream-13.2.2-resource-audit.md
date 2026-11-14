@@ -26,6 +26,8 @@ explanation of the rc.16 crash report's total native memory.
   frame pixels now restore a lost recording for subsequent hardware and
   software drawing. The regression verifies the frame remains recorded after
   readback and the second draw still contains the expected pixels.
+  Cached snapshots also remain available to player/layer guards before drawing
+  restores the native recording.
 - The isolated widget process must skip client initialization during Android
   configuration changes as well as in `Application.onCreate`. The configuration
   callback now has the same process guard.

@@ -76,6 +76,7 @@ public class WidgetFrameNodeTest {
                 assertTrue(hardwareConsumer.recorded());
 
                 // A containing renderer may also discard this frame's display list when it loses its last parent.
+                assertTrue("Animation layers must remain available before the next draw restores their list", frame.recorded());
                 target.eraseColor(Color.TRANSPARENT);
                 frame.draw(new Canvas(target), 1f);
                 assertTrue(frame.recorded());
