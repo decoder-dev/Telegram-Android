@@ -684,6 +684,11 @@
     <string name="BananaAutoDownloadUpdates">Автозагрузка по Wi-Fi без тарификации</string>
     <string name="BananaValuesInfo">Числовые и текстовые настройки. Значения по умолчанию такие же, как в BananaGram для iOS.</string>
     <string name="BananaValuesAppearance">Внешний вид</string>
+    <string name="BananaGlassHighlights">Блики на стекле</string>
+    <string name="BananaGlassHighlightsInfo">Один стиль бликов для стеклянных элементов во всех аккаунтах.</string>
+    <string name="BananaGlassHighlightsOff">Выключены</string>
+    <string name="BananaGlassHighlightsDefault">По умолчанию</string>
+    <string name="BananaGlassHighlightsOutline">Обводка</string>
     <string name="BananaValuesGlass">Стеклянные пузыри</string>
     <string name="BananaValuesMedia">Медиа</string>
     <string name="BananaValuesMessages">Сообщения</string>

@@ -486,6 +486,7 @@ public class ApplicationLoader extends Application {
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (org.telegram.messenger.banana.RegexProcess.isWorker(this)) return;
+        if (org.telegram.utils.twidget.WidgetEngineService.isEngineProcess()) return;
         try {
             LocaleController.getInstance().onDeviceConfigurationChange(newConfig);
             AndroidUtilities.checkDisplaySize(applicationContext, newConfig);

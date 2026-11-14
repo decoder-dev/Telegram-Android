@@ -12103,6 +12103,11 @@
     <string name="BananaAutoDownloadUpdates">Download automatically on unmetered Wi-Fi</string>
     <string name="BananaValuesInfo">Numeric and text settings. Defaults match BananaGram for iOS.</string>
     <string name="BananaValuesAppearance">Appearance</string>
+    <string name="BananaGlassHighlights">Glass highlights</string>
+    <string name="BananaGlassHighlightsInfo">Uses the same highlight style for glass controls in every account.</string>
+    <string name="BananaGlassHighlightsOff">Off</string>
+    <string name="BananaGlassHighlightsDefault">Default</string>
+    <string name="BananaGlassHighlightsOutline">Outline</string>
     <string name="BananaValuesGlass">Glass bubbles</string>
     <string name="BananaValuesMedia">Media</string>
     <string name="BananaValuesMessages">Messages</string>

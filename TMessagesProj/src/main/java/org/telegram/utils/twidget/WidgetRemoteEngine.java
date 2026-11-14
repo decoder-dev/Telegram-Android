@@ -30,6 +30,7 @@ final class WidgetRemoteEngine extends WidgetEngine {
     private static final long BIND_TIMEOUT_MS = 10_000, IDLE_UNBIND_MS = 30_000;
     // What one large argument may add up to (IWidgetEngineCallback#part): a display list of the node limit is far less.
     private static final int MAX_LARGE = 16 * 1024 * 1024;
+    private static final int MAX_RETAINED_ARGUMENT = 64 * 1024;
     // One textWidth call; the engine measures longer text in pieces (WidgetEngineBackend#TEXT_PIECE).
     static final int MAX_TEXT = 256 * 1024;
 
@@ -40,32 +41,46 @@ final class WidgetRemoteEngine extends WidgetEngine {
     private final ConcurrentHashMap<Long, Client> clients = new ConcurrentHashMap<>();
     private final AtomicLong nextId = new AtomicLong();
     private Context context;
-    // prewarm() was asked for: every binding gets the app's hold (hold()); guarded by `lock`.
-    private boolean kept;
 
     private WidgetRemoteEngine() {}
 
     /**
-     * The engine's process started now and kept for the app's lifetime, its bundles loaded, so that a widget's first
-     * frame does not wait for the process (a few hundred ms on a weak phone). An idle engine takes no CPU, only its
-     * memory. After a death the binding is given up (drop()); the next session, or this called again on the next
-     * return to the foreground, binds afresh. Cheap when the engine is up. Any thread but the main one.
+     * Warm the engine for a bounded grace period. Real sessions keep their own holds; an app with no widgets must
+     * not retain an isolated process and its native bundles for its whole lifetime. Any background thread.
      */
     void prewarm(Context context) {
         synchronized (lock) {
             if (this.context == null) this.context = context.getApplicationContext();
-            kept = true;
             hold(connection());
         }
     }
 
-    // Guarded by `lock`: the app's own hold on `binding` (prewarm), never released, so no idle unbind.
+    // Guarded by `lock`: a temporary warmup hold, independent of real sessions.
     private void hold(Connection binding) {
-        if (binding.held) return;
-        binding.held = true;
-        binding.live++;
-        main.removeCallbacks(binding.idleUnbind);
-        if (binding.engine != null) warmup(binding.engine);
+        if (!binding.held) {
+            binding.held = true;
+            binding.live++;
+            main.removeCallbacks(binding.idleUnbind);
+            if (binding.engine != null) warmup(binding.engine);
+        }
+        main.removeCallbacks(binding.endWarmup);
+        main.postDelayed(binding.endWarmup, IDLE_UNBIND_MS);
+    }
+
+    void releasePrewarm() {
+        synchronized (lock) {
+            if (connection != null) releasePrewarm(connection);
+        }
+    }
+
+    private void releasePrewarm(Connection binding) {
+        synchronized (lock) {
+            main.removeCallbacks(binding.endWarmup);
+            if (!binding.held) return;
+            binding.held = false;
+            binding.live--;
+            unbindIfIdle(binding);
+        }
     }
 
     private static void warmup(IWidgetEngine engine) {
@@ -82,6 +97,7 @@ final class WidgetRemoteEngine extends WidgetEngine {
         int generation, live;
         boolean bound, held;
         final Runnable idleUnbind = () -> unbindIfIdle(this);
+        final Runnable endWarmup = () -> releasePrewarm(this);
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
@@ -123,7 +139,6 @@ final class WidgetRemoteEngine extends WidgetEngine {
         }
         created.bound = true;
         connection = created;
-        if (kept) hold(created);
         return created;
     }
 
@@ -220,6 +235,11 @@ final class WidgetRemoteEngine extends WidgetEngine {
         if (!binding.bound) return;
         binding.bound = false;
         main.removeCallbacks(binding.idleUnbind);
+        main.removeCallbacks(binding.endWarmup);
+        if (binding.held) {
+            binding.held = false;
+            binding.live--;
+        }
         if (connection == binding) connection = null;
         try {
             context.unbindService(binding);
@@ -230,6 +250,8 @@ final class WidgetRemoteEngine extends WidgetEngine {
     private void unbindIfIdle(Connection binding) {
         synchronized (lock) {
             if (binding.live > 0 || !binding.bound) return;
+            main.removeCallbacks(binding.idleUnbind);
+            main.removeCallbacks(binding.endWarmup);
             binding.bound = false;
             binding.engine = null;
             if (connection == binding) connection = null;
@@ -334,7 +356,12 @@ final class WidgetRemoteEngine extends WidgetEngine {
         final int generation;
         final WidgetSandboxBackend backend;
         volatile long nativeId;
-        private final ByteArrayOutputStream large = new ByteArrayOutputStream();
+        private ByteArrayOutputStream large = new ByteArrayOutputStream();
+
+        private void clearLarge() {
+            if (large.size() > MAX_RETAINED_ARGUMENT) large = new ByteArrayOutputStream();
+            else large.reset();
+        }
 
         Client(Connection binding, int generation, WidgetSandboxBackend backend) {
             this.binding = binding;
@@ -361,14 +388,14 @@ final class WidgetRemoteEngine extends WidgetEngine {
         private synchronized byte[] large(byte[] value) {
             if (value != null) return value;
             byte[] whole = large.toByteArray();
-            large.reset();
+            clearLarge();
             return whole;
         }
 
         @Override
         public synchronized void part(byte[] value) {
-            if (value == null || large.size() + value.length > MAX_LARGE) {
-                large.reset();
+            if (value == null || value.length > MAX_LARGE - large.size()) {
+                clearLarge();
                 throw new IllegalStateException("Widget engine: argument too large");
             }
             large.write(value, 0, value.length);

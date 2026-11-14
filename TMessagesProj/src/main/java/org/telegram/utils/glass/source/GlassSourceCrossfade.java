@@ -21,6 +21,10 @@ public final class GlassSourceCrossfade implements GlassSource, BlurredBackgroun
     private final GlassSource to;
     private final ReferenceList<BlurredBackgroundDrawable> drawables = new ReferenceList<>();
     private float progress;
+    private float generationProgress = Float.NaN;
+    private long fromGenerationId;
+    private long toGenerationId;
+    private long generationId;
 
     public GlassSourceCrossfade(@NonNull GlassSource from, @NonNull GlassSource to) {
         this.from = from;
@@ -40,6 +44,19 @@ public final class GlassSourceCrossfade implements GlassSource, BlurredBackgroun
 
     public float getProgress() {
         return progress;
+    }
+
+    @Override
+    public long getGenerationId() {
+        final long fromGeneration = from.getGenerationId();
+        final long toGeneration = to.getGenerationId();
+        if (progress != generationProgress || fromGeneration != fromGenerationId || toGeneration != toGenerationId) {
+            generationProgress = progress;
+            fromGenerationId = fromGeneration;
+            toGenerationId = toGeneration;
+            generationId++;
+        }
+        return generationId;
     }
 
     @Override

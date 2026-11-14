@@ -4,9 +4,27 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Telegram 13.2.2 base
+
+- Import official Telegram commits `e37e0d01f285` and `21f7d109da6a`, including the isolated HTML widget engine and its pinned native submodules. Preserve BananaGram's features, API credential loader and WebP build targets. The source candidate is 13.2.2-rc.17 (7308).
+- Keep the isolated widget process out of client initialization when Android changes its configuration as well as at startup.
+
+### Glass
+
+- Add Cherrygram-style Off, Default and Outline highlights under Extras → Values → Appearance. The app-wide choice updates existing screens immediately and uses the current Telegram rim renderer.
+- Keep rectangular wallpaper captures at their requested aspect ratio and invalidate recorded glass when source pixels, transforms or wrapped sources change. Reduce per-bubble render targets, release them when hidden, and keep compact incoming messages without a bubble lens.
+- Match refraction corners to the message bubble's configured radius and grouping while preserving its native clipping path.
+- Drop old view-tree registrations when rebuilding glass screens and discard retired capture nodes.
+
+### Upstream resource audit
+
+- Limit the new widget engine's prewarm hold to a short grace period and release it when backgrounded, preserving live sessions. Large widget arguments no longer retain a peak-size scratch buffer after consumption or rejection.
+- Release temporary hardware snapshot wrappers and discarded widget software snapshots explicitly. Retain and reuse the screen-capture Surface across resize, then release it after display shutdown, including failed startup.
+
 ### Crash fixes
 
 - Restore chat rows for contact information, name/photo changes, bot forum prompts and unsupported messages, which could crash when created or scrolled into view. Filtered messages now use a separate row type from Telegram's dummy rows, and filtered lists choose cell types from the same message list used for binding.
+- Complete the unused sticker-list factories so neither header nor sticker rows create null holders; bind each row to its correct model and keep list updates in the correct direction.
 
 ### Candidate preparation: 13.1.1-rc.11
 

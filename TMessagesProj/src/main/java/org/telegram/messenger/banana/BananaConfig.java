@@ -6,7 +6,7 @@ import com.radolyn.ayugram.AyuConfig;
 
 import org.telegram.messenger.MessagesController;
 
-/** Account-scoped BananaGram Extras. Preference keys follow ForkExtrasSettings where possible. */
+/** BananaGram Extras, account-scoped unless explicitly marked global. */
 public final class BananaConfig {
     public enum Option {
         REMOVE_PINGS("bananaRemovePings"),
@@ -181,6 +181,30 @@ public final class BananaConfig {
     private BananaConfig() {}
 
     public enum SilentSending { NORMAL, IN_GHOST_MODE, ALWAYS }
+
+    /** Global glass decoration, shared by every account and independent of bubble rim strengths. */
+    public enum GlassGlare { OFF, DEFAULT, OUTLINE }
+
+    public static final String GLASS_GLARE_KEY = "bananaGlassGlare";
+
+    public static GlassGlare glassGlare() {
+        int stored;
+        try {
+            stored = MessagesController.getGlobalMainSettings().getInt(GLASS_GLARE_KEY, 1);
+        } catch (ClassCastException ignored) {
+            return GlassGlare.DEFAULT;
+        }
+        switch (stored) {
+            case 0: return GlassGlare.OFF;
+            case 2: return GlassGlare.OUTLINE;
+            default: return GlassGlare.DEFAULT;
+        }
+    }
+
+    public static void setGlassGlare(GlassGlare mode) {
+        if (mode == null) mode = GlassGlare.DEFAULT;
+        MessagesController.getGlobalMainSettings().edit().putInt(GLASS_GLARE_KEY, mode.ordinal()).apply();
+    }
 
     private static final Option[] GHOST_OPTIONS = {
             Option.DONT_READ_MESSAGES, Option.DONT_READ_STORIES, Option.HIDE_ONLINE,

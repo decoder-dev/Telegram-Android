@@ -700,6 +700,39 @@ public class MessageDrawable extends Drawable {
         return makePath(pathDrawCacheParams);
     }
 
+    /**
+     * The lens body in drawable-local coordinates, with TL/TR/BR/BL radii from the native bubble.
+     * The tail extends beyond this body; makePath remains its exact clipping mask, so downsampling
+     * never changes the outline or joins between grouped messages.
+     */
+    public void getGlassGeometry(RectF body, float[] radii) {
+        final Rect bounds = getBounds();
+        final int padding = dp(2);
+        int radius;
+        int nearRadius;
+        if (overrideRoundRadius != 0) {
+            radius = nearRadius = overrideRoundRadius;
+        } else if (overrideRounding > 0) {
+            radius = AndroidUtilities.lerp(dp(SharedConfig.bubbleRadius), Math.min(bounds.width(), bounds.height()) / 2, overrideRounding);
+            nearRadius = AndroidUtilities.lerp(dp(Math.min(6, SharedConfig.bubbleRadius)), Math.min(bounds.width(), bounds.height()) / 2, overrideRounding);
+        } else if (currentType == TYPE_PREVIEW) {
+            radius = nearRadius = dp(6);
+        } else {
+            radius = dp(SharedConfig.bubbleRadius);
+            nearRadius = dp(Math.min(6, SharedConfig.bubbleRadius));
+        }
+        radius = Math.max(0, Math.min(radius, (bounds.height() - padding) >> 1));
+        final int tailRadius = dp(BananaThemes.glassChrome() && currentType == TYPE_TEXT ? 5 : 6);
+        body.set(currentType == TYPE_MEDIA || isOut ? padding : dp(8), padding,
+                bounds.width() - (currentType != TYPE_MEDIA && isOut ? dp(8) : padding), bounds.height() - padding);
+        radii[0] = isOut ? radius : (isTopNear ? nearRadius : radius);
+        radii[1] = isOut ? (isTopNear ? nearRadius : radius) : radius;
+        radii[2] = isOut ? (currentType == TYPE_MEDIA ? (isBottomNear ? nearRadius : radius) : tailRadius)
+                : (botButtonsBottom ? nearRadius : radius);
+        radii[3] = isOut ? (botButtonsBottom ? nearRadius : radius)
+                : (currentType == TYPE_MEDIA ? (isBottomNear || botButtonsBottom ? nearRadius : radius) : tailRadius);
+    }
+
     public Path makePath(PathDrawParams pathDrawCacheParams) {
         Rect bounds = getBounds();
         int padding = dp(2);

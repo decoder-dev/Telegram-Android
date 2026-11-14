@@ -29,6 +29,7 @@ import androidx.core.graphics.ColorUtils;
 import androidx.core.math.MathUtils;
 
 import org.telegram.messenger.utils.RadiiUtils;
+import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.blur3.Blur3HashImpl;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
@@ -349,6 +350,8 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
     private final GlassRimRenderer rimRenderer = new GlassRimRenderer();
     @Nullable private GlassRim rim;
     @Nullable private GlassRim rimFromColors;
+    @Nullable private GlassRim outlineRimSource;
+    @Nullable private GlassRim outlineRim;
     private float lightAngle = GlassRim.LIGHT_TOP;
 
     /** A rim of its own (e.g. {@link GlassRim#qrBig()}); null for the crescents and the outline of the color provider. */
@@ -399,11 +402,27 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
     }
 
     private void drawRim(Canvas canvas, float alpha) {
+        final BananaConfig.GlassGlare glare = BananaConfig.glassGlare();
+        if (glare == BananaConfig.GlassGlare.OFF) {
+            return;
+        }
+        GlassRim drawnRim = getRim();
+        if (glare == BananaConfig.GlassGlare.OUTLINE) {
+            if (outlineRimSource != drawnRim) {
+                outlineRimSource = drawnRim;
+                int color = Color.alpha(drawnRim.bottomColor) != 0 ? drawnRim.bottomColor
+                    : Color.alpha(drawnRim.strokeColor) != 0 ? drawnRim.strokeColor : drawnRim.topColor;
+                // Cherrygram's even 1 dp inner stroke, drawn with the newer shape/arrow renderer.
+                outlineRim = new GlassRim(drawnRim.lightAngle, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    dpf2(1), color);
+            }
+            drawnRim = outlineRim;
+        }
         final Rect r = boundProps.boundsWithPadding;
         if (boundProps.hasArrow()) {
-            rimRenderer.drawPath(canvas, boundProps.path, boundProps.shapeKey, r.left, r.top, r.right, r.bottom, getRim(), alpha);
+            rimRenderer.drawPath(canvas, boundProps.path, boundProps.shapeKey, r.left, r.top, r.right, r.bottom, drawnRim, alpha);
         } else {
-            rimRenderer.draw(canvas, r.left, r.top, r.right, r.bottom, boundProps.radii, getRim(), alpha);
+            rimRenderer.draw(canvas, r.left, r.top, r.right, r.bottom, boundProps.radii, drawnRim, alpha);
         }
     }
 

@@ -74,7 +74,11 @@ public class GlassEngine {
     }
 
     public void registerDrawable(@NonNull View view, @NonNull GlassDrawable drawable) {
-        viewPositionStates.add(new ViewPositionState(view, drawable));
+        ViewPositionState state = new ViewPositionState(view, drawable);
+        if (isInRoot(view, rootView)) {
+            state.ownerRoot = rootView;
+        }
+        viewPositionStates.add(state);
     }
 
     private final RectF externalCapturePosition = new RectF();
@@ -109,6 +113,16 @@ public class GlassEngine {
 
     public void setRoot(View root) {
         if (rootView != root) {
+            // A fragment reuses its engine when its view is rebuilt. Views for the replacement
+            // can already be registered here; only retire registrations belonging to the old tree.
+            for (int i = viewPositionStates.size() - 1; i >= 0; i--) {
+                ViewPositionState state = viewPositionStates.get(i);
+                if (isInRoot(state.view, root)) {
+                    state.ownerRoot = root;
+                } else if (rootView != null && (state.ownerRoot == rootView || isInRoot(state.view, rootView))) {
+                    viewPositionStates.remove(i);
+                }
+            }
             if (rootView != null) {
                 ViewOnPostDrawListener.removeListener(rootView, onPostDrawListener);
             }
@@ -116,7 +130,21 @@ public class GlassEngine {
                 ViewOnPostDrawListener.addListener(root, onPostDrawListener);
             }
             rootView = root;
+            allVisibleDrawablesWithDisplayListPositions.clear();
+            allVisibleDrawablesWithDisplayListPositionsMerged.clear();
+            output.clear();
+            lastRootWidth = lastRootHeight = -1;
         }
+    }
+
+    private static boolean isInRoot(View view, @Nullable View root) {
+        if (root == null) return false;
+        while (view != null) {
+            if (view == root) return true;
+            ViewParent parent = view.getParent();
+            view = parent instanceof View ? (View) parent : null;
+        }
+        return false;
     }
 
     public void addScrolledView(ViewPager viewPager) {
@@ -429,6 +457,7 @@ public class GlassEngine {
             if (!ViewPositionWatcher.computeRectInParent(state.view, rootView, tmpPositionRect)) {
                 continue;
             }
+            state.ownerRoot = rootView;
 
             boolean invalidated = false;
             boolean captureInvalidated = false;
@@ -549,6 +578,7 @@ public class GlassEngine {
     private static class ViewPositionState {
         private final @NonNull View view;
         private final @NonNull GlassDrawable drawable;
+        private @Nullable View ownerRoot;
         private final RectF viewPositionRelativeRoot = new RectF();
         private final RectF drawableBoundsRelativeView = new RectF();
         private final RectF drawableBoundsRelativeRoot = new RectF();

@@ -100,6 +100,11 @@ public abstract class WidgetFrameNode {
         @Override
         void discard() {
             node.discardDisplayList();
+            if (software != null) {
+                software.recycle();
+                software = null;
+            }
+            softwarePaint = null;
         }
 
         /** UI: the node rendered into a bitmap for software canvases, made on the first such draw. */
@@ -168,7 +173,11 @@ public abstract class WidgetFrameNode {
                     if (buffer == null) return null;
                     try {
                         Bitmap hardware = Bitmap.wrapHardwareBuffer(buffer, ColorSpace.get(ColorSpace.Named.SRGB));
-                        return hardware == null ? null : hardware.copy(Bitmap.Config.ARGB_8888, false);
+                        try {
+                            return hardware == null ? null : hardware.copy(Bitmap.Config.ARGB_8888, false);
+                        } finally {
+                            if (hardware != null) hardware.recycle();
+                        }
                     } finally {
                         buffer.close();
                     }

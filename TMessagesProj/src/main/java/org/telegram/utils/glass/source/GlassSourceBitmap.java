@@ -16,6 +16,11 @@ public final class GlassSourceBitmap implements GlassSource {
     private final Matrix bitmapMatrix = new Matrix();
     private @Nullable BitmapShader bitmapShader;
     private @Nullable Bitmap bitmap;
+    private @Nullable Bitmap generationBitmap;
+    private int bitmapGenerationId;
+    private boolean generationBitmapRecycled;
+    private final Matrix generationMatrix = new Matrix();
+    private long generationId;
 
     public GlassSourceBitmap() {
         bitmapPaint.setFilterBitmap(true);
@@ -27,6 +32,10 @@ public final class GlassSourceBitmap implements GlassSource {
         }
 
         this.bitmap = bitmap;
+        generationBitmap = bitmap;
+        generationBitmapRecycled = bitmap != null && bitmap.isRecycled();
+        bitmapGenerationId = bitmap == null || generationBitmapRecycled ? 0 : bitmap.getGenerationId();
+        generationId++;
 
         bitmapPaint.setShader(null);
         bitmapShader = null;
@@ -50,8 +59,23 @@ public final class GlassSourceBitmap implements GlassSource {
         return bitmap;
     }
 
+    @Override
+    public long getGenerationId() {
+        final boolean recycled = bitmap != null && bitmap.isRecycled();
+        final int contentGeneration = bitmap == null || recycled ? 0 : bitmap.getGenerationId();
+        // A wallpaper bitmap can be redrawn in place, and callers can update the returned matrix.
+        // Both changes must invalidate captures even when setBitmap receives the same object.
+        if (bitmap != generationBitmap || contentGeneration != bitmapGenerationId
+                || recycled != generationBitmapRecycled || !bitmapMatrix.equals(generationMatrix)) {
+            generationBitmap = bitmap;
+            bitmapGenerationId = contentGeneration;
+            generationBitmapRecycled = recycled;
+            generationMatrix.set(bitmapMatrix);
+            generationId++;
+        }
+        return generationId;
+    }
 
-    private final Matrix matrixForDraw = new Matrix();
 
     @Override
     public void draw(@NonNull Canvas canvas, float left, float top, float right, float bottom) {
@@ -59,8 +83,6 @@ public final class GlassSourceBitmap implements GlassSource {
             return;
         }
 
-        matrixForDraw.set(bitmapMatrix);
-        matrixForDraw.postTranslate(left, top);
         bitmapShader.setLocalMatrix(bitmapMatrix);
 
         canvas.drawRect(left, top, right, bottom, bitmapPaint);
@@ -75,16 +97,19 @@ public final class GlassSourceBitmap implements GlassSource {
     }
 
     public Canvas beginRecording(int width, int height, float scale) {
-        final int bitmapWidth = Math.round(width / scale);
-        final int bitmapHeight = Math.round(width / scale);
-        if (bitmapInternal == null || bitmapInternal.isRecycled() || bitmapInternal.getWidth() != bitmapHeight || bitmapInternal.getHeight() != bitmapHeight) {
+        if (width <= 0 || height <= 0 || !Float.isFinite(scale) || scale <= 0) {
+            throw new IllegalArgumentException("Recording requires positive dimensions and a finite positive scale");
+        }
+        final int bitmapWidth = Math.max(1, Math.round(width / scale));
+        final int bitmapHeight = Math.max(1, Math.round(height / scale));
+        if (bitmapInternal == null || bitmapInternal.isRecycled() || bitmapInternal.getWidth() != bitmapWidth || bitmapInternal.getHeight() != bitmapHeight) {
             bitmapInternal = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888);
         } else {
             bitmapInternal.eraseColor(0);
         }
 
         final Canvas canvas = new Canvas(bitmapInternal);
-        canvas.scale((float) width / bitmapWidth, (float) height / bitmapHeight);
+        canvas.scale((float) bitmapWidth / width, (float) bitmapHeight / height);
         return canvas;
     }
 

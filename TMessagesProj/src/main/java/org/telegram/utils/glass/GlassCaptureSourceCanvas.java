@@ -71,7 +71,14 @@ public class GlassCaptureSourceCanvas {
 
 
     public void setRootView(View rootView) {
-        this.rootView = rootView;
+        if (this.rootView != rootView) {
+            // A rebuilt fragment must not keep the old view tree's native display lists alive.
+            for (Position position : positions) {
+                position.discardDisplayLists();
+            }
+            debugRenderNode.discardDisplayList();
+            this.rootView = rootView;
+        }
     }
 
     public void setCapture(IBlur3Capture capture) {
@@ -79,7 +86,15 @@ public class GlassCaptureSourceCanvas {
     }
 
     public void setPositions(GlassPositionsArray positionsArray) {
+        final int previousCount = positionsCount;
         positionsCount = positionsArray.size();
+
+        for (int a = positionsCount; a < previousCount; a++) {
+            positions.get(a).discardDisplayLists();
+        }
+        if (positionsCount < previousCount) {
+            debugRenderNode.discardDisplayList();
+        }
 
         while (positionsCount > positions.size()) {
             positions.add(new Position(positions.size()));
@@ -377,6 +392,14 @@ public class GlassCaptureSourceCanvas {
             renderNodeFiltered = new RenderNode("filtered-" + index);
             renderNodeFiltered.setRenderEffect(RenderEffect.createColorFilterEffect(IDENTITY_FILTER));
             renderNodeFrostedFiltered = new RenderNode("frosted-filtered-" + index);
+        }
+
+        public void discardDisplayLists() {
+            renderNode.discardDisplayList();
+            renderNodeGlass.discardDisplayList();
+            renderNodeGlassFrosted.discardDisplayList();
+            renderNodeFiltered.discardDisplayList();
+            renderNodeFrostedFiltered.discardDisplayList();
         }
 
         @NonNull

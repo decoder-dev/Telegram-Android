@@ -195,6 +195,14 @@ Later Glassgram fixes ported (2026-10-30):
 Liquid press and glass panel commits depend on Glassgram's own transition and
 Compose glass code, which BananaGram does not include.
 
+Cherrygram glass comparison (2026-11-14): inspected
+[`3050af6d948acc27db446f6cd27a8e200b205c1b`](https://github.com/arsLan4k1390/Cherrygram/commit/3050af6d948acc27db446f6cd27a8e200b205c1b).
+Its Off / Default / Outline highlight modes (`GLARE_EFFECTS_*`) are adapted in
+BananaGram using the newer Telegram `GlassRim` renderer, including arrow shapes
+and custom rims. The setting is app-wide under Extras → Values → Appearance;
+existing per-account bubble edge strengths are retained. The older Cherrygram
+shader and capture engine are not substituted for the newer Telegram base.
+
 
 The Android feature engines added after the initial prerelease are documented in
 [`third-party-additions.md`](third-party-additions.md). Session backups use the

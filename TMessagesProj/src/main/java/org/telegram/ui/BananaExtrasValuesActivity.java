@@ -43,6 +43,7 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     private static final int ID_EDITED_MARK = 16;
     private static final int ID_VISUAL_PHONE = 17;
     private static final int ID_REFRESH_RATE = 18;
+    private static final int ID_GLASS_GLARE = 19;
 
     public BananaExtrasValuesActivity(int account) {
         setCurrentAccount(account);
@@ -64,6 +65,7 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
         float refresh = org.telegram.messenger.MessagesController.getGlobalMainSettings().getFloat(
                 org.telegram.messenger.banana.RefreshRatePolicy.KEY, -1f);
         items.add(cell(ID_REFRESH_RATE, R.string.BananaRefreshRate, refreshRateLabel(refresh)));
+        items.add(cell(ID_GLASS_GLARE, R.string.BananaGlassHighlights, glassGlareLabel(BananaConfig.glassGlare())));
         items.add(cell(ID_ACCENT, R.string.BananaVal_AccentSaturation, percent(BananaConfig.accentColorSaturation(currentAccount))));
         items.add(cell(ID_STICKER_SIZE, R.string.BananaVal_StickerSize, percent(BananaConfig.stickerSizePercent(currentAccount))));
         items.add(cell(ID_STICKER_SHAPE, R.string.BananaVal_StickerShape, stickerShapeLabel(BananaConfig.stickerShape(currentAccount))));
@@ -104,6 +106,9 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
         switch (item.id) {
             case ID_REFRESH_RATE:
                 pickRefreshRate();
+                break;
+            case ID_GLASS_GLARE:
+                pickGlassGlare();
                 break;
             case ID_ACCENT:
                 pickPercent(R.string.BananaVal_AccentSaturation, IntValue.ACCENT_COLOR_SATURATION, 0, 100, 5);
@@ -214,6 +219,32 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
         return rate < 0 ? LocaleController.getString(R.string.BananaRefreshMaximum)
                 : rate == 0 ? LocaleController.getString(R.string.BananaRefreshSystem)
                 : LocaleController.formatString(R.string.BananaRefreshHz, Math.round(rate));
+    }
+
+    private static String glassGlareLabel(BananaConfig.GlassGlare mode) {
+        switch (mode) {
+            case OFF: return LocaleController.getString(R.string.BananaGlassHighlightsOff);
+            case OUTLINE: return LocaleController.getString(R.string.BananaGlassHighlightsOutline);
+            default: return LocaleController.getString(R.string.BananaGlassHighlightsDefault);
+        }
+    }
+
+    private void pickGlassGlare() {
+        if (getParentActivity() == null) return;
+        BananaConfig.GlassGlare[] modes = BananaConfig.GlassGlare.values();
+        CharSequence[] labels = new CharSequence[modes.length];
+        for (int i = 0; i < modes.length; i++) labels[i] = glassGlareLabel(modes[i]);
+        showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                .setTitle(LocaleController.getString(R.string.BananaGlassHighlights))
+                .setMessage(LocaleController.getString(R.string.BananaGlassHighlightsInfo))
+                .setItems(labels, (dialog, which) -> {
+                    if (which < 0 || which >= modes.length) return;
+                    BananaConfig.setGlassGlare(modes[which]);
+                    if (listView != null) listView.adapter.update(true);
+                    if (getParentActivity() instanceof LaunchActivity) {
+                        ((LaunchActivity) getParentActivity()).rebuildAllFragments(true);
+                    }
+                }).create());
     }
 
     private void pickRefreshRate() {

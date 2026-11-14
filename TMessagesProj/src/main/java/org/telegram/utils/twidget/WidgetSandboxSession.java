@@ -282,7 +282,7 @@ public final class WidgetSandboxSession {
     }
 
     /**
-     * Starts the isolated engine now and keeps it (WidgetRemoteEngine#prewarm): called once the app is up. Not on
+     * Starts the isolated engine for a short warmup grace (WidgetRemoteEngine#prewarm), once the app is up. Not on
      * low-RAM devices, where the engine starts with the first widget and goes 30 s after the last; not while the kill
      * switch is on. Background thread.
      */
@@ -290,11 +290,6 @@ public final class WidgetSandboxSession {
         if (!WidgetEngine.isolated || disabledByConfig()) return;
         android.app.ActivityManager activityManager = (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         if (activityManager == null || activityManager.isLowRamDevice()) return;
-        try {
-            WidgetRemoteEngine.INSTANCE.prewarm(context);
-        } catch (Exception e) {
-            org.telegram.messenger.FileLog.e(e);
-        }
         // An engine that died while the app was in the background is bound again when it comes back.
         if (!foregroundWatched) {
             org.telegram.ui.Components.ForegroundDetector detector = org.telegram.ui.Components.ForegroundDetector.getInstance();
@@ -308,9 +303,17 @@ public final class WidgetSandboxSession {
 
                     @Override
                     public void onBecameBackground() {
+                        WidgetRemoteEngine.INSTANCE.releasePrewarm();
                     }
                 });
             }
+        }
+        org.telegram.ui.Components.ForegroundDetector foreground = org.telegram.ui.Components.ForegroundDetector.getInstance();
+        if (foreground != null && foreground.isBackground()) return;
+        try {
+            WidgetRemoteEngine.INSTANCE.prewarm(context);
+        } catch (Exception e) {
+            org.telegram.messenger.FileLog.e(e);
         }
     }
 

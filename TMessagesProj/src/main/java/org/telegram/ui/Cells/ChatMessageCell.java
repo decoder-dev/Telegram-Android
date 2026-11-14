@@ -5832,9 +5832,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     @Override
     public void onVisibilityAggregated(boolean visible) {
         super.onVisibilityAggregated(visible);
-        if (visible && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && bananaBubbleBackdrop != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && bananaBubbleBackdrop != null) {
             bananaBubbleBackdrop.release();
-            invalidate();
+            bananaBubbleBackdrop = null;
+            if (visible) invalidate();
         }
     }
 
@@ -15601,7 +15602,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     private void drawBananaMessageBackground(Canvas canvas, MessageDrawable.PathDrawParams cache, Paint customPaint) {
-        if (customPaint == null && !drawForBlur && !mediaBackground && delegate != null
+        if (customPaint == null && !drawForBlur && !mediaBackground && !isCompactMode() && delegate != null
                 && !bananaBubbleBackdropFailed && canvas.isHardwareAccelerated()
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && org.telegram.messenger.banana.BananaHooks.glassBubbles(currentAccount)

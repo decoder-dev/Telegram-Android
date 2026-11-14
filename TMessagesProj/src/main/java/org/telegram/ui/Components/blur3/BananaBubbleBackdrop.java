@@ -8,7 +8,6 @@ import android.graphics.RenderEffect;
 import android.graphics.RenderNode;
 import android.graphics.Shader;
 import android.os.Build;
-import android.os.SystemClock;
 import android.view.View;
 
 import androidx.annotation.RequiresApi;
@@ -17,7 +16,8 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.MessageDrawable;
 import org.telegram.ui.Components.chat.ViewPositionWatcher;
 import org.telegram.utils.glass.source.GlassSource;
-import org.telegram.utils.glass.source.GlassSourceWrapped;
+
+import java.util.Arrays;
 
 /**
  * A cell-owned lens over the wallpaper only. It never captures the chat/cell itself,
@@ -28,18 +28,20 @@ import org.telegram.utils.glass.source.GlassSourceWrapped;
 public final class BananaBubbleBackdrop {
     private final RenderNode backdrop = new RenderNode("Banana bubble wallpaper");
     private final RenderNode lens = new RenderNode("Banana bubble lens");
-    private final LiquidGlassEffect effect = new LiquidGlassEffect(lens);
+    private LiquidGlassEffect effect;
     private final RectF position = new RectF();
+    private final RectF body = new RectF();
+    private final RectF recordedBody = new RectF();
+    private final float[] radii = new float[4];
+    private final float[] recordedRadii = new float[4];
     private float density = -1;
-    // What the recorded display lists were built for. The wallpaper source is drawn by reference
-    // (drawRenderNode), so its own changes show through without re-recording; only a move, a
-    // resize or a different source needs one. A colour or bitmap under-source is baked in when
-    // recorded, so re-record at least once a second to keep that from going stale.
+    // Keep cell-owned display lists while both their geometry and wallpaper content are unchanged.
+    // Colour/bitmap sources are baked into them, so source identity alone is not enough.
     private float recordedLeft = Float.NaN, recordedTop = Float.NaN;
     private int recordedWidth = -1, recordedHeight = -1;
-    private Object recordedSource;
-    private long recordedAt;
-    private static final long MAX_REUSE_MS = 1000;
+    private GlassSource recordedSource;
+    private long recordedGeneration;
+    private static final int DOWNSAMPLE = 3;
 
     public boolean draw(Canvas canvas, View cell, View root, GlassSource source,
                         MessageDrawable shape, MessageDrawable.PathDrawParams cache) {
@@ -48,38 +50,50 @@ public final class BananaBubbleBackdrop {
         Rect bounds = shape.getBounds();
         int width = bounds.width(), height = bounds.height();
         if (width <= 0 || height <= 0 || shape.getAlpha() == 0) return false;
+        shape.getGlassGeometry(body, radii);
+        if (body.isEmpty()) return false;
         if (density != AndroidUtilities.density) {
             density = AndroidUtilities.density;
             backdrop.setRenderEffect(RenderEffect.createBlurEffect(
-                    AndroidUtilities.dpf2(6), AndroidUtilities.dpf2(6), Shader.TileMode.CLAMP));
+                    AndroidUtilities.dpf2(6) / DOWNSAMPLE, AndroidUtilities.dpf2(6) / DOWNSAMPLE, Shader.TileMode.CLAMP));
             recordedWidth = -1;
         }
         float left = position.left + bounds.left, top = position.top + bounds.top;
-        Object sourceKey = source instanceof GlassSourceWrapped
-                ? ((GlassSourceWrapped) source).getSource() : source;
-        long now = SystemClock.uptimeMillis();
+        long generation = source.getGenerationId();
         // Re-recording every frame made HWUI recompute this bubble's blur and refraction each
         // frame, even when only a typing dot or an emoji elsewhere in the chat animated.
         boolean reuse = backdrop.hasDisplayList() && lens.hasDisplayList()
                 && left == recordedLeft && top == recordedTop && width == recordedWidth && height == recordedHeight
-                && sourceKey == recordedSource && now - recordedAt < MAX_REUSE_MS;
+                && source == recordedSource && generation == recordedGeneration
+                && body.equals(recordedBody) && Arrays.equals(radii, recordedRadii);
         lens.setAlpha(shape.getAlpha() / 255f);
         if (!reuse) {
-            backdrop.setPosition(0, 0, width, height);
-            RecordingCanvas recording = backdrop.beginRecording(width, height);
+            int nodeWidth = (width + DOWNSAMPLE - 1) / DOWNSAMPLE;
+            int nodeHeight = (height + DOWNSAMPLE - 1) / DOWNSAMPLE;
+            backdrop.setPosition(0, 0, nodeWidth, nodeHeight);
+            RecordingCanvas recording = backdrop.beginRecording(nodeWidth, nodeHeight);
             try {
+                recording.scale(1f / DOWNSAMPLE, 1f / DOWNSAMPLE);
                 recording.translate(-left, -top);
                 source.draw(recording, left, top, left + width, top + height);
             } finally {
                 backdrop.endRecording();
             }
-            lens.setPosition(0, 0, width, height);
-            float radius = Math.min(AndroidUtilities.dpf2(18), Math.min(width, height) / 2f);
-            effect.update(width, height, 0, 0, radius, radius, radius, radius,
-                    Math.max(1, Math.min(AndroidUtilities.dpf2(9), Math.min(width, height) / 5f)),
-                    0.75f, 1.5f, 0,
-                    0, 0, 1);
-            recording = lens.beginRecording(width, height);
+            lens.setPosition(0, 0, nodeWidth, nodeHeight);
+            float smallestRadius = Math.min(Math.min(radii[0], radii[1]), Math.min(radii[2], radii[3]));
+            if (smallestRadius <= 0) {
+                // A square corner has no lens thickness. Keep its blurred wallpaper and native
+                // outline without asking the refraction shader to divide by a zero thickness.
+                lens.setRenderEffect(null);
+                effect = null;
+            } else {
+                if (effect == null) effect = new LiquidGlassEffect(lens);
+                float thickness = Math.min(smallestRadius,
+                        Math.min(AndroidUtilities.dpf2(9), Math.min(body.width(), body.height()) / 5f));
+                effect.update(body.width(), body.height(), body.left, body.top, radii[0], radii[1], radii[2], radii[3],
+                        thickness, 0.75f, 1.5f, 0, 0, 0, DOWNSAMPLE);
+            }
+            recording = lens.beginRecording(nodeWidth, nodeHeight);
             try {
                 recording.drawRenderNode(backdrop);
             } finally {
@@ -89,13 +103,16 @@ public final class BananaBubbleBackdrop {
             recordedTop = top;
             recordedWidth = width;
             recordedHeight = height;
-            recordedSource = sourceKey;
-            recordedAt = now;
+            recordedSource = source;
+            recordedGeneration = generation;
+            recordedBody.set(body);
+            System.arraycopy(radii, 0, recordedRadii, 0, radii.length);
         }
         int save = canvas.save();
         try {
             canvas.clipPath(shape.makePath(cache));
             canvas.translate(bounds.left, bounds.top);
+            canvas.scale(DOWNSAMPLE, DOWNSAMPLE);
             canvas.drawRenderNode(lens);
         } finally {
             canvas.restoreToCount(save);
@@ -106,6 +123,8 @@ public final class BananaBubbleBackdrop {
     public void release() {
         backdrop.discardDisplayList();
         lens.discardDisplayList();
+        lens.setRenderEffect(null);
+        effect = null;
         recordedSource = null;
         recordedWidth = recordedHeight = -1;
     }
