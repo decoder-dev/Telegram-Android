@@ -400,7 +400,8 @@ public class ChatActivity extends BaseFragment implements
     private final static boolean PULL_DOWN_BACK_FRAGMENT = false;
     private final static boolean DISABLE_PROGRESS_VIEW = true;
     private final static int SKELETON_DISAPPEAR_MS = 200;
-    private static final int BANANA_FILTERS_MENU = 18001, BANANA_FILTERED_ROW = -1000;
+    // -1000 is reserved for Telegram's DummyView message rows.
+    private static final int BANANA_FILTERS_MENU = 18001, BANANA_FILTERED_ROW = -1001;
     private final Runnable bananaFiltersChanged = this::refreshBananaFilters;
     private void refreshBananaFilters() {
         if (chatListView == null || chatAdapter == null || chatLayoutManager == null || isFinished) return;
@@ -38690,7 +38691,7 @@ public class ChatActivity extends BaseFragment implements
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = null;
+            View view;
             if (viewType == BANANA_FILTERED_ROW) {
                 view = new org.telegram.ui.Cells.FilteredMessageCell(mContext);
             } else if (viewType == 0) {
@@ -39069,8 +39070,25 @@ public class ChatActivity extends BaseFragment implements
                 });
             } else if (viewType == 4) {
                 view = new ChatLoadingCell(mContext, contentView, themeDelegate);
+            } else if (viewType == 6) {
+                view = new UserInfoCell(mContext, currentAccount, themeDelegate);
+            } else if (viewType == 7) {
+                view = new ChatActionCell(mContext, false, themeDelegate);
+            } else if (viewType == 8) {
+                view = new BotAskCell(mContext, currentAccount, themeDelegate) {
+                    @Override
+                    public int getSideMenuWidth() {
+                        return ChatActivity.this.getSideMenuWidth();
+                    }
+                };
+            } else if (viewType == 10) {
+                ChatMessageUnsupportedCell cell = new ChatMessageUnsupportedCell(mContext, themeDelegate);
+                cell.setDelegate(getChatMessageCellDelegate());
+                view = cell;
             } else if (viewType == -1000) {
                 view = new DummyView(mContext);
+            } else {
+                throw new IllegalArgumentException("Unknown chat view type: " + viewType);
             }
             view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));
             return new RecyclerListView.Holder(view);
@@ -39698,7 +39716,7 @@ public class ChatActivity extends BaseFragment implements
                 return 1;
             }
             if (position >= messagesStartRow && position < messagesEndRow) {
-                ArrayList<MessageObject> messages = isFrozen ? frozenMessages : ChatActivity.this.messages;
+                ArrayList<MessageObject> messages = getMessages();
                 var msg = messages.get(position - messagesStartRow);
 
                 if (isBananaFiltered(msg)) {

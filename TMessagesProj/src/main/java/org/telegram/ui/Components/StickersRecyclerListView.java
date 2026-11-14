@@ -7,9 +7,12 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Cells.StickerEmojiCell;
+import org.telegram.ui.Cells.StickerSetNameCell;
 import org.telegram.ui.Components.ListView.AdapterWithDiffUtils;
 
 import java.util.ArrayList;
@@ -39,14 +42,19 @@ public class StickersRecyclerListView extends RecyclerListView {
                 return false;
             }
             TLRPC.StickerSet otherSet = ((StickerHeaderItem) obj).set;
-            return (set == null) == (otherSet == null) && (set != null && otherSet.id == set.id);
+            return set == null ? otherSet == null : otherSet != null && otherSet.id == set.id;
+        }
+
+        @Override
+        public int hashCode() {
+            return set == null ? 0 : Long.hashCode(set.id);
         }
     }
 
     public static class StickerItem extends Item {
         private TLRPC.Document document;
         public StickerItem(TLRPC.Document document) {
-            super(VIEW_TYPE_STICKER, true);
+            super(VIEW_TYPE_STICKER, document != null);
             this.document = document;
         }
 
@@ -56,12 +64,17 @@ public class StickersRecyclerListView extends RecyclerListView {
                 return false;
             }
             TLRPC.Document otherDocument = ((StickerItem) obj).document;
-            return (document == null) == (otherDocument == null) && (document != null && otherDocument.id == document.id);
+            return document == null ? otherDocument == null : otherDocument != null && otherDocument.id == document.id;
+        }
+
+        @Override
+        public int hashCode() {
+            return document == null ? 0 : Long.hashCode(document.id);
         }
     }
 
-    private static abstract class Item extends  AdapterWithDiffUtils.Item {
-        public Item(int viewType, boolean selectable) {
+    public static abstract class Item extends AdapterWithDiffUtils.Item {
+        protected Item(int viewType, boolean selectable) {
             super(viewType, selectable);
         }
     }
@@ -77,19 +90,25 @@ public class StickersRecyclerListView extends RecyclerListView {
 
         setAdapter(adapter = new Adapter());
         setLayoutManager(layoutManager = new GridLayoutManager(context, 5));
+        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return items.get(position).viewType == VIEW_TYPE_HEADER ? layoutManager.getSpanCount() : 1;
+            }
+        });
     }
 
     private ArrayList<Item> items = new ArrayList<>();
     private ArrayList<Item> oldItems = new ArrayList<>();
 
-    public void setItems(ArrayList<Item> newItems) {
+    public void setItems(ArrayList<? extends Item> newItems) {
         oldItems.clear();
         oldItems.addAll(items);
 
         items.clear();
         items.addAll(newItems);
 
-        adapter.setItems(newItems, oldItems);
+        adapter.setItems(oldItems, items);
     }
 
     public void setSpanCount(int spanCount) {
@@ -101,11 +120,14 @@ public class StickersRecyclerListView extends RecyclerListView {
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = null;
+            View view;
             if (viewType == VIEW_TYPE_HEADER) {
-
+                view = new StickerSetNameCell(parent.getContext(), false, resourcesProvider, false);
             } else if (viewType == VIEW_TYPE_STICKER) {
-
+                view = new StickerEmojiCell(parent.getContext(), false, resourcesProvider);
+                view.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, org.telegram.messenger.AndroidUtilities.dp(82)));
+            } else {
+                throw new IllegalArgumentException("Unknown sticker view type: " + viewType);
             }
             return new RecyclerListView.Holder(view);
         }
@@ -114,10 +136,15 @@ public class StickersRecyclerListView extends RecyclerListView {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             final int viewType = holder.getItemViewType();
             if (viewType == VIEW_TYPE_HEADER) {
-                StickerItem item = (StickerItem) items.get(position);
-
+                StickerHeaderItem item = (StickerHeaderItem) items.get(position);
+                ((StickerSetNameCell) holder.itemView).setText(item.set == null ? null : item.set.title, 0);
             } else if (viewType == VIEW_TYPE_STICKER) {
-
+                StickerItem item = (StickerItem) items.get(position);
+                StickerEmojiCell cell = (StickerEmojiCell) holder.itemView;
+                cell.setVisibility(item.document == null ? View.INVISIBLE : View.VISIBLE);
+                if (item.document != null) {
+                    cell.setSticker(item.document, null, false);
+                }
             }
         }
 
@@ -133,7 +160,8 @@ public class StickersRecyclerListView extends RecyclerListView {
 
         @Override
         public boolean isEnabled(ViewHolder holder) {
-            return false;
+            int position = holder.getAdapterPosition();
+            return position >= 0 && position < items.size() && items.get(position).selectable;
         }
     }
 }

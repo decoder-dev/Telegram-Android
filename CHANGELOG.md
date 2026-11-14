@@ -4,6 +4,10 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Crash fixes
+
+- Restore chat rows for contact information, name/photo changes, bot forum prompts and unsupported messages, which could crash when created or scrolled into view. Filtered messages now use a separate row type from Telegram's dummy rows, and filtered lists choose cell types from the same message list used for binding.
+
 ### Candidate preparation: 13.1.1-rc.11
 
 - Include the post-rc.10 glass recapture/redraw fixes and refresh-rate selection under Extras → Values → Appearance, plus the bounded private crash report. Physical keyboard flicker and 120/60/30 Hz acceptance remain pending.

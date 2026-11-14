@@ -191,7 +191,8 @@ SUITE = ('org.telegram.banana.MediaConversionAndroidTest,org.telegram.banana.Vid
          'org.telegram.banana.AudioRecordingTest,org.telegram.banana.GiftHistoryTest,'
          'org.telegram.banana.AccountLifecycleTest,org.telegram.banana.GalleryExportTest,'
          'org.telegram.banana.PrivateUriTest,org.telegram.banana.VideoDownloadLifecycleTest,'
-         'org.telegram.banana.CacheImportTest,org.telegram.banana.BotDownloadsTest')
+         'org.telegram.banana.CacheImportTest,org.telegram.banana.BotDownloadsTest,'
+         'org.telegram.banana.ChatAdapterViewTypesTest,org.telegram.banana.StickerListViewTest')
 
 
 def run_suite():
