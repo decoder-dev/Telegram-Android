@@ -18,6 +18,7 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Upstream resource audit
 
+- Preserve widget frame recordings after offscreen software snapshots so later hardware and software draws do not become blank.
 - Limit the new widget engine's prewarm hold to a short grace period and release it when backgrounded, preserving live sessions. Large widget arguments no longer retain a peak-size scratch buffer after consumption or rejection.
 - Release temporary hardware snapshot wrappers and discarded widget software snapshots explicitly. Retain and reuse the screen-capture Surface across resize, then release it after display shutdown, including failed startup.
 

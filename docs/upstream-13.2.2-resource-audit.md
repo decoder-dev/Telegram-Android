@@ -21,6 +21,11 @@ explanation of the rc.16 crash report's total native memory.
   bitmap wrapper and copied its pixels, but left wrapper cleanup to GC. The
   wrapper is now recycled in `finally` after producing the independent copy.
   Discarding an unpublished node also clears its owned software snapshot.
+- The offscreen renderer could destroy its source RenderNode display list during
+  teardown, so a widget went blank after its first software snapshot. Immutable
+  frame pixels now restore a lost recording for subsequent hardware and
+  software drawing. The regression verifies the frame remains recorded after
+  readback and the second draw still contains the expected pixels.
 - The isolated widget process must skip client initialization during Android
   configuration changes as well as in `Application.onCreate`. The configuration
   callback now has the same process guard.
