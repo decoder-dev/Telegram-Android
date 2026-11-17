@@ -871,6 +871,24 @@ public final class BananaArchiveLock {
         }
     }
 
+    /**
+     * Logout or a new sign-in in this slot. The lock is stored per slot, so without this the next
+     * account in the slot would inherit the previous account's password, cooldown and biometric key.
+     */
+    public static void clearAccount(int account) {
+        if (account < 0 || account >= ACCOUNTS) return;
+        synchronized (FILE_LOCK) {
+            File file = file(account);
+            if (file != null) new android.util.AtomicFile(file).delete();
+            persistedStates[account] = null;
+        }
+        deleteKey(account);
+        unlocked[account] = false;
+        revealed[account] = false;
+        taps[account] = 0;
+        lastTap[account] = 0;
+    }
+
     private static void clearPassword(int account) {
         State state = new State();
         write(account, state);

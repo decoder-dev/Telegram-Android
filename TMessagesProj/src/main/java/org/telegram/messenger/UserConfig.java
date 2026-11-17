@@ -469,6 +469,7 @@ public class UserConfig extends BaseController {
         org.telegram.messenger.banana.AccountScope.invalidate(currentAccount);
         org.telegram.messenger.banana.BananaHooks.clearAccountLocalData(currentAccount);
         org.telegram.messenger.banana.BananaSessionBackup.clear(currentAccount);
+        org.telegram.messenger.banana.BananaArchiveLock.clearAccount(currentAccount);
         if (clientUserId > 0) {
             com.radolyn.ayugram.messages.AyuMessagesController.clearForUser(clientUserId);
         }

@@ -1568,7 +1568,10 @@ public final class BananaHooks {
         clearBookmarks(account);
         android.content.SharedPreferences prefs = org.telegram.messenger.ApplicationLoader.applicationContext
                 .getSharedPreferences(account == 0 ? "mainconfig" : "mainconfig" + account, android.content.Context.MODE_PRIVATE);
-        android.content.SharedPreferences.Editor edit = prefs.edit().remove(BananaConfig.StringValue.VISUAL_PHONE_NUMBER.key);
+        android.content.SharedPreferences.Editor edit = prefs.edit().remove(BananaConfig.StringValue.VISUAL_PHONE_NUMBER.key)
+                // Consent to back up session keys belongs to the account that gave it, not to the
+                // slot: the next account signed in here must opt in itself.
+                .remove(BananaConfig.Option.SESSION_KEYCHAIN_BACKUP.key);
         for (String key : prefs.getAll().keySet()) {
             if (key.startsWith(LOCAL_ALIAS_KEY_PREFIX)) edit.remove(key);
         }
