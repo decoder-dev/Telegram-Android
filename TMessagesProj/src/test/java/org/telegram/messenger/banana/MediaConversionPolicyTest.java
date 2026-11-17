@@ -40,6 +40,21 @@ public class MediaConversionPolicyTest {
             assertTrue(args.get(args.indexOf("-vf") + 1).contains("scale=384:384"));
         } finally { Locale.setDefault(previous); }
     }
+    @Test public void untrustedInputCannotUsePlaylistsOrNetworkProtocols() {
+        for (MediaConversionPolicy.Kind kind : new MediaConversionPolicy.Kind[]{AUDIO_TO_VOICE, VIDEO_TO_ROUND}) {
+            List<String> args = MediaConversionPolicy.arguments(kind, "/in.m3u8", "/out", 10, 1, 0);
+            int input = args.indexOf("-i");
+            int protocols = args.indexOf("-protocol_whitelist");
+            int formats = args.indexOf("-format_whitelist");
+            assertTrue(protocols >= 0 && protocols < input);
+            assertTrue(formats >= 0 && formats < input);
+            assertEquals("file", args.get(protocols + 1));
+            List<String> allowed = java.util.Arrays.asList(args.get(formats + 1).split(","));
+            assertFalse(allowed.contains("hls"));
+            assertFalse(allowed.contains("concat"));
+            assertTrue(allowed.contains("mp3") && allowed.contains("mov") && allowed.contains("matroska"));
+        }
+    }
     @Test public void voiceToMusicRequiresNoLossyReencoding() {
         try { MediaConversionPolicy.arguments(VOICE_TO_AUDIO, "/in.ogg", "/out.ogg", 2, 0, 0); fail(); }
         catch (IllegalArgumentException expected) { }

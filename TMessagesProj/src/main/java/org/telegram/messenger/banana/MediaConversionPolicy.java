@@ -27,11 +27,18 @@ public final class MediaConversionPolicy {
         double stop = end > 0 ? Math.min(duration, end) : duration;
         return Math.min(MAX_ROUND_SECONDS, stop - start);
     }
+    /** Container demuxers for music and video documents; excludes playlists (hls, concat) and image sequences. */
+    static final String INPUT_FORMATS = "mov,mp4,m4a,3gp,3g2,mj2,mp3,ogg,matroska,webm,wav,w64,flac,aac,amr,amrnb,amrwb,"
+            + "aiff,asf,avi,flv,mpegts,mpeg,caf,ape,wv";
     /** Direct process arguments, never a shell expression. Input metadata cannot supply extra options. */
     public static List<String> arguments(Kind kind, String input, String output, double duration, double start, double end) {
         double seconds = outputDuration(kind, duration, start, end);
         if (kind == Kind.VOICE_TO_AUDIO) throw new IllegalArgumentException("Lossless copy requires no encoder");
         List<String> args = new ArrayList<>(Arrays.asList("-hide_banner", "-loglevel", "error", "-nostdin", "-y"));
+        // The input is a file someone else sent, and its cached name keeps their extension. Without
+        // these, a ".m3u8" playlist padded with audio frames would make FFmpeg fetch http segments
+        // (leaking the IP) or splice other cached files into the voice message being sent.
+        args.addAll(Arrays.asList("-protocol_whitelist", "file", "-format_whitelist", INPUT_FORMATS));
         if (kind == Kind.VIDEO_TO_ROUND && start > 0) args.addAll(Arrays.asList("-ss", number(start)));
         args.addAll(Arrays.asList("-i", input, "-map_metadata", "-1", "-sn", "-dn", "-threads", "2", "-filter_threads", "1"));
         if (kind == Kind.AUDIO_TO_VOICE) {
