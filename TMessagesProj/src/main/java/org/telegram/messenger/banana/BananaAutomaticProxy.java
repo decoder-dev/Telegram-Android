@@ -370,7 +370,10 @@ public final class BananaAutomaticProxy {
                 continue;
             }
             ProxySettings settings = parseToken(token);
-            if (settings != null && settings.isValid() && settings.getType() == ProxySettings.Type.MTPROTO) {
+            // tg:// and t.me entries skip parseToken's host:port:secret checks; the native side
+            // casts the port to uint16, so 70000 would dial port 4464.
+            if (settings != null && settings.isValid() && settings.getType() == ProxySettings.Type.MTPROTO
+                    && settings.getPort() <= 65535 && usableHost(settings.getAddress())) {
                 result.add(settings);
             }
         }
@@ -1002,6 +1005,19 @@ public final class BananaAutomaticProxy {
                 }
                 if (!isEnabled()) {
                     return;
+                }
+                if (state != ConnectionsManager.ConnectionStateConnected && state != ConnectionsManager.ConnectionStateUpdating
+                        && canProbe() && !refreshing && probeQueue == null) {
+                    // The network came back (WaitingForNetwork ends in Connecting): resume work the
+                    // outage deferred or cancelled, instead of idling until the 10-minute refresh.
+                    if (pool.isEmpty()) {
+                        if (SystemClock.elapsedRealtime() - lastRefreshAt >= MIN_SWITCH_MS) {
+                            AndroidUtilities.cancelRunOnUIThread(REFRESH);
+                            refresh();
+                        }
+                    } else if (pendingProbe) {
+                        startProbe(pool);
+                    }
                 }
                 if (state == ConnectionsManager.ConnectionStateConnectingToProxy) {
                     if (wasConnected && routeKeepsDropping()) {
