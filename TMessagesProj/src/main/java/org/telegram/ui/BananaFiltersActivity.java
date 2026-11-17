@@ -131,12 +131,12 @@ public final class BananaFiltersActivity extends BananaSettingsFragment {
                 .setItems(choices.toArray(new CharSequence[0]), (dialog, which) -> {
                     if (!store.isCurrent()) return;
                     if (which == 0) presentFragment(new BananaFilterEditActivity(currentAccount, rule.dialogId, rule));
-                    if (which == 1) store.save(store.rules().put(rule.withEnabled(!rule.enabled)));
+                    if (which == 1) saveRules(() -> store.rules().put(rule.withEnabled(!rule.enabled)));
                     if (which == 2) showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
                             .setTitle(text(R.string.BananaFilterDeleteTitle)).setMessage(shortText(rule.text))
                             .setNegativeButton(text(R.string.Cancel), null)
-                            .setPositiveButton(text(R.string.Delete), (d, w) -> { if (store.isCurrent()) store.save(store.rules().remove(rule)); }).create());
-                    if (which == 3) store.save(store.rules().exclude(rule, dialogId, !store.rules().excluded(rule, dialogId)));
+                            .setPositiveButton(text(R.string.Delete), (d, w) -> { if (store.isCurrent()) saveRules(() -> store.rules().remove(rule)); }).create());
+                    if (which == 3) saveRules(() -> store.rules().exclude(rule, dialogId, !store.rules().excluded(rule, dialogId)));
                 }).create());
     }
     private void importRules() {
@@ -153,6 +153,9 @@ public final class BananaFiltersActivity extends BananaSettingsFragment {
         if (destroyed || !store.isCurrent() || getParentActivity() == null) return;
         try {
             FilterRules previous = store.rules(), preview = previous.merge(json);
+            // Imports are capped by input size, not the merged result: reject an oversize result
+            // here rather than throwing from the Apply button.
+            preview.export();
             String description = LocaleController.formatString(R.string.BananaFiltersPreviewInfo, previous.rules.size(), preview.rules.size());
             StringBuilder summary = new StringBuilder(description);
             for (FilterRules.Rule rule : preview.rules) summary.append("\n\n").append(shortText(rule.text));
@@ -160,7 +163,7 @@ public final class BananaFiltersActivity extends BananaSettingsFragment {
                     .setMessage(summary).setNegativeButton(text(R.string.Cancel), null)
                     .setPositiveButton(text(R.string.BananaFiltersApply), (d, w) -> {
                         if (!store.isCurrent() || store.rules() != previous) { error(); return; }
-                        store.save(preview);
+                        saveRules(() -> preview);
                     }).create());
         } catch (Exception exception) { error(); }
     }
@@ -192,6 +195,14 @@ public final class BananaFiltersActivity extends BananaSettingsFragment {
         showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
                 .setTitle(text(R.string.BananaFiltersFromLink)).setMessage(text(R.string.BananaFiltersSourceError))
                 .setPositiveButton(text(R.string.OK), null).create());
+    }
+    /** FilterStore.save and FilterRules edits throw on limits (export size, exclusions): report, never crash. */
+    private void saveRules(java.util.function.Supplier<FilterRules> change) {
+        try {
+            store.save(change.get());
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            error();
+        }
     }
     private void error() {
         if (destroyed || getParentActivity() == null) return;
