@@ -85,7 +85,14 @@ public final class BananaFiltersActivity extends BananaSettingsFragment {
     @Override protected void onClick(UItem item, View view, int position, float x, float y) {
         if (loading && item.id != 7) return;
         if (!store.isCurrent()) { finishFragment(); return; }
-        if (item.id == 1) store.setEnabled(!store.enabled());
+        if (item.id == 1) {
+            boolean next = !store.enabled();
+            // Filtering is on while either switch is: keep the Extras switch in step, or turning
+            // this one off after enabling filters in Extras would leave them running.
+            org.telegram.messenger.banana.BananaConfig.set(currentAccount,
+                    org.telegram.messenger.banana.BananaConfig.Option.REGEX_MESSAGE_FILTERS_ENABLED, next);
+            store.setEnabled(next);
+        }
         else if (item.id == 2) store.setSharedInChats(!store.sharedInChats());
         else if (item.id == 3) {
             if (store.rules().rules.size() >= FilterRules.MAX_RULES) {

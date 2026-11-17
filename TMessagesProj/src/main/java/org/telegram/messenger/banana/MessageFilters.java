@@ -31,6 +31,7 @@ public final class MessageFilters {
     private final WeakHashMap<Runnable, Boolean> listeners = new WeakHashMap<>();
     private final Set<String> failedRules = new HashSet<>();
     private long generation, storeGeneration = -1;
+    private int transientFailures;
     private boolean running, notifyPosted;
     private final Runnable drain = this::drain;
     private MessageFilters(FilterStore store) { this.store = store; }
@@ -48,7 +49,18 @@ public final class MessageFilters {
         }
         return value;
     }
+    /** Flags such as global case-insensitivity are not part of {@link Key}: drop every cached verdict. */
     public static void settingsChanged(int account) {
+        AndroidUtilities.runOnUIThread(() -> {
+            MessageFilters filters = get(account);
+            filters.generation++;
+            filters.cache.clear(); filters.queue.clear(); filters.failedRules.clear();
+            filters.transientFailures = 0;
+            filters.notifyChanged();
+        });
+    }
+    /** Rebinds chat rows and the chat list without discarding verdicts (legacy AyuGram filter results). */
+    public static void refreshViews(int account) {
         AndroidUtilities.runOnUIThread(() -> get(account).notifyChanged());
     }
     public static void addListener(int account, Runnable listener) { get(account).listeners.put(listener, true); }
@@ -57,33 +69,34 @@ public final class MessageFilters {
         if (value != null) value.listeners.remove(listener);
     }
     /**
-     * Best-effort sync hide for the notifications queue (fail-open). Display path uses
-     * {@link #verdict} + IsolatedRegexService; this only peeks short message text.
+     * Sync hide for the notifications queue (fail-open). The expressions run in
+     * IsolatedRegexService, as on the display path: Android's in-process regex cannot be bounded,
+     * and this queue delivers every notification. The input is the same text the chat matches.
      */
     public static boolean shouldHideNotification(int account, MessageObject message) {
         if (message == null || message.messageOwner == null || message.getId() <= 0 ||
                 message.messageOwner instanceof TLRPC.TL_messageService) return false;
+        if (Looper.myLooper() == Looper.getMainLooper()) return false;
         if (!BananaHooks.regexFiltersEnabled(account)) return false;
         FilterStore store = FilterStore.get(account);
-        if (store.rules().rules.isEmpty()) return false;
-        String body = message.messageOwner.message;
-        if (body == null || body.isEmpty() || body.length() > 2048) return false;
+        FilterRules rules = store.rules();
+        if (rules.rules.isEmpty()) return false;
+        String text = text(message, null);
+        if (text == null) return false;
         long dialog = message.getDialogId();
         TLRPC.Chat chat = dialog < 0 ? MessagesController.getInstance(account).getChat(-dialog) : null;
         boolean channel = ChatObject.isChannel(chat) && chat != null && !chat.megagroup;
         boolean globalInsensitive = BananaHooks.regexFiltersCaseInsensitive(account);
-        for (FilterRules.Rule rule : store.rules().rules) {
-            if (!rule.enabled || !store.rules().applies(rule, dialog, channel, store.sharedInChats())) continue;
-            try {
-                boolean insensitive = rule.caseInsensitive || globalInsensitive;
-                int flags = Pattern.MULTILINE | (insensitive ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0);
-                // This queue delivers every notification: a runaway expression must not stall it.
-                Boolean matched = BoundedMatch.find(Pattern.compile(rule.text, flags), body, 20_000_000L);
-                if (matched == null) continue;
-                if (rule.reversed != matched) return true;
-            } catch (Throwable ignore) {
-                // Fail open: never drop a notification because a rule blew up.
-            }
+        for (FilterRules.Rule rule : rules.rules) {
+            if (!rule.enabled || !rules.applies(rule, dialog, channel, store.sharedInChats())) continue;
+            boolean insensitive = rule.caseInsensitive || globalInsensitive;
+            int flags = Pattern.MULTILINE | (insensitive ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0);
+            IsolatedMatch.Outcome outcome = IsolatedMatch.findBlocking(rule.text, flags, text);
+            // Fail open: a slow, broken or unreachable rule never drops a notification, and an
+            // unreachable worker is not waited for once per remaining rule.
+            if (outcome == IsolatedMatch.Outcome.UNKNOWN) return false;
+            if (outcome == IsolatedMatch.Outcome.QUARANTINE) continue;
+            if (rule.reversed != (outcome == IsolatedMatch.Outcome.MATCHED)) return true;
         }
         return false;
     }
@@ -167,11 +180,22 @@ public final class MessageFilters {
         int flags = Pattern.MULTILINE | (insensitive ? Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE : 0);
         engine.match(rule.text, flags, text, result -> {
             if (revision != generation || !store.isCurrent()) { finishStale(); return; }
+            IsolatedMatch.Outcome outcome = IsolatedMatch.classify(result.status, false);
+            if (outcome == IsolatedMatch.Outcome.UNKNOWN && result.status != RegexProtocol.INPUT_LIMIT
+                    && result.status != RegexProtocol.EVALUATION_ERROR && ++transientFailures <= 3) {
+                // The worker was unavailable or busy (bind timeout, memory pressure): this says
+                // nothing about the rule. Retry the batch later instead of disabling it for good.
+                for (int i = batch.size() - 1; i >= 0; i--) queue.addFirst(batch.get(i));
+                running = false;
+                AndroidUtilities.runOnUIThread(drain, 2000L * transientFailures);
+                return;
+            }
             if (result.status != RegexProtocol.OK) {
                 // Quarantine this rule until the user edits or reapplies settings; never loop on ReDoS.
                 failedRules.add(rule.key()); store.error(result.status); generation++;
                 cache.clear(); queue.clear(); running = false; notifyChanged(); return;
             }
+            transientFailures = 0;
             for (int i = 0; i < hidden.length; i++) hidden[i] |= rule.reversed != result.matches[i];
             evaluate(batch, hidden, rules, index + 1, revision);
         });
