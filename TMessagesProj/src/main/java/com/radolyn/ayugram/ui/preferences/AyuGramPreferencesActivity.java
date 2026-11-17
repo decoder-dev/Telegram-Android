@@ -127,12 +127,17 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
         eraseLocalDatabaseBtnRow = newRow();
     }
 
+    private int observedAccount;
+
     @Override
     public boolean onFragmentCreate() {
         super.onFragmentCreate();
         // todo: register `MESSAGES_DELETED_NOTIFICATION` on all notification centers, not only on the current account
 
-        NotificationCenter.getInstance(UserConfig.selectedAccount).addObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
+        // Remembered: switchToAccount() changes selectedAccount before this fragment is destroyed,
+        // and removing from the new account's center would leave this screen registered (leaked).
+        observedAccount = UserConfig.selectedAccount;
+        NotificationCenter.getInstance(observedAccount).addObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
         NotificationCenter.getGlobalInstance().addObserver(this, AyuConstants.AYUSYNC_STATE_CHANGED);
 
         return true;
@@ -156,7 +161,7 @@ public class AyuGramPreferencesActivity extends BasePreferencesActivity implemen
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
 
-        NotificationCenter.getInstance(UserConfig.selectedAccount).removeObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
+        NotificationCenter.getInstance(observedAccount).removeObserver(this, AyuConstants.MESSAGES_DELETED_NOTIFICATION);
         NotificationCenter.getGlobalInstance().removeObserver(this, AyuConstants.AYUSYNC_STATE_CHANGED);
     }
 
