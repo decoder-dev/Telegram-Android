@@ -724,7 +724,10 @@ void ConnectionSocket::resetLastEventTime() {
 }
 
 bool ConnectionSocket::isDisconnected() {
-    return socketFd < 0;
+    // The socket is created once a proxy host name resolves (its address family decides the socket
+    // type). Until then the connection is opening, not closed: writeBuffer() queues the data and
+    // adjustWriteOp() flushes it after the resolve, as upstream did when it opened the socket early.
+    return socketFd < 0 && waitingForHostResolve.empty();
 }
 
 void ConnectionSocket::dropConnection() {
