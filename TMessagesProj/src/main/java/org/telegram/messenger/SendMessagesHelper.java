@@ -2255,8 +2255,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         return sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDateOrig, scheduleRepeatPeriod, replyToTopMsg, video_timestamp, payStars, monoForumPeerId, suggestionParams, null);
     }
 
-    public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notify, int scheduleDateOrig, int scheduleRepeatPeriod, MessageObject replyToTopMsg, int video_timestamp, long payStars, long monoForumPeerId, MessageSuggestionParams suggestionParams, SendObserver observer) {
+    public int sendMessage(ArrayList<MessageObject> messages, final long peer, boolean forwardFromMyName, boolean hideCaption, boolean notifyRequested, int scheduleDateOrig, int scheduleRepeatPeriod, MessageObject replyToTopMsg, int video_timestamp, long payStars, long monoForumPeerId, MessageSuggestionParams suggestionParams, SendObserver observer) {
         if (observer != null && !observer.isActive()) return 0;
+        // Banana "Send without sound" also covers forwards, as its setting describes (and as
+        // sendMessage(SendMessageParams) and sendGame already apply it).
+        final boolean notify = notifyRequested && !BananaConfig.shouldSendSilently(currentAccount);
         if (messages == null || messages.isEmpty()) {
             return 0;
         }
