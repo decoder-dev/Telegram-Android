@@ -1063,56 +1063,56 @@
     {
       "setting": "anonymousStickers",
       "type": "Bool",
-      "status": "pending_new_ios_reference_review",
-      "android": "New in the refreshed iOS reference; not included in Android's current Extras catalog. Review sticker set references before deciding parity."
+      "status": "implemented_pending_device_acceptance",
+      "android": "Option.ANONYMOUS_STICKERS via AnonymousStickers (static webp only)"
     },
     {
       "setting": "approximateLastSeen",
       "type": "Bool",
-      "status": "pending_new_ios_reference_review",
-      "android": "New iOS estimate mode; Android exact/relative formatting is a separate feature and does not prove this behavior."
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.APPROXIMATE_LAST_SEEN via ApproximateLastSeen in LocaleController.formatUserStatus"
     },
     {
       "setting": "profileExpansionAnimation",
       "type": "Bool",
-      "status": "pending_new_ios_reference_review",
-      "android": "Platform-specific animation choice; Android navigation/transition equivalence remains unreviewed."
+      "status": "native_android_behavior",
+      "android": "ProfileActivity expands from the chat header by default"
     },
     {
       "setting": "securityBlockPhoneSharing",
       "type": "Bool",
-      "status": "pending_new_ios_reference_review",
-      "android": "Compare bot/contact/mini-app phone sharing against existing Android confirmation paths; not attested."
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.SECURITY_BLOCK_PHONE_SHARING in ChatActivity.shareMyContact and web_app_request_phone"
     },
     {
       "setting": "securityBlockQrLogin",
       "type": "Bool",
-      "status": "pending_new_ios_reference_review",
-      "android": "Compare QR-login guards and session-creation flow; not attested."
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.SECURITY_BLOCK_QR_LOGIN in SessionsActivity and LaunchActivity scanQr"
     },
     {
       "setting": "securityConfirmExternalLinks",
       "type": "Bool",
-      "status": "pending_new_ios_reference_review",
-      "android": "Existing Telegram/share-link confirmations do not attest confirmation of every external website."
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.SECURITY_CONFIRM_EXTERNAL_LINKS via LinkKinds in ChatActivity.processExternalUrl"
     },
     {
       "setting": "securityFlagFakeSupport",
       "type": "Bool",
-      "status": "pending_new_ios_reference_review",
-      "android": "Compare impersonation warnings with Android's existing peer warning UI; not attested."
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.SECURITY_FLAG_FAKE_SUPPORT via FakeSupport in ChatActivity.onBecomeFullyVisible"
     },
     {
       "setting": "securityGuardLoginCodes",
       "type": "Bool",
-      "status": "pending_new_ios_reference_review",
-      "android": "Compare login-code forwarding/copy protection with upstream Android; not attested."
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.SECURITY_GUARD_LOGIN_CODES via LoginCodeGuard in ChatActivityEnterView and forwards; SecurityPoliciesTest"
     },
     {
       "setting": "securityWarnMiniApps",
       "type": "Bool",
-      "status": "pending_new_ios_reference_review",
-      "android": "Compare first-use mini-app warnings with Android's existing web-app confirmation; not attested."
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.SECURITY_WARN_MINI_APPS in BotWebViewSheet and BotWebViewAttachedSheet"
     },
     {
       "setting": "antiCaps",
@@ -1143,6 +1143,252 @@
       "type": "Bool",
       "status": "implemented_wired_pending_ci",
       "android": "BananaConfig.Option.SHOW_SESSION_API_ID via SessionCell"
+    },
+    {
+      "setting": "hideEmptyReplyDrafts",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.HIDE_EMPTY_REPLY_DRAFTS in DialogCell"
+    },
+    {
+      "setting": "showHiddenAdminBadges",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.SHOW_HIDDEN_ADMIN_BADGES via AdminTitles in ChatMessageCell; AdminTitlesTest"
+    },
+    {
+      "setting": "showGroupJoinDate",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.SHOW_GROUP_JOIN_DATE profile row (ProfileActivity.bananaJoinDate)"
+    },
+    {
+      "setting": "panicShakeLock",
+      "type": "Bool",
+      "status": "implemented_pending_device_acceptance",
+      "android": "Option.PANIC_SHAKE_LOCK via BananaPanicShake in LaunchActivity"
+    },
+    {
+      "setting": "duressPasscodeAction",
+      "type": "Int32",
+      "status": "implemented_pending_device_acceptance",
+      "android": "BananaDuress and DuressVerifier in PasscodeView; Extras Privacy button; no hidden accounts on Android"
+    },
+    {
+      "setting": "duressLogOutAccountIds",
+      "type": "[Int64]",
+      "status": "implemented_pending_device_acceptance",
+      "android": "BananaDuress.logoutIds"
+    },
+    {
+      "setting": "hideAIButton",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.HIDE_AI_FEATURES (composer, caption, attach menu, summary)"
+    },
+    {
+      "setting": "hideRichTextEditor",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.HIDE_RICH_TEXT_EDITOR"
+    },
+    {
+      "setting": "hidePhoneNumberInChatTitle",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.HIDE_PHONE_NUMBER_IN_CHAT_TITLE in ChatActivity.updateTitle"
+    },
+    {
+      "setting": "messageJsonMenu",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.MESSAGE_JSON_MENU via MessageJson; ChatFeaturesTest"
+    },
+    {
+      "setting": "showMessagesFromMember",
+      "type": "Bool",
+      "status": "partial_this_chat_only",
+      "android": "Option.SHOW_MESSAGES_FROM_MEMBER: Messages in this chat; common-groups search not ported"
+    },
+    {
+      "setting": "localVerificationBadges",
+      "type": "[Int64]",
+      "status": "implemented_wired_pending_ci",
+      "android": "IntValue.LOCAL_VERIFICATION_BADGE (own profile only)"
+    },
+    {
+      "setting": "equalizerEnabled",
+      "type": "Bool",
+      "status": "implemented_pending_device_acceptance",
+      "android": "BananaEqualizerAudioProcessor in VideoPlayer; AudioEffectsTest"
+    },
+    {
+      "setting": "equalizerVideos",
+      "type": "Bool",
+      "status": "implemented_pending_device_acceptance",
+      "android": "EqualizerDsp.Snapshot.activeFor"
+    },
+    {
+      "setting": "equalizerBand60",
+      "type": "Int32",
+      "status": "implemented_wired_pending_ci",
+      "android": "IntValue.EQUALIZER_BAND_* (all five bands)"
+    },
+    {
+      "setting": "voiceChangerEnabled",
+      "type": "Bool",
+      "status": "implemented_pending_device_acceptance",
+      "android": "VoiceChain in MediaController.recordRunnable and AudioCapture.encodeFrame; AudioEffectsTest"
+    },
+    {
+      "setting": "voiceChangerPreset",
+      "type": "Int32",
+      "status": "implemented_wired_pending_ci",
+      "android": "IntValue.VOICE_CHANGER_PRESET, PITCH, REVERB, ECHO (VoicePresets)"
+    },
+    {
+      "setting": "roundVideoRecordAt60FPS",
+      "type": "Bool",
+      "status": "implemented_pending_device_acceptance",
+      "android": "Option.ROUND_VIDEO_60_FPS in InstantCameraView2"
+    },
+    {
+      "setting": "roundVideoMaximumQuality",
+      "type": "Bool",
+      "status": "partial_bitrate_only",
+      "android": "Option.ROUND_VIDEO_MAXIMUM_QUALITY: iOS bitrates; 640p output not ported"
+    },
+    {
+      "setting": "roundVideoCountdown",
+      "type": "Bool",
+      "status": "not_ported_needs_device",
+      "android": "needs a live preview without recording in RoundVideoSession"
+    },
+    {
+      "setting": "roundVideoFocusOnTap",
+      "type": "Bool",
+      "status": "not_ported_needs_device",
+      "android": "camera2 metering regions need device checks"
+    },
+    {
+      "setting": "roundVideoAlwaysResetZoom",
+      "type": "Bool",
+      "status": "native_android_behavior",
+      "android": "InstantCameraView2 always resets zoom after a pinch"
+    },
+    {
+      "setting": "parallelDownloads",
+      "type": "Bool",
+      "status": "native_android_behavior",
+      "android": "FileLoader small and large queues per data centre"
+    },
+    {
+      "setting": "hideProxySponsor",
+      "type": "Bool",
+      "status": "native_android_behavior",
+      "android": "MessagesController never injects proxy sponsors"
+    },
+    {
+      "setting": "disableProfileMusicAutoplay",
+      "type": "Bool",
+      "status": "not_applicable",
+      "android": "Android profile music never autoplays"
+    },
+    {
+      "setting": "updateCheckIncludesPrereleases",
+      "type": "Bool",
+      "status": "existing_android_equivalent",
+      "android": "ExteraConfig.updatePrereleaseChannel"
+    },
+    {
+      "setting": "updateCheckAutomatically",
+      "type": "Bool",
+      "status": "existing_android_equivalent",
+      "android": "ExteraConfig.checkUpdatesOnLaunch and UpdateNotifier"
+    },
+    {
+      "setting": "translationFallback",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.TRANSLATION_FALLBACK via BananaTranslator; TranslationPolicyTest"
+    },
+    {
+      "setting": "deeplApiKey",
+      "type": "String",
+      "status": "implemented_pending_network_acceptance",
+      "android": "StringValue.DEEPL_API_KEY"
+    },
+    {
+      "setting": "yandexApiKey",
+      "type": "String",
+      "status": "implemented_pending_network_acceptance",
+      "android": "StringValue.YANDEX_API_KEY"
+    },
+    {
+      "setting": "translateBeforeSending",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.TRANSLATE_BEFORE_SENDING in the ChatActivityEnterView send menu"
+    },
+    {
+      "setting": "draftTranslationLanguages",
+      "type": "[Int64:String]",
+      "status": "implemented_wired_pending_ci",
+      "android": "per-dialog bananaDraftTranslationLang preference"
+    },
+    {
+      "setting": "saveMyDeletedMessages",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.SAVE_MY_DELETED in MessageHistory.captureDeletes"
+    },
+    {
+      "setting": "saveMessagesFromNotifications",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.SAVE_FROM_NOTIFICATIONS via MessageHistory.capturePushDeletes"
+    },
+    {
+      "setting": "pinBeyondLimit",
+      "type": "Bool",
+      "status": "implemented_pending_device_acceptance",
+      "android": "Option.PIN_BEYOND_LIMIT via BananaLocalPins; BananaLocalPinsTest"
+    },
+    {
+      "setting": "messageMenuHiddenItems",
+      "type": "[String]",
+      "status": "implemented_wired_pending_ci",
+      "android": "StringValue.MESSAGE_MENU_HIDDEN via BananaMessageMenu; BananaMessageMenuTest"
+    },
+    {
+      "setting": "messageMenuOrder",
+      "type": "[String]",
+      "status": "implemented_wired_pending_ci",
+      "android": "StringValue.MESSAGE_MENU_ORDER"
+    },
+    {
+      "setting": "enhancedPowerSaving",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "Option.ENHANCED_POWER_SAVING via BananaPowerSaving; PowerSavingSnapshotTest"
+    },
+    {
+      "setting": "keepSelfDestructingMedia",
+      "type": "Bool",
+      "status": "declined",
+      "android": "would defeat the sender's self-destruct protection"
+    },
+    {
+      "setting": "bypassContentRestrictions",
+      "type": "Bool",
+      "status": "declined",
+      "android": "would bypass Telegram content restrictions"
+    },
+    {
+      "setting": "bypassStickerRestrictions",
+      "type": "Bool",
+      "status": "declined",
+      "android": "would bypass a chat's sticker restriction"
     }
   ]
 }
