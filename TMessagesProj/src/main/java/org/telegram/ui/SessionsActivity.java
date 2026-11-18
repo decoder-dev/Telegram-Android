@@ -1272,6 +1272,11 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
 }
 
     private void openCameraScanActivity() {
+        if (org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.SECURITY_BLOCK_QR_LOGIN)) {
+            // Scanning someone's QR signs their device into this account: the usual takeover scam.
+            org.telegram.messenger.banana.BananaSecurity.showBlocked(this, R.string.BananaSecurityQrBlocked);
+            return;
+        }
         CameraScanActivity.showAsSheet(SessionsActivity.this, false, CameraScanActivity.TYPE_QR_LOGIN, new CameraScanActivity.CameraScanActivityDelegate() {
 
             private TLObject response = null;

@@ -3806,6 +3806,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     rightActionBarLayout.rebuildFragments(INavigationLayout.REBUILD_FLAG_REBUILD_LAST);
                 }
                 pushOpened = true;
+            } else if (scanQr && org.telegram.messenger.banana.BananaConfig.get(UserConfig.selectedAccount, org.telegram.messenger.banana.BananaConfig.Option.SECURITY_BLOCK_QR_LOGIN)) {
+                BaseFragment blockedHost = getSafeLastFragment();
+                if (blockedHost != null) {
+                    org.telegram.messenger.banana.BananaSecurity.showBlocked(blockedHost, R.string.BananaSecurityQrBlocked);
+                }
             } else if (scanQr) {
                 ActionIntroActivity fragment = new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_QR_LOGIN);
                 fragment.setQrLoginDelegate(code -> {
@@ -7432,6 +7437,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     protected void onPause() {
         super.onPause();
         org.telegram.messenger.banana.BananaArchiveLock.onHostPause();
+        bananaPanicShake.pause();
         invalidateArchiveSecure();
         isResumed = false;
         WidgetMedia.onAppPaused(true);
@@ -7754,6 +7760,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         super.onResume();
         AndroidUtilities.setPreferredMaxRefreshRate(getWindow());
         org.telegram.messenger.banana.BananaArchiveLock.onHostResume();
+        bananaPanicShake.resume(this);
         if (archiveSecureReason == null) {
             archiveSecureReason = new FlagSecureReason(getWindow(), () -> org.telegram.messenger.banana.BananaArchiveLock.shouldSecureWindow(currentAccount));
             archiveSecureReason.attach();
@@ -9684,6 +9691,20 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     }
 
     // last fragment that is not finishing itself
+    // Shake to Lock: closes the Archive and locks with the passcode, if one is set. Nothing is deleted.
+    private final org.telegram.messenger.banana.BananaPanicShake bananaPanicShake =
+            new org.telegram.messenger.banana.BananaPanicShake(this::bananaPanicLock);
+
+    private void bananaPanicLock() {
+        org.telegram.messenger.banana.BananaArchiveLock.relockEverything();
+        if (SharedConfig.passcodeHash.length() > 0 && (passcodeDialog == null || passcodeDialog.passcodeView.getVisibility() != View.VISIBLE)) {
+            SharedConfig.appLocked = true;
+            SharedConfig.saveConfig();
+            showPasscodeActivity(false, false, -1, -1, null, null);
+            NotificationsController.getInstance(UserConfig.selectedAccount).showNotifications();
+        }
+    }
+
     public static BaseFragment getSafeLastFragment() {
         if (BubbleActivity.instance != null && BubbleActivity.instance.actionBarLayout != null) {
             return BubbleActivity.instance.actionBarLayout.getSafeLastFragment();

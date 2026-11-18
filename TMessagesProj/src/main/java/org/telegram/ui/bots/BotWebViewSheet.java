@@ -2069,6 +2069,7 @@ public class BotWebViewSheet extends Dialog implements NotificationCenter.Notifi
     @Override
     public void show() {
         if (!AndroidUtilities.isSafeToShow(getContext())) return;
+        org.telegram.messenger.banana.BananaSecurity.maybeWarnMiniApp(getContext(), resourcesProvider, currentAccount, botId);
         setOpen(true);
         windowView.setAlpha(0f);
         windowView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {

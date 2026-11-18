@@ -881,6 +881,7 @@ public static void togglePaymentByInvoice() {
     }
 
     public static void clearConfig() {
+        org.telegram.messenger.banana.BananaDuress.clear();
         saveIncomingPhotos = false;
         appLocked = false;
         passcodeType = PASSCODE_TYPE_PIN;

@@ -70,6 +70,10 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
         } else if ("MESSAGES".equals(section) && BananaConfig.get(currentAccount, Option.MESSAGE_BOOKMARKS)) {
             items.add(UItem.asShadow(null));
             items.add(UItem.asButton(9200, LocaleController.getString(R.string.BananaBookmarks)));
+        } else if ("PRIVACY".equals(section)) {
+            items.add(UItem.asShadow(LocaleController.getString(R.string.BananaSecurityProtectionsInfo)));
+            items.add(UItem.asButton(9300, LocaleController.getString(R.string.BananaDuressTitle)));
+            items.add(UItem.asShadow(LocaleController.getString(R.string.BananaSecurityLockInfo)));
         } else if ("NINJA".equals(section)) {
             items.add(UItem.asShadow(LocaleController.getString(R.string.BananaGhostModeInfo)));
             items.add(UItem.asButton(9001, LocaleController.getString(R.string.BananaHistoryOpen)));
@@ -81,6 +85,7 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
     @Override
     protected void onClick(UItem item, View view, int position, float x, float y) {
         if (item.id == 9200) { showBookmarks(); return; }
+        if (item.id == 9300) { BananaDuressSettings.show(this); return; }
         if (item.id == 9100) {
             CharSequence[] labels = new CharSequence[]{
                     LocaleController.getString(R.string.BananaVisualLabelNone),

@@ -13739,6 +13739,11 @@ public class ChatActivity extends BaseFragment implements
     }
 
     public void shareMyContact(int type, MessageObject messageObject) {
+        if (org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.SECURITY_BLOCK_PHONE_SHARING)) {
+            // A "share your number" request starts a login to this account.
+            org.telegram.messenger.banana.BananaSecurity.showBlocked(this, R.string.BananaSecurityPhoneBlocked);
+            return;
+        }
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
         builder.setTitle(LocaleController.getString(R.string.ShareYouPhoneNumberTitle));
         if (currentUser != null) {
@@ -28215,6 +28220,9 @@ public class ChatActivity extends BaseFragment implements
     public void onBecomeFullyVisible() {
         isFullyVisible = true;
         super.onBecomeFullyVisible();
+        if (currentUser != null && !isTopic && chatMode == 0) {
+            org.telegram.messenger.banana.BananaSecurity.maybeWarnFakeSupport(this, currentUser);
+        }
         if (showCloseChatDialogLater) {
             showDialog(closeChatDialog);
         }
@@ -38219,6 +38227,12 @@ public class ChatActivity extends BaseFragment implements
             FileLog.e(e);
         }
         if (!forceAlert && org.telegram.messenger.banana.BananaHooks.shouldConfirmLink(currentAccount, url)) {
+            forceAlert = true;
+        }
+        // Show a website's real address before it opens (scam protection).
+        if (!forceAlert && url != null && org.telegram.messenger.banana.BananaConfig.get(currentAccount,
+                org.telegram.messenger.banana.BananaConfig.Option.SECURITY_CONFIRM_EXTERNAL_LINKS)
+                && org.telegram.messenger.banana.LinkKinds.isWebsiteLink(url)) {
             forceAlert = true;
         }
         if (forceAlert || AndroidUtilities.shouldShowUrlInAlert(url)) {

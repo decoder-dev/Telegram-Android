@@ -316,6 +316,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                                     SharedConfig.passcodeHash = "";
                                     SharedConfig.appLocked = false;
                                     SharedConfig.saveConfig();
+                                    // Without the app passcode there is no lock screen to enter a duress code on.
+                                    org.telegram.messenger.banana.BananaDuress.clear();
                                     getMediaDataController().buildShortcuts();
                                     int count = listView.getChildCount();
                                     for (int a = 0; a < count; a++) {

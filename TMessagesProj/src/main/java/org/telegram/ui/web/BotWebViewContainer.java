@@ -2256,6 +2256,22 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
                     }
                     return;
                 }
+                if (org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.SECURITY_BLOCK_PHONE_SHARING)) {
+                    // A mini app asking for the number is the start of a login to this account.
+                    new AlertDialog.Builder(getContext(), resourcesProvider)
+                            .setTitle(LocaleController.getString(R.string.BananaSecurityBlocked))
+                            .setMessage(LocaleController.getString(R.string.BananaSecurityPhoneBlocked))
+                            .setPositiveButton(LocaleController.getString(R.string.OK), null)
+                            .show();
+                    try {
+                        JSONObject data = new JSONObject();
+                        data.put("status", "cancelled");
+                        notifyEvent(requestContext, "phone_requested", data);
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                    }
+                    return;
+                }
 
                 final int account = currentAccount;
                 final MyWebView finalWebView = webView;

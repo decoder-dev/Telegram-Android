@@ -41,6 +41,8 @@ public final class BananaExtrasCatalog {
                 new Group(R.string.BananaGroup_Filters, Option.REGEX_MESSAGE_FILTERS_ENABLED, Option.REGEX_MESSAGE_FILTERS_CASE_INSENSITIVE)
         });
         map.put("PRIVACY", new Group[] {
+                new Group(R.string.BananaGroup_ScamProtection, Option.SECURITY_BLOCK_QR_LOGIN, Option.SECURITY_GUARD_LOGIN_CODES, Option.SECURITY_BLOCK_PHONE_SHARING, Option.SECURITY_WARN_MINI_APPS, Option.SECURITY_CONFIRM_EXTERNAL_LINKS, Option.SECURITY_FLAG_FAKE_SUPPORT),
+                new Group(R.string.BananaGroup_IfPhoneTaken, Option.PANIC_SHAKE_LOCK),
                 new Group(R.string.BananaGroup_LockScreen, Option.INSTANT_PASSCODE_LOCK, Option.STREAMER_MODE, Option.ALLOW_SECRET_SCREENSHOTS, Option.ALLOW_PROTECTED_SCREENSHOTS, Option.EXPIRE_TTL_BUTTON),
                 new Group(R.string.BananaGroup_Notifications, Option.HIDE_MENTION_NOTIFICATIONS, Option.HIDE_PINNED_NOTIFICATIONS, Option.SILENCE_NON_CONTACTS),
                 new Group(R.string.BananaGroup_Confirmations, Option.CONFIRM_SHARE_LINKS, Option.CONFIRM_TELEGRAM_LINKS, Option.CONFIRM_CHAT_PREVIEW_ENTRY, Option.CONFIRM_REACTIONS_IN_UNJOINED_CHATS),

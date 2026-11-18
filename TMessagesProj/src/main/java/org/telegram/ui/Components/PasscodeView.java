@@ -1094,6 +1094,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
 
     protected void processDone(boolean fingerprint) {
         if (dismissing || getVisibility() != VISIBLE) return;
+        boolean bananaDuress = false;
         if (!fingerprint) {
             if (SharedConfig.passcodeRetryInMs > 0) {
                 return;
@@ -1108,7 +1109,11 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
                 onPasscodeError();
                 return;
             }
-            if (!SharedConfig.checkPasscode(password)) {
+            // The real passcode always wins; a duress code is tried only after it failed, on the app lock.
+            final boolean realPasscode = SharedConfig.checkPasscode(password);
+            if (!realPasscode && isAppLock() && org.telegram.messenger.banana.BananaDuress.matches(password)) {
+                bananaDuress = true;
+            } else if (!realPasscode) {
                 SharedConfig.increaseBadPasscodeTries();
                 if (SharedConfig.passcodeRetryInMs > 0) {
                     checkRetryTextView();
@@ -1140,6 +1145,12 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
             NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetPasscode);
         }
         setOnTouchListener(null);
+        if (bananaDuress) {
+            // Looks exactly like a normal unlock; the chosen action runs first.
+            org.telegram.messenger.banana.BananaDuress.perform();
+        } else if (isAppLock()) {
+            org.telegram.messenger.banana.BananaArchiveLock.allowReveal();
+        }
         if (delegate != null) {
             delegate.didAcceptedPassword(this);
         }

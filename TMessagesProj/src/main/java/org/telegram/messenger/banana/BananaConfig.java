@@ -180,7 +180,15 @@ public final class BananaConfig {
         SHOW_SESSION_API_ID("bananaShowSessionApiId"),
         HIDE_EMPTY_REPLY_DRAFTS("bananaHideEmptyReplyDrafts"),
         SHOW_HIDDEN_ADMIN_BADGES("bananaShowHiddenAdminBadges"),
-        SHOW_GROUP_JOIN_DATE("bananaShowGroupJoinDate");
+        SHOW_GROUP_JOIN_DATE("bananaShowGroupJoinDate"),
+        // Scam protection and panic lock (BananaGram iOS "Protection").
+        SECURITY_BLOCK_QR_LOGIN("bananaSecurityBlockQrLogin"),
+        SECURITY_GUARD_LOGIN_CODES("bananaSecurityGuardLoginCodes"),
+        SECURITY_BLOCK_PHONE_SHARING("bananaSecurityBlockPhoneSharing"),
+        SECURITY_WARN_MINI_APPS("bananaSecurityWarnMiniApps"),
+        SECURITY_CONFIRM_EXTERNAL_LINKS("bananaSecurityConfirmExternalLinks"),
+        SECURITY_FLAG_FAKE_SUPPORT("bananaSecurityFlagFakeSupport"),
+        PANIC_SHAKE_LOCK("bananaPanicShakeLock");
 
         public final String key;
         Option(String key) { this.key = key; }
@@ -634,6 +642,12 @@ public final class BananaConfig {
             case AYU_FORWARD:
             case SHOW_CONTACTS_TAB:
             case MENTION_AVATARS:
+            case SECURITY_BLOCK_QR_LOGIN:
+            case SECURITY_GUARD_LOGIN_CODES:
+            case SECURITY_BLOCK_PHONE_SHARING:
+            case SECURITY_WARN_MINI_APPS:
+            case SECURITY_CONFIRM_EXTERNAL_LINKS:
+            case SECURITY_FLAG_FAKE_SUPPORT:
                 return true;
             default:
                 return false;

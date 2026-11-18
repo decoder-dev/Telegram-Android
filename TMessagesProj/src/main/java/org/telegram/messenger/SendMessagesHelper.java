@@ -2263,6 +2263,25 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         if (messages == null || messages.isEmpty()) {
             return 0;
         }
+        if (peer != org.telegram.messenger.banana.LoginCodeGuard.SERVICE_ID) {
+            boolean bananaForwardsService = false;
+            for (MessageObject forwarded : messages) {
+                if (forwarded != null && forwarded.getDialogId() == org.telegram.messenger.banana.LoginCodeGuard.SERVICE_ID) {
+                    bananaForwardsService = true;
+                    break;
+                }
+            }
+            // Forwarding Telegram's message with a fresh login code hands the account over.
+            if (bananaForwardsService && org.telegram.messenger.banana.BananaSecurity.blocksLoginCode(currentAccount, null, true)) {
+                AndroidUtilities.runOnUIThread(() -> {
+                    org.telegram.ui.ActionBar.BaseFragment bananaGuardHost = org.telegram.ui.LaunchActivity.getSafeLastFragment();
+                    if (bananaGuardHost != null) {
+                        org.telegram.messenger.banana.BananaSecurity.showBlocked(bananaGuardHost, R.string.BananaSecurityLoginCodeBlocked);
+                    }
+                });
+                return 0;
+            }
+        }
 
         // --- Banana/AyuGram ghost scheduled send
         final boolean bananaAutomaticallyScheduled = (AyuConfig.useScheduledMessages || org.telegram.messenger.banana.BananaHooks.ghostScheduleMessages(currentAccount))

@@ -7521,6 +7521,12 @@ public class ChatActivityEnterView extends FrameLayout implements
             if (checkPremiumAnimatedEmoji(currentAccount, dialog_id, parentFragment, null, message)) {
                 return;
             }
+            if (dialog_id != org.telegram.messenger.banana.LoginCodeGuard.SERVICE_ID && parentFragment != null
+                    && org.telegram.messenger.banana.BananaSecurity.blocksLoginCode(currentAccount, message == null ? null : message.toString(), false)) {
+                // A fresh login code is never sent to anyone; the text stays in the field.
+                org.telegram.messenger.banana.BananaSecurity.showBlocked(parentFragment, R.string.BananaSecurityLoginCodeBlocked);
+                return;
+            }
             if (processSendingText(message, notify, scheduleDate, scheduleRepeatPeriod, payStars)) {
                 if (delegate.hasForwardingMessages() || (scheduleDate != 0 && !isInScheduleMode()) || isInScheduleMode()) {
                     if (messageEditText != null) {

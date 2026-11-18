@@ -1425,6 +1425,7 @@ public class BotWebViewAttachedSheet implements NotificationCenter.NotificationC
     }
     public void show(boolean lowBounce, boolean instant) {
         if (!AndroidUtilities.isSafeToShow(getContext())) return;
+        org.telegram.messenger.banana.BananaSecurity.maybeWarnMiniApp(getContext(), resourcesProvider, currentAccount, botId);
 
         windowView.setAlpha(0f);
         windowView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {

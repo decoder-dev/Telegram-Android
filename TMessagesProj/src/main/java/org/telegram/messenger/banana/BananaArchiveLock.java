@@ -202,8 +202,31 @@ public final class BananaArchiveLock {
     }
 
     /** Counts taps on the Settings tab or Settings row. Returns true when access is revealed. */
+    // Set by the duress passcode: the 10-tap reveal stays closed until the real passcode unlocks the app.
+    private static volatile boolean revealBlocked;
+
+    public static void blockReveal() {
+        revealBlocked = true;
+    }
+
+    public static void allowReveal() {
+        revealBlocked = false;
+    }
+
+    /** Closes every unlocked Archive and its open screens (Shake to Lock, duress passcode). */
+    public static void relockEverything() {
+        closeOpenSurfaces();
+        relockAll();
+        notifySecureChanged();
+    }
+
+    /** Whether a code is this slot's Archive password (the duress passcode must differ from it). */
+    public static boolean matchesPassword(int account, String password) {
+        return password != null && matches(account, password.trim());
+    }
+
     public static boolean noteSettingsTap(int account) {
-        if (!isConfigured(account) || isSessionOpen(account) || account < 0 || account >= ACCOUNTS) {
+        if (revealBlocked || !isConfigured(account) || isSessionOpen(account) || account < 0 || account >= ACCOUNTS) {
             return false;
         }
         if (revealed[account]) {
