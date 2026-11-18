@@ -17588,6 +17588,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                 }
             });
+            org.telegram.messenger.banana.MessageHistory.capturePushDeletes(getMessagesStorage().getDatabase(), currentAccount, dialogId, ids);
             getMessagesStorage().deletePushMessages(dialogId, ids);
             ArrayList<Long> dialogIds = getMessagesStorage().markMessagesAsDeleted(dialogId, ids, false, true, 0, 0);
             getMessagesStorage().updateDialogsWithDeletedMessages(dialogId, channelId, ids, dialogIds);

@@ -36,7 +36,7 @@ public final class BananaExtrasCatalog {
                 new Group(R.string.BananaGroup_Activity, Option.DONT_READ_MESSAGES, Option.HIDE_ONLINE, Option.OFFLINE_AFTER_ACTIVITY, Option.GHOST_READ_ON_INTERACT, Option.GHOST_DONT_SEND_TYPING, Option.HIDE_TYPING, Option.HIDE_RECORDING, Option.HIDE_UPLOAD),
                 new Group(R.string.BananaGroup_Stories, Option.DONT_READ_STORIES, Option.WARN_BEFORE_STORIES, Option.GHOST_SUGGEST_FOR_STORIES),
                 new Group(R.string.BananaGroup_Sending, Option.GHOST_SCHEDULE_MESSAGES, Option.GHOST_SEND_WITHOUT_SOUND),
-                new Group(R.string.BananaGroup_Archive, Option.SAVE_DELETED, Option.SAVE_MY_DELETED, Option.SAVE_EDITS, Option.SAVE_BOT_HISTORY, Option.SAVE_MEDIA_HISTORY, Option.PROACTIVE_SAVE_MEDIA, Option.QUOTE_REPLIES_TO_DELETED),
+                new Group(R.string.BananaGroup_Archive, Option.SAVE_DELETED, Option.SAVE_MY_DELETED, Option.SAVE_FROM_NOTIFICATIONS, Option.SAVE_EDITS, Option.SAVE_BOT_HISTORY, Option.SAVE_MEDIA_HISTORY, Option.PROACTIVE_SAVE_MEDIA, Option.QUOTE_REPLIES_TO_DELETED),
                 new Group(R.string.BananaGroup_Content, Option.AYU_FORWARD, Option.BYPASS_DOWNLOAD_RESTRICTIONS, Option.SHOW_SENSITIVE_CONTENT, Option.HIDE_ADS, Option.HIDE_BLOCKED_MESSAGES),
                 new Group(R.string.BananaGroup_Filters, Option.REGEX_MESSAGE_FILTERS_ENABLED, Option.REGEX_MESSAGE_FILTERS_CASE_INSENSITIVE)
         });

@@ -12033,6 +12033,7 @@
     <string name="BananaMessageMenuHide">Hide</string>
     <string name="BananaMessageMenuUp">Move up</string>
     <string name="BananaMessageMenuDown">Move down</string>
+    <string name="BananaOpt_SAVE_FROM_NOTIFICATIONS">Save messages from notifications</string>
     <string name="BananaOpt_ANTI_CAPS">Anti-Caps</string>
     <string name="BananaOpt_HIDE_EMPTY_REPLY_DRAFTS">Hide empty reply drafts</string>
     <string name="BananaOpt_SHOW_HIDDEN_ADMIN_BADGES">Show hidden admin badges</string>

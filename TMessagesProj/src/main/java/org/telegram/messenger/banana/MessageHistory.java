@@ -133,6 +133,49 @@ public final class MessageHistory {
         }
     }
 
+    /**
+     * Save Messages from Notifications (ported from BananaGram iOS): a message deleted before the app
+     * loaded it is known only from its push. Its stored copy (the notification's text) goes to the
+     * deleted-message history. Rows the chat already holds are captured by captureDeletes instead.
+     * Runs on the storage queue, before the push rows are removed.
+     */
+    public static void capturePushDeletes(SQLiteDatabase source, int account, long dialog, List<Integer> messageIds) {
+        if (!BananaConfig.get(account, Option.SAVE_DELETED) || !BananaConfig.get(account, Option.SAVE_FROM_NOTIFICATIONS)
+                || messageIds == null || source == null || DialogObject.isEncryptedDialog(dialog)) return;
+        for (int start = 0; start < messageIds.size(); start += 100) {
+            int end = Math.min(start + 100, messageIds.size());
+            StringBuilder placeholders = new StringBuilder();
+            ArrayList<Object> args = new ArrayList<>();
+            args.add(dialog);
+            for (int i = start; i < end; i++) {
+                Integer id = messageIds.get(i);
+                if (id == null || id <= 0) continue;
+                if (placeholders.length() > 0) placeholders.append(',');
+                placeholders.append('?');
+                args.add(id);
+            }
+            if (placeholders.length() == 0) continue;
+            args.add(dialog);
+            SQLiteCursor cursor = null;
+            try {
+                cursor = source.queryFinalized("SELECT data FROM unread_push_messages WHERE uid=? AND is_reaction=0 AND mid IN(" + placeholders
+                        + ") AND mid NOT IN (SELECT mid FROM messages_v2 WHERE uid=?)", args.toArray());
+                while (cursor.next()) {
+                    try {
+                        TLRPC.Message pushed = decode(cursor.byteArrayValue(0));
+                        if (pushed != null) capture(source, account, dialog, pushed, true);
+                    } catch (Exception error) {
+                        FileLog.e(error);
+                    }
+                }
+            } catch (Exception error) {
+                FileLog.e(error);
+            } finally {
+                if (cursor != null) cursor.dispose();
+            }
+        }
+    }
+
     private static TLRPC.Message decode(byte[] blob) {
         if (blob == null || blob.length > 1024 * 1024) return null;
         SerializedData data = new SerializedData(blob);
