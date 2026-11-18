@@ -36,7 +36,9 @@ public final class BananaGlowCache {
             canvas.drawRoundRect(left, top, right, bottom, radius, radius, glow);
             return;
         }
-        String key = width + "x" + height + "r" + Math.round(radius) + "c" + glow.getColor() + "s" + glow.getStrokeWidth();
+        // The padding (and the dp-based shadow radius) follow the display density, which can change
+        // while the process lives (display size setting): it belongs in the key.
+        String key = width + "x" + height + "r" + Math.round(radius) + "c" + glow.getColor() + "s" + glow.getStrokeWidth() + "p" + pad;
         Bitmap bitmap = CACHE.get(key);
         if (bitmap == null) {
             try {

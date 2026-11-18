@@ -410,8 +410,11 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
         if (glare == BananaConfig.GlassGlare.OUTLINE) {
             if (outlineRimSource != drawnRim) {
                 outlineRimSource = drawnRim;
+                // Rims built from an outline keep their visible colour in ringColor: without it the
+                // outline fell through to a transparent topColor and the edge disappeared.
                 int color = Color.alpha(drawnRim.bottomColor) != 0 ? drawnRim.bottomColor
-                    : Color.alpha(drawnRim.strokeColor) != 0 ? drawnRim.strokeColor : drawnRim.topColor;
+                    : Color.alpha(drawnRim.strokeColor) != 0 ? drawnRim.strokeColor
+                    : Color.alpha(drawnRim.ringColor) != 0 ? drawnRim.ringColor : drawnRim.topColor;
                 // Cherrygram's even 1 dp inner stroke, drawn with the newer shape/arrow renderer.
                 outlineRim = new GlassRim(drawnRim.lightAngle, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     dpf2(1), color);
