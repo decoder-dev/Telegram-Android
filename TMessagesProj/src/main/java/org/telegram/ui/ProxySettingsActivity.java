@@ -235,6 +235,10 @@ public class ProxySettingsActivity extends BaseFragment {
                     SharedPreferences.Editor editor = preferences.edit();
                     boolean enabled;
                     if (addingNewProxy) {
+                        // A proxy added by hand is selected and connected, as a proxy link is: Auto
+                        // MTProxy (perhaps enabled from its offer while this screen was open) would
+                        // otherwise replace it on its next pass.
+                        org.telegram.messenger.banana.BananaAutomaticProxy.handOverToManual();
                         SharedConfig.addProxy(currentProxyInfo);
                         SharedConfig.currentProxy = currentProxyInfo;
                         editor.putBoolean("proxy_enabled", true);
