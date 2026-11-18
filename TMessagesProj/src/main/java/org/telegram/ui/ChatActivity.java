@@ -32380,6 +32380,9 @@ public class ChatActivity extends BaseFragment implements
 
             if ((!AyuConfig.sendReadPackets || org.telegram.messenger.banana.BananaHooks.dontReadMessages(currentAccount))
                     && !isAyuDeleted
+                    // Secret messages carry peer_id = self and a local negative id: the request
+                    // went to Saved Messages and the secret chat stayed unread.
+                    && currentEncryptedChat == null
                     && message != null
                     && message.messageOwner.from_id != null
                     && message.messageOwner.from_id.user_id != getAccountInstance().getUserConfig().getClientUserId()
