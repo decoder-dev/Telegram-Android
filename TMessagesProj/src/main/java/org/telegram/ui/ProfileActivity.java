@@ -689,6 +689,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int bananaProfileIdRow;
     private int bananaMutualRow;
     private int bananaCreatedRow;
+    private int bananaRegisteredRow;
     private int notificationsDividerRow;
     private int notificationsRow;
     private int bizHoursRow;
@@ -7591,9 +7592,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             return true;
         } else if (position == noteRow) {
 
-        } else if (position == bananaDcRow || position == bananaProfileIdRow || position == bananaCreatedRow) {
+        } else if (position == bananaDcRow || position == bananaProfileIdRow || position == bananaCreatedRow || position == bananaRegisteredRow) {
             String copy;
-            if (position == bananaDcRow) {
+            if (position == bananaRegisteredRow) {
+                copy = bananaRegistrationText();
+            } else if (position == bananaDcRow) {
                 TLRPC.User u = userId != 0 ? getMessagesController().getUser(userId) : null;
                 TLRPC.Chat c = chatId != 0 ? getMessagesController().getChat(chatId) : currentChat;
                 int dc = org.telegram.messenger.banana.BananaHooks.resolveDcId(currentAccount, u, c);
@@ -10871,6 +10874,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return chatId != 0;
     }
 
+    /** Estimated registration date of this profile's user from the ID (Extras), or null. */
+    private String bananaRegistrationText() {
+        TLRPC.User u = userId != 0 ? getMessagesController().getUser(userId) : null;
+        if (u == null) return null;
+        org.telegram.messenger.banana.RegistrationDateEstimate.Result estimate =
+                org.telegram.messenger.banana.RegistrationDateEstimate.estimate(u.id);
+        return estimate == null ? null
+                : org.telegram.messenger.banana.RegistrationDateEstimate.text(estimate, LocaleController.getInstance().getCurrentLocale());
+    }
+
     private void updateRowsIds() {
         updateNotifications(false);
 
@@ -10956,6 +10969,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         bananaProfileIdRow = -1;
         bananaMutualRow = -1;
         bananaCreatedRow = -1;
+        bananaRegisteredRow = -1;
         settingsTimerRow = -1;
         settingsKeyRow = -1;
         notificationsDividerRow = -1;
@@ -11168,6 +11182,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (org.telegram.messenger.banana.BananaHooks.showMutualContact(currentAccount)
                         && user != null && user.mutual_contact) {
                     bananaMutualRow = rowCount++;
+                }
+                if (user != null && org.telegram.messenger.banana.BananaConfig.get(currentAccount,
+                        org.telegram.messenger.banana.BananaConfig.Option.ESTIMATE_REGISTRATION_DATE)
+                        && org.telegram.messenger.banana.RegistrationDateEstimate.estimate(user.id) != null) {
+                    bananaRegisteredRow = rowCount++;
                 }
                 if (userInfo != null) {
                     if (userInfo.birthday != null) {
@@ -13909,6 +13928,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         detailCell.setTextAndValue(TextUtils.isEmpty(idText) ? "—" : idText, LocaleController.getString(R.string.BananaProfileId), position != infoEndRow);
                     } else if (position == bananaMutualRow) {
                         detailCell.setTextAndValue(LocaleController.getString(R.string.BananaMutualYes), LocaleController.getString(R.string.BananaProfileMutual), position != infoEndRow);
+                    } else if (position == bananaRegisteredRow) {
+                        String registered = bananaRegistrationText();
+                        detailCell.setTextAndValue(registered != null ? registered : "—", LocaleController.getString(R.string.BananaProfileRegistered), position != infoEndRow);
                     } else if (position == bananaCreatedRow) {
                         TLRPC.Chat c = chatId != 0 ? getMessagesController().getChat(chatId) : currentChat;
                         String created = c != null && c.date > 0
@@ -14662,7 +14684,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
                     position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader) {
                 return VIEW_TYPE_HEADER;
-            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == bananaDcRow || position == bananaProfileIdRow || position == bananaMutualRow || position == bananaCreatedRow) {
+            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == bananaDcRow || position == bananaProfileIdRow || position == bananaMutualRow || position == bananaCreatedRow || position == bananaRegisteredRow) {
                 return VIEW_TYPE_TEXT_DETAIL;
             } else if (position == usernameRow || position == setUsernameRow) {
                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE;
@@ -15998,6 +16020,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, bananaProfileIdRow, sparseIntArray);
             put(++pointer, bananaMutualRow, sparseIntArray);
             put(++pointer, bananaCreatedRow, sparseIntArray);
+            put(++pointer, bananaRegisteredRow, sparseIntArray);
             put(++pointer, notificationsDividerRow, sparseIntArray);
             put(++pointer, reportDividerRow, sparseIntArray);
             put(++pointer, notificationsRow, sparseIntArray);
