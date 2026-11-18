@@ -53,12 +53,19 @@ public final class AutomaticProxyOffer {
             }
             return;
         }
-        if (BananaAutomaticProxy.isEnabled() || !LaunchActivity.isActive || ApplicationLoader.mainInterfacePaused) {
+        if (BananaAutomaticProxy.isEnabled()) {
+            // Drops seen while Auto runs (or before the quiet window ends) are not evidence for a
+            // later offer: kept, they made it appear a day later on a healthy connection.
+            trouble.reset();
+            return;
+        }
+        if (!LaunchActivity.isActive || ApplicationLoader.mainInterfacePaused) {
             return;
         }
         long now = System.currentTimeMillis();
         long offeredAt = MessagesController.getGlobalMainSettings().getLong(OFFERED_AT, 0);
         if (offeredAt > 0 && offeredAt <= now && now - offeredAt < QUIET_MS) {
+            trouble.reset();
             return;
         }
         trouble.reset();

@@ -519,6 +519,11 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                     textCheckCell.setChecked(true);
                 }
                 ConnectionsManager.setProxySettings(useProxySettings, SharedConfig.currentProxy.settings);
+                // A proxy picked by hand cancels a pending rotation, as the Use-proxy switch does;
+                // otherwise a running timeout or probe batch switched away from the user's choice.
+                NotificationCenter.getGlobalInstance().removeObserver(ProxyListActivity.this, NotificationCenter.proxySettingsChanged);
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
+                NotificationCenter.getGlobalInstance().addWeakObserver(ProxyListActivity.this, NotificationCenter.proxySettingsChanged);
             } else if (position == proxyAddRow) {
                 presentFragment(new ProxySettingsActivity());
             } else if (position == deleteAllRow) {
