@@ -70,11 +70,15 @@ public final class BananaMediaConverter {
         private volatile Result result;
         private volatile String failureCode = "none";
         private volatile int encoderExitCode = Integer.MIN_VALUE;
+        // Set when this job started the Telegram download of its source, so cancelling stops it.
+        private volatile Runnable stopDownload;
         /** Bounded diagnostics contain no paths, decoder text or user media metadata. */
         public String diagnosticCode() { return failureCode + "/encoder=" + encoderExitCode; }
         public void cancel() {
             cancelled.set(true); Process running = process;
             if (running != null) running.destroyForcibly();
+            Runnable download = stopDownload; stopDownload = null;
+            if (download != null) download.run();
             Result prepared = result; if (prepared != null) prepared.discard();
         }
     }
@@ -83,8 +87,18 @@ public final class BananaMediaConverter {
         int account = source.currentAccount;
         AccountScope scope = AccountScope.capture(account);
         File file = locate(source);
-        if (!file.isFile()) FileLoader.getInstance(account).loadFile(source.getDocument(), source, FileLoader.PRIORITY_HIGH, 0);
-        return submit(file, kind, start, end, true, () -> !scope.isCurrent(), done);
+        TLRPC.Document document = source.getDocument();
+        // A download the user already started is theirs; only one started here is cancelled with the job.
+        boolean ownDownload = !file.isFile() && document != null
+                && !FileLoader.getInstance(account).isLoadingFile(FileLoader.getAttachFileName(document));
+        if (!file.isFile()) FileLoader.getInstance(account).loadFile(document, source, FileLoader.PRIORITY_HIGH, 0);
+        Job job = submit(file, kind, start, end, true, () -> !scope.isCurrent(), done);
+        if (ownDownload) {
+            job.stopDownload = () -> { if (!file.isFile()) FileLoader.getInstance(account).cancelLoadFile(document); };
+            // Cancelled before the hook was set (the queue may already have run).
+            if (job.cancelled.get()) { Runnable stop = job.stopDownload; job.stopDownload = null; if (stop != null) stop.run(); }
+        }
+        return job;
     }
     public static Job convertFile(File file, Kind kind, double start, double end, Consumer<Result> done) {
         return submit(file, kind, start, end, false, () -> false, done);
