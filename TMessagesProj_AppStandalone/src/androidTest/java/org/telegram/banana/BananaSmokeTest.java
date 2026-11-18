@@ -379,6 +379,8 @@ public class BananaSmokeTest {
                         checkScopedNinjaSwitches(instrumentation, ninja[0]);
                     }
                     assertEveryRowFits(instrumentation, ninja[0]);
+                    capture(instrumentation, language + "-" + theme + "-section-0-bottom");
+                    captureTop(instrumentation, ninja[0], language + "-" + theme + "-section-0-top");
                     tapRow(instrumentation, ninja[0], 9001);
                     BananaHistoryActivity[] history = new BananaHistoryActivity[1];
                     await(instrumentation, () -> {
@@ -413,12 +415,29 @@ public class BananaSmokeTest {
                         if (selectedSection == 5 && "Classic White".equals(theme)) {
                             checkBookmarks(instrumentation, sectionScreen[0], language);
                         }
-                        capture(instrumentation, language + "-" + theme + "-section-" + selectedSection);
+                        String sectionName = language + "-" + theme + "-section-" + selectedSection;
+                        capture(instrumentation, sectionName + "-bottom");
+                        captureTop(instrumentation, sectionScreen[0], sectionName + "-top");
+                        if (selectedSection == 1) {
+                            tapRow(instrumentation, sectionScreen[0], 9300);
+                            AlertDialog duress = waitDialog(instrumentation, sectionScreen[0], null);
+                            capture(instrumentation, language + "-" + theme + "-duress-passcode-state");
+                            tapDialogButton(instrumentation, duress, AlertDialog.BUTTON_NEGATIVE);
+                        } else if (selectedSection == 5) {
+                            tapRow(instrumentation, sectionScreen[0], 9201);
+                            AlertDialog menu = waitDialog(instrumentation, sectionScreen[0], null);
+                            capture(instrumentation, language + "-" + theme + "-message-menu-editor");
+                            tapDialogButton(instrumentation, menu, AlertDialog.BUTTON_POSITIVE);
+                        }
                         instrumentation.runOnMainSync(() -> sectionScreen[0].finishFragment(false));
                         await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == screen[0] &&
                                 !activity.getActionBarLayout().isTransitionAnimationInProgress(),
                                 "Extras category must return to the hub");
                     }
+                    instrumentation.runOnMainSync(() -> {
+                        BananaConfig.set(0, Option.EQUALIZER_ENABLED, true);
+                        BananaConfig.set(0, Option.VOICE_CHANGER_ENABLED, true);
+                    });
                     tapRow(instrumentation, screen[0], 1003);
                     BananaExtrasValuesActivity[] valuesScreen = new BananaExtrasValuesActivity[1];
                     await(instrumentation, () -> {
@@ -428,7 +447,27 @@ public class BananaSmokeTest {
                         return valuesScreen[0].listView != null && valuesScreen[0].listView.isLaidOut();
                     }, "Extras Values must open from the hub");
                     assertEveryRowFits(instrumentation, valuesScreen[0]);
-                    capture(instrumentation, language + "-" + theme + "-values");
+                    String valuesName = language + "-" + theme + "-values";
+                    capture(instrumentation, valuesName + "-bottom");
+                    captureTop(instrumentation, valuesScreen[0], valuesName + "-top");
+                    tapRow(instrumentation, valuesScreen[0], 19);
+                    waitDialog(instrumentation, valuesScreen[0], null);
+                    capture(instrumentation, language + "-" + theme + "-glass-highlights-dialog");
+                    instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK);
+                    await(instrumentation, () -> valuesScreen[0].getVisibleDialog() == null,
+                            "Glass highlights chooser must dismiss without changing the selected mode");
+                    tapRow(instrumentation, valuesScreen[0], 30);
+                    waitDialog(instrumentation, valuesScreen[0], null);
+                    capture(instrumentation, language + "-" + theme + "-equalizer-band-dialog");
+                    instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK);
+                    await(instrumentation, () -> valuesScreen[0].getVisibleDialog() == null,
+                            "Equalizer band chooser must dismiss without changing the value");
+                    tapRow(instrumentation, valuesScreen[0], 40);
+                    waitDialog(instrumentation, valuesScreen[0], null);
+                    capture(instrumentation, language + "-" + theme + "-voice-preset-dialog");
+                    instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK);
+                    await(instrumentation, () -> valuesScreen[0].getVisibleDialog() == null,
+                            "Voice preset chooser must dismiss without changing the preset");
                     instrumentation.runOnMainSync(() -> valuesScreen[0].finishFragment(false));
                     await(instrumentation, () -> activity.getActionBarLayout().getLastFragment() == screen[0] &&
                             !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Values must return to the Extras hub");
@@ -1135,6 +1174,15 @@ public class BananaSmokeTest {
         // Capture a rendered frame after native list/text changes, not the previous buffer.
         SystemClock.sleep(150);
         writeScreenshot(instrumentation, name);
+    }
+
+    private static void captureTop(Instrumentation instrumentation, UniversalFragment screen, String name) throws Exception {
+        instrumentation.runOnMainSync(() -> screen.listView.scrollToPosition(0));
+        await(instrumentation, () -> !screen.listView.isComputingLayout()
+                        && screen.listView.findViewByPosition(0) != null
+                        && screen.listView.getScrollState() == androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE,
+                "The top of " + name + " must be visible before taking its screenshot");
+        capture(instrumentation, name);
     }
 
     private static void writeScreenshot(Instrumentation instrumentation, String name) throws Exception {
