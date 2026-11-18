@@ -633,6 +633,7 @@
     <string name="BananaMessageMenuUp">Выше</string>
     <string name="BananaMessageMenuDown">Ниже</string>
     <string name="BananaOpt_SAVE_FROM_NOTIFICATIONS">Сохранять из уведомлений</string>
+    <string name="BananaOpt_PIN_BEYOND_LIMIT">Закреплять сверх лимита</string>
     <string name="BananaOpt_ANTI_CAPS">Антикапс</string>
     <string name="BananaOpt_HIDE_EMPTY_REPLY_DRAFTS">Скрывать черновик пустого ответа</string>
     <string name="BananaOpt_SHOW_HIDDEN_ADMIN_BADGES">Показывать скрытых админов</string>

@@ -8776,7 +8776,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     maxPinnedCount = getMessagesController().maxPinnedDialogsCountDefault;
                 }
             }
-            hasPinAction[0] = !(newPinnedSecretCount + pinnedSecretCount > maxPinnedCount || newPinnedCount + pinnedCount - alreadyAdded > maxPinnedCount);
+            // Pin Beyond the Limit: in All Chats an extra pin stays on this device.
+            hasPinAction[0] = org.telegram.messenger.banana.BananaLocalPins.enabled(currentAccount) && folderId == 0 && filter == null && !containsFilter && newPinnedSecretCount == 0
+                    || !(newPinnedSecretCount + pinnedSecretCount > maxPinnedCount || newPinnedCount + pinnedCount - alreadyAdded > maxPinnedCount);
         }
 
         if (hasPinAction[0]) {
@@ -9308,7 +9310,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             } else {
                 maxPinnedCount = getUserConfig().isPremium() ? getMessagesController().dialogFiltersPinnedLimitPremium : getMessagesController().dialogFiltersPinnedLimitDefault;
             }
-            if (newPinnedSecretCount + pinnedSecretCount > maxPinnedCount || newPinnedCount + pinnedCount - alreadyAdded > maxPinnedCount) {
+            if (!(org.telegram.messenger.banana.BananaLocalPins.enabled(currentAccount) && folderId == 0 && filter == null && !containsFilter && newPinnedSecretCount == 0)
+                    && (newPinnedSecretCount + pinnedSecretCount > maxPinnedCount || newPinnedCount + pinnedCount - alreadyAdded > maxPinnedCount)) {
                 if (folderId != 0 || filter != null) {
                     AlertsCreator.showSimpleAlert(DialogsActivity.this, LocaleController.formatString("PinFolderLimitReached", R.string.PinFolderLimitReached, LocaleController.formatPluralString("Chats", maxPinnedCount)));
                 } else {
@@ -9747,6 +9750,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             updated = true;
         } else {
             updated = getMessagesController().pinDialog(selectedDialog, pin, null, -1);
+            org.telegram.messenger.banana.BananaLocalPins.afterPinChange(currentAccount, selectedDialog, pin, folderId == 0);
         }
 
 

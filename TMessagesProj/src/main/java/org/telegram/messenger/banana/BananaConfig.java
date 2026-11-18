@@ -205,7 +205,8 @@ public final class BananaConfig {
         TRANSLATE_BEFORE_SENDING("bananaTranslateBeforeSending"),
         SAVE_MY_DELETED("bananaSaveMyDeleted"),
         ENHANCED_POWER_SAVING("bananaEnhancedPowerSaving"),
-        SAVE_FROM_NOTIFICATIONS("bananaSaveFromNotifications");
+        SAVE_FROM_NOTIFICATIONS("bananaSaveFromNotifications"),
+        PIN_BEYOND_LIMIT("bananaPinBeyondLimit");
 
         public final String key;
         Option(String key) { this.key = key; }

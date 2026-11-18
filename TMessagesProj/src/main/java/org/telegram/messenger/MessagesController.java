@@ -17200,7 +17200,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
                 dids.add(dialog.id);
                 pinned.add(dialog.pinnedNum);
-                if (!DialogObject.isEncryptedDialog(dialog.id)) {
+                if (!DialogObject.isEncryptedDialog(dialog.id) && !org.telegram.messenger.banana.BananaLocalPins.contains(currentAccount, dialog.id)) {
                     TLRPC.InputPeer inputPeer = getInputPeer(dialog.id);
                     TLRPC.Chat chat = getMessagesController().getChat(-dialog.id);
                     if (ChatObject.isCommunity(chat)) {
@@ -17432,6 +17432,22 @@ public class MessagesController extends BaseController implements NotificationCe
                         TLRPC.Dialog dialog = dialogs.get(a);
                         if (dialog instanceof TLRPC.TL_dialogFolder) {
                             continue;
+                        }
+                        if (!DialogObject.isEncryptedDialog(dialog.id) && dialog.pinned
+                                && org.telegram.messenger.banana.BananaLocalPins.contains(currentAccount, dialog.id)) {
+                            boolean serverPinned = false;
+                            for (int s = 0; s < res.dialogs.size(); s++) {
+                                if (res.dialogs.get(s).id == dialog.id) {
+                                    serverPinned = true;
+                                    break;
+                                }
+                            }
+                            if (serverPinned) {
+                                org.telegram.messenger.banana.BananaLocalPins.remove(currentAccount, dialog.id);
+                            } else {
+                                newPinnedDialogs.add(dialog);
+                                continue;
+                            }
                         }
                         if (DialogObject.isEncryptedDialog(dialog.id)) {
                             if (pinnedNum < newPinnedDialogs.size()) {
