@@ -690,6 +690,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int bananaMutualRow;
     private int bananaCreatedRow;
     private int bananaRegisteredRow;
+    private int bananaJoinedRow;
     private int notificationsDividerRow;
     private int notificationsRow;
     private int bizHoursRow;
@@ -7592,9 +7593,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             return true;
         } else if (position == noteRow) {
 
-        } else if (position == bananaDcRow || position == bananaProfileIdRow || position == bananaCreatedRow || position == bananaRegisteredRow) {
+        } else if (position == bananaDcRow || position == bananaProfileIdRow || position == bananaCreatedRow || position == bananaRegisteredRow || position == bananaJoinedRow) {
             String copy;
-            if (position == bananaRegisteredRow) {
+            if (position == bananaJoinedRow) {
+                int joined = bananaJoinDate();
+                copy = joined > 0 ? LocaleController.getInstance().getFormatterYearMax().format(((long) joined) * 1000L) : null;
+            } else if (position == bananaRegisteredRow) {
                 copy = bananaRegistrationText();
             } else if (position == bananaDcRow) {
                 TLRPC.User u = userId != 0 ? getMessagesController().getUser(userId) : null;
@@ -10874,6 +10878,25 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return chatId != 0;
     }
 
+    /**
+     * When this account joined the group (Extras), from data already on the device: a channel's date
+     * is the join date while the account is a member; a basic group lists the account's invite date.
+     */
+    private int bananaJoinDate() {
+        TLRPC.Chat c = chatId != 0 ? getMessagesController().getChat(chatId) : currentChat;
+        if (c == null || c.left || c.kicked) return 0;
+        if (ChatObject.isChannel(c)) return c.monoforum ? 0 : c.date;
+        if (chatInfo != null && chatInfo.participants != null && chatInfo.participants.participants != null) {
+            long self = getUserConfig().getClientUserId();
+            for (TLRPC.ChatParticipant participant : chatInfo.participants.participants) {
+                if (participant != null && participant.user_id == self) {
+                    return participant instanceof TLRPC.TL_chatParticipantCreator ? c.date : participant.date;
+                }
+            }
+        }
+        return 0;
+    }
+
     /** Estimated registration date of this profile's user from the ID (Extras), or null. */
     private String bananaRegistrationText() {
         TLRPC.User u = userId != 0 ? getMessagesController().getUser(userId) : null;
@@ -10970,6 +10993,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         bananaMutualRow = -1;
         bananaCreatedRow = -1;
         bananaRegisteredRow = -1;
+        bananaJoinedRow = -1;
         settingsTimerRow = -1;
         settingsKeyRow = -1;
         notificationsDividerRow = -1;
@@ -11364,6 +11388,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     emptyRow = rowCount++;
                 }
                 bananaCreatedRow = rowCount++;
+            }
+            if (org.telegram.messenger.banana.BananaConfig.get(currentAccount,
+                    org.telegram.messenger.banana.BananaConfig.Option.SHOW_GROUP_JOIN_DATE) && bananaJoinDate() > 0) {
+                if (emptyRow < 0 && emptyRow2 < 0) {
+                    emptyRow = rowCount++;
+                }
+                bananaJoinedRow = rowCount++;
             }
             if (emptyRow < 0 && emptyRow2 < 0) {
                 if (hasMusic || hasBalance || peerColor != null || actionsView == null) {
@@ -13928,6 +13959,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         detailCell.setTextAndValue(TextUtils.isEmpty(idText) ? "—" : idText, LocaleController.getString(R.string.BananaProfileId), position != infoEndRow);
                     } else if (position == bananaMutualRow) {
                         detailCell.setTextAndValue(LocaleController.getString(R.string.BananaMutualYes), LocaleController.getString(R.string.BananaProfileMutual), position != infoEndRow);
+                    } else if (position == bananaJoinedRow) {
+                        int joined = bananaJoinDate();
+                        String joinedText = joined > 0 ? LocaleController.getInstance().getFormatterYearMax().format(((long) joined) * 1000L) : "—";
+                        detailCell.setTextAndValue(joinedText, LocaleController.getString(R.string.BananaProfileJoined), position != infoEndRow);
                     } else if (position == bananaRegisteredRow) {
                         String registered = bananaRegistrationText();
                         detailCell.setTextAndValue(registered != null ? registered : "—", LocaleController.getString(R.string.BananaProfileRegistered), position != infoEndRow);
@@ -14684,7 +14719,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
                     position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader) {
                 return VIEW_TYPE_HEADER;
-            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == bananaDcRow || position == bananaProfileIdRow || position == bananaMutualRow || position == bananaCreatedRow || position == bananaRegisteredRow) {
+            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == bananaDcRow || position == bananaProfileIdRow || position == bananaMutualRow || position == bananaCreatedRow || position == bananaRegisteredRow || position == bananaJoinedRow) {
                 return VIEW_TYPE_TEXT_DETAIL;
             } else if (position == usernameRow || position == setUsernameRow) {
                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE;
@@ -16021,6 +16056,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, bananaMutualRow, sparseIntArray);
             put(++pointer, bananaCreatedRow, sparseIntArray);
             put(++pointer, bananaRegisteredRow, sparseIntArray);
+            put(++pointer, bananaJoinedRow, sparseIntArray);
             put(++pointer, notificationsDividerRow, sparseIntArray);
             put(++pointer, reportDividerRow, sparseIntArray);
             put(++pointer, notificationsRow, sparseIntArray);

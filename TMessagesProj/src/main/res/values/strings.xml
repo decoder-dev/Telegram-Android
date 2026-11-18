@@ -11911,6 +11911,8 @@
     <string name="BananaVal_TextReplacementRulesInfo">One rule per line: word = replacement. Whole words, any case; links, mentions, commands and code are left alone. Bots get exactly what you typed.</string>
     <string name="BananaVal_RulesCount">Rules: %1$d</string>
     <string name="BananaProfileRegistered">Registered</string>
+    <string name="BananaProfileJoined">You joined</string>
+    <string name="BananaOpt_SHOW_GROUP_JOIN_DATE">Group join date</string>
     <string name="BananaOpt_SEND_TELEGRAM_STATISTICS">Send Telegram statistics</string>
     <string name="BananaOpt_BANANA_ISLAND_ENABLED">Show BananaGram island</string>
     <string name="BananaOpt_BANANA_ISLAND_SHOWS_NAME">Chat name in the island</string>

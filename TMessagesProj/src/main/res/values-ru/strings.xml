@@ -510,6 +510,8 @@
     <string name="BananaVal_TextReplacementRulesInfo">По одному правилу в строке: слово = замена. Целые слова, без учёта регистра; ссылки, упоминания, команды и код не меняются. Боты получают текст как есть.</string>
     <string name="BananaVal_RulesCount">Правил: %1$d</string>
     <string name="BananaProfileRegistered">Регистрация</string>
+    <string name="BananaProfileJoined">Вы вступили</string>
+    <string name="BananaOpt_SHOW_GROUP_JOIN_DATE">Дата вступления в группу</string>
     <string name="BananaOpt_SEND_TELEGRAM_STATISTICS">Отправлять статистику Telegram</string>
     <string name="BananaOpt_BANANA_ISLAND_ENABLED">Показывать островок BananaGram</string>
     <string name="BananaOpt_BANANA_ISLAND_SHOWS_NAME">Название чата в островке</string>

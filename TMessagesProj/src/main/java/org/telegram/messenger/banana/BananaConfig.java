@@ -179,7 +179,8 @@ public final class BananaConfig {
         ESTIMATE_REGISTRATION_DATE("bananaEstimateRegistrationDate"),
         SHOW_SESSION_API_ID("bananaShowSessionApiId"),
         HIDE_EMPTY_REPLY_DRAFTS("bananaHideEmptyReplyDrafts"),
-        SHOW_HIDDEN_ADMIN_BADGES("bananaShowHiddenAdminBadges");
+        SHOW_HIDDEN_ADMIN_BADGES("bananaShowHiddenAdminBadges"),
+        SHOW_GROUP_JOIN_DATE("bananaShowGroupJoinDate");
 
         public final String key;
         Option(String key) { this.key = key; }

@@ -72,7 +72,7 @@ public final class BananaExtrasCatalog {
                 new Group(R.string.BananaGroup_Stories, Option.DISABLE_STORY_CAMERA_SWIPE, Option.DISABLE_STORY_CREATION)
         });
         map.put("PROFILE", new Group[] {
-                new Group(R.string.BananaGroup_ProfileInfo, Option.SHOW_DC, Option.SHOW_PROFILE_ID, Option.PROFILE_ID_BOT_API_FORMAT, Option.SHOW_CHAT_CREATION_DATE, Option.ESTIMATE_REGISTRATION_DATE, Option.SHOW_MUTUAL_CONTACT, Option.SHOW_DISAPPEARED_GIFTS),
+                new Group(R.string.BananaGroup_ProfileInfo, Option.SHOW_DC, Option.SHOW_PROFILE_ID, Option.PROFILE_ID_BOT_API_FORMAT, Option.SHOW_CHAT_CREATION_DATE, Option.SHOW_GROUP_JOIN_DATE, Option.ESTIMATE_REGISTRATION_DATE, Option.SHOW_MUTUAL_CONTACT, Option.SHOW_DISAPPEARED_GIFTS),
                 new Group(R.string.BananaGroup_Status, Option.EXACT_LAST_SEEN, Option.RELATIVE_LAST_SEEN, Option.SHOWS_OFFLINE_DOT, Option.HIDE_PREMIUM_STATUSES, Option.HIDE_VERIFICATION),
                 new Group(R.string.BananaGroup_Local, Option.VISUAL_PHONE_ENABLED, Option.LOCAL_PREMIUM)
         });
