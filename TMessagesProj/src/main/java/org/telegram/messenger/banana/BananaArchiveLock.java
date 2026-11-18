@@ -657,7 +657,20 @@ public final class BananaArchiveLock {
 
             @Override
             public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
-                finish(true);
+                // Unlock only when the keystore key, usable just after a real biometric match,
+                // actually works: a hooked callback without one falls back to the password.
+                boolean verified = false;
+                try {
+                    BiometricPrompt.CryptoObject crypto = result.getCryptoObject();
+                    Cipher authorized = crypto == null ? null : crypto.getCipher();
+                    if (authorized != null) {
+                        authorized.doFinal(new byte[16]);
+                        verified = true;
+                    }
+                } catch (Throwable t) {
+                    FileLog.e(t);
+                }
+                finish(verified);
             }
 
             @Override
