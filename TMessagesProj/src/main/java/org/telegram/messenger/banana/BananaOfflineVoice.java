@@ -166,17 +166,29 @@ public class BananaOfflineVoice {
     }
 
     /** Downloads and unpacks the model of a language; the listener is called on the UI thread. */
+    // Everyone waiting for the running download; guarded by the class lock.
+    private static final java.util.ArrayList<DownloadListener> waiting = new java.util.ArrayList<>();
+
     public static synchronized void download(String lang, DownloadListener listener) {
         if (downloadingLang != null) {
-            AndroidUtilities.runOnUIThread(() -> listener.onDone(false));
+            if (downloadingLang.equals(lang) && !downloadCancelled) {
+                // A second transcription tap while the model downloads waits for it instead of
+                // reporting a failure for a download that is still going.
+                waiting.add(listener);
+            } else {
+                AndroidUtilities.runOnUIThread(() -> listener.onDone(false));
+            }
             return;
         }
+        waiting.clear();
+        waiting.add(listener);
         if (!LANG_RU.equals(lang) && !LANG_EN.equals(lang)) throw new IllegalArgumentException("Unsupported model");
         downloadingLang = lang;
         downloadCancelled = false;
         downloadDone = downloadTotal = 0;
         new Thread(() -> {
             boolean ok = false;
+            final java.util.ArrayList<DownloadListener> finished = new java.util.ArrayList<>();
             HttpURLConnection connection = null;
             final long deadline = android.os.SystemClock.elapsedRealtime() + 5 * 60 * 1000;
             final File zip = new File(ApplicationLoader.applicationContext.getCacheDir(), "vosk-" + lang + ".zip");
@@ -260,10 +272,16 @@ public class BananaOfflineVoice {
                 if (connection != null) connection.disconnect();
                 zip.delete();
                 deleteDir(tmp);
-                downloadingLang = null;
+                synchronized (BananaOfflineVoice.class) {
+                    downloadingLang = null;
+                    finished.addAll(waiting);
+                    waiting.clear();
+                }
             }
             final boolean result = ok;
-            AndroidUtilities.runOnUIThread(() -> listener.onDone(result));
+            AndroidUtilities.runOnUIThread(() -> {
+                for (DownloadListener done : finished) done.onDone(result);
+            });
         }, "bananaOfflineVoiceDownload").start();
     }
 
