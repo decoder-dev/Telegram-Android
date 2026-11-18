@@ -32,7 +32,7 @@ public final class BananaVideoDownloadService extends Service {
 
         Download(AccountScope scope) {
             this.scope = scope;
-            directory = new File(AndroidUtilities.getCacheDir(), "banana-video-" + id);
+            directory = new File(AndroidUtilities.getCacheDir(), VideoDownloadPolicy.JOB_PREFIX + id);
         }
 
         void cancel() {
@@ -97,7 +97,13 @@ public final class BananaVideoDownloadService extends Service {
         }
         Download download = new Download(scope);
         active = download;
-        worker.execute(() -> download(url, download));
+        worker.execute(() -> {
+            // A process killed mid-download never reached finish(): its up to 2x256 MiB job
+            // directory stayed in the cache, which the system does not reliably purge.
+            try { VideoDownloadPolicy.sweepStale(AndroidUtilities.getCacheDir(), download.directory.getName()); }
+            catch (RuntimeException error) { FileLog.e("BananaGram: stale download cleanup failed (" + error.getClass().getSimpleName() + ")"); }
+            download(url, download);
+        });
         return START_NOT_STICKY;
     }
 

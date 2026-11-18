@@ -42,6 +42,24 @@ public class VideoDownloadPolicyTest {
             assertEquals(Long.MAX_VALUE,VideoDownloadPolicy.directoryBytes(dir));
         } finally {assertTrue(VideoDownloadPolicy.erase(dir));}
     }
+    @Test public void staleJobDirectoriesAreSweptButTheActiveJobAndOtherFilesStay() throws Exception {
+        Path cache=Files.createTempDirectory("download-cache"), outside=Files.createTempDirectory("download-outside");
+        try {
+            Path stale=Files.createDirectory(cache.resolve(VideoDownloadPolicy.JOB_PREFIX+"old"));
+            Files.write(stale.resolve("video.part"),new byte[]{1});
+            Path active=Files.createDirectory(cache.resolve(VideoDownloadPolicy.JOB_PREFIX+"now"));
+            Files.write(active.resolve("video.part"),new byte[]{2});
+            Path unrelated=Files.write(cache.resolve("other.bin"),new byte[]{3});
+            Path keep=Files.write(outside.resolve("keep.bin"),new byte[]{4});
+            Files.createSymbolicLink(cache.resolve(VideoDownloadPolicy.JOB_PREFIX+"link"),outside);
+            assertEquals(1,VideoDownloadPolicy.sweepStale(cache.toFile(),VideoDownloadPolicy.JOB_PREFIX+"now"));
+            assertFalse(Files.exists(stale));
+            assertTrue(Files.exists(active.resolve("video.part")));
+            assertTrue(Files.exists(unrelated));
+            assertArrayEquals(new byte[]{4},Files.readAllBytes(keep));
+            assertEquals(0,VideoDownloadPolicy.sweepStale(null,"x"));
+        } finally {VideoDownloadPolicy.erase(cache.toFile());VideoDownloadPolicy.erase(outside.toFile());}
+    }
     @Test public void normalTemporaryFilesAreCountedAndCanBeRemovedTwice() throws Exception {
         File dir=Files.createTempDirectory("download-normal").toFile();
         Files.write(new File(dir,"video.part").toPath(),new byte[]{1,2,3});

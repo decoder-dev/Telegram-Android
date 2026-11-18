@@ -82,4 +82,22 @@ public final class VideoDownloadPolicy {
             return true;
         } catch (IOException unavailable) { return false; }
     }
+    public static final String JOB_PREFIX = "banana-video-";
+    /**
+     * Removes job directories a killed process left behind (OOM, force stop, update). Only one
+     * download runs at a time, so every job directory except {@code keep} is stale. Links are
+     * neither followed nor treated as jobs.
+     */
+    static int sweepStale(File cacheDir, String keep) {
+        File[] entries = cacheDir == null ? null : cacheDir.listFiles();
+        if (entries == null) return 0;
+        int removed = 0;
+        for (File entry : entries) {
+            String name = entry.getName();
+            if (!name.startsWith(JOB_PREFIX) || name.equals(keep)) continue;
+            if (!Files.isDirectory(entry.toPath(), LinkOption.NOFOLLOW_LINKS)) continue;
+            if (erase(entry)) removed++;
+        }
+        return removed;
+    }
 }
