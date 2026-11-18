@@ -1113,6 +1113,36 @@
       "type": "Bool",
       "status": "pending_new_ios_reference_review",
       "android": "Compare first-use mini-app warnings with Android's existing web-app confirmation; not attested."
+    },
+    {
+      "setting": "antiCaps",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "BananaConfig.Option.ANTI_CAPS via OutgoingTextRules in SendMessagesHelper.sendMessage(SendMessageParams); OutgoingTextRulesTest"
+    },
+    {
+      "setting": "textReplacementRules",
+      "type": "[String]",
+      "status": "implemented_wired_pending_ci",
+      "android": "BananaConfig.StringValue.TEXT_REPLACEMENT_RULES (Extras Values editor) via OutgoingTextRules; OutgoingTextRulesTest"
+    },
+    {
+      "setting": "disableCallRating",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "BananaConfig.Option.DISABLE_CALL_RATING via VoIPService.hasRate()"
+    },
+    {
+      "setting": "estimateRegistrationDate",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "BananaConfig.Option.ESTIMATE_REGISTRATION_DATE via RegistrationDateEstimate (anchors converted from iOS) in ProfileActivity; RegistrationDateEstimateTest"
+    },
+    {
+      "setting": "showSessionApiId",
+      "type": "Bool",
+      "status": "implemented_wired_pending_ci",
+      "android": "BananaConfig.Option.SHOW_SESSION_API_ID via SessionCell"
     }
   ]
 }
