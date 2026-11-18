@@ -499,6 +499,15 @@
     <string name="BananaCat_APPEARANCE">Оформление</string>
     <string name="BananaCat_NETWORK">Сеть</string>
     <string name="BananaOpt_REMOVE_PINGS">Убрать пинги упоминаний</string>
+    <string name="BananaOpt_ANTI_CAPS">Антикапс</string>
+    <string name="BananaOpt_DISABLE_CALL_RATING">Не просить оценить звонок</string>
+    <string name="BananaOpt_ESTIMATE_REGISTRATION_DATE">Примерная дата регистрации</string>
+    <string name="BananaOpt_SHOW_SESSION_API_ID">API ID в «Устройствах»</string>
+    <string name="BananaVal_TextReplacementRules">Правила замены текста</string>
+    <string name="BananaVal_TextReplacementRulesHint">спб = Санкт-Петербург</string>
+    <string name="BananaVal_TextReplacementRulesInfo">По одному правилу в строке: слово = замена. Целые слова, без учёта регистра; ссылки, упоминания, команды и код не меняются. Боты получают текст как есть.</string>
+    <string name="BananaVal_RulesCount">Правил: %1$d</string>
+    <string name="BananaProfileRegistered">Регистрация</string>
     <string name="BananaOpt_SEND_TELEGRAM_STATISTICS">Отправлять статистику Telegram</string>
     <string name="BananaOpt_BANANA_ISLAND_ENABLED">Показывать островок BananaGram</string>
     <string name="BananaOpt_BANANA_ISLAND_SHOWS_NAME">Название чата в островке</string>

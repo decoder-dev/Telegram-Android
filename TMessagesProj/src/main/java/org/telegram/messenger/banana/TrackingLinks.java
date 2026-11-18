@@ -124,7 +124,7 @@ public final class TrackingLinks {
         return end;
     }
 
-    private static TLRPC.MessageEntity copy(TLRPC.MessageEntity entity) {
+    static TLRPC.MessageEntity copy(TLRPC.MessageEntity entity) {
         SerializedData encoded = new SerializedData();
         SerializedData decoded = null;
         try {

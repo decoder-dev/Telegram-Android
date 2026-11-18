@@ -11900,6 +11900,15 @@
     <string name="BananaCat_APPEARANCE">Appearance</string>
     <string name="BananaCat_NETWORK">Network</string>
     <string name="BananaOpt_REMOVE_PINGS">Remove mention pings</string>
+    <string name="BananaOpt_ANTI_CAPS">Anti-Caps</string>
+    <string name="BananaOpt_DISABLE_CALL_RATING">No call rating prompt</string>
+    <string name="BananaOpt_ESTIMATE_REGISTRATION_DATE">Estimated registration date</string>
+    <string name="BananaOpt_SHOW_SESSION_API_ID">API ID in Devices</string>
+    <string name="BananaVal_TextReplacementRules">Text replacement rules</string>
+    <string name="BananaVal_TextReplacementRulesHint">spb = Saint Petersburg</string>
+    <string name="BananaVal_TextReplacementRulesInfo">One rule per line: word = replacement. Whole words, any case; links, mentions, commands and code are left alone. Bots get exactly what you typed.</string>
+    <string name="BananaVal_RulesCount">Rules: %1$d</string>
+    <string name="BananaProfileRegistered">Registered</string>
     <string name="BananaOpt_SEND_TELEGRAM_STATISTICS">Send Telegram statistics</string>
     <string name="BananaOpt_BANANA_ISLAND_ENABLED">Show BananaGram island</string>
     <string name="BananaOpt_BANANA_ISLAND_SHOWS_NAME">Chat name in the island</string>

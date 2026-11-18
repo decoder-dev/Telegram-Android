@@ -4583,6 +4583,31 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             entities = cleaned.entities;
         }
 
+        // Text rules (word replacement, Anti-Caps) on new outgoing text and captions; bots get what was typed.
+        final boolean antiCaps = BananaConfig.get(currentAccount, BananaConfig.Option.ANTI_CAPS);
+        final String textRules = BananaConfig.getString(currentAccount, BananaConfig.StringValue.TEXT_REPLACEMENT_RULES);
+        if ((antiCaps || !TextUtils.isEmpty(textRules)) && richMessage == null && retryMessageObject == null
+                && sendMessageChatArguments.welcomeMessageChatId == 0 && quick_reply_shortcut == null && quick_reply_shortcut_id == 0
+                && location == null && user == null && game == null && poll == null && todo == null && invoice == null && sendingStory == null) {
+            TLRPC.User recipient = peer > 0 ? getMessagesController().getUser(peer) : null;
+            if (recipient == null || !recipient.bot) {
+                java.util.List<org.telegram.messenger.banana.OutgoingTextRules.Rule> rules =
+                        org.telegram.messenger.banana.OutgoingTextRules.parseRules(textRules);
+                boolean captioned = photo != null || document != null || videoEditedInfo != null;
+                if (!captioned && message != null) {
+                    org.telegram.messenger.banana.OutgoingTextRules.Result ruled =
+                            org.telegram.messenger.banana.OutgoingTextRules.apply(message, entities, rules, antiCaps);
+                    message = ruled.text;
+                    entities = ruled.entities;
+                } else if (captioned && caption != null) {
+                    org.telegram.messenger.banana.OutgoingTextRules.Result ruled =
+                            org.telegram.messenger.banana.OutgoingTextRules.apply(caption, entities, rules, antiCaps);
+                    caption = ruled.text;
+                    entities = ruled.entities;
+                }
+            }
+        }
+
         if (sendMessageChatArguments.welcomeMessageChatId != 0) {
             peer = -sendMessageChatArguments.welcomeMessageChatId;
             user = null;

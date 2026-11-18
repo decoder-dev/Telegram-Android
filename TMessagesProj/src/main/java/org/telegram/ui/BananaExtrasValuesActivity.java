@@ -44,6 +44,7 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     private static final int ID_VISUAL_PHONE = 17;
     private static final int ID_REFRESH_RATE = 18;
     private static final int ID_GLASS_GLARE = 19;
+    private static final int ID_TEXT_RULES = 20;
 
     public BananaExtrasValuesActivity(int account) {
         setCurrentAccount(account);
@@ -89,6 +90,8 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
         items.add(cell(ID_SEND_FORMAT, R.string.BananaVal_DefaultSendFormatting, sendFormatLabel(BananaConfig.defaultSendFormatting(currentAccount))));
         items.add(cell(ID_DELETED_MARK, R.string.BananaVal_DeletedMessageMark, markDisplay(BananaConfig.deletedMessageMark(currentAccount))));
         items.add(cell(ID_EDITED_MARK, R.string.BananaVal_EditedMessageMark, markDisplay(BananaConfig.editedMessageMark(currentAccount))));
+        items.add(cell(ID_TEXT_RULES, R.string.BananaVal_TextReplacementRules, LocaleController.formatString(R.string.BananaVal_RulesCount,
+                org.telegram.messenger.banana.OutgoingTextRules.parseRules(BananaConfig.getString(currentAccount, StringValue.TEXT_REPLACEMENT_RULES)).size())));
         items.add(UItem.asShadow(null));
 
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaValuesBackends)));
@@ -201,6 +204,10 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
             case ID_VISUAL_PHONE:
                 editString(R.string.BananaVal_VisualPhoneNumber, StringValue.VISUAL_PHONE_NUMBER, "");
                 break;
+            case ID_TEXT_RULES:
+                editString(R.string.BananaVal_TextReplacementRules, StringValue.TEXT_REPLACEMENT_RULES,
+                        LocaleController.getString(R.string.BananaVal_TextReplacementRulesHint));
+                break;
             default:
                 break;
         }
@@ -309,9 +316,15 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
         input.setHintColor(Theme.getColor(Theme.key_windowBackgroundWhiteHintText, getResourceProvider()));
         input.setBackgroundDrawable(Theme.createEditTextDrawable(getParentActivity(), true));
         input.setPadding(AndroidUtilities.dp(4), AndroidUtilities.dp(8), AndroidUtilities.dp(4), AndroidUtilities.dp(8));
-        input.setMaxLines(1);
-        input.setSingleLine(true);
-        if (value == StringValue.VISUAL_PHONE_NUMBER) {
+        boolean multiline = value == StringValue.TEXT_REPLACEMENT_RULES;
+        input.setMaxLines(multiline ? 8 : 1);
+        input.setSingleLine(!multiline);
+        if (multiline) {
+            input.setMinLines(3);
+            input.setGravity(android.view.Gravity.TOP | android.view.Gravity.START);
+            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+            input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(16384)});
+        } else if (value == StringValue.VISUAL_PHONE_NUMBER) {
             input.setInputType(InputType.TYPE_CLASS_PHONE);
         } else {
             input.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -326,6 +339,13 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
         container.setOrientation(LinearLayout.VERTICAL);
         container.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(8), AndroidUtilities.dp(24), 0);
         container.addView(input, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        if (multiline) {
+            android.widget.TextView info = new android.widget.TextView(getParentActivity());
+            info.setTextSize(1, 13);
+            info.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, getResourceProvider()));
+            info.setText(LocaleController.getString(R.string.BananaVal_TextReplacementRulesInfo));
+            container.addView(info, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 8, 0, 0));
+        }
 
         AlertDialog dialog = new AlertDialog.Builder(getParentActivity(), getResourceProvider())
                 .setTitle(LocaleController.getString(title))

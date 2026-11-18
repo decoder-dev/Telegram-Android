@@ -172,7 +172,12 @@ public final class BananaConfig {
         CONFIRM_STICKER_SEND("bananaConfirmStickerSend"),
         CONFIRM_GIF_SEND("bananaConfirmGifSend"),
         SILENCE_NON_CONTACTS("bananaSilenceNonContacts"),
-        HIDE_SEND_AS_BUTTON("bananaHideSendAsButton");
+        HIDE_SEND_AS_BUTTON("bananaHideSendAsButton"),
+        // Ported from BananaGram iOS (Ghostgram).
+        ANTI_CAPS("bananaAntiCaps"),
+        DISABLE_CALL_RATING("bananaDisableCallRating"),
+        ESTIMATE_REGISTRATION_DATE("bananaEstimateRegistrationDate"),
+        SHOW_SESSION_API_ID("bananaShowSessionApiId");
 
         public final String key;
         Option(String key) { this.key = key; }
@@ -468,7 +473,9 @@ public final class BananaConfig {
     public enum StringValue {
         DELETED_MESSAGE_MARK("bananaDeletedMessageMark", "🧹"),
         EDITED_MESSAGE_MARK("bananaEditedMessageMark", ""),
-        VISUAL_PHONE_NUMBER("bananaVisualPhoneNumber", "");
+        VISUAL_PHONE_NUMBER("bananaVisualPhoneNumber", ""),
+        /** One rule per line, "source = replacement" (OutgoingTextRules). */
+        TEXT_REPLACEMENT_RULES("bananaTextReplacementRules", "");
 
         public final String key;
         public final String defaultValue;
@@ -507,6 +514,9 @@ public final class BananaConfig {
         if ((value == StringValue.DELETED_MESSAGE_MARK || value == StringValue.EDITED_MESSAGE_MARK) && next.length() > 8) {
             // Never cut an emoji's surrogate pair in half.
             next = next.substring(0, Character.isHighSurrogate(next.charAt(7)) ? 7 : 8);
+        }
+        if (value == StringValue.TEXT_REPLACEMENT_RULES && next.length() > 16384) {
+            next = next.substring(0, 16384);
         }
         // Marks stay on this account; BananaHooks falls back to AyuGram's own mark only when empty.
         MessagesController.getMainSettings(account).edit().putString(value.key, next).apply();
