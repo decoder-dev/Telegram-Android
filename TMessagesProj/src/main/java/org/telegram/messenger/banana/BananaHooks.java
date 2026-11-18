@@ -306,7 +306,9 @@ public final class BananaHooks {
         } else {
             return false;
         }
-        if (code == 2) {
+        if (code == 2 || code < 0) {
+            // Cancels and kinds without a toggle (group-call "speaking", history import) are not
+            // typing: the master switch must not drop them.
             return false;
         }
         if (BananaConfig.get(account, BananaConfig.Option.GHOST_DONT_SEND_TYPING)) {
