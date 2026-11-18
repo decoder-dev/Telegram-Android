@@ -4750,6 +4750,11 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	}
 
 	public boolean hasRate() {
+		// The rating Telegram asks for after a call; "Rate call" from a call message still works.
+		if (!forceRating && currentAccount >= 0
+				&& org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.DISABLE_CALL_RATING)) {
+			return false;
+		}
 		return needRateCall || forceRating;
 	}
 
