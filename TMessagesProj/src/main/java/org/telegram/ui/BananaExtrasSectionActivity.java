@@ -133,6 +133,19 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
                 BananaConfig.set(currentAccount, Option.HIDE_RECORDING, next);
                 BananaConfig.set(currentAccount, Option.HIDE_UPLOAD, next);
             }
+            if (!next && (option == Option.HIDE_TYPING || option == Option.HIDE_RECORDING || option == Option.HIDE_UPLOAD)) {
+                // The master suppresses every kind on its own: left on, it kept hiding the kind
+                // whose switch now shows off.
+                BananaConfig.set(currentAccount, Option.GHOST_DONT_SEND_TYPING, false);
+            }
+            // "Go offline right away" corrects the status that "Don't send online status" hides;
+            // on its own it never sends anything, so the two move together.
+            if (option == Option.OFFLINE_AFTER_ACTIVITY && next) {
+                BananaConfig.set(currentAccount, Option.HIDE_ONLINE, true);
+            }
+            if (option == Option.HIDE_ONLINE && !next) {
+                BananaConfig.set(currentAccount, Option.OFFLINE_AFTER_ACTIVITY, false);
+            }
             if (option == Option.REGEX_MESSAGE_FILTERS_ENABLED) {
                 org.telegram.messenger.banana.FilterStore.get(currentAccount).setEnabled(next);
                 org.telegram.messenger.banana.MessageFilters.settingsChanged(currentAccount);
