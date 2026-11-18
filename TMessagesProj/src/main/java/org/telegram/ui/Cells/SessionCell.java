@@ -253,6 +253,11 @@ public class SessionCell extends FrameLayout {
             stringBuilder = new StringBuilder();
             stringBuilder.append(session.app_name);
             stringBuilder.append(" ").append(session.app_version);
+            if (session.api_id != 0 && org.telegram.messenger.banana.BananaConfig.get(currentAccount,
+                    org.telegram.messenger.banana.BananaConfig.Option.SHOW_SESSION_API_ID)) {
+                // Which app registered the session: official clients and forks use known API IDs.
+                stringBuilder.append(" · API ID ").append(session.api_id);
+            }
 
             detailTextView.setText(stringBuilder);
         } else if (object instanceof TLRPC.TL_webAuthorization) {
