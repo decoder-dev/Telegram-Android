@@ -1359,6 +1359,66 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_COPY_PHOTO = 127;
     public final static int OPTION_STOP_LIVE_LOCATION = 128;
     public final static int OPTION_MESSAGE_JSON = 129;
+
+    /** The iOS menu key of a message menu option, or null for items that keep their place. */
+    private static String bananaMenuKey(int option) {
+        switch (option) {
+            case OPTION_REPLY: return "reply";
+            case AyuConstants.OPTION_HISTORY: return "editHistory";
+            case OPTION_COPY: return "copy";
+            case OPTION_TRANSLATE: return "translate";
+            case OPTION_SAVE_TO_GALLERY:
+            case OPTION_SAVE_TO_GALLERY2: return "saveMedia";
+            case OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC: return "saveToFiles";
+            case OPTION_SEND_AS_ROUND:
+            case OPTION_SEND_AS_VOICE:
+            case OPTION_SEND_AS_AUDIO: return "convertAudio";
+            case OPTION_VIEW_REPLIES_OR_THREAD: return "viewReplies";
+            case OPTION_EDIT: return "edit";
+            case OPTION_PIN:
+            case OPTION_UNPIN: return "pin";
+            case OPTION_COPY_LINK: return "copyLink";
+            case OPTION_ADD_TO_GIFS: return "saveGif";
+            case OPTION_FORWARD: return "forward";
+            case OPTION_SAVE_TO_CLOUD: return "saveToSavedMessages";
+            case OPTION_MESSAGE_SHOT: return "screenshot";
+            case OPTION_BOOKMARK_MESSAGE: return "bookmarks";
+            case OPTION_SELECT_FROM_AUTHOR: return "selectFromAuthor";
+            case OPTION_REPEAT_MESSAGE: return "repeatMessage";
+            case OPTION_MESSAGE_JSON: return "messageJson";
+            case OPTION_REPORT_CHAT: return "report";
+            case OPTION_VIEW_STATISTICS: return "statistics";
+            case OPTION_DELETE: return "delete";
+            default: return null;
+        }
+    }
+
+    /** Applies the Extras menu order and hidden items to the three parallel menu lists, in place. */
+    private void bananaArrangeMenu(ArrayList<Integer> options, ArrayList<CharSequence> items, ArrayList<Integer> icons) {
+        String hiddenSetting = org.telegram.messenger.banana.BananaConfig.getString(currentAccount, org.telegram.messenger.banana.BananaConfig.StringValue.MESSAGE_MENU_HIDDEN);
+        String orderSetting = org.telegram.messenger.banana.BananaConfig.getString(currentAccount, org.telegram.messenger.banana.BananaConfig.StringValue.MESSAGE_MENU_ORDER);
+        if (TextUtils.isEmpty(hiddenSetting) && TextUtils.isEmpty(orderSetting)) return;
+        if (options.size() != items.size() || options.size() != icons.size()) return;
+        ArrayList<String> keys = new ArrayList<>(options.size());
+        for (int option : options) keys.add(bananaMenuKey(option));
+        int[] arranged = org.telegram.messenger.banana.BananaMessageMenu.arrange(keys,
+                new java.util.HashSet<>(org.telegram.messenger.banana.BananaMessageMenu.parse(hiddenSetting)),
+                org.telegram.messenger.banana.BananaMessageMenu.parse(orderSetting));
+        ArrayList<Integer> newOptions = new ArrayList<>(arranged.length);
+        ArrayList<CharSequence> newItems = new ArrayList<>(arranged.length);
+        ArrayList<Integer> newIcons = new ArrayList<>(arranged.length);
+        for (int index : arranged) {
+            newOptions.add(options.get(index));
+            newItems.add(items.get(index));
+            newIcons.add(icons.get(index));
+        }
+        options.clear();
+        options.addAll(newOptions);
+        items.clear();
+        items.addAll(newItems);
+        icons.clear();
+        icons.addAll(newIcons);
+    }
     private BananaMediaConverter.Job bananaMediaConversion;
     private AlertDialog bananaMediaProgress;
 
@@ -32402,6 +32462,8 @@ public class ChatActivity extends BaseFragment implements
                 icons.add(R.drawable.msg_view_file);
             }
             // --- AyuGram menu
+
+            bananaArrangeMenu(options, items, icons);
 
             if (options.isEmpty() && optionsView == null) {
                 return false;

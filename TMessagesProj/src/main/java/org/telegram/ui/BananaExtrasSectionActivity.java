@@ -71,9 +71,12 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
             items.add(BananaValueCell.Factory.of(9101, LocaleController.getString(R.string.BananaLocalVerification),
                     badge == 0 ? LocaleController.getString(R.string.BananaLocalVerificationOff)
                             : org.telegram.messenger.banana.LocalVerificationBadges.TITLES[badge]));
-        } else if ("MESSAGES".equals(section) && BananaConfig.get(currentAccount, Option.MESSAGE_BOOKMARKS)) {
+        } else if ("MESSAGES".equals(section)) {
             items.add(UItem.asShadow(null));
-            items.add(UItem.asButton(9200, LocaleController.getString(R.string.BananaBookmarks)));
+            items.add(UItem.asButton(9201, LocaleController.getString(R.string.BananaMessageMenu)));
+            if (BananaConfig.get(currentAccount, Option.MESSAGE_BOOKMARKS)) {
+                items.add(UItem.asButton(9200, LocaleController.getString(R.string.BananaBookmarks)));
+            }
         } else if ("PRIVACY".equals(section)) {
             items.add(UItem.asShadow(LocaleController.getString(R.string.BananaSecurityProtectionsInfo)));
             items.add(UItem.asButton(9300, LocaleController.getString(R.string.BananaDuressTitle)));
@@ -90,6 +93,7 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
     protected void onClick(UItem item, View view, int position, float x, float y) {
         if (item.id == 9200) { showBookmarks(); return; }
         if (item.id == 9300) { BananaDuressSettings.show(this); return; }
+        if (item.id == 9201) { showMessageMenuEditor(); return; }
         if (item.id == 9101) {
             CharSequence[] badges = {LocaleController.getString(R.string.BananaLocalVerificationOff), "Major", "Hold", "Developer"};
             showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
@@ -184,6 +188,68 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
             }
             listView.adapter.update(true);
         }
+    }
+
+    private static final String[] MENU_LABELS = {
+            "BananaMenu_reply", "BananaMenu_editHistory", "BananaMenu_copy", "BananaMenu_translate", "BananaMenu_saveMedia",
+            "BananaMenu_saveToFiles", "BananaMenu_convertAudio", "BananaMenu_viewReplies", "BananaMenu_edit", "BananaMenu_pin",
+            "BananaMenu_copyLink", "BananaMenu_saveGif", "BananaMenu_forward", "BananaMenu_saveToSavedMessages", "BananaMenu_screenshot",
+            "BananaMenu_bookmarks", "BananaMenu_selectFromAuthor", "BananaMenu_repeatMessage", "BananaMenu_messageJson",
+            "BananaMenu_report", "BananaMenu_statistics", "BananaMenu_delete"};
+
+    private String menuLabel(String key) {
+        int index = org.telegram.messenger.banana.BananaMessageMenu.KEYS.indexOf(key);
+        int id = index >= 0 ? getStringId(MENU_LABELS[index]) : 0;
+        return id != 0 ? LocaleController.getString(id) : key;
+    }
+
+    /** Message menu: tap an item to show, hide or move it; Reset brings back Telegram's order. */
+    private void showMessageMenuEditor() {
+        if (getParentActivity() == null) return;
+        java.util.List<String> order = org.telegram.messenger.banana.BananaMessageMenu.order(
+                org.telegram.messenger.banana.BananaMessageMenu.parse(BananaConfig.getString(currentAccount, BananaConfig.StringValue.MESSAGE_MENU_ORDER)));
+        java.util.List<String> hidden = org.telegram.messenger.banana.BananaMessageMenu.parse(
+                BananaConfig.getString(currentAccount, BananaConfig.StringValue.MESSAGE_MENU_HIDDEN));
+        CharSequence[] labels = new CharSequence[order.size()];
+        for (int i = 0; i < labels.length; i++) {
+            labels[i] = (hidden.contains(order.get(i)) ? "☐ " : "☑ ") + menuLabel(order.get(i));
+        }
+        showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                .setTitle(LocaleController.getString(R.string.BananaMessageMenu))
+                .setMessage(LocaleController.getString(R.string.BananaMessageMenuInfo))
+                .setItems(labels, (dialog, which) -> editMenuItem(order, hidden, which))
+                .setNeutralButton(LocaleController.getString(R.string.BananaMessageMenuReset), (dialog, which) -> {
+                    BananaConfig.setString(currentAccount, BananaConfig.StringValue.MESSAGE_MENU_ORDER, "");
+                    BananaConfig.setString(currentAccount, BananaConfig.StringValue.MESSAGE_MENU_HIDDEN, "");
+                })
+                .setPositiveButton(LocaleController.getString(R.string.Done), null)
+                .create());
+    }
+
+    private void editMenuItem(java.util.List<String> order, java.util.List<String> hidden, int index) {
+        String key = order.get(index);
+        boolean isHidden = hidden.contains(key);
+        CharSequence[] actions = {
+                LocaleController.getString(isHidden ? R.string.BananaMessageMenuShow : R.string.BananaMessageMenuHide),
+                LocaleController.getString(R.string.BananaMessageMenuUp),
+                LocaleController.getString(R.string.BananaMessageMenuDown)};
+        showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                .setTitle(menuLabel(key))
+                .setItems(actions, (dialog, which) -> {
+                    java.util.ArrayList<String> nextOrder = new java.util.ArrayList<>(order);
+                    java.util.ArrayList<String> nextHidden = new java.util.ArrayList<>(hidden);
+                    if (which == 0) {
+                        if (isHidden) nextHidden.remove(key); else nextHidden.add(key);
+                    } else {
+                        int target = which == 1 ? index - 1 : index + 1;
+                        if (target >= 0 && target < nextOrder.size()) java.util.Collections.swap(nextOrder, index, target);
+                    }
+                    BananaConfig.setString(currentAccount, BananaConfig.StringValue.MESSAGE_MENU_ORDER,
+                            org.telegram.messenger.banana.BananaMessageMenu.format(nextOrder));
+                    BananaConfig.setString(currentAccount, BananaConfig.StringValue.MESSAGE_MENU_HIDDEN,
+                            org.telegram.messenger.banana.BananaMessageMenu.format(nextHidden));
+                    showMessageMenuEditor();
+                }).create());
     }
 
     private void showBookmarks() {

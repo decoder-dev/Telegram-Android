@@ -523,7 +523,10 @@ public final class BananaConfig {
         /** One rule per line, "source = replacement" (OutgoingTextRules). */
         TEXT_REPLACEMENT_RULES("bananaTextReplacementRules", ""),
         DEEPL_API_KEY("bananaDeeplApiKey", ""),
-        YANDEX_API_KEY("bananaYandexApiKey", "");
+        YANDEX_API_KEY("bananaYandexApiKey", ""),
+        /** Comma-separated iOS menu keys (BananaMessageMenu). */
+        MESSAGE_MENU_HIDDEN("bananaMessageMenuHidden", ""),
+        MESSAGE_MENU_ORDER("bananaMessageMenuOrder", "");
 
         public final String key;
         public final String defaultValue;
