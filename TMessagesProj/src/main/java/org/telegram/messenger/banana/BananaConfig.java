@@ -188,7 +188,14 @@ public final class BananaConfig {
         SECURITY_WARN_MINI_APPS("bananaSecurityWarnMiniApps"),
         SECURITY_CONFIRM_EXTERNAL_LINKS("bananaSecurityConfirmExternalLinks"),
         SECURITY_FLAG_FAKE_SUPPORT("bananaSecurityFlagFakeSupport"),
-        PANIC_SHAKE_LOCK("bananaPanicShakeLock");
+        PANIC_SHAKE_LOCK("bananaPanicShakeLock"),
+        HIDE_AI_FEATURES("bananaHideAiFeatures"),
+        HIDE_RICH_TEXT_EDITOR("bananaHideRichTextEditor"),
+        HIDE_PHONE_NUMBER_IN_CHAT_TITLE("bananaHidePhoneNumberInChatTitle"),
+        MESSAGE_JSON_MENU("bananaMessageJsonMenu"),
+        SHOW_MESSAGES_FROM_MEMBER("bananaShowMessagesFromMember"),
+        ANONYMOUS_STICKERS("bananaAnonymousStickers"),
+        APPROXIMATE_LAST_SEEN("bananaApproximateLastSeen");
 
         public final String key;
         Option(String key) { this.key = key; }
@@ -471,7 +478,8 @@ public final class BananaConfig {
         DEFAULT_SEND_FORMATTING("bananaDefaultSendFormatting", 0),
         DEFAULT_VIDEO_QUALITY("bananaDefaultVideoQuality", 0),
         TRANSLATION_BACKEND("bananaTranslationBackend", 0),
-        TRANSCRIPTION_BACKEND("bananaTranscriptionBackend", 0);
+        TRANSCRIPTION_BACKEND("bananaTranscriptionBackend", 0),
+        LOCAL_VERIFICATION_BADGE("bananaLocalVerificationBadge", 0);
 
         public final String key;
         public final int defaultValue;
@@ -613,6 +621,8 @@ public final class BananaConfig {
                 return Math.max(0, Math.min(2, raw));
             case TRANSLATION_BACKEND:
                 return Math.max(0, Math.min(1, raw));
+            case LOCAL_VERIFICATION_BADGE:
+                return Math.max(0, Math.min(3, raw));
             case DEFAULT_SEND_FORMATTING:
                 return Math.max(0, Math.min(5, raw));
             case DOUBLE_TAP_SEEK_SECONDS:

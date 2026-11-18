@@ -2220,6 +2220,24 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 });
             });
         } else {
+            if (org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.ANONYMOUS_STICKERS)
+                    && "image/webp".equals(finalDocument.mime_type) && MessageObject.isStickerHasSet(finalDocument)) {
+                // Uploaded again as a set-less file, so the recipient can't open the pack it came from.
+                File stickerFile = FileLoader.getInstance(currentAccount).getPathToAttach(finalDocument, true);
+                if (stickerFile != null && stickerFile.exists()) {
+                    TLRPC.TL_document anonymous = org.telegram.messenger.banana.AnonymousStickers.setlessCopy(finalDocument, stickerFile.length(), getConnectionsManager().getCurrentTime());
+                    SendMessageParams anonymousParams = SendMessageParams.of(anonymous, null, stickerFile.getAbsolutePath(), peer, replyToMsg, replyToTopMsg, null, null, null, null, notify, scheduleDate, scheduleRepeatPeriod, 0, parentObject, sendAnimationData, false);
+                    anonymousParams.replyToStoryItem = storyItem;
+                    anonymousParams.replyQuote = quote;
+                    anonymousParams.sendMessageChatArguments = sendMessageChatArguments;
+                    anonymousParams.payStars = stars;
+                    anonymousParams.monoForumPeer = monoForumPeerId;
+                    anonymousParams.suggestionParams = suggestionParams;
+                    anonymousParams.invert_media = invertMedia;
+                    sendMessage(anonymousParams);
+                    return;
+                }
+            }
             HashMap<String, String> params;
             if (!TextUtils.isEmpty(query)) {
                 params = new HashMap<>();

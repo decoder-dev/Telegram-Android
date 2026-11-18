@@ -1358,6 +1358,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_SEND_AS_AUDIO = 126;
     public final static int OPTION_COPY_PHOTO = 127;
     public final static int OPTION_STOP_LIVE_LOCATION = 128;
+    public final static int OPTION_MESSAGE_JSON = 129;
     private BananaMediaConverter.Job bananaMediaConversion;
     private AlertDialog bananaMediaProgress;
 
@@ -9892,7 +9893,8 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private void checkInstantSearch() {
-        final long searchFromUserId = getArguments().getInt("search_from_user_id", 0);
+        // StatisticActivity passes a long; reading an int returned 0 and dropped the filter.
+        final long searchFromUserId = getArguments().getLong("search_from_user_id", getArguments().getInt("search_from_user_id", 0));
         if (searchFromUserId != 0) {
             TLRPC.User user = getMessagesController().getUser(searchFromUserId);
             if (user != null) {
@@ -20587,7 +20589,7 @@ public class ChatActivity extends BaseFragment implements
             if (currentUser.self) {
                 avatarContainer.setTitle(LocaleController.getString(R.string.SavedMessages));
             } else if (!MessagesController.isSupportUser(currentUser) && getContactsController().contactsDict.get(currentUser.id) == null && (getContactsController().contactsDict.size() != 0 || !getContactsController().isLoadingContacts())) {
-                if (!TextUtils.isEmpty(currentUser.phone)) {
+                if (!TextUtils.isEmpty(currentUser.phone) && !org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.HIDE_PHONE_NUMBER_IN_CHAT_TITLE)) {
                     avatarContainer.setTitle(PhoneFormat.getInstance().format("+" + currentUser.phone), currentUser.scam, currentUser.fake, currentUser.verified, getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
                 } else {
                     avatarContainer.setTitle(AndroidUtilities.removeRTL(AndroidUtilities.removeDiacritics(UserObject.getUserName(currentUser))), currentUser.scam, currentUser.fake, currentUser.verified, getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
@@ -35856,6 +35858,22 @@ public class ChatActivity extends BaseFragment implements
                 }
                 break;
             }
+            case OPTION_MESSAGE_JSON: {
+                if (selectedObject != null && selectedObject.messageOwner != null && getParentActivity() != null) {
+                    final String json = org.telegram.messenger.banana.MessageJson.toJson(selectedObject.messageOwner);
+                    // Protected chats keep their content in the app.
+                    final boolean canCopy = !(getMessagesController().isChatNoForwards(currentChat) || selectedObject.messageOwner.noforwards);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
+                    builder.setTitle(LocaleController.getString(R.string.BananaMessageJson));
+                    builder.setMessage(json);
+                    if (canCopy) {
+                        builder.setPositiveButton(LocaleController.getString(R.string.Copy), (d, w) -> AndroidUtilities.addToClipboard(json));
+                    }
+                    builder.setNegativeButton(LocaleController.getString(R.string.Close), null);
+                    showDialog(builder.create());
+                }
+                break;
+            }
             case OPTION_REPEAT_MESSAGE: {
                 if (selectedObject != null && selectedObject.isOut()) {
                     ArrayList<MessageObject> toRepeat = new ArrayList<>();
@@ -41696,6 +41714,10 @@ public class ChatActivity extends BaseFragment implements
                 Bundle args = new Bundle();
                 args.putLong("user_id", user.id);
                 args.putBoolean("expandPhoto", expandPhoto);
+                if (currentChat != null && !ChatObject.isChannelAndNotMegaGroup(currentChat)
+                        && org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.SHOW_MESSAGES_FROM_MEMBER)) {
+                    args.putLong("banana_source_chat_id", currentChat.id);
+                }
                 ProfileActivity fragment = new ProfileActivity(args);
                 fragment.setPlayProfileAnimation(currentUser != null && currentUser.id == user.id ? 1 : 0);
                 AndroidUtilities.setAdjustResizeToNothing(getParentActivity(), classGuid);
@@ -44039,6 +44061,10 @@ public class ChatActivity extends BaseFragment implements
             args.putLong("user_id", uid);
             if (currentEncryptedChat != null && uid == currentUser.id) {
                 args.putLong("dialog_id", dialog_id);
+            }
+            if (currentChat != null && !ChatObject.isChannelAndNotMegaGroup(currentChat)
+                    && org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.SHOW_MESSAGES_FROM_MEMBER)) {
+                args.putLong("banana_source_chat_id", currentChat.id);
             }
             ProfileActivity fragment = new ProfileActivity(args);
             fragment.setPlayProfileAnimation(currentUser != null && currentUser.id == uid ? 1 : 0);
@@ -47393,6 +47419,11 @@ public class ChatActivity extends BaseFragment implements
                     options.add(OPTION_REPEAT_MESSAGE);
                     icons.add(R.drawable.msg_retry);
                 }
+                if (selectedObject != null && selectedObject.messageOwner != null && org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.MESSAGE_JSON_MENU)) {
+                    items.add(LocaleController.getString(R.string.BananaMessageJson));
+                    options.add(OPTION_MESSAGE_JSON);
+                    icons.add(R.drawable.msg_info);
+                }
                 if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.selectFromAuthor(currentAccount) && selectedObject.getId() > 0 && chatMode == 0) {
                     items.add(LocaleController.getString(R.string.BananaSelectFromAuthor));
                     options.add(OPTION_SELECT_FROM_AUTHOR);
@@ -47790,6 +47821,11 @@ public class ChatActivity extends BaseFragment implements
                     items.add(LocaleController.getString(R.string.BananaRepeatMessage));
                     options.add(OPTION_REPEAT_MESSAGE);
                     icons.add(R.drawable.msg_retry);
+                }
+                if (selectedObject != null && selectedObject.messageOwner != null && org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.MESSAGE_JSON_MENU)) {
+                    items.add(LocaleController.getString(R.string.BananaMessageJson));
+                    options.add(OPTION_MESSAGE_JSON);
+                    icons.add(R.drawable.msg_info);
                 }
                 if (selectedObject != null && org.telegram.messenger.banana.BananaHooks.selectFromAuthor(currentAccount) && selectedObject.getId() > 0 && chatMode == 0) {
                     items.add(LocaleController.getString(R.string.BananaSelectFromAuthor));

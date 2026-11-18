@@ -626,6 +626,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private final static int enable_no_forwards = 46;
     private final static int disable_no_forwards = 47;
     private final static int send_money = 48;
+    private final static int banana_messages_in_chat = 49;
 
     private Rect rect = new Rect();
 
@@ -2779,6 +2780,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         return true;
                     });
                     presentFragment(fragment);
+                } else if (id == banana_messages_in_chat) {
+                    long sourceChatId = arguments != null ? arguments.getLong("banana_source_chat_id", 0) : 0;
+                    if (sourceChatId != 0) {
+                        Bundle chatArgs = new Bundle();
+                        chatArgs.putLong("chat_id", sourceChatId);
+                        chatArgs.putLong("search_from_user_id", userId);
+                        presentFragment(new ChatActivity(chatArgs));
+                    }
                 } else if (id == share) {
                     onShareClicked();
                 } else if (id == add_shortcut) {
@@ -11988,7 +11997,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     nameTextView.setRightDrawable(null);
                     nameTextViewRightDrawableContentDescription = null;
                 }
-                if (leftIcon == null && currentEncryptedChat == null && user.bot_verification_icon != 0 && !bananaHideVerified) {
+                final long bananaLocalBadge = user.self && !bananaHideVerified
+                        ? org.telegram.messenger.banana.LocalVerificationBadges.iconFor(org.telegram.messenger.banana.BananaConfig.getInt(currentAccount,
+                                org.telegram.messenger.banana.BananaConfig.IntValue.LOCAL_VERIFICATION_BADGE)) : 0;
+                if (leftIcon == null && currentEncryptedChat == null && bananaLocalBadge != 0) {
+                    // Only you see it: a badge you picked, not verification by Telegram.
+                    nameTextView.setLeftDrawableOutside(true);
+                    leftIcon = getBotVerificationDrawable(bananaLocalBadge, false);
+                } else if (leftIcon == null && currentEncryptedChat == null && user.bot_verification_icon != 0 && !bananaHideVerified) {
                     nameTextView.setLeftDrawableOutside(true);
                     leftIcon = getBotVerificationDrawable(user.bot_verification_icon, false);
                 } else {
@@ -12597,6 +12613,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     otherItem.addSubItem(block_contact, !userBlocked ? R.drawable.msg_block : R.drawable.msg_block, !userBlocked ? LocaleController.getString(R.string.BlockContact) : LocaleController.getString(R.string.Unblock));
                     otherItem.addSubItem(edit_contact, R.drawable.msg_edit, LocaleController.getString(R.string.EditContact));
                     otherItem.addSubItem(delete_contact, R.drawable.msg_delete, LocaleController.getString(R.string.DeleteContact));
+                }
+                if (arguments != null && arguments.getLong("banana_source_chat_id", 0) != 0
+                        && org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.SHOW_MESSAGES_FROM_MEMBER)) {
+                    otherItem.addSubItem(banana_messages_in_chat, R.drawable.msg_search, LocaleController.getString(R.string.BananaMessagesInThisChat));
                 }
                 if (!UserObject.isDeleted(user) && !isBot && currentEncryptedChat == null && !userBlocked && userId != 333000 && userId != 777000 && userId != 42777) {
                     if (!BuildVars.IS_BILLING_UNAVAILABLE && !user.self && !user.bot && !MessagesController.isSupportUser(user) && !getMessagesController().premiumPurchaseBlocked()

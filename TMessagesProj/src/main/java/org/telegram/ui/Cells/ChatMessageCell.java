@@ -6484,7 +6484,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     drawSideButton = 2;
                 }
             }
-            drawSummarizeButton = TranslateController.isSummarizable(messageObject);
+            drawSummarizeButton = TranslateController.isSummarizable(messageObject)
+                    && !org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.HIDE_AI_FEATURES);
             if (isCompactMode()) {
                 // no share/go-to side buttons in compact mode; comments and sponsored actions have no other entry point
                 if (drawSideButton == 1 || drawSideButton == 2) {

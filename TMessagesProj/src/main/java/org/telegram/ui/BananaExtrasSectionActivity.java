@@ -67,6 +67,10 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
             items.add(BananaValueCell.Factory.of(9100,
                     LocaleController.getString(R.string.BananaVisualLabel),
                     BananaVisualLabels.labelName(currentAccount)));
+            int badge = BananaConfig.getInt(currentAccount, BananaConfig.IntValue.LOCAL_VERIFICATION_BADGE);
+            items.add(BananaValueCell.Factory.of(9101, LocaleController.getString(R.string.BananaLocalVerification),
+                    badge == 0 ? LocaleController.getString(R.string.BananaLocalVerificationOff)
+                            : org.telegram.messenger.banana.LocalVerificationBadges.TITLES[badge]));
         } else if ("MESSAGES".equals(section) && BananaConfig.get(currentAccount, Option.MESSAGE_BOOKMARKS)) {
             items.add(UItem.asShadow(null));
             items.add(UItem.asButton(9200, LocaleController.getString(R.string.BananaBookmarks)));
@@ -86,6 +90,18 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
     protected void onClick(UItem item, View view, int position, float x, float y) {
         if (item.id == 9200) { showBookmarks(); return; }
         if (item.id == 9300) { BananaDuressSettings.show(this); return; }
+        if (item.id == 9101) {
+            CharSequence[] badges = {LocaleController.getString(R.string.BananaLocalVerificationOff), "Major", "Hold", "Developer"};
+            showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
+                    .setTitle(LocaleController.getString(R.string.BananaLocalVerificationPicker))
+                    .setItems(badges, (dialog, which) -> {
+                        BananaConfig.setInt(currentAccount, BananaConfig.IntValue.LOCAL_VERIFICATION_BADGE, which);
+                        NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+                        NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_NAME);
+                        if (listView != null && listView.adapter != null) listView.adapter.update(true);
+                    }).create());
+            return;
+        }
         if (item.id == 9100) {
             CharSequence[] labels = new CharSequence[]{
                     LocaleController.getString(R.string.BananaVisualLabelNone),

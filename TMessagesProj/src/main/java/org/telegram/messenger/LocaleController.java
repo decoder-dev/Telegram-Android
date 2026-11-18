@@ -2997,7 +2997,8 @@ public class LocaleController {
                 if (user.status.expires == -1) {
                     return getString("Invisible", R.string.Invisible);
                 } else if (user.status.expires == -100 || user.status.expires == -1000) {
-                    return getString("Lately", R.string.Lately);
+                    String approximate = org.telegram.messenger.banana.ApproximateLastSeen.format(currentAccount, user.id, currentTime);
+                    return approximate != null ? approximate : getString("Lately", R.string.Lately);
                 } else if (user.status.expires == -101 || user.status.expires == -1001) {
                     return getString("WithinAWeek", R.string.WithinAWeek);
                 } else if (user.status.expires == -102 || user.status.expires == -1002) {
