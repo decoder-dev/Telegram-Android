@@ -36,7 +36,7 @@ public final class BananaExtrasCatalog {
                 new Group(R.string.BananaGroup_Activity, Option.DONT_READ_MESSAGES, Option.HIDE_ONLINE, Option.OFFLINE_AFTER_ACTIVITY, Option.GHOST_READ_ON_INTERACT, Option.GHOST_DONT_SEND_TYPING, Option.HIDE_TYPING, Option.HIDE_RECORDING, Option.HIDE_UPLOAD),
                 new Group(R.string.BananaGroup_Stories, Option.DONT_READ_STORIES, Option.WARN_BEFORE_STORIES, Option.GHOST_SUGGEST_FOR_STORIES),
                 new Group(R.string.BananaGroup_Sending, Option.GHOST_SCHEDULE_MESSAGES, Option.GHOST_SEND_WITHOUT_SOUND),
-                new Group(R.string.BananaGroup_Archive, Option.SAVE_DELETED, Option.SAVE_EDITS, Option.SAVE_BOT_HISTORY, Option.SAVE_MEDIA_HISTORY, Option.PROACTIVE_SAVE_MEDIA, Option.QUOTE_REPLIES_TO_DELETED),
+                new Group(R.string.BananaGroup_Archive, Option.SAVE_DELETED, Option.SAVE_MY_DELETED, Option.SAVE_EDITS, Option.SAVE_BOT_HISTORY, Option.SAVE_MEDIA_HISTORY, Option.PROACTIVE_SAVE_MEDIA, Option.QUOTE_REPLIES_TO_DELETED),
                 new Group(R.string.BananaGroup_Content, Option.AYU_FORWARD, Option.BYPASS_DOWNLOAD_RESTRICTIONS, Option.SHOW_SENSITIVE_CONTENT, Option.HIDE_ADS, Option.HIDE_BLOCKED_MESSAGES),
                 new Group(R.string.BananaGroup_Filters, Option.REGEX_MESSAGE_FILTERS_ENABLED, Option.REGEX_MESSAGE_FILTERS_CASE_INSENSITIVE)
         });
@@ -50,7 +50,7 @@ public final class BananaExtrasCatalog {
         });
         map.put("APPEARANCE", new Group[] {
                 new Group(R.string.BananaGroup_Island, Option.BANANA_ISLAND_ENABLED, Option.BANANA_ISLAND_SHOWS_NAME, Option.BANANA_ISLAND_FOLLOWS_ICON),
-                new Group(R.string.BananaGroup_Effects, Option.GLASS_BUBBLES, Option.AVATAR_GLOW_ENABLED, Option.REACTION_GLOW_ENABLED, Option.SNOW_ENABLED, Option.POWER_SAVING),
+                new Group(R.string.BananaGroup_Effects, Option.GLASS_BUBBLES, Option.AVATAR_GLOW_ENABLED, Option.REACTION_GLOW_ENABLED, Option.SNOW_ENABLED, Option.POWER_SAVING, Option.ENHANCED_POWER_SAVING),
                 new Group(R.string.BananaGroup_ChatLook, Option.DISABLE_CUSTOM_BACKGROUNDS, Option.DISABLE_COLORED_REPLIES, Option.WIDE_CHANNEL_POSTS)
         });
         map.put("CHAT_LIST", new Group[] {
@@ -62,7 +62,7 @@ public final class BananaExtrasCatalog {
         });
         map.put("MESSAGES", new Group[] {
                 new Group(R.string.BananaGroup_Display, Option.SHOW_MESSAGE_SECONDS, Option.SHOW_MESSAGE_ID, Option.SHOW_ORIGINAL_FORWARD_DATE, Option.EXACT_COUNTS, Option.SHOW_CHANNEL_FORWARD_COUNT, Option.AUTO_REVEAL_SPOILERS, Option.EXPAND_QUOTES, Option.POLL_RESULTS_BEFORE_VOTING, Option.HIDE_SERVICE_MESSAGES, Option.HIDE_GREETING_STICKER, Option.HIDE_VIA_BOT, Option.HIDE_BOT_AUTOMATION, Option.SHOW_PINNED_WITH_BOT, Option.MENTION_AVATARS, Option.SHOW_HIDDEN_ADMIN_BADGES),
-                new Group(R.string.BananaGroup_Composer, Option.CLEAN_TRACKING_LINKS, Option.REMOVE_LINK_PREVIEWS, Option.FIX_LINK_PREVIEWS, Option.COMMA_AFTER_MENTION, Option.AVATAR_LONG_PRESS_MENTION, Option.HASHTAGS_PREFER_CURRENT_CHAT, Option.SEND_BANNED_GIFS_AS_VIDEO, Option.DOUBLE_TAP_TO_EDIT, Option.QUICK_TRANSLATE_BUTTON, Option.HIDE_KEYBOARD_ON_CHAT_SCROLL, Option.HIDE_SEND_AS_BUTTON, Option.ANTI_CAPS, Option.HIDE_AI_FEATURES, Option.HIDE_RICH_TEXT_EDITOR),
+                new Group(R.string.BananaGroup_Composer, Option.CLEAN_TRACKING_LINKS, Option.REMOVE_LINK_PREVIEWS, Option.FIX_LINK_PREVIEWS, Option.COMMA_AFTER_MENTION, Option.AVATAR_LONG_PRESS_MENTION, Option.HASHTAGS_PREFER_CURRENT_CHAT, Option.SEND_BANNED_GIFS_AS_VIDEO, Option.DOUBLE_TAP_TO_EDIT, Option.QUICK_TRANSLATE_BUTTON, Option.TRANSLATE_BEFORE_SENDING, Option.TRANSLATION_FALLBACK, Option.HIDE_KEYBOARD_ON_CHAT_SCROLL, Option.HIDE_SEND_AS_BUTTON, Option.ANTI_CAPS, Option.HIDE_AI_FEATURES, Option.HIDE_RICH_TEXT_EDITOR),
                 new Group(R.string.BananaGroup_MessageMenu, Option.SAVE_TO_CLOUD_MENU, Option.COPY_PHOTO_MENU, Option.SELECT_FROM_AUTHOR, Option.REPEAT_MESSAGE_MENU, Option.JUMP_TO_START_IN_CHAT_MENU, Option.MESSAGE_BOOKMARKS, Option.MESSAGE_SHOT, Option.LOCAL_GROUP_ALIAS, Option.CONFIRM_UNPIN, Option.INVITE_LINKS_BULK_REVOKE, Option.MESSAGE_JSON_MENU),
                 new Group(R.string.BananaGroup_Reactions, Option.HIDE_REACTIONS_BAR, Option.USE_RECENT_EMOJI_IN_REACTIONS, Option.HIDE_PAID_REACTIONS, Option.HIDE_CHANNEL_POST_REACTIONS, Option.HIDE_STICKER_STATUS, Option.HIDE_STICKER_REPLY_COLORS, Option.HIDE_STICKER_REPLY_EMOJI, Option.HIDE_STICKER_REPLY_BACKGROUND, Option.HIDE_PREMIUM_REPLY_EMOJI, Option.HIDE_STICKER_CHECKS, Option.INFINITE_RECENT_STICKERS, Option.ONLY_ADDED_STICKERS, Option.SAVE_STICKER_TO_PHOTOS, Option.ANONYMOUS_STICKERS),
                 new Group(R.string.BananaGroup_Channels, Option.CHANNEL_BOTTOM_DISCUSS, Option.HIDE_CHANNEL_BOTTOM_BUTTON, Option.HIDE_SHARE_BUTTON, Option.SCROLL_TO_NEXT_CHAT_DISABLED, Option.DISABLE_GIFT_STARS_REDIRECT, Option.HIDE_GIFT_BUTTON)

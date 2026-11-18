@@ -1111,7 +1111,7 @@ public class TranslateController extends BaseController {
                         final int id = pendingTranslation1.messageIds.get(i);
                         final Utilities.Callback4<Boolean, Integer, TLRPC.TL_textWithEntities, String> _callback = pendingTranslation1.callbacks.get(i);
                         final String _text = pendingTranslation1.messageTexts.get(i).text;
-                        TranslateAlert2.alternativeTranslate(_text, null, toLanguage, (result, rateLimit) -> {
+                        org.telegram.messenger.banana.BananaTranslator.translate(currentAccount, _text, toLanguage, (result, rateLimit) -> {
                             if (result != null) {
                                 final TLRPC.TL_textWithEntities resultWithEntities = new TLRPC.TL_textWithEntities();
                                 resultWithEntities.text = result;
@@ -1176,7 +1176,7 @@ public class TranslateController extends BaseController {
                             final int id = ids.get(i);
                             final Utilities.Callback4<Boolean, Integer, TLRPC.TL_textWithEntities, String> _callback = callbacks.get(i);
                             final String _text = texts.get(i).text;
-                            TranslateAlert2.alternativeTranslate(_text, null, toLanguage, (result, rateLimit) -> {
+                            org.telegram.messenger.banana.BananaTranslator.translate(currentAccount, _text, toLanguage, (result, rateLimit) -> {
                                 if (result != null) {
                                     final TLRPC.TL_textWithEntities resultWithEntities = new TLRPC.TL_textWithEntities();
                                     resultWithEntities.text = result;
@@ -1190,6 +1190,23 @@ public class TranslateController extends BaseController {
                     } else if (err != null && "TO_LANG_INVALID".equals(err.text)) {
                         toggleTranslatingDialog(dialogId, false);
                         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.showBulletin, Bulletin.TYPE_ERROR, getString(R.string.TranslationFailedAlert2));
+                    } else if (org.telegram.messenger.banana.BananaTranslator.fallbackOrder(currentAccount).length > 0) {
+                        // Automatic Fallback: Telegram failed, try the other translators one text at a time.
+                        final int[] fallback = org.telegram.messenger.banana.BananaTranslator.fallbackOrder(currentAccount);
+                        for (int i = 0; i < ids.size(); ++i) {
+                            final int id = ids.get(i);
+                            final Utilities.Callback4<Boolean, Integer, TLRPC.TL_textWithEntities, String> _callback = callbacks.get(i);
+                            final String _text = texts.get(i).text;
+                            org.telegram.messenger.banana.BananaTranslator.translate(currentAccount, _text, toLanguage, fallback, (result, rateLimit) -> {
+                                if (result != null) {
+                                    final TLRPC.TL_textWithEntities resultWithEntities = new TLRPC.TL_textWithEntities();
+                                    resultWithEntities.text = result;
+                                    _callback.run(isTranscription, id, resultWithEntities, toLanguage);
+                                } else {
+                                    _callback.run(isTranscription, id, null, toLanguage);
+                                }
+                            });
+                        }
                     } else {
                         if (err != null && "QUOTA_EXCEEDED".equals(err.text)) {
                             NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.showBulletin, Bulletin.TYPE_ERROR, getString(R.string.TranslationFailedAlert1));

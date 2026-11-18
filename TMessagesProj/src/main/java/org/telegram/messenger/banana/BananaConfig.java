@@ -200,7 +200,11 @@ public final class BananaConfig {
         EQUALIZER_VIDEOS("bananaEqualizerVideos"),
         VOICE_CHANGER_ENABLED("bananaVoiceChangerEnabled"),
         ROUND_VIDEO_60_FPS("bananaRoundVideo60Fps"),
-        ROUND_VIDEO_MAXIMUM_QUALITY("bananaRoundVideoMaximumQuality");
+        ROUND_VIDEO_MAXIMUM_QUALITY("bananaRoundVideoMaximumQuality"),
+        TRANSLATION_FALLBACK("bananaTranslationFallback"),
+        TRANSLATE_BEFORE_SENDING("bananaTranslateBeforeSending"),
+        SAVE_MY_DELETED("bananaSaveMyDeleted"),
+        ENHANCED_POWER_SAVING("bananaEnhancedPowerSaving");
 
         public final String key;
         Option(String key) { this.key = key; }
@@ -442,6 +446,9 @@ public final class BananaConfig {
             editor.putInt(IntValue.DOUBLE_TAP_ACTION.key, enabled ? 6 : action == 6 ? IntValue.DOUBLE_TAP_ACTION.defaultValue : action);
         }
         editor.apply();
+        if (option == Option.ENHANCED_POWER_SAVING) {
+            BananaPowerSaving.apply(account, enabled);
+        }
         if (option == Option.EQUALIZER_ENABLED || option == Option.EQUALIZER_VIDEOS) {
             BananaEqualizer.publish(account);
         }
@@ -514,7 +521,9 @@ public final class BananaConfig {
         EDITED_MESSAGE_MARK("bananaEditedMessageMark", ""),
         VISUAL_PHONE_NUMBER("bananaVisualPhoneNumber", ""),
         /** One rule per line, "source = replacement" (OutgoingTextRules). */
-        TEXT_REPLACEMENT_RULES("bananaTextReplacementRules", "");
+        TEXT_REPLACEMENT_RULES("bananaTextReplacementRules", ""),
+        DEEPL_API_KEY("bananaDeeplApiKey", ""),
+        YANDEX_API_KEY("bananaYandexApiKey", "");
 
         public final String key;
         public final String defaultValue;
@@ -556,6 +565,10 @@ public final class BananaConfig {
         if ((value == StringValue.DELETED_MESSAGE_MARK || value == StringValue.EDITED_MESSAGE_MARK) && next.length() > 8) {
             // Never cut an emoji's surrogate pair in half.
             next = next.substring(0, Character.isHighSurrogate(next.charAt(7)) ? 7 : 8);
+        }
+        if (value == StringValue.DEEPL_API_KEY || value == StringValue.YANDEX_API_KEY) {
+            next = next.trim();
+            if (next.length() > TranslationPolicy.MAX_KEY) next = next.substring(0, TranslationPolicy.MAX_KEY);
         }
         if (value == StringValue.TEXT_REPLACEMENT_RULES && next.length() > 16384) {
             next = next.substring(0, 16384);
@@ -643,7 +656,8 @@ public final class BananaConfig {
             case TRANSCRIPTION_BACKEND:
                 return Math.max(0, Math.min(2, raw));
             case TRANSLATION_BACKEND:
-                return Math.max(0, Math.min(1, raw));
+                // 0 Telegram, 1 Google, 2 DeepL, 3 Yandex.
+                return Math.max(0, Math.min(3, raw));
             case LOCAL_VERIFICATION_BADGE:
                 return Math.max(0, Math.min(3, raw));
             case EQUALIZER_BAND_60:

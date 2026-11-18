@@ -865,8 +865,9 @@ public final class BananaHooks {
         return BananaConfig.translationBackend(account);
     }
 
+    /** Any backend other than Telegram's own translation (Google, DeepL, Yandex). */
     public static boolean preferAlternativeTranslation(int account) {
-        return translationBackend(account) == 1;
+        return translationBackend(account) != TranslationPolicy.TELEGRAM;
     }
 
     /** 0 Telegram default, 1 on-device (unlocks local transcription). */
@@ -1573,7 +1574,10 @@ public final class BananaHooks {
         android.content.SharedPreferences.Editor edit = prefs.edit().remove(BananaConfig.StringValue.VISUAL_PHONE_NUMBER.key)
                 // Consent to back up session keys belongs to the account that gave it, not to the
                 // slot: the next account signed in here must opt in itself.
-                .remove(BananaConfig.Option.SESSION_KEYCHAIN_BACKUP.key);
+                .remove(BananaConfig.Option.SESSION_KEYCHAIN_BACKUP.key)
+                // Translator keys belong to the account that entered them.
+                .remove(BananaConfig.StringValue.DEEPL_API_KEY.key)
+                .remove(BananaConfig.StringValue.YANDEX_API_KEY.key);
         for (String key : prefs.getAll().keySet()) {
             if (key.startsWith(LOCAL_ALIAS_KEY_PREFIX)) edit.remove(key);
         }

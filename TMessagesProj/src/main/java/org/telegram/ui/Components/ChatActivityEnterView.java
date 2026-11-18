@@ -5198,6 +5198,26 @@ public class ChatActivityEnterView extends FrameLayout implements
                 }
             });
         }
+        if (org.telegram.messenger.banana.TranslationPolicy.shouldOfferDraftTranslation(
+                org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.TRANSLATE_BEFORE_SENDING),
+                DialogObject.isEncryptedDialog(dialog_id), getFieldText())) {
+            final String bananaDraftLanguage = bananaDraftLanguage();
+            options.add(R.drawable.msg_translate, LocaleController.formatString(R.string.BananaTranslateDraftTo,
+                    TranslateAlert2.languageName(bananaDraftLanguage)), () -> {
+                if (messageSendPreview != null) {
+                    messageSendPreview.dismiss(true);
+                    messageSendPreview = null;
+                }
+                bananaTranslateDraft(bananaDraftLanguage);
+            });
+            options.add(R.drawable.msg_language, LocaleController.getString(R.string.BananaTranslateDraftChoose), () -> {
+                if (messageSendPreview != null) {
+                    messageSendPreview.dismiss(true);
+                    messageSendPreview = null;
+                }
+                bananaPickDraftLanguage();
+            });
+        }
         options.setupSelectors();
         if (sendWhenOnlineButton != null) {
             TLRPC.User user = parentFragment == null ? null : parentFragment.getCurrentUser();
@@ -10828,6 +10848,45 @@ public class ChatActivityEnterView extends FrameLayout implements
             return messageEditText.getText();
         }
         return null;
+    }
+
+    private String bananaDraftLanguage() {
+        String stored = MessagesController.getMainSettings(currentAccount).getString("bananaDraftTranslationLang" + dialog_id, null);
+        return stored != null ? stored : LocaleController.getInstance().getCurrentLocale().getLanguage();
+    }
+
+    private void bananaPickDraftLanguage() {
+        if (getContext() == null || parentFragment == null) return;
+        java.util.ArrayList<org.telegram.messenger.TranslateController.Language> languages = org.telegram.messenger.TranslateController.getLanguages();
+        CharSequence[] names = new CharSequence[languages.size()];
+        for (int i = 0; i < names.length; i++) names[i] = languages.get(i).displayName;
+        parentFragment.showDialog(new org.telegram.ui.ActionBar.AlertDialog.Builder(getContext(), resourcesProvider)
+                .setTitle(LocaleController.getString(R.string.BananaTranslateDraftChoose))
+                .setItems(names, (dialog, which) -> {
+                    String code = languages.get(which).code;
+                    MessagesController.getMainSettings(currentAccount).edit().putString("bananaDraftTranslationLang" + dialog_id, code).apply();
+                    bananaTranslateDraft(code);
+                }).create());
+    }
+
+    /** Replaces the draft with its translation if it is still the same text when the result arrives. */
+    private void bananaTranslateDraft(String language) {
+        CharSequence field = getFieldText();
+        if (field == null) return;
+        final String original = field.toString();
+        int[] order = org.telegram.messenger.banana.BananaTranslator.order(currentAccount);
+        if (order.length == 0) order = new int[]{org.telegram.messenger.banana.TranslationPolicy.GOOGLE};
+        org.telegram.messenger.banana.BananaTranslator.translate(currentAccount, original, language, order, (result, rateLimit) -> {
+            CharSequence now = getFieldText();
+            if (now == null || !original.equals(now.toString()) || parentFragment == null) return;
+            if (result == null) {
+                BulletinFactory.of(parentFragment).createErrorBulletin(LocaleController.getString(R.string.BananaTranslateDraftFailed)).show();
+                return;
+            }
+            setFieldText(result);
+            BulletinFactory.of(parentFragment).createSimpleBulletin(R.raw.msg_translate, LocaleController.getString(R.string.BananaTranslateDraftDone),
+                    LocaleController.getString(R.string.Undo), () -> setFieldText(original)).show();
+        });
     }
 
     public CharSequence getFieldText() {

@@ -111,9 +111,16 @@ public final class MessageHistory {
                         args.toArray());
                 // Per row: these rows are deleted right after this returns, so one message that fails
                 // to capture must not take the rest of the batch with it.
+                final boolean keepMine = BananaConfig.get(account, Option.SAVE_MY_DELETED);
                 while (cursor.next()) {
                     try {
-                        capture(source, account, cursor.longValue(0), decode(cursor.byteArrayValue(1)), true);
+                        long uid = cursor.longValue(0);
+                        TLRPC.Message deleted = decode(cursor.byteArrayValue(1));
+                        if (deleted != null && com.radolyn.ayugram.utils.AyuState.isDeletePermitted(uid, deleted.id)
+                                && !(keepMine && deleted.out)) {
+                            continue;
+                        }
+                        capture(source, account, uid, deleted, true);
                     } catch (Exception error) {
                         FileLog.e(error);
                     }

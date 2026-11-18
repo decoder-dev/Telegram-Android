@@ -45,6 +45,7 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     private static final int ID_REFRESH_RATE = 18;
     private static final int ID_GLASS_GLARE = 19;
     private static final int ID_TEXT_RULES = 20;
+    private static final int ID_DEEPL_KEY = 21, ID_YANDEX_KEY = 22;
     private static final int ID_EQ_FIRST = 30; // 30..34, one per band
     private static final int ID_VOICE_PRESET = 40, ID_VOICE_PITCH = 41, ID_VOICE_REVERB = 42, ID_VOICE_ECHO = 43;
     private static final int[] EQ_TITLES = {R.string.BananaVal_Eq60, R.string.BananaVal_Eq230, R.string.BananaVal_Eq910, R.string.BananaVal_Eq3600, R.string.BananaVal_Eq14000};
@@ -121,6 +122,14 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
 
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaValuesBackends)));
         items.add(cell(ID_TRANSLATION, R.string.BananaVal_TranslationBackend, translationLabel(BananaConfig.translationBackend(currentAccount))));
+        int translator = BananaConfig.translationBackend(currentAccount);
+        boolean fallback = BananaConfig.get(currentAccount, BananaConfig.Option.TRANSLATION_FALLBACK);
+        if (translator == 2 || fallback) {
+            items.add(cell(ID_DEEPL_KEY, R.string.BananaVal_DeeplKey, keyDisplay(BananaConfig.getString(currentAccount, StringValue.DEEPL_API_KEY))));
+        }
+        if (translator == 3 || fallback) {
+            items.add(cell(ID_YANDEX_KEY, R.string.BananaVal_YandexKey, keyDisplay(BananaConfig.getString(currentAccount, StringValue.YANDEX_API_KEY))));
+        }
         items.add(cell(ID_TRANSCRIPTION, R.string.BananaVal_TranscriptionBackend, transcriptionLabel(BananaConfig.transcriptionBackend(currentAccount))));
         items.add(UItem.asShadow(null));
 
@@ -231,8 +240,10 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
                 pickFrom(R.string.BananaVal_TranslationBackend, IntValue.TRANSLATION_BACKEND,
                         new CharSequence[]{
                                 LocaleController.getString(R.string.BananaVal_BackendDefault),
-                                LocaleController.getString(R.string.BananaVal_BackendSystem)
-                        }, new int[]{0, 1});
+                                LocaleController.getString(R.string.BananaVal_BackendGoogle),
+                                "DeepL",
+                                LocaleController.getString(R.string.BananaVal_BackendYandex)
+                        }, new int[]{0, 1, 2, 3});
                 break;
             case ID_TRANSCRIPTION:
                 pickFrom(R.string.BananaVal_TranscriptionBackend, IntValue.TRANSCRIPTION_BACKEND,
@@ -280,6 +291,12 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
             case ID_VOICE_ECHO:
                 pickLabeled(R.string.BananaVal_VoiceEcho, IntValue.VOICE_CHANGER_ECHO,
                         org.telegram.messenger.banana.VoicePresets.AMOUNT_CHOICES, BananaExtrasValuesActivity::amount);
+                break;
+            case ID_DEEPL_KEY:
+                editString(R.string.BananaVal_DeeplKey, StringValue.DEEPL_API_KEY, LocaleController.getString(R.string.BananaVal_ApiKey));
+                break;
+            case ID_YANDEX_KEY:
+                editString(R.string.BananaVal_YandexKey, StringValue.YANDEX_API_KEY, LocaleController.getString(R.string.BananaVal_ApiKey));
                 break;
             case ID_TEXT_RULES:
                 editString(R.string.BananaVal_TextReplacementRules, StringValue.TEXT_REPLACEMENT_RULES,
@@ -394,9 +411,13 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
         input.setBackgroundDrawable(Theme.createEditTextDrawable(getParentActivity(), true));
         input.setPadding(AndroidUtilities.dp(4), AndroidUtilities.dp(8), AndroidUtilities.dp(4), AndroidUtilities.dp(8));
         boolean multiline = value == StringValue.TEXT_REPLACEMENT_RULES;
+        boolean secret = value == StringValue.DEEPL_API_KEY || value == StringValue.YANDEX_API_KEY;
         input.setMaxLines(multiline ? 8 : 1);
         input.setSingleLine(!multiline);
-        if (multiline) {
+        if (secret) {
+            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(org.telegram.messenger.banana.TranslationPolicy.MAX_KEY)});
+        } else if (multiline) {
             input.setMinLines(3);
             input.setGravity(android.view.Gravity.TOP | android.view.Gravity.START);
             input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
@@ -496,7 +517,17 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     }
 
     private static String translationLabel(int value) {
-        return LocaleController.getString(value == 1 ? R.string.BananaVal_BackendSystem : R.string.BananaVal_BackendDefault);
+        switch (value) {
+            case 1: return LocaleController.getString(R.string.BananaVal_BackendGoogle);
+            case 2: return "DeepL";
+            case 3: return LocaleController.getString(R.string.BananaVal_BackendYandex);
+            default: return LocaleController.getString(R.string.BananaVal_BackendDefault);
+        }
+    }
+
+    /** A key is never shown, only whether one is set. */
+    private static String keyDisplay(String key) {
+        return key == null || key.trim().isEmpty() ? "—" : "••••";
     }
 
     private static String transcriptionLabel(int value) {

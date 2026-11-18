@@ -321,7 +321,7 @@ public class TranslateAlert2 extends BottomSheet implements NotificationCenter.N
         }
 
         final String method = MessagesController.getInstance(currentAccount).translationsManualEnabled;
-        if ("alternative".equalsIgnoreCase(method)) {
+        if ("alternative".equalsIgnoreCase(method) || org.telegram.messenger.banana.BananaHooks.preferAlternativeTranslation(currentAccount)) {
             translateAlt();
             return;
         }/* else if ("system".equalsIgnoreCase(method)) {
@@ -474,7 +474,7 @@ public class TranslateAlert2 extends BottomSheet implements NotificationCenter.N
         }
         final String toLng = _toLng;
 
-        alternativeTranslate(text, fromLng, toLng, (res, rateLimit) -> {
+        org.telegram.messenger.banana.BananaTranslator.translate(currentAccount, text, toLng, (res, rateLimit) -> {
             if (res != null) {
                 firstTranslation = false;
                 textView.setText(preprocessText(res));
