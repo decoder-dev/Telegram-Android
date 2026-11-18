@@ -334,6 +334,11 @@ public final class BananaHooks {
         return -1;
     }
 
+    /** Glass tab bar with icons only (ported from Cherrygram). */
+    public static boolean tabBarIconsOnly(int account) {
+        return BananaConfig.get(account, BananaConfig.Option.TAB_BAR_ICONS_ONLY);
+    }
+
     public static boolean hideTabBar(int account) {
         return BananaConfig.get(account, BananaConfig.Option.HIDE_TAB_BAR);
     }

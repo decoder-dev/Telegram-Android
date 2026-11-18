@@ -47,6 +47,15 @@ public class MainTabsLayout extends AnimatedLinearLayout {
     private static final int[] PASS_PADDINGS_DP = {16, 8, 4};
 
     private int maxWidthPx;
+    private boolean iconsOnly;
+
+    /** Tabs without titles: each one as wide as its icon with padding, and a shorter bar. */
+    public void setIconsOnly(boolean iconsOnly) {
+        if (this.iconsOnly != iconsOnly) {
+            this.iconsOnly = iconsOnly;
+            requestLayout();
+        }
+    }
 
     public void setMaxWidth(int maxWidthPx) {
         if (this.maxWidthPx != maxWidthPx) {
@@ -66,7 +75,7 @@ public class MainTabsLayout extends AnimatedLinearLayout {
         }
 
         final int maxTotalWidthForTabs = width - getPaddingLeft() - getPaddingRight();
-        final int minTotalWidthForTabs = Math.min(dp(320), maxTotalWidthForTabs);
+        final int minTotalWidthForTabs = Math.min(dp(iconsOnly ? 200 : 320), maxTotalWidthForTabs);
 
         int chosenPass = PASS_TEXT_SIZES_DP.length - 1;
         float lastMeasuredTextSize = -1;
@@ -90,6 +99,11 @@ public class MainTabsLayout extends AnimatedLinearLayout {
         }
 
         applyPassTextSize(chosenPass);
+        if (iconsOnly) {
+            for (int a = 0, N = getChildCount(); a < N; a++) {
+                if (isViewVisible(getChildAt(a))) tabsTextWidth[a] = Math.max(tabsTextWidth[a], dp(36));
+            }
+        }
 
         final int tabPadding = dp(PASS_PADDINGS_DP[chosenPass]);
         final int maxTabTextWidthIfEq = (maxTotalWidthForTabs / Math.max(1, visibleChildCount)) - tabPadding * 2;

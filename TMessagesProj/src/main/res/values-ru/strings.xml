@@ -634,6 +634,8 @@
     <string name="BananaMessageMenuDown">Ниже</string>
     <string name="BananaOpt_SAVE_FROM_NOTIFICATIONS">Сохранять из уведомлений</string>
     <string name="BananaOpt_PIN_BEYOND_LIMIT">Закреплять сверх лимита</string>
+    <string name="BananaOpt_TAB_BAR_ICONS_ONLY">Только значки на панели вкладок</string>
+    <string name="BananaValuesGlassInfo">Блики меняются у всех стеклянных элементов. Оттенок и кромки задают вид стеклянных пузырей. Стекло включается в «Оформлении» → «Включить жидкое стекло», значки без подписей — в разделе «Панель вкладок».</string>
     <string name="BananaOpt_ANTI_CAPS">Антикапс</string>
     <string name="BananaOpt_HIDE_EMPTY_REPLY_DRAFTS">Скрывать черновик пустого ответа</string>
     <string name="BananaOpt_SHOW_HIDDEN_ADMIN_BADGES">Показывать скрытых админов</string>
@@ -837,7 +839,7 @@
     <string name="BananaGlassHighlightsOff">Выключены</string>
     <string name="BananaGlassHighlightsDefault">По умолчанию</string>
     <string name="BananaGlassHighlightsOutline">Обводка</string>
-    <string name="BananaValuesGlass">Стеклянные пузыри</string>
+    <string name="BananaValuesGlass">Жидкое стекло</string>
     <string name="BananaValuesMedia">Медиа</string>
     <string name="BananaValuesMessages">Сообщения</string>
     <string name="BananaValuesBackends">Движки</string>

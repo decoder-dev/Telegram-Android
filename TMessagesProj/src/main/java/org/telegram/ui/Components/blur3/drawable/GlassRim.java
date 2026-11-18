@@ -86,6 +86,17 @@ public final class GlassRim {
         return new GlassRim(lightAngle, topWidth, topColor, bottomWidth, bottomColor, ringWidth, ringColor, ringTop, ringBottom, ringSides, ringExp, strokeWidth, strokeColor);
     }
 
+    /**
+     * This rim with its light taken out (Cherrygram's glare settings): the crescents go, an even outline stays, since
+     * some controls are drawn by it alone, and an optional even stroke goes inside the edge.
+     */
+    public GlassRim withoutHighlights(float strokeWidth, int strokeColor) {
+        final boolean keepRing = isEvenRing();
+        return new GlassRim(LIGHT_TOP, 0, 0, 0, 0,
+            keepRing ? ringWidth : 0, keepRing ? ringColor : 0, 1, 1, 1, 0,
+            strokeWidth, strokeColor);
+    }
+
     boolean hasStroke() {
         return strokeWidth > 0.05f && (strokeColor >>> 24) != 0;
     }

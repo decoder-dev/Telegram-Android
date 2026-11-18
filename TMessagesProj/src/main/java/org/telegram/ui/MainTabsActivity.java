@@ -336,6 +336,10 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         tabs[INDEX_CONTACTS].setOnLongClickListener(this::openContactsSelector);
         tabs[INDEX_CALLS].setOnLongClickListener(this::openCallsSelector);
         tabs[INDEX_PROFILE].setOnLongClickListener(this::openAccountSelector);
+        if (org.telegram.messenger.banana.BananaHooks.tabBarIconsOnly(currentAccount)) {
+            for (GlassTabView tab : tabs) tab.setIconsOnly();
+            tabsView.setIconsOnly(true);
+        }
 
         tabsView.addTabToIgnoreClick(tabs[INDEX_CHATS]);
         tabsView.addTabToIgnoreClick(tabs[INDEX_CONTACTS]);

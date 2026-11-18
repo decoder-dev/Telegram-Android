@@ -206,7 +206,8 @@ public final class BananaConfig {
         SAVE_MY_DELETED("bananaSaveMyDeleted"),
         ENHANCED_POWER_SAVING("bananaEnhancedPowerSaving"),
         SAVE_FROM_NOTIFICATIONS("bananaSaveFromNotifications"),
-        PIN_BEYOND_LIMIT("bananaPinBeyondLimit");
+        PIN_BEYOND_LIMIT("bananaPinBeyondLimit"),
+        TAB_BAR_ICONS_ONLY("bananaTabBarIconsOnly");
 
         public final String key;
         Option(String key) { this.key = key; }

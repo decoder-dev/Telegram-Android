@@ -449,6 +449,22 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         return tab;
     }
 
+    /**
+     * Icons only, as Cherrygram's tab bar without titles: the title stays for accessibility, and with no text the
+     * tab measures as its icon alone.
+     */
+    public void setIconsOnly() {
+        setContentDescription(textView.getText());
+        textView.setText("");
+        textView.setVisibility(GONE);
+        if (backupImageView != null) {
+            backupImageView.setLayoutParams(LayoutHelper.createFrame(24, 24, Gravity.CENTER));
+            backupImageView.setRoundRadius(dp(12));
+        } else {
+            imageView.setLayoutParams(LayoutHelper.createFrame(26, 26, Gravity.CENTER));
+        }
+    }
+
     public void updateUserAvatar(int currentAccount) {
         TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(UserConfig.getInstance(currentAccount).getClientUserId());
         AvatarDrawable avatarDrawable = new AvatarDrawable(user);

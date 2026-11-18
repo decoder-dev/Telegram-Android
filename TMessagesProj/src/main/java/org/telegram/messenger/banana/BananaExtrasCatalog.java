@@ -58,7 +58,7 @@ public final class BananaExtrasCatalog {
                 new Group(R.string.BananaGroup_Folders, Option.COMPACT_FOLDER_NAMES, Option.HIDE_ALL_CHATS, Option.REMEMBER_LAST_FOLDER, Option.HIDE_FOLDER_UNREAD_COUNT, Option.CHOOSE_FOLDER_AFTER_JOIN)
         });
         map.put("TAB_BAR", new Group[] {
-                new Group(0, Option.WIDE_TAB_BAR, Option.INTEGRATED_TAB_SEARCH, Option.TAB_SEARCH_ON_LEFT, Option.BOTTOM_CHAT_FOLDERS_ENABLED, Option.SHOW_CONTACTS_TAB, Option.HIDE_TAB_BAR)
+                new Group(0, Option.WIDE_TAB_BAR, Option.INTEGRATED_TAB_SEARCH, Option.TAB_SEARCH_ON_LEFT, Option.BOTTOM_CHAT_FOLDERS_ENABLED, Option.SHOW_CONTACTS_TAB, Option.TAB_BAR_ICONS_ONLY, Option.HIDE_TAB_BAR)
         });
         map.put("MESSAGES", new Group[] {
                 new Group(R.string.BananaGroup_Display, Option.SHOW_MESSAGE_SECONDS, Option.SHOW_MESSAGE_ID, Option.SHOW_ORIGINAL_FORWARD_DATE, Option.EXACT_COUNTS, Option.SHOW_CHANNEL_FORWARD_COUNT, Option.AUTO_REVEAL_SPOILERS, Option.EXPAND_QUOTES, Option.POLL_RESULTS_BEFORE_VOTING, Option.HIDE_SERVICE_MESSAGES, Option.HIDE_GREETING_STICKER, Option.HIDE_VIA_BOT, Option.HIDE_BOT_AUTOMATION, Option.SHOW_PINNED_WITH_BOT, Option.MENTION_AVATARS, Option.SHOW_HIDDEN_ADMIN_BADGES),

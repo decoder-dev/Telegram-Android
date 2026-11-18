@@ -181,7 +181,7 @@ public final class BananaExtrasSectionActivity extends BananaSettingsFragment {
             if (option == Option.HIDE_ONLINE || option == Option.OFFLINE_AFTER_ACTIVITY) {
                 Utilities.stageQueue.postRunnable(() -> getMessagesController().updateTimerProc());
             }
-            if (option == Option.GLASS_BUBBLES) {
+            if (option == Option.GLASS_BUBBLES || option == Option.TAB_BAR_ICONS_ONLY) {
                 Theme.reloadAllResources(getParentActivity());
                 if (parentLayout != null) parentLayout.rebuildAllFragmentViews(true, true);
                 return;

@@ -311,7 +311,8 @@ public final class GlassRimRenderer {
             g.offsetY = Math.round(cos * t * 8) / 8f;
             g.ringWidth = g.angle = g.ringTop = g.ringBottom = g.ringSides = g.ringExp = 0;
         }
-        final float ox = Math.abs(g.offsetX), oy = Math.abs(g.offsetY);
+        final float sw = layer == STROKE ? rim.strokeWidth : 0;
+        final float ox = Math.abs(g.offsetX) + sw, oy = Math.abs(g.offsetY) + sw;
         g.cornerL = (int) Math.ceil(Math.max(radii[0], radii[6]) + ox) + 1;
         g.cornerR = (int) Math.ceil(Math.max(radii[2], radii[4]) + ox) + 1;
         g.cornerT = (int) Math.ceil(Math.max(radii[1], radii[3]) + oy) + 1;

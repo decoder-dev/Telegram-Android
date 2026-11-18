@@ -163,6 +163,24 @@ CI run 43539172965 (failed on all four APIs) was a real regression in
 | ID | Sev | Fix |
 |---|---|---|
 
+## Liquid glass port from Cherrygram (2026-11-18)
+
+Source: arsLan4k1390/Cherrygram at 8c66eb51f (GPL v2 or later, like this tree). Its glass engine
+(`utils/glass`, `blur3`, the AGSL shaders, `GlassTabView`) is the same upstream Telegram code that this fork
+already has; ours carries newer fixes (display-list release on rebuild, generation ids for wallpaper sources).
+What Cherrygram adds on top, and what happened to each piece:
+
+| Cherrygram | Here |
+|---|---|
+| Glare effects: Disable / Default / Stroke | Already ported as Glass highlights. Now Off and Outline keep an even outline ring, as in Cherrygram, instead of removing every rim (`GlassRim.withoutHighlights`, `GlassRimTest`). |
+| Inner stroke sized into the rim slices (`GlassRimRenderer`) | Ported: a thick stroke's corners were cut where the nine-patch stretches. |
+| Live chat header and composer preview in the glare settings | Ported as `BananaGlassPreviewView` at the top of Extras → Values → Liquid glass, with the highlight choice. The header is Cherrygram's; the composer is drawn from glass capsules, since Cherrygram's builds on its own `ChatActivityEnterView` changes. |
+| Main tabs without titles | Ported as Tab bar → Icons only in tab bar (`TAB_BAR_ICONS_ONLY`). |
+| Main tab order, profile tab, open settings by swipe, force-open chats, folders in the bar | Not glass; this fork already has its own tab bar options. Not ported. |
+| Blurred message menu background | A different message menu gated by Cherrygram's donation check, not glass. Not ported. |
+
+Verification: JVM tests and compile in CI; Extras screenshots on API 33–36. Not checked on a phone.
+
 ## Open (confirmed, not fixed in this pass)
 
 | ID | Sev | Where | Issue | Why not fixed yet |

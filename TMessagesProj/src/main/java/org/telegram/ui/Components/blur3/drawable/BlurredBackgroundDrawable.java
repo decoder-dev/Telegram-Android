@@ -350,8 +350,9 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
     private final GlassRimRenderer rimRenderer = new GlassRimRenderer();
     @Nullable private GlassRim rim;
     @Nullable private GlassRim rimFromColors;
-    @Nullable private GlassRim outlineRimSource;
-    @Nullable private GlassRim outlineRim;
+    @Nullable private GlassRim plainRimSource;
+    @Nullable private GlassRim plainRim;
+    @Nullable private BananaConfig.GlassGlare plainRimGlare;
     private float lightAngle = GlassRim.LIGHT_TOP;
 
     /** A rim of its own (e.g. {@link GlassRim#qrBig()}); null for the crescents and the outline of the color provider. */
@@ -403,23 +404,24 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
 
     private void drawRim(Canvas canvas, float alpha) {
         final BananaConfig.GlassGlare glare = BananaConfig.glassGlare();
-        if (glare == BananaConfig.GlassGlare.OFF) {
-            return;
-        }
         GlassRim drawnRim = getRim();
-        if (glare == BananaConfig.GlassGlare.OUTLINE) {
-            if (outlineRimSource != drawnRim) {
-                outlineRimSource = drawnRim;
-                // Rims built from an outline keep their visible colour in ringColor: without it the
-                // outline fell through to a transparent topColor and the edge disappeared.
-                int color = Color.alpha(drawnRim.bottomColor) != 0 ? drawnRim.bottomColor
-                    : Color.alpha(drawnRim.strokeColor) != 0 ? drawnRim.strokeColor
-                    : Color.alpha(drawnRim.ringColor) != 0 ? drawnRim.ringColor : drawnRim.topColor;
-                // Cherrygram's even 1 dp inner stroke, drawn with the newer shape/arrow renderer.
-                outlineRim = new GlassRim(drawnRim.lightAngle, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    dpf2(1), color);
+        if (glare != BananaConfig.GlassGlare.DEFAULT) {
+            if (plainRimSource != drawnRim || plainRimGlare != glare) {
+                plainRimSource = drawnRim;
+                plainRimGlare = glare;
+                if (glare == BananaConfig.GlassGlare.OUTLINE) {
+                    // Rims built from an outline keep their visible colour in ringColor: without it the
+                    // outline fell through to a transparent topColor and the edge disappeared.
+                    int color = Color.alpha(drawnRim.bottomColor) != 0 ? drawnRim.bottomColor
+                        : Color.alpha(drawnRim.strokeColor) != 0 ? drawnRim.strokeColor
+                        : Color.alpha(drawnRim.ringColor) != 0 ? drawnRim.ringColor : drawnRim.topColor;
+                    // Cherrygram's even 1 dp inner stroke, drawn with the newer shape/arrow renderer.
+                    plainRim = drawnRim.withoutHighlights(dpf2(1), color);
+                } else {
+                    plainRim = drawnRim.withoutHighlights(0, 0);
+                }
             }
-            drawnRim = outlineRim;
+            drawnRim = plainRim;
         }
         final Rect r = boundProps.boundsWithPadding;
         if (boundProps.hasArrow()) {

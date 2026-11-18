@@ -44,6 +44,8 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     private static final int ID_VISUAL_PHONE = 17;
     private static final int ID_REFRESH_RATE = 18;
     private static final int ID_GLASS_GLARE = 19;
+    private static final int ID_GLASS_PREVIEW = 23;
+    private org.telegram.ui.Components.BananaGlassPreviewView glassPreview;
     private static final int ID_TEXT_RULES = 20;
     private static final int ID_DEEPL_KEY = 21, ID_YANDEX_KEY = 22;
     private static final int ID_EQ_FIRST = 30; // 30..34, one per band
@@ -92,18 +94,27 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
         float refresh = org.telegram.messenger.MessagesController.getGlobalMainSettings().getFloat(
                 org.telegram.messenger.banana.RefreshRatePolicy.KEY, -1f);
         items.add(cell(ID_REFRESH_RATE, R.string.BananaRefreshRate, refreshRateLabel(refresh)));
-        items.add(cell(ID_GLASS_GLARE, R.string.BananaGlassHighlights, glassGlareLabel(BananaConfig.glassGlare())));
         items.add(cell(ID_ACCENT, R.string.BananaVal_AccentSaturation, percent(BananaConfig.accentColorSaturation(currentAccount))));
         items.add(cell(ID_STICKER_SIZE, R.string.BananaVal_StickerSize, percent(BananaConfig.stickerSizePercent(currentAccount))));
         items.add(cell(ID_STICKER_SHAPE, R.string.BananaVal_StickerShape, stickerShapeLabel(BananaConfig.stickerShape(currentAccount))));
         items.add(UItem.asShadow(null));
 
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaValuesGlass)));
+        if (glassPreview == null && getContext() != null) {
+            // The chat's own theme, not the Extras palette: this is how the glass will look in chats.
+            glassPreview = new org.telegram.ui.Components.BananaGlassPreviewView(getContext(), this, currentAccount, null);
+        }
+        if (glassPreview != null) {
+            UItem preview = UItem.asCustom(ID_GLASS_PREVIEW, glassPreview);
+            preview.intValue = AndroidUtilities.dp(org.telegram.ui.Components.BananaGlassPreviewView.HEIGHT_DP);
+            items.add(preview);
+        }
+        items.add(cell(ID_GLASS_GLARE, R.string.BananaGlassHighlights, glassGlareLabel(BananaConfig.glassGlare())));
         items.add(cell(ID_GLASS_TINT, R.string.BananaVal_GlassTint, percent(BananaConfig.glassBubbleTint(currentAccount))));
         items.add(cell(ID_GLASS_TOP, R.string.BananaVal_GlassRimTop, percent(BananaConfig.glassBubbleRimTop(currentAccount))));
         items.add(cell(ID_GLASS_SIDES, R.string.BananaVal_GlassRimSides, percent(BananaConfig.glassBubbleRimSides(currentAccount))));
         items.add(cell(ID_GLASS_BOTTOM, R.string.BananaVal_GlassRimBottom, percent(BananaConfig.glassBubbleRimBottom(currentAccount))));
-        items.add(UItem.asShadow(null));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.BananaValuesGlassInfo)));
 
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaValuesMedia)));
         items.add(cell(ID_PHOTO_QUALITY, R.string.BananaVal_OutgoingPhotoQuality, photoQualityLabel(BananaConfig.outgoingPhotoQuality(currentAccount))));
@@ -341,6 +352,7 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
                 .setItems(labels, (dialog, which) -> {
                     if (which < 0 || which >= modes.length) return;
                     BananaConfig.setGlassGlare(modes[which]);
+                    if (glassPreview != null) glassPreview.invalidate();
                     if (listView != null) listView.adapter.update(true);
                     if (getParentActivity() instanceof LaunchActivity) {
                         ((LaunchActivity) getParentActivity()).rebuildAllFragments(true);
