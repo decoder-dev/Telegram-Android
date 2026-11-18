@@ -42,25 +42,34 @@ public final class BananaTranslator {
                 TranslationPolicy.hasKey(BananaConfig.getString(account, BananaConfig.StringValue.YANDEX_API_KEY)));
     }
 
-    /** Same callback contract as TranslateAlert2.alternativeTranslate: on the UI thread, (text or null, rate limited). */
+    /**
+     * Same callback contract as TranslateAlert2.alternativeTranslate: on the UI thread, (text or null,
+     * rate limited). These callers used Google before; with Telegram chosen and no fallback they still do.
+     */
     public static void translate(int account, String text, String toLng, Utilities.Callback2<String, Boolean> done) {
-        translate(account, text, toLng, order(account), done);
+        translateFrom(account, text, null, toLng, done);
+    }
+
+    public static void translateFrom(int account, String text, String fromLng, String toLng, Utilities.Callback2<String, Boolean> done) {
+        int[] order = order(account);
+        if (order.length == 0) order = new int[]{TranslationPolicy.GOOGLE};
+        next(account, text, fromLng, toLng, order, 0, false, done);
     }
 
     public static void translate(int account, String text, String toLng, int[] order, Utilities.Callback2<String, Boolean> done) {
-        next(account, text, toLng, order, 0, false, done);
+        next(account, text, null, toLng, order, 0, false, done);
     }
 
-    private static void next(int account, String text, String toLng, int[] order, int index, boolean limited, Utilities.Callback2<String, Boolean> done) {
+    private static void next(int account, String text, String fromLng, String toLng, int[] order, int index, boolean limited, Utilities.Callback2<String, Boolean> done) {
         if (index >= order.length) {
             done.run(null, limited);
             return;
         }
         int backend = order[index];
         if (backend == TranslationPolicy.GOOGLE) {
-            TranslateAlert2.alternativeTranslate(text, null, toLng, (result, rateLimit) -> {
+            TranslateAlert2.alternativeTranslate(text, fromLng, toLng, (result, rateLimit) -> {
                 if (result != null) done.run(result, false);
-                else next(account, text, toLng, order, index + 1, limited || Boolean.TRUE.equals(rateLimit), done);
+                else next(account, text, fromLng, toLng, order, index + 1, limited || Boolean.TRUE.equals(rateLimit), done);
             });
             return;
         }
@@ -78,7 +87,7 @@ public final class BananaTranslator {
             final String translated = result;
             AndroidUtilities.runOnUIThread(() -> {
                 if (translated != null && !translated.isEmpty()) done.run(translated, false);
-                else next(account, text, toLng, order, index + 1, limited || rateLimit[0], done);
+                else next(account, text, fromLng, toLng, order, index + 1, limited || rateLimit[0], done);
             });
         });
     }

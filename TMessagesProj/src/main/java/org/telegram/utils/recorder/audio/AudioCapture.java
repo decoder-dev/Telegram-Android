@@ -260,6 +260,7 @@ final class AudioCapture {
                 throw new IllegalStateException("Unable to initialize native Opus recorder");
             }
             voiceChain = org.telegram.messenger.banana.BananaVoiceChanger.createArmed(SAMPLE_RATE);
+            org.telegram.messenger.banana.BananaVoiceChanger.arm(-1);
             if (noiseSuppression == AudioRecordingSession.NoiseSuppression.RNNOISE) {
                 noiseSuppressor = AudioNoiseSuppressor.create();
                 if (noiseSuppressor == null) {

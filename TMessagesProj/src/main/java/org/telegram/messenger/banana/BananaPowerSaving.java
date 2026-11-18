@@ -15,6 +15,7 @@ import org.telegram.ui.Components.AnimatedEmojiDrawable;
 public final class BananaPowerSaving {
     private static final String LITE = "bananaEnhancedPowerSavingLite";
     private static final String EFFECTS = "bananaEnhancedPowerSavingEffects";
+    private static final String ACCOUNT = "bananaEnhancedPowerSavingAccount";
 
     private BananaPowerSaving() {}
 
@@ -28,7 +29,7 @@ public final class BananaPowerSaving {
                     BananaConfig.get(account, BananaConfig.Option.SNOW_ENABLED),
                     BananaConfig.get(account, BananaConfig.Option.AVATAR_GLOW_ENABLED),
                     BananaConfig.get(account, BananaConfig.Option.REACTION_GLOW_ENABLED));
-            global.edit().putInt(LITE, current).putInt(EFFECTS, effects).apply();
+            global.edit().putInt(LITE, current).putInt(EFFECTS, effects).putInt(ACCOUNT, account).apply();
             LiteMode.setAllFlags(PowerSavingSnapshot.liteWhenEnabled(current));
             BananaConfig.set(account, BananaConfig.Option.SNOW_ENABLED, false);
             BananaConfig.set(account, BananaConfig.Option.AVATAR_GLOW_ENABLED, false);
@@ -36,8 +37,11 @@ public final class BananaPowerSaving {
         } else {
             if (snapshot == PowerSavingSnapshot.NONE) return;
             int effects = global.getInt(EFFECTS, 0);
+            // Snow and glow are per account: give them back to the account they were saved from.
+            int saved = global.getInt(ACCOUNT, account);
+            if (saved >= 0 && saved < org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT) account = saved;
             LiteMode.setAllFlags(PowerSavingSnapshot.liteWhenDisabled(LiteMode.getValue(true), snapshot));
-            global.edit().remove(LITE).remove(EFFECTS).apply();
+            global.edit().remove(LITE).remove(EFFECTS).remove(ACCOUNT).apply();
             BananaConfig.set(account, BananaConfig.Option.SNOW_ENABLED, (effects & PowerSavingSnapshot.SNOW) != 0);
             BananaConfig.set(account, BananaConfig.Option.AVATAR_GLOW_ENABLED, (effects & PowerSavingSnapshot.AVATAR_GLOW) != 0);
             BananaConfig.set(account, BananaConfig.Option.REACTION_GLOW_ENABLED, (effects & PowerSavingSnapshot.REACTION_GLOW) != 0);

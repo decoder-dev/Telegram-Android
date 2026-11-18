@@ -235,6 +235,9 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
     }
 
     private void ensurePlayerCreated() {
+        if (player == null && bananaEqualizerKind != org.telegram.messenger.banana.EqualizerDsp.KIND_NONE) {
+            org.telegram.messenger.banana.BananaEqualizer.publish(org.telegram.messenger.UserConfig.selectedAccount);
+        }
         DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
             .setAllocator(new DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE))
             .setBufferDurationsMs(

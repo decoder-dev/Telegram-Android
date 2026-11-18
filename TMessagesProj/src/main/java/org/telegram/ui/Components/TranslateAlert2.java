@@ -474,7 +474,7 @@ public class TranslateAlert2 extends BottomSheet implements NotificationCenter.N
         }
         final String toLng = _toLng;
 
-        org.telegram.messenger.banana.BananaTranslator.translate(currentAccount, text, toLng, (res, rateLimit) -> {
+        org.telegram.messenger.banana.BananaTranslator.translateFrom(currentAccount, text, fromLng, toLng, (res, rateLimit) -> {
             if (res != null) {
                 firstTranslation = false;
                 textView.setText(preprocessText(res));

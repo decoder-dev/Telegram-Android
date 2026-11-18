@@ -419,7 +419,9 @@ public final class BananaConfig {
     }
 
     public static boolean get(int account, Option option) {
-        SharedPreferences prefs = MessagesController.getMainSettings(account);
+        // Enhanced Power Saving changes app-wide LiteMode settings, so it is one switch for every account.
+        SharedPreferences prefs = option == Option.ENHANCED_POWER_SAVING
+                ? MessagesController.getGlobalMainSettings() : MessagesController.getMainSettings(account);
         if (option == Option.MESSAGE_BOOKMARKS) migrateBookmarks(prefs);
         // Preserve a legacy global ad preference only as the initial value of an unset slot.
         // An explicit account switch must override it in both directions.
@@ -439,7 +441,8 @@ public final class BananaConfig {
     }
 
     public static void set(int account, Option option, boolean enabled) {
-        SharedPreferences prefs = MessagesController.getMainSettings(account);
+        SharedPreferences prefs = option == Option.ENHANCED_POWER_SAVING
+                ? MessagesController.getGlobalMainSettings() : MessagesController.getMainSettings(account);
         if (option == Option.MESSAGE_BOOKMARKS) migrateBookmarks(prefs);
         SharedPreferences.Editor editor = prefs.edit().putBoolean(option.key, enabled);
         if (option == Option.DOUBLE_TAP_TO_EDIT) {
