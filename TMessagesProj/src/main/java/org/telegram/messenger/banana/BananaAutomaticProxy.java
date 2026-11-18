@@ -512,16 +512,32 @@ public final class BananaAutomaticProxy {
             }
             SharedConfig.ProxyInfo info = find(oldKey);
             if (info != null && info != SharedConfig.currentProxy) {
-                SharedConfig.deleteProxy(info);
+                // deleteProxy() for a route that is not current is a removal plus a full list
+                // write; with up to 40 stale and 40 new routes that was ~80 writes on this thread.
+                SharedConfig.proxyList.remove(info);
             }
         }
         List<SharedConfig.ProxyInfo> added = new ArrayList<>();
         for (ProxySettings settings : automatic) {
-            added.add(SharedConfig.addProxy(new SharedConfig.ProxyInfo(settings)));
+            added.add(addWithoutSaving(settings));
         }
+        SharedConfig.saveProxyList();
         saveKeys(nextKeys);
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
         startProbe(added);
+    }
+
+    /** SharedConfig.addProxy without its per-call list write; the caller saves once. */
+    private static SharedConfig.ProxyInfo addWithoutSaving(ProxySettings settings) {
+        for (int i = 0; i < SharedConfig.proxyList.size(); i++) {
+            SharedConfig.ProxyInfo info = SharedConfig.proxyList.get(i);
+            if (java.util.Objects.equals(settings, info.settings)) {
+                return info;
+            }
+        }
+        SharedConfig.ProxyInfo info = new SharedConfig.ProxyInfo(settings);
+        SharedConfig.proxyList.add(0, info);
+        return info;
     }
 
     private static boolean containsSettings(List<ProxySettings> list, ProxySettings settings) {
