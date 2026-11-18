@@ -139,6 +139,30 @@ CI run 43539172965 (failed on all four APIs) was a real regression in
 - Fix: these edits go through `saveRules`, which reports the error. The import preview checks the
   merged size before offering Apply. · Commit: see git log
 
+### BUG-036: recorded round videos never sent ("!" and Retry fails at once)
+- Severity: P1 (core messaging feature broken on rc.17) · Subsystem: uploads / Telegram 13.2 round recorder
+- Files: `AndroidUtilities.isInternalUri` (fork-hardened), `FileUploadOperation.startUploadRequest`,
+  `InstantCameraView2` (`setOutputDirectory(files/cache)`)
+- Observed (owner's screen recording, rc.17): a recorded round shows a black preview and a red
+  "!", and Retry fails immediately.
+- Root cause:
+  - The fork tightened the app-private upload check to refuse everything under the data
+    directory except `cacheDir` and `no_backup/ayu-attachments`.
+  - Telegram 13.2's new round recorder writes into `files/cache/`, and the camera into
+    `files/camera_tmp.mp4`.
+  - `FileUploadOperation` checks the open descriptor and throws "trying to upload internal file",
+    so the upload fails and the message is marked as failed.
+  - Official Telegram only matches `/data/data/<pkg>`, which a canonical path never contains, so
+    it never refused these.
+- Fix: allow `files/cache/`, `camera_tmp.mp4` and the `*thumb.jpg` previews. Everything else stays
+  refused (databases, `tgnet.dat`, prefs).
+- Regression test: `PrivateUriTest.recordedRoundVideosAndCameraOutputCanBeUploaded` (emulator suite).
+- Runtime verification: not run on a device. The diagnosis is from code, not from logs.
+
+### Second batch (2026-11-18)
+| ID | Sev | Fix |
+|---|---|---|
+
 ## Open (confirmed, not fixed in this pass)
 
 | ID | Sev | Where | Issue | Why not fixed yet |
@@ -147,20 +171,8 @@ CI run 43539172965 (failed on all four APIs) was a real regression in
 | BUG-015 | P2 | `ChatActivity` OPTION_TTL → `markMessageAsRead2` / `SecretChatHelper` | With "Don't read messages" on, the explicit "TTL" action arms local self-destruct, but the read never reaches the server. | Needs a `force` path through core read methods; needs authenticated testing. |
 | BUG-016 | P2 | `MessageHistory`, `UserConfig.clearConfig` | The deleted/edited-message archive and up to 512 MB of media per owner are never wiped on logout. | Product decision (keep or wipe on logout). |
 | BUG-017 | P2 | `SavedAttachments` / `HistoryDatabase.rememberMedia` | Once speculative proactive downloads fill the 512 MB budget, no media is saved again. | Needs an eviction policy plus SQLite tests on device. |
-| BUG-018 | P2 | `BananaAutomaticProxy` | No backoff when every stored route is dead: about 40 dials plus list fetches every 1–2 minutes. | Needs a schedule in `ProxyRoutePolicy` with tests. |
 | BUG-019 | P3 | `.github/workflows/android.yml` | CI never runs a minified (R8) build; `a123c54f7` was such a regression. | CI design change. |
 | BUG-020 | P3 | `BananaArchiveLock` biometrics | Unlock ignores the authenticated `CryptoObject` (bypassable with root or Frida). | Low impact; needs device testing. |
-| BUG-021 | P3 | `BananaConfig.suppressActivity`, `BananaHooks` | The master "Don't send typing" overrides its three child switches and drops group-call "speaking". | UI semantics. |
-| BUG-022 | P3 | `GhostPolicy` / Extras | "Go offline right away" does nothing unless "Don't send online status" is on. | UI dependency. |
-| BUG-023 | P3 | `ChatActivity` "Read until" | Sends `messages.readHistory` to Saved Messages for secret chats. | Needs authenticated testing. |
-| BUG-024 | P3 | `ProxyRoutePolicy.Trouble` / `AutomaticProxyOffer` | The `dropping` flag never clears, so the offer can appear on a healthy connection. | |
-| BUG-025 | P3 | `ProxyListActivity` row tap | Rotation can override a proxy the user just picked. | |
-| BUG-026 | P3 | `ProxySettingsActivity` | Enabling Auto from the offer while editing discards the saved proxy. | |
-| BUG-027 | P3 | `BananaAutomaticProxy.applyPool` | About 80 full proxy-list writes per refresh on the UI thread. | |
-| BUG-028 | P3 | `BananaMediaConverter`, `BananaVideoDownloadService` | Temporary outputs are never swept after process death; cancel does not cancel the Telegram download. | |
-| BUG-029 | P3 | `BananaOfflineVoice` | A second model-download request reports failure while the first is still running. | |
 | BUG-030 | P3 | `LaunchActivity` `tg://xiaomi` | Any link opens the system uninstall dialog on MIUI (AyuGram easter egg). | Removing a fork feature needs the owner's approval. |
 | BUG-031 | P3 | `AndroidManifest.xml` | `enableOnBackInvokedCallback` was removed, so predictive back is inert on API 33–35. | Behaviour change; needs UI checks. |
-| BUG-032 | P3 | `BananaGlowCache` | The cache key ignores padding and shadow radius after a runtime density change. | |
-| BUG-033 | P3 | `BlurredBackgroundDrawable` "Outline" | The colour fallback ignores `ringColor`, so the edge can be invisible. | |
 | BUG-034 | P3 | `DialogCell` / `MessageFilters.notifyChanged` | Banana filters do not apply to chat-list previews, yet every batch reloads the dialogs. | Product decision. |
