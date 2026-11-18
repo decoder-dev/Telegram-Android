@@ -1203,6 +1203,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
     private Runnable recordStartRunnable;
     private DispatchQueue2 recordQueue;
     private DispatchQueue2 fileEncodingQueue;
+    // Voice changer chain of the current recording (null when off); used on the record queue.
+    private volatile org.telegram.messenger.banana.VoiceChain bananaVoiceChain;
+
     private Runnable recordRunnable = new Runnable() {
         @Override
         public void run() {
@@ -1219,6 +1222,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 int len = audioRecorder.read(buffer, buffer.capacity());
                 if (len > 0) {
                     buffer.limit(len);
+                    org.telegram.messenger.banana.BananaVoiceChanger.process(bananaVoiceChain, buffer, len);
                     double sum = 0;
                     try {
                         long newSamplesCount = samplesCount + len / 2;
@@ -3652,6 +3656,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                             emojiSoundPlayer.releasePlayer(true);
                         }
                         emojiSoundPlayer = new VideoPlayer(false, false);
+                        emojiSoundPlayer.setBananaEqualizerKind(org.telegram.messenger.banana.EqualizerDsp.KIND_NONE);
                         emojiSoundPlayer.setDelegate(new VideoPlayer.VideoPlayerDelegate() {
                             @Override
                             public void onStateChanged(boolean playWhenReady, int playbackState) {
@@ -3844,6 +3849,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 clearPlaylist();
             }
             videoPlayer = new VideoPlayer();
+            org.telegram.messenger.banana.BananaEqualizer.publish(messageObject.currentAccount);
+            videoPlayer.setBananaEqualizerKind(messageObject.isRoundVideo()
+                    ? org.telegram.messenger.banana.EqualizerDsp.KIND_ROUND : org.telegram.messenger.banana.EqualizerDsp.KIND_VIDEO);
             videoPlayer.setLooping(silent);
             int tag = ++playerNum;
             videoPlayer.setDelegate(new VideoPlayer.VideoPlayerDelegate() {
@@ -3997,6 +4005,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             }
             try {
                 audioPlayer = new VideoPlayer();
+                org.telegram.messenger.banana.BananaEqualizer.publish(messageObject.currentAccount);
+                audioPlayer.setBananaEqualizerKind(org.telegram.messenger.banana.EqualizerDsp.KIND_AUDIO);
                 int tag = ++playerNum;
                 audioPlayer.setDelegate(new VideoPlayer.VideoPlayerDelegate() {
                     @Override
@@ -4616,6 +4626,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         audioRecorderV2Stopping = false;
         audioRecorderV2VoiceOnce = false;
         recordingCurrentAccount = currentAccount;
+        org.telegram.messenger.banana.BananaVoiceChanger.arm(currentAccount);
         recordingGuid = guid;
         recordDialogId = dialogId;
         recordMonoForumPeerId = monoForumPeerId;
@@ -5286,6 +5297,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                                     ? MediaRecorder.AudioSource.MIC : MediaRecorder.AudioSource.DEFAULT;
                             audioRecorder = new AudioRecord(bananaMicSource, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
                             org.telegram.messenger.banana.BananaHooks.applyMicrophonePreference(recordingCurrentAccount, audioRecorder);
+                            bananaVoiceChain = org.telegram.messenger.banana.BananaVoiceChanger.create(recordingCurrentAccount, sampleRate);
                             recordStartTime = System.currentTimeMillis();
                             writtenFrame = 0;
                             samplesCount = 0;
@@ -5411,6 +5423,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                         ? MediaRecorder.AudioSource.MIC : MediaRecorder.AudioSource.DEFAULT;
                 audioRecorder = new AudioRecord(bananaMicSource, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
                 org.telegram.messenger.banana.BananaHooks.applyMicrophonePreference(currentAccount, audioRecorder);
+                bananaVoiceChain = org.telegram.messenger.banana.BananaVoiceChanger.create(currentAccount, sampleRate);
                 recordStartTime = System.currentTimeMillis();
                 recordTimeCount = 0;
                 writtenFrame = 0;

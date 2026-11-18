@@ -255,6 +255,8 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
             DefaultRenderersFactory factory;
             if (audioVisualizerDelegate != null) {
                 factory = new AudioVisualizerRenderersFactory(ApplicationLoader.applicationContext);
+            } else if (bananaEqualizerKind != org.telegram.messenger.banana.EqualizerDsp.KIND_NONE) {
+                factory = new BananaEqualizerRenderersFactory(ApplicationLoader.applicationContext);
             } else {
                 factory = new DefaultRenderersFactory(ApplicationLoader.applicationContext);
             }
@@ -1940,7 +1942,38 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
                     .setEnableFloatOutput(enableFloatOutput)
                     .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
                     .setAudioProcessors(new AudioProcessor[]{
+                            new org.telegram.messenger.banana.BananaEqualizerAudioProcessor(bananaEqualizerKind),
                             new TeeAudioProcessor(new VisualizerBufferSink())
+                    })
+                    .build();
+        }
+    }
+
+    // Playback equalizer (Extras): which kind of sound this player plays decides whether it applies.
+    private int bananaEqualizerKind = org.telegram.messenger.banana.EqualizerDsp.KIND_VIDEO;
+
+    /** Call before the player is prepared. */
+    public void setBananaEqualizerKind(int kind) {
+        bananaEqualizerKind = kind;
+    }
+
+    private class BananaEqualizerRenderersFactory extends DefaultRenderersFactory {
+
+        public BananaEqualizerRenderersFactory(Context context) {
+            super(context);
+        }
+
+        @Nullable
+        @Override
+        protected AudioSink buildAudioSink(
+                @NonNull Context context,
+                boolean enableFloatOutput,
+                boolean enableAudioTrackPlaybackParams) {
+            return new DefaultAudioSink.Builder(context)
+                    .setEnableFloatOutput(enableFloatOutput)
+                    .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+                    .setAudioProcessors(new AudioProcessor[]{
+                            new org.telegram.messenger.banana.BananaEqualizerAudioProcessor(bananaEqualizerKind)
                     })
                     .build();
         }

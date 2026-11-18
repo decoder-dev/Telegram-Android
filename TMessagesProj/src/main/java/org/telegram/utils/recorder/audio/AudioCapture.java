@@ -75,6 +75,7 @@ final class AudioCapture {
     private long lastProgressMs;
 
     // Encoder thread.
+    private org.telegram.messenger.banana.VoiceChain voiceChain;
     private final ByteBuffer frameBuffer = ByteBuffer.allocateDirect(FRAME_BYTES)
             .order(ByteOrder.nativeOrder());
     private AudioRecorderNative encoder;
@@ -258,6 +259,7 @@ final class AudioCapture {
             if (encoder == null) {
                 throw new IllegalStateException("Unable to initialize native Opus recorder");
             }
+            voiceChain = org.telegram.messenger.banana.BananaVoiceChanger.createArmed(SAMPLE_RATE);
             if (noiseSuppression == AudioRecordingSession.NoiseSuppression.RNNOISE) {
                 noiseSuppressor = AudioNoiseSuppressor.create();
                 if (noiseSuppressor == null) {
@@ -348,6 +350,8 @@ final class AudioCapture {
             frameBuffer.position(0);
             frameBuffer.limit(byteCount);
         }
+        // Voice changer (Extras): after noise suppression, before the Opus encoder.
+        org.telegram.messenger.banana.BananaVoiceChanger.process(voiceChain, frameBuffer, byteCount);
         if (encoder == null || encoder.writeFrame(frameBuffer, byteCount) == 0) {
             throw new IllegalStateException("Native Opus encoding failed");
         }

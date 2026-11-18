@@ -69,7 +69,8 @@ public final class BananaExtrasCatalog {
         });
         map.put("MEDIA", new Group[] {
                 new Group(R.string.BananaGroup_CallsInput, Option.DISABLE_CALL_RATING, Option.CONFIRM_BEFORE_CALL, Option.FORCE_BUILT_IN_MIC, Option.SEND_WITH_RETURN_KEY, Option.CONFIRM_VOICE_SEND, Option.CONFIRM_STICKER_SEND, Option.CONFIRM_GIF_SEND),
-                new Group(R.string.BananaGroup_Playback, Option.AUTO_PAUSE_MEDIA_IN_BACKGROUND, Option.STOP_AFTER_VOICE, Option.STOP_AFTER_ROUND_VIDEO, Option.STATIC_ROUND_VIDEO_ZOOM, Option.ROUND_VIDEO_STARTS_WITH_REAR, Option.ROUND_VIDEO_REMEMBERS_CAMERA),
+                new Group(R.string.BananaGroup_Playback, Option.AUTO_PAUSE_MEDIA_IN_BACKGROUND, Option.STOP_AFTER_VOICE, Option.STOP_AFTER_ROUND_VIDEO, Option.STATIC_ROUND_VIDEO_ZOOM, Option.ROUND_VIDEO_STARTS_WITH_REAR, Option.ROUND_VIDEO_REMEMBERS_CAMERA, Option.ROUND_VIDEO_60_FPS, Option.ROUND_VIDEO_MAXIMUM_QUALITY),
+                new Group(R.string.BananaGroup_Sound, Option.EQUALIZER_ENABLED, Option.EQUALIZER_VIDEOS, Option.VOICE_CHANGER_ENABLED),
                 new Group(R.string.BananaGroup_Downloads, Option.DOWNLOAD_TIK_TOK, Option.DOWNLOAD_YOU_TUBE_SHORTS, Option.SIGN_DOWNLOADED_MEDIA, Option.SHOW_MEDIA_INFO),
                 new Group(R.string.BananaGroup_Stories, Option.DISABLE_STORY_CAMERA_SWIPE, Option.DISABLE_STORY_CREATION)
         });

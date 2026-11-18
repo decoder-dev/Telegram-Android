@@ -564,6 +564,7 @@ public class SecretVoicePlayer extends Dialog {
                 return;
             }
             player = new VideoPlayer();
+            player.setBananaEqualizerKind(org.telegram.messenger.banana.EqualizerDsp.KIND_AUDIO);
             player.setDelegate(new VideoPlayer.VideoPlayerDelegate() {
                 @Override
                 public void onStateChanged(boolean playWhenReady, int playbackState) {

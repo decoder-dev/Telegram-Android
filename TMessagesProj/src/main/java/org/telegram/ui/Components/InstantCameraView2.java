@@ -394,9 +394,12 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
                 .setOutputDirectory(new File(ApplicationLoader.getFilesDirFixed(), "cache"))
                 .setInitialFacing(SharedSettings.roundVideoLastCamera.get())
                 .setOutputResolution(activeOutputResolution)
-                .setVideoBitrate(SharedSettings.roundVideoVideoBitrate.get())
+                .setVideoBitrate(org.telegram.messenger.banana.RoundVideoProfile.bitrate(SharedSettings.roundVideoVideoBitrate.get(),
+                        org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.ROUND_VIDEO_60_FPS),
+                        org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.ROUND_VIDEO_MAXIMUM_QUALITY)))
                 .setCameraResolution(SharedSettings.roundVideoCameraResolution.get())
-                .setFrameRate(SharedSettings.roundVideoFrameRate.get())
+                .setFrameRate(org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.ROUND_VIDEO_60_FPS)
+                        ? RoundVideoSession.FrameRate.FPS_60 : SharedSettings.roundVideoFrameRate.get())
                 .setCompositionEnabled(SharedSettings.roundVideoComposition.get())
                 .setListener(sessionListener)
                 .setOutputListener(upload)

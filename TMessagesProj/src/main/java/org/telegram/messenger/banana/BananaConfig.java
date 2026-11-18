@@ -195,7 +195,12 @@ public final class BananaConfig {
         MESSAGE_JSON_MENU("bananaMessageJsonMenu"),
         SHOW_MESSAGES_FROM_MEMBER("bananaShowMessagesFromMember"),
         ANONYMOUS_STICKERS("bananaAnonymousStickers"),
-        APPROXIMATE_LAST_SEEN("bananaApproximateLastSeen");
+        APPROXIMATE_LAST_SEEN("bananaApproximateLastSeen"),
+        EQUALIZER_ENABLED("bananaEqualizerEnabled"),
+        EQUALIZER_VIDEOS("bananaEqualizerVideos"),
+        VOICE_CHANGER_ENABLED("bananaVoiceChangerEnabled"),
+        ROUND_VIDEO_60_FPS("bananaRoundVideo60Fps"),
+        ROUND_VIDEO_MAXIMUM_QUALITY("bananaRoundVideoMaximumQuality");
 
         public final String key;
         Option(String key) { this.key = key; }
@@ -437,6 +442,12 @@ public final class BananaConfig {
             editor.putInt(IntValue.DOUBLE_TAP_ACTION.key, enabled ? 6 : action == 6 ? IntValue.DOUBLE_TAP_ACTION.defaultValue : action);
         }
         editor.apply();
+        if (option == Option.EQUALIZER_ENABLED || option == Option.EQUALIZER_VIDEOS) {
+            BananaEqualizer.publish(account);
+        }
+        if (option == Option.APPROXIMATE_LAST_SEEN && !enabled) {
+            ApproximateLastSeen.clear(account);
+        }
         if (option == Option.KEEP_ALIVE_IN_BACKGROUND) {
             syncAyuKeepAlive();
             org.telegram.messenger.AndroidUtilities.runOnUIThread(org.telegram.messenger.ApplicationLoader::startPushService);
@@ -479,7 +490,16 @@ public final class BananaConfig {
         DEFAULT_VIDEO_QUALITY("bananaDefaultVideoQuality", 0),
         TRANSLATION_BACKEND("bananaTranslationBackend", 0),
         TRANSCRIPTION_BACKEND("bananaTranscriptionBackend", 0),
-        LOCAL_VERIFICATION_BADGE("bananaLocalVerificationBadge", 0);
+        LOCAL_VERIFICATION_BADGE("bananaLocalVerificationBadge", 0),
+        EQUALIZER_BAND_60("bananaEqualizerBand60", 0),
+        EQUALIZER_BAND_230("bananaEqualizerBand230", 0),
+        EQUALIZER_BAND_910("bananaEqualizerBand910", 0),
+        EQUALIZER_BAND_3600("bananaEqualizerBand3600", 0),
+        EQUALIZER_BAND_14000("bananaEqualizerBand14000", 0),
+        VOICE_CHANGER_PRESET("bananaVoiceChangerPreset", 0),
+        VOICE_CHANGER_PITCH("bananaVoiceChangerPitch", 0),
+        VOICE_CHANGER_REVERB("bananaVoiceChangerReverb", 0),
+        VOICE_CHANGER_ECHO("bananaVoiceChangerEcho", 0);
 
         public final String key;
         public final int defaultValue;
@@ -518,6 +538,9 @@ public final class BananaConfig {
 
     public static void setInt(int account, IntValue value, int raw) {
         MessagesController.getMainSettings(account).edit().putInt(value.key, clampInt(value, raw)).apply();
+        if (value.name().startsWith("EQUALIZER_")) {
+            BananaEqualizer.publish(account);
+        }
         if (value == IntValue.DOUBLE_TAP_ACTION) {
             set(account, Option.DOUBLE_TAP_TO_EDIT, clampInt(value, raw) == 6);
         }
@@ -623,6 +646,18 @@ public final class BananaConfig {
                 return Math.max(0, Math.min(1, raw));
             case LOCAL_VERIFICATION_BADGE:
                 return Math.max(0, Math.min(3, raw));
+            case EQUALIZER_BAND_60:
+            case EQUALIZER_BAND_230:
+            case EQUALIZER_BAND_910:
+            case EQUALIZER_BAND_3600:
+            case EQUALIZER_BAND_14000:
+            case VOICE_CHANGER_PITCH:
+                return Math.max(-12, Math.min(12, raw));
+            case VOICE_CHANGER_PRESET:
+                return Math.max(0, Math.min(5, raw));
+            case VOICE_CHANGER_REVERB:
+            case VOICE_CHANGER_ECHO:
+                return Math.max(0, Math.min(100, raw));
             case DEFAULT_SEND_FORMATTING:
                 return Math.max(0, Math.min(5, raw));
             case DOUBLE_TAP_SEEK_SECONDS:

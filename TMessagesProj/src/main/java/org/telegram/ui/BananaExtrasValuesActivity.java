@@ -45,6 +45,31 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     private static final int ID_REFRESH_RATE = 18;
     private static final int ID_GLASS_GLARE = 19;
     private static final int ID_TEXT_RULES = 20;
+    private static final int ID_EQ_FIRST = 30; // 30..34, one per band
+    private static final int ID_VOICE_PRESET = 40, ID_VOICE_PITCH = 41, ID_VOICE_REVERB = 42, ID_VOICE_ECHO = 43;
+    private static final int[] EQ_TITLES = {R.string.BananaVal_Eq60, R.string.BananaVal_Eq230, R.string.BananaVal_Eq910, R.string.BananaVal_Eq3600, R.string.BananaVal_Eq14000};
+    private static final int[] VOICE_PRESETS = {R.string.BananaVoicePresetAnonymous, R.string.BananaVoicePresetFemale, R.string.BananaVoicePresetMale,
+            R.string.BananaVoicePresetChild, R.string.BananaVoicePresetRobot, R.string.BananaVoicePresetCustom};
+
+    private static String decibels(int value) {
+        return value == 0 ? "0 " + LocaleController.getString(R.string.BananaVal_Db)
+                : (value > 0 ? "+" : "\u2212") + Math.abs(value) + " " + LocaleController.getString(R.string.BananaVal_Db);
+    }
+
+    private static String semitones(int value) {
+        return value == 0 ? LocaleController.getString(R.string.BananaVal_PitchUnchanged)
+                : (value > 0 ? "+" : "\u2212") + Math.abs(value) + " " + LocaleController.getString(R.string.BananaVal_Semitones);
+    }
+
+    private static String amount(int value) {
+        return value == 0 ? LocaleController.getString(R.string.BananaVal_Off) : value + "%";
+    }
+
+    private void pickLabeled(int title, IntValue value, int[] codes, java.util.function.IntFunction<String> label) {
+        CharSequence[] labels = new CharSequence[codes.length];
+        for (int i = 0; i < codes.length; i++) labels[i] = label.apply(codes[i]);
+        pickFrom(title, value, labels, codes);
+    }
 
     public BananaExtrasValuesActivity(int account) {
         setCurrentAccount(account);
@@ -101,6 +126,26 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
 
         items.add(UItem.asHeader(LocaleController.getString(R.string.BananaValuesProfile)));
         items.add(cell(ID_VISUAL_PHONE, R.string.BananaVal_VisualPhoneNumber, markDisplay(BananaConfig.visualPhoneNumber(currentAccount))));
+        items.add(UItem.asShadow(null));
+
+        if (BananaConfig.get(currentAccount, BananaConfig.Option.EQUALIZER_ENABLED)) {
+            items.add(UItem.asHeader(LocaleController.getString(R.string.BananaValuesEqualizer)));
+            for (int band = 0; band < EQ_TITLES.length; band++) {
+                items.add(cell(ID_EQ_FIRST + band, EQ_TITLES[band], decibels(BananaConfig.getInt(currentAccount, org.telegram.messenger.banana.BananaEqualizer.band(band)))));
+            }
+            items.add(UItem.asShadow(LocaleController.getString(R.string.BananaValuesEqualizerInfo)));
+        }
+        if (BananaConfig.get(currentAccount, BananaConfig.Option.VOICE_CHANGER_ENABLED)) {
+            int preset = BananaConfig.getInt(currentAccount, IntValue.VOICE_CHANGER_PRESET);
+            items.add(UItem.asHeader(LocaleController.getString(R.string.BananaValuesVoiceChanger)));
+            items.add(cell(ID_VOICE_PRESET, R.string.BananaVal_VoicePreset, LocaleController.getString(VOICE_PRESETS[preset])));
+            if (preset == org.telegram.messenger.banana.VoicePresets.CUSTOM) {
+                items.add(cell(ID_VOICE_PITCH, R.string.BananaVal_VoicePitch, semitones(BananaConfig.getInt(currentAccount, IntValue.VOICE_CHANGER_PITCH))));
+                items.add(cell(ID_VOICE_REVERB, R.string.BananaVal_VoiceReverb, amount(BananaConfig.getInt(currentAccount, IntValue.VOICE_CHANGER_REVERB))));
+                items.add(cell(ID_VOICE_ECHO, R.string.BananaVal_VoiceEcho, amount(BananaConfig.getInt(currentAccount, IntValue.VOICE_CHANGER_ECHO))));
+            }
+            items.add(UItem.asShadow(LocaleController.getString(R.string.BananaValuesVoiceChangerInfo)));
+        }
         items.add(UItem.asShadow(LocaleController.getString(R.string.BananaValuesInfo)));
     }
 
@@ -203,6 +248,38 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
                 break;
             case ID_VISUAL_PHONE:
                 editString(R.string.BananaVal_VisualPhoneNumber, StringValue.VISUAL_PHONE_NUMBER, "");
+                break;
+            case ID_EQ_FIRST:
+            case ID_EQ_FIRST + 1:
+            case ID_EQ_FIRST + 2:
+            case ID_EQ_FIRST + 3:
+            case ID_EQ_FIRST + 4: {
+                int band = item.id - ID_EQ_FIRST;
+                pickLabeled(EQ_TITLES[band], org.telegram.messenger.banana.BananaEqualizer.band(band),
+                        org.telegram.messenger.banana.BananaEqualizer.GAIN_CHOICES, BananaExtrasValuesActivity::decibels);
+                break;
+            }
+            case ID_VOICE_PRESET: {
+                CharSequence[] names = new CharSequence[VOICE_PRESETS.length];
+                int[] codes = new int[VOICE_PRESETS.length];
+                for (int i = 0; i < names.length; i++) {
+                    names[i] = LocaleController.getString(VOICE_PRESETS[i]);
+                    codes[i] = i;
+                }
+                pickFrom(R.string.BananaVal_VoicePreset, IntValue.VOICE_CHANGER_PRESET, names, codes);
+                break;
+            }
+            case ID_VOICE_PITCH:
+                pickLabeled(R.string.BananaVal_VoicePitch, IntValue.VOICE_CHANGER_PITCH,
+                        org.telegram.messenger.banana.VoicePresets.PITCH_CHOICES, BananaExtrasValuesActivity::semitones);
+                break;
+            case ID_VOICE_REVERB:
+                pickLabeled(R.string.BananaVal_VoiceReverb, IntValue.VOICE_CHANGER_REVERB,
+                        org.telegram.messenger.banana.VoicePresets.AMOUNT_CHOICES, BananaExtrasValuesActivity::amount);
+                break;
+            case ID_VOICE_ECHO:
+                pickLabeled(R.string.BananaVal_VoiceEcho, IntValue.VOICE_CHANGER_ECHO,
+                        org.telegram.messenger.banana.VoicePresets.AMOUNT_CHOICES, BananaExtrasValuesActivity::amount);
                 break;
             case ID_TEXT_RULES:
                 editString(R.string.BananaVal_TextReplacementRules, StringValue.TEXT_REPLACEMENT_RULES,
