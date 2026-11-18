@@ -422,7 +422,7 @@ public class BananaSmokeTest {
                             tapRow(instrumentation, sectionScreen[0], 9300);
                             AlertDialog duress = waitDialog(instrumentation, sectionScreen[0], null);
                             capture(instrumentation, language + "-" + theme + "-duress-passcode-state");
-                            tapDialogButton(instrumentation, duress, AlertDialog.BUTTON_NEGATIVE);
+                            tapDialogButton(instrumentation, duress, AlertDialog.BUTTON_POSITIVE);
                         } else if (selectedSection == 5) {
                             tapRow(instrumentation, sectionScreen[0], 9201);
                             AlertDialog menu = waitDialog(instrumentation, sectionScreen[0], null);
