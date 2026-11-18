@@ -2309,6 +2309,14 @@ public class MessagesController extends BaseController implements NotificationCe
                             }
                             getTranslateController().checkDialogMessage(key);
                         } else {
+                            if (currentDialog.pinned && !newDialog.pinned && currentDialog.folder_id == 0 && newDialog.folder_id == 0
+                                    && org.telegram.messenger.banana.BananaLocalPins.contains(currentAccount, key)) {
+                                // Pinned on this device only (Pin Beyond the Limit): the server never knew it.
+                                newDialog.pinned = true;
+                                newDialog.pinnedNum = currentDialog.pinnedNum;
+                            } else if (newDialog.pinned) {
+                                org.telegram.messenger.banana.BananaLocalPins.remove(currentAccount, key);
+                            }
                             currentDialog.pinned = newDialog.pinned;
                             currentDialog.pinnedNum = newDialog.pinnedNum;
                             ArrayList<MessageObject> oldMsgs = dialogMessage.get(key);
@@ -13559,6 +13567,14 @@ public class MessagesController extends BaseController implements NotificationCe
                         if (loadType != DIALOGS_LOAD_TYPE_CACHE) {
                             currentDialog.notify_settings = value.notify_settings;
                         }
+                        if (currentDialog.pinned && !value.pinned && currentDialog.folder_id == 0 && value.folder_id == 0
+                                && org.telegram.messenger.banana.BananaLocalPins.contains(currentAccount, key)) {
+                            // Pinned on this device only (Pin Beyond the Limit): the server never knew it.
+                            value.pinned = true;
+                            value.pinnedNum = currentDialog.pinnedNum;
+                        } else if (value.pinned) {
+                            org.telegram.messenger.banana.BananaLocalPins.remove(currentAccount, key);
+                        }
                         currentDialog.pinned = value.pinned;
                         currentDialog.pinnedNum = value.pinnedNum;
                         ArrayList<MessageObject> oldMsgs = dialogMessage.get(key);
@@ -17187,6 +17203,7 @@ public class MessagesController extends BaseController implements NotificationCe
             int size = 0;
             ArrayList<Long> dids = new ArrayList<>();
             ArrayList<Integer> pinned = new ArrayList<>();
+            final java.util.List<Long> bananaLocalPins = org.telegram.messenger.banana.BananaLocalPins.list(currentAccount);
             for (int a = 0, N = dialogs.size(); a < N; a++) {
                 TLRPC.Dialog dialog = dialogs.get(a);
                 if (dialog instanceof TLRPC.TL_dialogFolder) {
@@ -17200,7 +17217,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
                 dids.add(dialog.id);
                 pinned.add(dialog.pinnedNum);
-                if (!DialogObject.isEncryptedDialog(dialog.id) && !org.telegram.messenger.banana.BananaLocalPins.contains(currentAccount, dialog.id)) {
+                if (!DialogObject.isEncryptedDialog(dialog.id) && (folderId != 0 || !bananaLocalPins.contains(dialog.id))) {
                     TLRPC.InputPeer inputPeer = getInputPeer(dialog.id);
                     TLRPC.Chat chat = getMessagesController().getChat(-dialog.id);
                     if (ChatObject.isCommunity(chat)) {
@@ -17428,13 +17445,14 @@ public class MessagesController extends BaseController implements NotificationCe
                     ArrayList<TLRPC.Dialog> dialogs = getDialogs(folderId);
 
                     int pinnedNum = firstIsFolder ? 1 : 0;
+                    final java.util.List<Long> bananaLocalPins = org.telegram.messenger.banana.BananaLocalPins.list(currentAccount);
                     for (int a = 0; a < dialogs.size(); a++) {
                         TLRPC.Dialog dialog = dialogs.get(a);
                         if (dialog instanceof TLRPC.TL_dialogFolder) {
                             continue;
                         }
-                        if (!DialogObject.isEncryptedDialog(dialog.id) && dialog.pinned
-                                && org.telegram.messenger.banana.BananaLocalPins.contains(currentAccount, dialog.id)) {
+                        if (folderId == 0 && !DialogObject.isEncryptedDialog(dialog.id) && dialog.pinned
+                                && bananaLocalPins.contains(dialog.id)) {
                             boolean serverPinned = false;
                             for (int s = 0; s < res.dialogs.size(); s++) {
                                 if (res.dialogs.get(s).id == dialog.id) {
@@ -20107,6 +20125,10 @@ public class MessagesController extends BaseController implements NotificationCe
                             did = DialogObject.getPeerDialogId(dialogPeer.peer);
                         } else {
                             did = 0;
+                        }
+                        if (update.pinned) {
+                            // Pinned from another device: a server pin now, never left out of the pinned order.
+                            org.telegram.messenger.banana.BananaLocalPins.remove(currentAccount, did);
                         }
                         if (!pinDialog(did, update.pinned, null, -1)) {
                             getUserConfig().setPinnedDialogsLoaded(update.folder_id, false);

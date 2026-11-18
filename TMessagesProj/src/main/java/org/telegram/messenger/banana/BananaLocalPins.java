@@ -56,6 +56,11 @@ public final class BananaLocalPins {
         MessagesController.getMainSettings(account).edit().putString(KEY, format(ids)).apply();
     }
 
+    /** For loops over the dialogs: read once, then contains() on the list. */
+    public static List<Long> list(int account) {
+        return load(account);
+    }
+
     public static boolean contains(int account, long dialogId) {
         return load(account).contains(dialogId);
     }
@@ -85,8 +90,12 @@ public final class BananaLocalPins {
             serverPinned++;
         }
         int limit = UserConfig.getInstance(account).isPremium() ? controller.maxPinnedDialogsCountPremium : controller.maxPinnedDialogsCountDefault;
-        if (shouldPinLocally(serverPinned, limit) && !local.contains(dialogId)) {
+        boolean overLimit = shouldPinLocally(serverPinned, limit);
+        if (overLimit && !local.contains(dialogId)) {
             local.add(0, dialogId);
+            store(account, local);
+        } else if (!overLimit && local.remove((Long) dialogId)) {
+            // Under the limit it is an ordinary pin the server keeps; a stale local entry would hide it.
             store(account, local);
         }
     }
