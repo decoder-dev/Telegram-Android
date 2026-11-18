@@ -84,6 +84,15 @@ public class ProxyRoutePolicyTest {
         assertEquals(0, trouble.dueIn(71_000));
     }
 
+    @Test public void deadPoolsAreRetriedLessAndLessOften() {
+        assertEquals(60_000, ProxyRoutePolicy.exhaustionDelay(0));
+        assertEquals(60_000, ProxyRoutePolicy.exhaustionDelay(1));
+        assertEquals(120_000, ProxyRoutePolicy.exhaustionDelay(2));
+        assertEquals(300_000, ProxyRoutePolicy.exhaustionDelay(3));
+        assertEquals(600_000, ProxyRoutePolicy.exhaustionDelay(4));
+        assertEquals(600_000, ProxyRoutePolicy.exhaustionDelay(Integer.MAX_VALUE));
+    }
+
     @Test public void troubleForgetsEverythingWithoutNetwork() {
         ProxyRoutePolicy.Trouble trouble = new ProxyRoutePolicy.Trouble(15_000, 2, 120_000);
         trouble.connected();

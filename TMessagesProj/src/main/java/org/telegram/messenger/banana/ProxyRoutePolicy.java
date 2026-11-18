@@ -98,4 +98,14 @@ public final class ProxyRoutePolicy {
             return stuckSince < 0 ? -1 : Math.max(0, stuckSince + stuckMs - now);
         }
     }
+    private static final long[] EXHAUSTION_DELAYS_MS = {60_000L, 120_000L, 300_000L, 600_000L};
+
+    /**
+     * Wait before fetching lists and dialing again after the whole pool turned out dead
+     * {@code exhaustedPasses} times in a row (1 for the first time): 1, 2, 5, then 10 minutes.
+     */
+    public static long exhaustionDelay(int exhaustedPasses) {
+        int index = Math.max(0, Math.min(exhaustedPasses - 1, EXHAUSTION_DELAYS_MS.length - 1));
+        return EXHAUSTION_DELAYS_MS[index];
+    }
 }

@@ -117,6 +117,8 @@ public final class BananaAutomaticProxy {
     private static volatile int refreshGeneration;
     private static boolean listenersInstalled;
     private static boolean pendingProbe;
+    // Whole-pool failures in a row; spaces out list fetches and dials on a network that blocks them all.
+    private static int exhaustedPools;
     private static boolean failureDrivenSwitch;
     private static boolean verifyingCurrent;
     private static int aliveStalls;
@@ -640,6 +642,7 @@ public final class BananaAutomaticProxy {
         boolean routed = current != null && isAutomatic(current) && SharedConfig.isProxyEnabled();
         if (current != before) {
             dialedInVain = 0;
+            exhaustedPools = 0;
             // A switch made while already connecting changes no connection state, so nothing
             // else would look again if the new route does not come up either.
             AndroidUtilities.cancelRunOnUIThread(FALLBACK);
@@ -648,6 +651,7 @@ public final class BananaAutomaticProxy {
         }
         if (routed && !failureDriven) {
             dialedInVain = 0;
+            exhaustedPools = 0;
             return;
         }
         // Nothing usable among these candidates. Only the first few of the pool used to be
@@ -662,19 +666,22 @@ public final class BananaAutomaticProxy {
         // again if Telegram is still stuck after that.
         dialedInVain = 0;
         failureDrivenSwitch = false;
+        // Back off when this keeps happening: a network that blocks every public proxy otherwise
+        // got about 40 dials and a list fetch every one to two minutes, for as long as it lasted.
+        long delay = ProxyRoutePolicy.exhaustionDelay(++exhaustedPools);
         if (!failureDriven) {
             // Telegram may still be reachable directly; then the usual refresh is soon enough.
             int state = ConnectionsManager.getInstance(UserConfig.selectedAccount).getConnectionState();
             if (state != ConnectionsManager.ConnectionStateConnected && state != ConnectionsManager.ConnectionStateUpdating) {
-                scheduleRefresh(MIN_SWITCH_MS);
+                scheduleRefresh(delay);
             }
             return;
         }
-        if (SystemClock.elapsedRealtime() - lastRefreshAt >= MIN_SWITCH_MS) {
+        if (SystemClock.elapsedRealtime() - lastRefreshAt >= delay) {
             refresh();
         }
         AndroidUtilities.cancelRunOnUIThread(FALLBACK);
-        AndroidUtilities.runOnUIThread(FALLBACK, FAILURE_SWITCH_MIN_MS);
+        AndroidUtilities.runOnUIThread(FALLBACK, Math.max(FAILURE_SWITCH_MIN_MS, delay));
     }
 
     private static void cancelProbes() {
@@ -995,7 +1002,12 @@ public final class BananaAutomaticProxy {
                         && (lastState == ConnectionsManager.ConnectionStateConnected || lastState == ConnectionsManager.ConnectionStateUpdating);
                 lastState = state;
                 lastStateAccount = account;
+                if (state == ConnectionsManager.ConnectionStateConnected) {
+                    exhaustedPools = 0;
+                }
                 if (state == ConnectionsManager.ConnectionStateWaitingForNetwork) {
+                    // A different network may let the routes through: start the backoff over.
+                    exhaustedPools = 0;
                     if (probeQueue != null) {
                         pendingProbe = true;
                     }
