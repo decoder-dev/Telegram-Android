@@ -50,6 +50,28 @@ public class PrivateUriTest {
         } finally {file.delete();}
     }
 
+    @Test public void recordedRoundVideosAndCameraOutputCanBeUploaded() throws Exception {
+        fixture().delete();
+        // Telegram 13.2's round recorder writes into files/cache and the camera into
+        // files/camera_tmp.mp4; FileUploadOperation checks the open descriptor before uploading.
+        File roundDir=new File(ApplicationLoader.getFilesDirFixed(),"cache");roundDir.mkdirs();
+        File[] outputs={new File(roundDir,"audit-round-"+UUID.randomUUID()+".mp4"),
+                new File(ApplicationLoader.getFilesDirFixed(),"camera_tmp.mp4")};
+        for (File file:outputs) {
+            try(FileOutputStream output=new FileOutputStream(file)) {output.write(4);}
+            try(FileInputStream input=new FileInputStream(file)) {
+                assertFalse(file.getName(),AndroidUtilities.isInternalUri(Uri.fromFile(file.getCanonicalFile())));
+                assertFalse(file.getName(),AndroidUtilities.isInternalFileDescriptor(input.getFD()));
+            } finally {file.delete();}
+        }
+        // Other files next to the allowed names, such as databases, stay private.
+        File database=new File(ApplicationLoader.getFilesDirFixed(),"audit-private-"+UUID.randomUUID()+".db");
+        try(FileOutputStream output=new FileOutputStream(database)) {output.write(5);}
+        try(FileInputStream input=new FileInputStream(database)) {
+            assertTrue(AndroidUtilities.isInternalFileDescriptor(input.getFD()));
+        } finally {database.delete();}
+    }
+
     @Test public void deviceProtectedStorageIsRejected() throws Exception {
         fixture().delete();
         File file=new File(ApplicationLoader.applicationContext.createDeviceProtectedStorageContext().getFilesDir(),"audit-device-"+UUID.randomUUID());

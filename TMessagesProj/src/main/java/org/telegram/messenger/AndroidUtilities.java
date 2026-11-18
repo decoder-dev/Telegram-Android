@@ -1980,11 +1980,21 @@ public class AndroidUtilities {
         // Telegram keeps outgoing media in its cache, which falls back to the private cache dir
         // when shared storage is unavailable, and AyuGram may keep archived media in no_backup.
         // Official Telegram never rejected those; refusing them made photos and files fail to send.
-        File[] allowed = {context.getCacheDir(), new File(context.getNoBackupFilesDir(), "ayu-attachments")};
+        // Telegram's own recorders also write outgoing media into the private files dir: the 13.2
+        // round recorder into files/cache, the camera into camera_tmp.mp4 and previews into the
+        // *thumb.jpg files. Refusing them made every recorded round fail to upload with "!".
+        File filesDir = ApplicationLoader.getFilesDirFixed();
+        File[] allowed = {context.getCacheDir(), new File(context.getNoBackupFilesDir(), "ayu-attachments"),
+                new File(filesDir, "cache")};
+        File[] allowedFiles = {new File(filesDir, "camera_tmp.mp4"), new File(filesDir, "icthumb.jpg"),
+                new File(filesDir, "cthumb.jpg"), new File(filesDir, "voip_icthumb.jpg")};
         try {
             for (File root : allowed) {
                 String canonical = root.getCanonicalPath();
                 if (pathString.startsWith(canonical + File.separator)) return false;
+            }
+            for (File file : allowedFiles) {
+                if (pathString.equals(file.getCanonicalPath())) return false;
             }
         } catch (java.io.IOException | SecurityException unavailable) { return true; }
         File[] roots = {context.getDataDir(), context.createDeviceProtectedStorageContext().getDataDir(),
