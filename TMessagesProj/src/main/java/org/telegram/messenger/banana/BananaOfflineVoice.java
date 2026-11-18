@@ -280,7 +280,7 @@ public class BananaOfflineVoice {
             }
             final boolean result = ok;
             AndroidUtilities.runOnUIThread(() -> {
-                for (DownloadListener done : finished) done.onDone(result);
+                for (DownloadListener waiter : finished) waiter.onDone(result);
             });
         }, "bananaOfflineVoiceDownload").start();
     }
