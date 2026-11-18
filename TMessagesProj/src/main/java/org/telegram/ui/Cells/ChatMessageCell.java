@@ -16173,7 +16173,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     isTag = true;
                     isOwner = delegate.isOwner(currentUser != null ? currentUser.id : currentChat.id);
                     isAdmin = delegate.isAdmin(currentUser != null ? currentUser.id : currentChat.id);
-                    if (adminLabel.isEmpty()) {
+                    if (adminLabel.isEmpty() || org.telegram.messenger.banana.BananaConfig.get(currentAccount,
+                            org.telegram.messenger.banana.BananaConfig.Option.SHOW_HIDDEN_ADMIN_BADGES)
+                            && org.telegram.messenger.banana.AdminTitles.isInvisible(adminLabel)) {
+                        // A title of spaces or zero-width characters hides the admin badge; show the standard one.
                         adminLabel = getString(isOwner ? R.string.ChatTagOwner : R.string.ChatTagAdmin);
                     }
                     adminString = new SpannableStringBuilder(adminLabel);

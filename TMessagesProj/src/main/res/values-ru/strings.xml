@@ -500,6 +500,8 @@
     <string name="BananaCat_NETWORK">Сеть</string>
     <string name="BananaOpt_REMOVE_PINGS">Убрать пинги упоминаний</string>
     <string name="BananaOpt_ANTI_CAPS">Антикапс</string>
+    <string name="BananaOpt_HIDE_EMPTY_REPLY_DRAFTS">Скрывать черновик пустого ответа</string>
+    <string name="BananaOpt_SHOW_HIDDEN_ADMIN_BADGES">Показывать скрытых админов</string>
     <string name="BananaOpt_DISABLE_CALL_RATING">Не просить оценить звонок</string>
     <string name="BananaOpt_ESTIMATE_REGISTRATION_DATE">Примерная дата регистрации</string>
     <string name="BananaOpt_SHOW_SESSION_API_ID">API ID в «Устройствах»</string>

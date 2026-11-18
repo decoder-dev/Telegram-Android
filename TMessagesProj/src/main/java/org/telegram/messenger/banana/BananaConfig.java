@@ -177,7 +177,9 @@ public final class BananaConfig {
         ANTI_CAPS("bananaAntiCaps"),
         DISABLE_CALL_RATING("bananaDisableCallRating"),
         ESTIMATE_REGISTRATION_DATE("bananaEstimateRegistrationDate"),
-        SHOW_SESSION_API_ID("bananaShowSessionApiId");
+        SHOW_SESSION_API_ID("bananaShowSessionApiId"),
+        HIDE_EMPTY_REPLY_DRAFTS("bananaHideEmptyReplyDrafts"),
+        SHOW_HIDDEN_ADMIN_BADGES("bananaShowHiddenAdminBadges");
 
         public final String key;
         Option(String key) { this.key = key; }

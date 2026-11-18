@@ -11901,6 +11901,8 @@
     <string name="BananaCat_NETWORK">Network</string>
     <string name="BananaOpt_REMOVE_PINGS">Remove mention pings</string>
     <string name="BananaOpt_ANTI_CAPS">Anti-Caps</string>
+    <string name="BananaOpt_HIDE_EMPTY_REPLY_DRAFTS">Hide empty reply drafts</string>
+    <string name="BananaOpt_SHOW_HIDDEN_ADMIN_BADGES">Show hidden admin badges</string>
     <string name="BananaOpt_DISABLE_CALL_RATING">No call rating prompt</string>
     <string name="BananaOpt_ESTIMATE_REGISTRATION_DATE">Estimated registration date</string>
     <string name="BananaOpt_SHOW_SESSION_API_ID">API ID in Devices</string>

@@ -1644,7 +1644,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 draftMessage = null;
             }
 
-            if ((draftVoice || draftMessage != null) && (!draftVoice && draftMessage != null && TextUtils.isEmpty(draftMessage.message) && draftMessage.rich_message == null && (draftMessage.reply_to == null || draftMessage.reply_to.reply_to_msg_id == 0) || draftMessage != null && lastDate > draftMessage.date && unreadCount != 0) ||
+            // Extras: a chosen reply with no text shows the last message instead of "Draft:"; the reply stays selected in the chat.
+            boolean bananaHideEmptyReply = !draftVoice && draftMessage != null && TextUtils.isEmpty(draftMessage.message) && draftMessage.rich_message == null
+                    && org.telegram.messenger.banana.BananaConfig.get(currentAccount, org.telegram.messenger.banana.BananaConfig.Option.HIDE_EMPTY_REPLY_DRAFTS);
+            if (bananaHideEmptyReply || (draftVoice || draftMessage != null) && (!draftVoice && draftMessage != null && TextUtils.isEmpty(draftMessage.message) && draftMessage.rich_message == null && (draftMessage.reply_to == null || draftMessage.reply_to.reply_to_msg_id == 0) || draftMessage != null && lastDate > draftMessage.date && unreadCount != 0) ||
                     ChatObject.isChannel(chat) && !chat.megagroup && !chat.creator && (chat.admin_rights == null || !chat.admin_rights.post_messages) ||
                     chat != null && (chat.left || chat.kicked) || forbidDraft || ChatObject.isForum(chat) && !isTopic) {
                 draftMessage = null;
