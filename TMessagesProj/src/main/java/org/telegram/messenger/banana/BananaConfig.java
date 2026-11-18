@@ -199,7 +199,7 @@ public final class BananaConfig {
         EQUALIZER_ENABLED("bananaEqualizerEnabled"),
         EQUALIZER_VIDEOS("bananaEqualizerVideos"),
         VOICE_CHANGER_ENABLED("bananaVoiceChangerEnabled"),
-        ROUND_VIDEO_60_FPS("bananaRoundVideo60Fps"),
+        ROUND_VIDEO_SIXTY_FPS("bananaRoundVideo60Fps"),
         ROUND_VIDEO_MAXIMUM_QUALITY("bananaRoundVideoMaximumQuality"),
         TRANSLATION_FALLBACK("bananaTranslationFallback"),
         TRANSLATE_BEFORE_SENDING("bananaTranslateBeforeSending"),

@@ -11965,7 +11965,7 @@
     <string name="BananaOpt_EQUALIZER_ENABLED">Playback equalizer</string>
     <string name="BananaOpt_EQUALIZER_VIDEOS">Equalizer for videos too</string>
     <string name="BananaOpt_VOICE_CHANGER_ENABLED">Change voice in voice messages</string>
-    <string name="BananaOpt_ROUND_VIDEO_60_FPS">Record round videos at 60 FPS</string>
+    <string name="BananaOpt_ROUND_VIDEO_SIXTY_FPS">Record round videos at 60 FPS</string>
     <string name="BananaOpt_ROUND_VIDEO_MAXIMUM_QUALITY">Maximum round video quality</string>
     <string name="BananaGroup_Sound">Sound</string>
     <string name="BananaValuesEqualizer">Equalizer</string>

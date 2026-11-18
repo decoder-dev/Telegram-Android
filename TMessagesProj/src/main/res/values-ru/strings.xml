@@ -564,7 +564,7 @@
     <string name="BananaOpt_EQUALIZER_ENABLED">Эквалайзер при прослушивании</string>
     <string name="BananaOpt_EQUALIZER_VIDEOS">Эквалайзер также для видео</string>
     <string name="BananaOpt_VOICE_CHANGER_ENABLED">Менять голос в голосовых</string>
-    <string name="BananaOpt_ROUND_VIDEO_60_FPS">Записывать кружки в 60 FPS</string>
+    <string name="BananaOpt_ROUND_VIDEO_SIXTY_FPS">Записывать кружки в 60 FPS</string>
     <string name="BananaOpt_ROUND_VIDEO_MAXIMUM_QUALITY">Максимальное качество кружков</string>
     <string name="BananaGroup_Sound">Звук</string>
     <string name="BananaValuesEqualizer">Эквалайзер</string>
