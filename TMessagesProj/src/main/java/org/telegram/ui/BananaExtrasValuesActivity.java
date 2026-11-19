@@ -13,6 +13,7 @@ import org.telegram.messenger.banana.BananaConfig.IntValue;
 import org.telegram.messenger.banana.BananaConfig.StringValue;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Cells.BananaSwitchCell;
 import org.telegram.ui.Cells.BananaValueCell;
 import org.telegram.ui.Components.BananaTheme;
 import org.telegram.ui.Components.EditTextBoldCursor;
@@ -45,6 +46,7 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     private static final int ID_REFRESH_RATE = 18;
     private static final int ID_GLASS_GLARE = 19;
     private static final int ID_GLASS_PREVIEW = 23;
+    private static final int ID_GLASS_COMPOSER = 24;
     private org.telegram.ui.Components.BananaGlassPreviewView glassPreview;
     private static final int ID_TEXT_RULES = 20;
     private static final int ID_DEEPL_KEY = 21, ID_YANDEX_KEY = 22;
@@ -110,6 +112,7 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
             items.add(preview);
         }
         items.add(cell(ID_GLASS_GLARE, R.string.BananaGlassHighlights, glassGlareLabel(BananaConfig.glassGlare())));
+        items.add(BananaSwitchCell.Factory.of(ID_GLASS_COMPOSER, LocaleController.getString(R.string.BananaGlassComposer), BananaConfig.glassComposer()));
         items.add(cell(ID_GLASS_TINT, R.string.BananaVal_GlassTint, percent(BananaConfig.glassBubbleTint(currentAccount))));
         items.add(cell(ID_GLASS_TOP, R.string.BananaVal_GlassRimTop, percent(BananaConfig.glassBubbleRimTop(currentAccount))));
         items.add(cell(ID_GLASS_SIDES, R.string.BananaVal_GlassRimSides, percent(BananaConfig.glassBubbleRimSides(currentAccount))));
@@ -177,6 +180,9 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
                 break;
             case ID_GLASS_GLARE:
                 pickGlassGlare();
+                break;
+            case ID_GLASS_COMPOSER:
+                toggleGlassComposer();
                 break;
             case ID_ACCENT:
                 pickPercent(R.string.BananaVal_AccentSaturation, IntValue.ACCENT_COLOR_SATURATION, 0, 100, 5);
@@ -358,6 +364,19 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
                         ((LaunchActivity) getParentActivity()).rebuildAllFragments(true);
                     }
                 }).create());
+    }
+
+    /**
+     * The field layout is fixed when a message field is built, so the preview is made again and open chats are
+     * rebuilt to pick the new layout up at once.
+     */
+    private void toggleGlassComposer() {
+        BananaConfig.setGlassComposer(!BananaConfig.glassComposer());
+        glassPreview = null;
+        if (listView != null) listView.adapter.update(true);
+        if (getParentActivity() instanceof LaunchActivity) {
+            ((LaunchActivity) getParentActivity()).rebuildAllFragments(true);
+        }
     }
 
     private void pickRefreshRate() {

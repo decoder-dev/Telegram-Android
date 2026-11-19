@@ -11,6 +11,8 @@ Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](ht
 
 ### Glass
 
+- Port Cherrygram's split message field as Extras → Values → Liquid glass → Split message field (off by default, app-wide). The attach button and the voice/send button move into glass bubbles of their own beside the text bubble; the send bubble widens for paid messages and slow mode, recording and trimming hide and restore the attach bubble, and reply, AI, rich-text and draft buttons get small glass circles. Story replies use the same three bubbles. The layout is decided once per field, so a chat whose info loads later never mixes the two layouts; comment fields, popups and channels without posting rights keep Telegram's field.
+- The glass preview at the top of Liquid glass now shows the real message field instead of a drawing, so both layouts look exactly as in a chat.
 - Add Cherrygram-style Off, Default and Outline highlights under Extras → Values → Appearance. The app-wide choice updates existing screens immediately and uses the current Telegram rim renderer.
 - Keep rectangular wallpaper captures at their requested aspect ratio and invalidate recorded glass when source pixels, transforms or wrapped sources change. Reduce per-bubble render targets, release them when hidden, and keep compact incoming messages without a bubble lens.
 - Match refraction corners to the message bubble's configured radius and grouping while preserving its native clipping path.

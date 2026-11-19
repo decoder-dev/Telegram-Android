@@ -456,6 +456,7 @@ public class BananaSmokeTest {
                     instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK);
                     await(instrumentation, () -> valuesScreen[0].getVisibleDialog() == null,
                             "Glass highlights chooser must dismiss without changing the selected mode");
+                    checkGlassComposerPreview(instrumentation, activity, valuesScreen[0], language + "-" + theme);
                     tapRow(instrumentation, valuesScreen[0], 30);
                     waitDialog(instrumentation, valuesScreen[0], null);
                     capture(instrumentation, language + "-" + theme + "-equalizer-band-dialog");
@@ -905,6 +906,12 @@ public class BananaSmokeTest {
     }
 
     private static void tapRow(Instrumentation instrumentation, UniversalFragment screen, int id) {
+        int[] xy = showRow(instrumentation, screen, id);
+        tap(instrumentation, xy[0], xy[1]);
+    }
+
+    /** Scrolls the row with this ID completely into view and returns its centre on screen. */
+    private static int[] showRow(Instrumentation instrumentation, UniversalFragment screen, int id) {
         instrumentation.waitForIdleSync();
         SystemClock.sleep(200);
         instrumentation.runOnMainSync(() -> {
@@ -932,8 +939,31 @@ public class BananaSmokeTest {
             }
             return false;
         }, "Row " + id + " must be completely reachable");
-        tap(instrumentation, xy[0], xy[1]);
+        return xy;
     }
+    /**
+     * The glass preview shows the real message field. Switching the split field rebuilds it with the attach and
+     * send buttons in their own bubbles; switching back restores Telegram's field.
+     */
+    private static void checkGlassComposerPreview(Instrumentation instrumentation, LaunchActivity activity,
+                                                  BananaExtrasValuesActivity values, String name) throws Exception {
+        instrumentation.runOnMainSync(() -> BananaConfig.setGlassComposer(false));
+        showRow(instrumentation, values, 23);
+        capture(instrumentation, name + "-glass-preview");
+        try {
+            tapRow(instrumentation, values, 24);
+            await(instrumentation, () -> BananaConfig.glassComposer() && values.listView != null && values.listView.isLaidOut()
+                    && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Split message field must switch on");
+            showRow(instrumentation, values, 23);
+            capture(instrumentation, name + "-glass-preview-split");
+            tapRow(instrumentation, values, 24);
+            await(instrumentation, () -> !BananaConfig.glassComposer() && values.listView != null && values.listView.isLaidOut()
+                    && !activity.getActionBarLayout().isTransitionAnimationInProgress(), "Split message field must switch off");
+        } finally {
+            instrumentation.runOnMainSync(() -> BananaConfig.setGlassComposer(false));
+        }
+    }
+
     private static void checkFilters(Instrumentation instrumentation, LaunchActivity activity, BananaSettingsActivity extras, String name) throws Exception {
         FilterStore store = FilterStore.get(0);
         instrumentation.runOnMainSync(() -> { store.save(FilterRules.empty()); store.setEnabled(false); store.setSharedInChats(false); });

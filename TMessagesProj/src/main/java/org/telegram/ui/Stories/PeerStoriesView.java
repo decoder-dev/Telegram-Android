@@ -558,6 +558,8 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
         blurredBackgroundDrawableFactory = new BlurredBackgroundDrawableViewFactory(new ViewPositionWatcher(this), this, blurredBackgroundSourceWithSaturation);
 
         inputFieldBackground = blurredBackgroundDrawableFactory.create(this, blurredBackgroundColorProvider);
+        inputLeftBubbleBackground = blurredBackgroundDrawableFactory.create(this, blurredBackgroundColorProvider);
+        inputRightBubbleBackground = blurredBackgroundDrawableFactory.create(this, blurredBackgroundColorProvider);
         emojiKeyboardBackground = blurredBackgroundDrawableFactory.create(this, blurredBackgroundColorProvider);
         emojiKeyboardBackground.setThickness(dp(32));
 
@@ -3142,7 +3144,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                 sparseIntArray.put(Theme.key_chat_emojiPanelBackground, 0xC020242A);
             }
         };
-        chatActivityEnterView = new ChatActivityEnterView(AndroidUtilities.findActivity(getContext()), this, null, true, emojiResourceProvider) {
+        chatActivityEnterView = new ChatActivityEnterView(AndroidUtilities.findActivity(getContext()), this, null, true, emojiResourceProvider, false, true) {
 
             @Override
             public void updateSendAsButton(boolean animated) {
@@ -7725,18 +7727,45 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
             editFieldTy += -dp(2) * (1f - progressToKeyboard);
             chatActivityEnterView.getEditField().setTranslationY(editFieldTy);
             float radius = dp(50) / 2f;
-            AndroidUtilities.lerp(sharedResources.rect2, sharedResources.rect1, progressToKeyboard, sharedResources.finalRect);
+            final float backgroundAlpha = (1f - progressToDismiss) * getHideInterfaceAlpha() * (1f - outT);
+            final boolean iosBubbles = chatActivityEnterView.getStoriesBubbles(iosLeftBubble, iosCenterBubble, iosRightBubble);
+            if (iosBubbles) {
+                final float x = chatActivityEnterView.getX(), y = chatActivityEnterView.getY();
+                iosLeftBubble.offset(x, y);
+                iosRightBubble.offset(x, y);
+                iosCenterBubble.offset(x, y);
+                iosCenterBubble.top += chatActivityEnterView.getAnimatedTop();
+                AndroidUtilities.lerp(sharedResources.rect2, iosCenterBubble, progressToKeyboard, sharedResources.finalRect);
+                radius = Math.min(dp(22), sharedResources.finalRect.height() / 2f);
+
+                final int sideAlpha = (int) (0xFF * backgroundAlpha * progressToKeyboard);
+                if (!iosLeftBubble.isEmpty()) {
+                    drawIosSideBubble(canvas, inputLeftBubbleBackground, iosLeftBubble, sideAlpha);
+                }
+                drawIosSideBubble(canvas, inputRightBubbleBackground, iosRightBubble, sideAlpha);
+            } else {
+                AndroidUtilities.lerp(sharedResources.rect2, sharedResources.rect1, progressToKeyboard, sharedResources.finalRect);
+            }
             if (inputFieldBackground != null) {
                 inputFieldBackground.setBounds((int) sharedResources.finalRect.left, (int) sharedResources.finalRect.top, (int) sharedResources.finalRect.right, (int) sharedResources.finalRect.bottom);
                 inputFieldBackground.setRadius(radius);
-                inputFieldBackground.setAlpha((int) (0xFF * (1f - progressToDismiss) * getHideInterfaceAlpha() * (1f - outT)));
+                inputFieldBackground.setAlpha((int) (0xFF * backgroundAlpha));
                 inputFieldBackground.draw(canvas);
             } else {
                 canvas.drawRoundRect(sharedResources.finalRect, radius, radius, inputBackgroundPaint);
             }
             if (progressToKeyboard < 0.5f) {
                 canvas.save();
-                canvas.clipRect(sharedResources.finalRect);
+                if (iosBubbles) {
+                    canvas.clipRect(
+                        Math.min(sharedResources.finalRect.left, iosLeftBubble.isEmpty() ? sharedResources.finalRect.left : iosLeftBubble.left),
+                        sharedResources.finalRect.top,
+                        Math.max(sharedResources.finalRect.right, iosRightBubble.right),
+                        sharedResources.finalRect.bottom
+                    );
+                } else {
+                    canvas.clipRect(sharedResources.finalRect);
+                }
                 boolean rez = super.drawChild(canvas, child, drawingTime);
                 canvas.restore();
                 return rez;
@@ -8451,4 +8480,28 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
         return MessagesController.getInstance(currentAccount)
                 .getStoriesController();
     }
+
+    /** Cherrygram start */
+    BlurredBackgroundDrawable inputLeftBubbleBackground;
+    BlurredBackgroundDrawable inputRightBubbleBackground;
+    private final RectF iosLeftBubble = new RectF();
+    private final RectF iosCenterBubble = new RectF();
+    private final RectF iosRightBubble = new RectF();
+
+    private void drawIosSideBubble(Canvas canvas, BlurredBackgroundDrawable background, RectF bubble, int alpha) {
+        final float r = bubble.height() / 2f;
+        if (background != null) {
+            background.setBounds((int) bubble.left, (int) bubble.top, (int) bubble.right, (int) bubble.bottom);
+            background.setRadius(r);
+            background.setAlpha(alpha);
+            background.draw(canvas);
+        } else {
+            final int wasAlpha = inputBackgroundPaint.getAlpha();
+            inputBackgroundPaint.setAlpha(wasAlpha * alpha / 0xFF);
+            canvas.drawRoundRect(bubble, r, r, inputBackgroundPaint);
+            inputBackgroundPaint.setAlpha(wasAlpha);
+        }
+    }
+    /** Cherrygram finish */
+
 }

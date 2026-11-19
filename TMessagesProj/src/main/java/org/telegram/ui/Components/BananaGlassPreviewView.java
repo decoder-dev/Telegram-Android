@@ -5,20 +5,15 @@ import static org.telegram.messenger.AndroidUtilities.dp;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.text.TextUtils;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
@@ -27,6 +22,7 @@ import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.banana.BananaConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
@@ -34,18 +30,20 @@ import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
-import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProvider;
 import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
+import org.telegram.ui.Components.chat.ChatInputViewsContainer;
 import org.telegram.ui.Components.chat.ViewPositionWatcher;
+import org.telegram.ui.Components.inset.WindowInsetsStateHolder;
 import org.telegram.ui.Stories.recorder.StoryEntry;
 import org.telegram.utils.glass.source.GlassSourceColor;
 import org.telegram.utils.glass.source.GlassSourceRenderNode;
 import org.telegram.utils.glass.source.GlassSourceWrapped;
 
 /**
- * A chat header and composer in liquid glass over the current wallpaper, so the highlight style and the glass
- * settings show as they are chosen (after Cherrygram's glare preview). It is a picture only: touches go nowhere.
+ * A chat header and message field in liquid glass over the current wallpaper, so the highlight style, the field
+ * layout and the glass settings show as they are chosen (after Cherrygram's glare and input previews). It is a
+ * picture only: touches go nowhere. Rebuild it when the field layout changes, since that is fixed at creation.
  */
 @SuppressLint("ViewConstructor")
 public final class BananaGlassPreviewView extends FrameLayout {
@@ -84,28 +82,106 @@ public final class BananaGlassPreviewView extends FrameLayout {
         actionBar.addView(avatar, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.START | Gravity.TOP, 54, 0, 54, 0));
         actionBar.setChatAvatarContainer(avatar);
 
-        final int iconColor = Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider);
+        // The real message field, as in Cherrygram's preview, so both field layouts look exactly as in a chat.
+        SizeNotifierFrameLayout composerRoot = new SizeNotifierFrameLayout(context);
+        composerRoot.setClipChildren(false);
+        composerRoot.setClipToPadding(false);
+        addView(composerRoot, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, COMPOSER_HEIGHT_DP, Gravity.BOTTOM));
 
-        FrameLayout field = new FrameLayout(context);
-        BlurredBackgroundDrawable fieldGlass = factory.create(field, colors);
-        fieldGlass.setRadius(dp(22));
-        field.setBackground(fieldGlass);
-        field.addView(icon(context, R.drawable.input_smile, iconColor), LayoutHelper.createFrame(44, 44, Gravity.START | Gravity.CENTER_VERTICAL));
-        TextView hint = new TextView(context);
-        hint.setText(LocaleController.getString(R.string.TypeMessage));
-        hint.setTextColor(Theme.getColor(Theme.key_chat_messagePanelHint, resourcesProvider));
-        hint.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-        hint.setSingleLine(true);
-        hint.setEllipsize(TextUtils.TruncateAt.END);
-        field.addView(hint, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.CENTER_VERTICAL, 48, 0, 48, 0));
-        field.addView(icon(context, R.drawable.input_attach, iconColor), LayoutHelper.createFrame(44, 44, Gravity.END | Gravity.CENTER_VERTICAL));
-        addView(field, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 44, Gravity.BOTTOM, 10, 0, 62, 14));
+        inputContainer = new ChatInputViewsContainer(context);
+        inputContainer.setClipChildren(false);
+        inputContainer.setWindowInsetsProvider(insets);
+        inputContainer.setInputIslandBubbleDrawable(factory.create(inputContainer, colors));
+        inputContainer.setUnderKeyboardBackgroundDrawable(factory.create(inputContainer, colors));
+        final boolean split = BananaConfig.glassComposer();
+        if (split) {
+            inputContainer.setLeftBubbleDrawable(factory.create(inputContainer, colors));
+            inputContainer.setRightBubbleDrawable(factory.create(inputContainer, colors));
+        }
+        composerRoot.addView(inputContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
-        ImageView mic = icon(context, R.drawable.input_mic, iconColor);
-        BlurredBackgroundDrawable micGlass = factory.create(mic, colors);
-        micGlass.setRadius(dp(22));
-        mic.setBackground(micGlass);
-        addView(mic, LayoutHelper.createFrame(44, 44, Gravity.BOTTOM | Gravity.END, 0, 0, 10, 14));
+        FrameLayout bubble = inputContainer.getInputIslandBubbleContainer();
+        bubble.setClipChildren(false);
+        bubble.setClipToPadding(false);
+
+        enterView = new ChatActivityEnterView(fragment.getParentActivity(), composerRoot, null, true, resourcesProvider, split) {
+            @Override
+            public boolean dispatchTouchEvent(MotionEvent ev) {
+                return false;
+            }
+        };
+        enterView.setChatInputViewsContainer(inputContainer);
+        enterView.shouldDrawBackground = false;
+        enterView.setAllowStickersAndGifs(true, true, true);
+        enterView.setDialogId(UserConfig.getInstance(account).getClientUserId(), account);
+        enterView.updateAudioVideoButton();
+        enterView.setDelegate(new PreviewDelegate());
+        enterView.setFocusable(false);
+        enterView.setClickable(false);
+        bubble.addView(enterView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 7, 0, 7, 1));
+        if (enterView.messageEditText != null) {
+            enterView.messageEditText.setText(null);
+            enterView.messageEditText.setHintText(LocaleController.getString(R.string.TypeMessage));
+            enterView.messageEditText.setFocusable(false);
+            enterView.messageEditText.setClickable(false);
+            enterView.messageEditText.setCursorVisible(false);
+        }
+        updateBubbles();
+    }
+
+    private static final int COMPOSER_HEIGHT_DP = 76;
+    private final WindowInsetsStateHolder insets = new WindowInsetsStateHolder(this::onInsetsChanged);
+    private final ChatInputViewsContainer inputContainer;
+    private final ChatActivityEnterView enterView;
+
+    private void onInsetsChanged() {
+        if (inputContainer != null) inputContainer.checkInsets();
+    }
+
+    private void updateBubbles() {
+        if (inputContainer == null || enterView == null) return;
+        inputContainer.checkInsets();
+        inputContainer.setInputBubbleHeight(dp(44));
+        enterView.checkBubbles();
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        updateBubbles();
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        if (changed) updateBubbles();
+    }
+
+    /** Nothing in the preview sends, records or opens anything. */
+    private static final class PreviewDelegate implements ChatActivityEnterView.ChatActivityEnterViewDelegate {
+        @Override public void onMessageSend(CharSequence message, boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars) {}
+        @Override public void needSendTyping() {}
+        @Override public void onTextChanged(CharSequence text, boolean bigChange, boolean fromDraft) {}
+        @Override public void onTextSelectionChanged(int start, int end) {}
+        @Override public void onTextSpansChanged(CharSequence text) {}
+        @Override public void onAttachButtonHidden() {}
+        @Override public void onAttachButtonShow() {}
+        @Override public void onWindowSizeChanged(int size) {}
+        @Override public void onStickersTab(boolean opened) {}
+        @Override public void onMessageEditEnd(boolean loading) {}
+        @Override public void didPressAttachButton() {}
+        @Override public void needStartRecordVideo(int state, boolean notify, int scheduleDate, int scheduleRepeatPeriod, int ttl, long effectId, long stars) {}
+        @Override public void toggleVideoRecordingPause() {}
+        @Override public boolean isVideoRecordingPaused() { return false; }
+        @Override public void needChangeVideoPreviewState(int state, float seekProgress) {}
+        @Override public void onSwitchRecordMode(boolean video) {}
+        @Override public void onPreAudioVideoRecord() {}
+        @Override public void needStartRecordAudio(int state) {}
+        @Override public void needShowMediaBanHint() {}
+        @Override public void onStickersExpandedChange() {}
+        @Override public void onUpdateSlowModeButton(android.view.View button, boolean show, CharSequence time) {}
+        @Override public void onSendLongClick() {}
+        @Override public void onAudioVideoInterfaceUpdated() {}
     }
 
     /** Cherrygram's set-up for glass outside a chat: the blur of the drawn wallpaper where the device has it. */
@@ -122,14 +198,6 @@ public final class BananaGlassPreviewView extends FrameLayout {
         GlassSourceColor color = new GlassSourceColor();
         color.setColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
         return new BlurredBackgroundDrawableViewFactory(color);
-    }
-
-    private static ImageView icon(Context context, int res, int color) {
-        ImageView view = new ImageView(context);
-        view.setScaleType(ImageView.ScaleType.CENTER);
-        view.setImageResource(res);
-        view.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
-        return view;
     }
 
     /** A copy of this account's user: the shared object must not lose its self flag for the sake of a preview. */

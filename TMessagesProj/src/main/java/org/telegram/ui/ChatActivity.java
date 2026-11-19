@@ -477,7 +477,7 @@ public class ChatActivity extends BaseFragment implements
         }
     };
 
-    private BlurredBackgroundColorProviderThemed blurredBackgroundColorProvider;
+    public BlurredBackgroundColorProviderThemed blurredBackgroundColorProvider;
     private BlurredBackgroundColorProviderThemed blurredBackgroundButtonsColorProvider;
     private BlurredBackgroundColorProviderThemed blurredBackgroundColorProviderWhite;
 
@@ -4843,7 +4843,13 @@ public class ChatActivity extends BaseFragment implements
             glassBackgroundDrawableFactory.create(chatInputViewsContainer, blurredBackgroundColorProvider));
         chatInputViewsContainer.setUnderKeyboardBackgroundDrawable(
             glassBackgroundDrawableFactoryFrosted.create(chatInputViewsContainer, blurredBackgroundColorProvider));
-
+        if (org.telegram.messenger.banana.BananaConfig.glassComposer()) {
+            // Cherrygram's split glass field: the attach and send buttons get bubbles of their own.
+            chatInputViewsContainer.setLeftBubbleDrawable(
+                glassBackgroundDrawableFactory.create(chatInputViewsContainer, blurredBackgroundColorProvider));
+            chatInputViewsContainer.setRightBubbleDrawable(
+                glassBackgroundDrawableFactory.create(chatInputViewsContainer, blurredBackgroundColorProvider));
+        }
 
         chatInputBubbleContainer = chatInputViewsContainer.getInputIslandBubbleContainer();
         chatInputBubbleContainer.setClipChildren(false);
@@ -8280,6 +8286,7 @@ public class ChatActivity extends BaseFragment implements
                 }
             }
         };
+        chatActivityEnterView.setChatInputViewsContainer(chatInputViewsContainer);
         chatActivityEnterView.setVisibility(View.VISIBLE);
         chatActivityEnterView.getEditField().adaptiveCreateLinkDialog = true;
         if (chatMode == MODE_EDIT_BUSINESS_LINK) {
@@ -8536,12 +8543,21 @@ public class ChatActivity extends BaseFragment implements
         });
 
         replyCloseImageView = new ImageView(context);
-        ThemeBind.colorFilter(replyCloseImageView, Theme.key_glass_defaultIcon, getResourceProvider(), PorterDuff.Mode.MULTIPLY);
         replyCloseImageView.setImageResource(R.drawable.input_clear);
         replyCloseImageView.setScaleType(ImageView.ScaleType.CENTER);
-        ThemeBind.selectorBackground(replyCloseImageView, Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 1, AndroidUtilities.dp(19)), null, ThemeBind.of(Theme.key_listSelector), getResourceProvider());
-        chatActivityEnterTopView.addView(replyCloseImageView, LayoutHelper.createFrame(52, 46, Gravity.RIGHT | Gravity.TOP, 0, 0.5f, 0, 0));
+        if (chatActivityEnterView != null && chatActivityEnterView.iOSMessageInputFieldAvailable()) {
+            ThemeBind.colorFilter(replyCloseImageView, Theme.key_actionBarActionModeDefaultIcon, getResourceProvider(), PorterDuff.Mode.MULTIPLY);
+            BlurredBackgroundDrawable replyBackground = glassBackgroundDrawableFactory.create(replyCloseImageView, blurredBackgroundColorProvider);
+            replyBackground.setRadius(dp(18));
+            replyCloseImageView.setBackground(replyBackground);
+            chatActivityEnterTopView.addView(replyCloseImageView, LayoutHelper.createFrame(33, 33, Gravity.RIGHT | Gravity.TOP, 0, 10, 4.66f, 0));
+        } else {
+            ThemeBind.colorFilter(replyCloseImageView, Theme.key_glass_defaultIcon, getResourceProvider(), PorterDuff.Mode.MULTIPLY);
+            ThemeBind.selectorBackground(replyCloseImageView, Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 1, AndroidUtilities.dp(19)), null, ThemeBind.of(Theme.key_listSelector), getResourceProvider());
+            chatActivityEnterTopView.addView(replyCloseImageView, LayoutHelper.createFrame(52, 46, Gravity.RIGHT | Gravity.TOP, 0, 0.5f, 0, 0));
+        }
         replyCloseImageView.setOnClickListener(v -> {
+            if (chatActivityEnterView != null) chatActivityEnterView.disableAttachButton(false);
             messageSuggestionParams = null;
             if (fieldPanelShown == 2) {
                 replyingQuote = null;
@@ -8756,6 +8772,9 @@ public class ChatActivity extends BaseFragment implements
             }
         });
         bottomChannelButtonsLayout.setOnButtonsTotalWidthChanged((l, r) -> {
+            if (chatActivityEnterView != null && chatActivityEnterView.iOSMessageInputFieldAvailable()) {
+                return;
+            }
             chatInputViewsContainer.setInputBubbleOffsets(l, r);
         });
 
@@ -19677,7 +19696,27 @@ public class ChatActivity extends BaseFragment implements
                     childTop -= windowInsetsStateHolder.getCurrentMaxBottomInset() + dp(7);
                     childLeft -= dp(3);
                 } else if (child == emojiButtonRed) {
-                    childTop -= windowInsetsStateHolder.getCurrentMaxBottomInset() + dp(7);
+                    // With the split glass field the emoji button sits on the right; keep the badge on it.
+                    final View emojiButtonView = chatActivityEnterView != null && chatActivityEnterView.iOSMessageInputFieldAvailable() ? chatActivityEnterView.getEmojiButton() : null;
+                    boolean placedNearEmoji = false;
+                    if (emojiButtonView != null && emojiButtonView.getWidth() > 0) {
+                        float x = emojiButtonView.getWidth() / 2f + dp(9);
+                        float y = emojiButtonView.getHeight() / 2f - dp(8);
+                        View v = emojiButtonView;
+                        while (v != null && v != this) {
+                            x += v.getLeft() + v.getTranslationX();
+                            y += v.getTop() + v.getTranslationY();
+                            v = v.getParent() instanceof View ? (View) v.getParent() : null;
+                        }
+                        if (v == this) {
+                            childLeft = (int) (x - width / 2f);
+                            childTop = (int) (y - height / 2f);
+                            placedNearEmoji = true;
+                        }
+                    }
+                    if (!placedNearEmoji) {
+                        childTop -= windowInsetsStateHolder.getCurrentMaxBottomInset() + dp(7);
+                    }
                 } else if (chatActivityEnterView != null && child == chatActivityEnterView.recordedAudioPanel) {
                     childTop -= windowInsetsStateHolder.getCurrentMaxBottomInset() + dp(9);
                 } else if (child == chatListView || child == chatListThanosEffect || child == floatingDateView || child == floatingTopicSeparator || child == infoTopView) {
@@ -48413,6 +48452,10 @@ public class ChatActivity extends BaseFragment implements
             final float alpha = bottomViewsVisibilityController.getVisibility(containerId)
                 * (1f - animatorPullingDownContainerVisibility.getFloatValue())
                 * (1f - animatorPollAddAnswerVisibility.getFloatValue());
+
+            if (containerId == MESSAGE_INPUT_CONTAINER && chatActivityEnterView != null) {
+                chatActivityEnterView.updateBubblesProgress(alpha);
+            }
 
             view.setAlpha(alpha);
             if (allowVisibilityChange) {

@@ -174,10 +174,12 @@ What Cherrygram adds on top, and what happened to each piece:
 |---|---|
 | Glare effects: Disable / Default / Stroke | Already ported as Glass highlights. Now Off and Outline keep an even outline ring, as in Cherrygram, instead of removing every rim (`GlassRim.withoutHighlights`, `GlassRimTest`). |
 | Inner stroke sized into the rim slices (`GlassRimRenderer`) | Ported: a thick stroke's corners were cut where the nine-patch stretches. |
-| Live chat header and composer preview in the glare settings | Ported as `BananaGlassPreviewView` at the top of Extras → Values → Liquid glass, with the highlight choice. The header is Cherrygram's; the composer is drawn from glass capsules, since Cherrygram's builds on its own `ChatActivityEnterView` changes. |
+| Live chat header and composer preview in the glare settings | Ported as `BananaGlassPreviewView` at the top of Extras → Values → Liquid glass, with the highlight choice. Since 2026-11-19 the composer is the real `ChatActivityEnterView` in preview mode, as in Cherrygram's `ChatInputPreviewView`. |
+| iOS-style message field (`CP_iOSMessageInputField`): attach and send buttons in their own glass bubbles | Ported 2026-11-19 as Split message field (`BananaConfig.glassComposer`, off by default). Only the field's hunks were taken from Cherrygram's `ChatActivityEnterView`, `ChatActivity`, `ChatInputViewsContainer`, `PeerStoriesView`, the two timeline views and the mic/camera icon; its Gemini, pre-send translation, haptics and send-as long press were left out. Differences: the layout is cached per field at creation (Cherrygram re-reads the setting on every call), the mic/camera animations are chosen per field rather than globally, and the attach icon is Telegram's, not the Solar pack's. |
 | Main tabs without titles | Ported as Tab bar → Icons only in tab bar (`TAB_BAR_ICONS_ONLY`). |
 | Main tab order, profile tab, open settings by swipe, force-open chats, folders in the bar | Not glass; this fork already has its own tab bar options. Not ported. |
 | Blurred message menu background | A different message menu gated by Cherrygram's donation check, not glass. Not ported. |
+| Attach button always in the side controls when the iOS field is off; mute/unmute in the channel bar | Cherrygram layout preferences outside the glass field. Not ported. |
 
 Verification: JVM tests and compile in CI; Extras screenshots on API 33–36. Not checked on a phone.
 

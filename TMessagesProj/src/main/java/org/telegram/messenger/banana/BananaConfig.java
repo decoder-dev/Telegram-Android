@@ -241,6 +241,24 @@ public final class BananaConfig {
         MessagesController.getGlobalMainSettings().edit().putInt(GLASS_GLARE_KEY, mode.ordinal()).apply();
     }
 
+    public static final String GLASS_COMPOSER_KEY = "bananaGlassComposer";
+
+    /**
+     * Cherrygram's split glass message field: attach and send buttons in their own glass bubbles
+     * beside the text bubble. App-wide like the highlights; open chats pick it up when rebuilt.
+     */
+    public static boolean glassComposer() {
+        try {
+            return MessagesController.getGlobalMainSettings().getBoolean(GLASS_COMPOSER_KEY, false);
+        } catch (ClassCastException ignored) {
+            return false;
+        }
+    }
+
+    public static void setGlassComposer(boolean enabled) {
+        MessagesController.getGlobalMainSettings().edit().putBoolean(GLASS_COMPOSER_KEY, enabled).apply();
+    }
+
     private static final Option[] GHOST_OPTIONS = {
             Option.DONT_READ_MESSAGES, Option.DONT_READ_STORIES, Option.HIDE_ONLINE,
             Option.HIDE_TYPING, Option.HIDE_RECORDING, Option.HIDE_UPLOAD

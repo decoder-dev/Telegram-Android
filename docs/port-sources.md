@@ -203,6 +203,13 @@ and custom rims. The setting is app-wide under Extras → Values → Appearance;
 existing per-account bubble edge strengths are retained. The older Cherrygram
 shader and capture engine are not substituted for the newer Telegram base.
 
+Cherrygram split message field (2026-11-19, from
+[`8c66eb51f`](https://github.com/arsLan4k1390/Cherrygram/commit/8c66eb51f)): its
+`CP_iOSMessageInputField` hunks were selected from a three-way diff against
+Telegram 13.2.2 (`21f7d10`) and merged onto BananaGram's message field. The
+mic/camera animations `voice_and_video_split.json` and `video_and_voice_split.json`
+are Cherrygram's (GPL v2 or later). See `docs/quality/full_android_audit.md`.
+
 
 The Android feature engines added after the initial prerelease are documented in
 [`third-party-additions.md`](third-party-additions.md). Session backups use the

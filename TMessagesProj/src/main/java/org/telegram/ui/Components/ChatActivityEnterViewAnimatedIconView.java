@@ -29,7 +29,7 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
             RLottieDrawable obj = super.get(key);
             if (obj == null) {
                 TransitState state = (TransitState) key;
-                int res = state.resource;
+                int res = splitGlass ? state.splitResource() : state.resource;
                 RLottieDrawable rLottieDrawable = new RLottieDrawable(res, AndroidUtilities.dp(sizeDp), AndroidUtilities.dp(sizeDp));
                 put(state, rLottieDrawable);
                 return rLottieDrawable;
@@ -47,6 +47,27 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
         this.sizeDp = sizeDp;
     }
 
+    /**
+     * Cherrygram's split glass message field draws the voice/video button bare on its own glass bubble, with a
+     * plain mic-to-camera animation instead of Telegram's two-way one. Set before the first state.
+     */
+    private boolean splitGlass;
+
+    public void setSplitGlass(boolean splitGlass) {
+        if (this.splitGlass == splitGlass) return;
+        this.splitGlass = splitGlass;
+        reloadState();
+    }
+
+    /** Drops the cached animations (made for the old style) and shows the current state again. */
+    public void reloadState() {
+        stateMap.clear();
+        animatingState = null;
+        if (currentState != null) {
+            setState(currentState, false);
+        }
+    }
+
     public void setState(State state, boolean animate) {
         if (animate && state == currentState) {
             return;
@@ -57,7 +78,7 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
             RLottieDrawable drawable = stateMap.get(getAnyState(currentState));
             drawable.stop();
 
-            drawable.setProgress(state == State.VOICE ? 0.5f : 0, false);
+            drawable.setProgress(state == State.VOICE && !splitGlass ? 0.5f : 0, false);
             setAnimation(drawable);
         } else {
             TransitState transitState = getState(fromState, currentState);
@@ -68,10 +89,10 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
             animatingState = transitState;
             RLottieDrawable drawable = stateMap.get(transitState);
             drawable.stop();
-            if (transitState == TransitState.VIDEO_TO_VOICE) {
+            if (transitState == TransitState.VIDEO_TO_VOICE && !splitGlass) {
                 drawable.setCustomEndFrame(30);
                 drawable.setProgress(0, false);
-            } else if (transitState == TransitState.VOICE_TO_VIDEO) {
+            } else if (transitState == TransitState.VOICE_TO_VIDEO && !splitGlass) {
                 drawable.setCustomEndFrame(60);
                 drawable.setProgress(0.5f, false);
             } else {
@@ -183,6 +204,13 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
             this.firstState = firstState;
             this.secondState = secondState;
             this.resource = resource;
+        }
+
+        /** The split glass field's own one-way mic/camera animations (from Cherrygram). */
+        int splitResource() {
+            if (this == VOICE_TO_VIDEO) return R.raw.voice_and_video_split;
+            if (this == VIDEO_TO_VOICE) return R.raw.video_and_voice_split;
+            return resource;
         }
     }
 
