@@ -2,6 +2,26 @@
 
 Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [13.2.2-rc.19]
+
+### Glass
+
+- Complete the Cherrygram Liquid Glass port: centered adaptive chat header with avatar-in-menu-pill and chevron back, floating glass search button in the tab bar, active-tab stroke, capsule profile buttons, back-pill unread counter, profile tint and action-bar crossfade. All toggles are off by default under Extras → Values → Liquid glass with a live preview.
+
+### Voice
+
+- Add the Doctor Livesey voice-changer preset: an adaptive pitch tracker (YIN at 4 kHz, smoothed, clamped to ±9 semitones) pulls the speaker's average pitch towards a 198 Hz reference while leaving syllable dynamics intact, matching BananaGram for iOS.
+
+### Fixes
+
+- Evict the oldest stored media when the deleted/edited-message archive budget runs out (whole files, speculative retained copies first); records keep text and media descriptors (BUG-017).
+- Restore predictive back on API 33–35: `enableOnBackInvokedCallback` was missing from the manifest while LaunchActivity already registered the callbacks (BUG-031).
+- Fix duplicate settings row IDs from the glass port that broke compilation, clamp the voice-preset setting to the real preset count, and raise the smoke-suite cap that fired mid-scenario on API 36.
+
+### CI
+
+- Compile the minified standalone build (`minifyAfatStandaloneWithR8`) on every push and pull request (BUG-019).
+
 ## [Unreleased]
 
 ### Telegram 13.2.2 base
