@@ -2,6 +2,16 @@
 
 Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [13.2.2-rc.20]
+
+### Performance
+
+- Add `BananaPerfGuard`, a main-looper freeze watchdog: 8 dispatches over 250 ms within 10 s switches liquid glass and chat blur off once per install and tells the user via toast; both stay re-enableable in Settings → Power Saving (BUG-039).
+
+### CI
+
+- Retry transient Maven failures (HTTP 429/502/503, dependency timeouts) in `scripts/build-android.py`: up to 3 attempts with 60/120 s backoff; compilation errors are never retried.
+
 ## [13.2.2-rc.19]
 
 ### Glass
