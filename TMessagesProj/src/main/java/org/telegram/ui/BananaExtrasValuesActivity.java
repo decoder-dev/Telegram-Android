@@ -52,8 +52,9 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     private static final int ID_GLASS_TAB_STROKE = 27;
     private static final int ID_GLASS_PROFILE_PILLS = 28;
     private static final int ID_GLASS_BACK_UNREAD_PILL = 29;
-    private static final int ID_GLASS_PROFILE_TINT = 30;
-    private static final int ID_GLASS_ACTIONBAR_CROSSFADE = 31;
+    // 35 and 36: 30..34 are taken by ID_EQ_FIRST..+4 below.
+    private static final int ID_GLASS_PROFILE_TINT = 35;
+    private static final int ID_GLASS_ACTIONBAR_CROSSFADE = 36;
     private org.telegram.ui.Components.BananaGlassPreviewView glassPreview;
     private static final int ID_TEXT_RULES = 20;
     private static final int ID_DEEPL_KEY = 21, ID_YANDEX_KEY = 22;
@@ -61,7 +62,7 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     private static final int ID_VOICE_PRESET = 40, ID_VOICE_PITCH = 41, ID_VOICE_REVERB = 42, ID_VOICE_ECHO = 43;
     private static final int[] EQ_TITLES = {R.string.BananaVal_Eq60, R.string.BananaVal_Eq230, R.string.BananaVal_Eq910, R.string.BananaVal_Eq3600, R.string.BananaVal_Eq14000};
     private static final int[] VOICE_PRESETS = {R.string.BananaVoicePresetAnonymous, R.string.BananaVoicePresetFemale, R.string.BananaVoicePresetMale,
-            R.string.BananaVoicePresetChild, R.string.BananaVoicePresetRobot, R.string.BananaVoicePresetCustom};
+            R.string.BananaVoicePresetChild, R.string.BananaVoicePresetRobot, R.string.BananaVoicePresetCustom, R.string.BananaVoicePresetLivesey};
 
     private static String decibels(int value) {
         return value == 0 ? "0 " + LocaleController.getString(R.string.BananaVal_Db)
