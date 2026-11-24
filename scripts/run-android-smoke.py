@@ -195,15 +195,17 @@ SUITE = ('org.telegram.banana.MediaConversionAndroidTest,org.telegram.banana.Vid
          'org.telegram.banana.ChatAdapterViewTypesTest,org.telegram.banana.StickerListViewTest,'
          'org.telegram.banana.GlassGlareTest,org.telegram.banana.BananaGlassBackdropTest,'
          'org.telegram.banana.WidgetFrameNodeTest,org.telegram.banana.WidgetResourceLifetimeTest,'
-         'org.telegram.banana.GlassLifecycleTest')
+         'org.telegram.banana.GlassLifecycleTest,'
+         'org.telegram.messenger.banana.HistoryEvictionTest')
 
 
 def run_suite():
     try:
         # EN/RU rendering in four themes plus native regressions takes 5–8 minutes on
-        # older images. Individual UI waits remain bounded; cap the whole suite too.
+        # older images, and the glass scenarios pushed the full suite past eleven minutes
+        # on API 36. Individual UI waits remain bounded; cap the whole suite too.
         result = run('shell', 'am', 'instrument', '-w', '-r', '-e', 'class', SUITE,
-                     'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner', timeout=600)
+                     'org.telegram.messenger.web.test/androidx.test.runner.AndroidJUnitRunner', timeout=1200)
         return result, False
     except SystemExit as error:
         return str(error), True

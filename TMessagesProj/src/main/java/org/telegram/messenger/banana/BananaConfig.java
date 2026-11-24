@@ -803,7 +803,8 @@ public final class BananaConfig {
             case VOICE_CHANGER_PITCH:
                 return Math.max(-12, Math.min(12, raw));
             case VOICE_CHANGER_PRESET:
-                return Math.max(0, Math.min(5, raw));
+                // The highest preset code; VoicePresets.LIVESEY was added after CUSTOM.
+                return Math.max(0, Math.min(VoicePresets.LIVESEY, raw));
             case VOICE_CHANGER_REVERB:
             case VOICE_CHANGER_ECHO:
                 return Math.max(0, Math.min(100, raw));
