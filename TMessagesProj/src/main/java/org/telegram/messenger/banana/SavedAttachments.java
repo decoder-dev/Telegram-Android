@@ -80,6 +80,16 @@ public final class SavedAttachments {
         return isOwned(file) && file.isFile() ? file : null;
     }
 
+    /** Room left in the total budget; MessageHistory's LRU eviction sizes itself by this. */
+    public long availableBytes() throws IOException {
+        synchronized (PROCESS_LOCK) {
+            try (RandomAccessFile lockFile = new RandomAccessFile(new File(directory, ".lock"), "rw");
+                 FileChannel channel = lockFile.getChannel(); FileLock ignored = channel.lock()) {
+                return Math.max(0, maxTotal - usage()[0]);
+            }
+        }
+    }
+
     public boolean delete(String name) throws IOException {
         synchronized (PROCESS_LOCK) {
             try (RandomAccessFile lockFile = new RandomAccessFile(new File(directory, ".lock"), "rw");

@@ -8,7 +8,7 @@ package org.telegram.messenger.banana;
 public final class VoiceChain {
     /** Effect parameters; {@link #identity()} changes nothing. */
     public static final class Params {
-        public float pitchSemitones, timbre, bassDb, midDb, trebleDb, telephone, distortion;
+        public float pitchSemitones, referencePitchHz, timbre, bassDb, midDb, trebleDb, telephone, distortion;
         public float bitcrushBits = 16f, ringModHz, ringModMix, echoMix, echoDelayMs = 250f, echoFeedback;
         public float reverbMix, reverbSize = 0.5f, breathiness, compression, gainDb, jitter, wet = 1f;
 
@@ -24,6 +24,8 @@ public final class VoiceChain {
         Params sanitized() {
             Params p = new Params();
             p.pitchSemitones = clamp(pitchSemitones, -12f, 12f);
+            // 0 disables the adaptive reference; anything real lives in the 65–350 Hz voice band.
+            p.referencePitchHz = referencePitchHz >= 65f ? clamp(referencePitchHz, 65f, 350f) : 0f;
             p.timbre = clamp(timbre, -1f, 1f);
             p.bassDb = clamp(bassDb, -12f, 12f);
             p.midDb = clamp(midDb, -12f, 12f);
@@ -49,7 +51,7 @@ public final class VoiceChain {
         public boolean isIdentity() {
             Params p = sanitized();
             if (p.wet < 0.001f) return Math.abs(p.gainDb) < 0.01f;
-            if (Math.abs(p.pitchSemitones) > 0.01f || p.jitter > 0.001f) return false;
+            if (Math.abs(p.pitchSemitones) > 0.01f || p.referencePitchHz > 0f || p.jitter > 0.001f) return false;
             if (Math.abs(p.timbre) > 0.01f || Math.abs(p.bassDb) > 0.01f || Math.abs(p.midDb) > 0.01f || Math.abs(p.trebleDb) > 0.01f) return false;
             if (p.telephone > 0.001f || p.distortion > 0.001f || p.bitcrushBits < 15.99f) return false;
             if (p.ringModHz > 0.01f && p.ringModMix > 0.001f) return false;
@@ -59,6 +61,8 @@ public final class VoiceChain {
     }
 
     private static final int CONTROL_INTERVAL = 32;
+    // Reference-pitch analysis: YIN-style estimate on the dry input decimated to 4 kHz.
+    private static final int ANALYSIS_RATE = 4000, ANALYSIS_HISTORY = 256, ANALYSIS_WINDOW = 128, ANALYSIS_MAX_LAG = 72;
     private static final float[] COMB_TUNING = {1116f, 1188f, 1277f, 1356f};
     private static final float[] ALLPASS_TUNING = {556f, 441f};
 
@@ -70,6 +74,13 @@ public final class VoiceChain {
     private float[] pitchBuffer;
     private int pitchMask, pitchWrite, controlCounter, jitterCounter, jitterPeriod;
     private float pitchWindow, pitchPhase, pitchRatio = 1f, jitterValue, jitterTarget;
+
+    // Reference-pitch analysis state (iOS FVPitchAnalysis): shifts the speaker's average pitch
+    // towards the reference while leaving syllable-to-syllable changes intact.
+    private float[] analysisHistory, analysisDifference;
+    private int analysisWrite, analysisUntilEstimate, analysisDecimation, analysisDecimationCount;
+    private float analysisSum, analysisRate, analysisSmoothing, goalSemitones, shiftSemitones;
+    private boolean hasEstimate;
 
     private final boolean timbreActive, eqActive, phoneActive, ringActive, compressorActive;
     private final Biquad timbreLow = new Biquad(), timbreHigh = new Biquad();
@@ -100,7 +111,7 @@ public final class VoiceChain {
         this.rng = seed == 0 ? 1 : seed;
         float rate = this.sampleRate;
 
-        pitchActive = Math.abs(p.pitchSemitones) > 0.01f || p.jitter > 0.001f;
+        pitchActive = Math.abs(p.pitchSemitones) > 0.01f || p.referencePitchHz > 0f || p.jitter > 0.001f;
         if (pitchActive) {
             int size = nextPowerOfTwo((int) (rate * 0.1f));
             pitchBuffer = new float[size];
@@ -108,6 +119,14 @@ public final class VoiceChain {
             pitchWindow = Math.max(64f, Math.min(rate * 0.045f, pitchMask - 4f));
             pitchRatio = (float) Math.pow(2.0, p.pitchSemitones / 12.0);
             jitterPeriod = (int) (rate * 0.15f / CONTROL_INTERVAL) + 1;
+            if (p.referencePitchHz > 0f) {
+                analysisHistory = new float[ANALYSIS_HISTORY];
+                analysisDifference = new float[ANALYSIS_MAX_LAG + 1];
+                analysisDecimation = Math.max(1, Math.round(rate / ANALYSIS_RATE));
+                analysisRate = rate / analysisDecimation;
+                analysisSmoothing = 1f - (float) Math.exp(-CONTROL_INTERVAL / (0.18f * rate));
+                analysisUntilEstimate = ANALYSIS_HISTORY;
+            }
         }
         timbreActive = Math.abs(p.timbre) > 0.01f;
         if (timbreActive) {
@@ -210,8 +229,67 @@ public final class VoiceChain {
         return buffer[i0] + frac * (buffer[i1] - buffer[i0]);
     }
 
+    /** Decimates the dry input to ~4 kHz and re-estimates the source pitch every 64 ms. */
+    private void feedPitchAnalysis(float sample) {
+        analysisSum += sample;
+        if (++analysisDecimationCount == analysisDecimation) {
+            analysisHistory[analysisWrite] = analysisSum / analysisDecimation;
+            analysisWrite = (analysisWrite + 1) & (ANALYSIS_HISTORY - 1);
+            analysisSum = 0f;
+            analysisDecimationCount = 0;
+            if (--analysisUntilEstimate == 0) {
+                estimatePitch();
+                analysisUntilEstimate = ANALYSIS_HISTORY;
+            }
+        }
+    }
+
+    /**
+     * YIN-style normalized-difference estimate, the Java port of fv_pitch_analysis_estimate. The
+     * first confident minimum avoids period multiples; the correction is full-strength with a
+     * +/-9 semitone cap (a 100 Hz voice saturates at the cap instead of stalling halfway).
+     */
+    private void estimatePitch() {
+        int mask = ANALYSIS_HISTORY - 1;
+        int start = analysisWrite - ANALYSIS_WINDOW;
+        float energy = 0f;
+        for (int i = 0; i < ANALYSIS_WINDOW; i++) {
+            float sample = analysisHistory[(start + i) & mask];
+            energy += sample * sample;
+        }
+        if (energy < 0.01f) return;
+        int minLag = Math.max(2, (int) Math.floor(analysisRate / 350f));
+        int maxLag = Math.min(ANALYSIS_MAX_LAG, (int) Math.ceil(analysisRate / 65f));
+        float accumulated = 0f;
+        analysisDifference[0] = 1f;
+        for (int lag = 1; lag <= maxLag; lag++) {
+            float sum = 0f;
+            for (int i = 0; i < ANALYSIS_WINDOW; i++) {
+                float delta = analysisHistory[(start + i) & mask] - analysisHistory[(start + i - lag) & mask];
+                sum += delta * delta;
+            }
+            accumulated += sum;
+            analysisDifference[lag] = accumulated > 1e-6f ? sum * lag / accumulated : 1f;
+        }
+        for (int lag = minLag; lag < maxLag; lag++) {
+            float left = analysisDifference[lag - 1], middle = analysisDifference[lag], right = analysisDifference[lag + 1];
+            if (middle < 0.18f && middle < left && middle <= right) {
+                float period = lag + 0.5f * (left - right) / (left - 2f * middle + right);
+                float pitchHz = analysisRate / period;
+                float correction = Params.clamp(12f * (float) (Math.log(p.referencePitchHz / pitchHz) / Math.log(2.0)), -9f, 9f);
+                goalSemitones += (correction - goalSemitones) * (hasEstimate ? 0.06f : 1f);
+                hasEstimate = true;
+                return;
+            }
+        }
+    }
+
     private void updatePitchControl() {
         float semitones = p.pitchSemitones;
+        if (p.referencePitchHz > 0f) {
+            shiftSemitones += (goalSemitones - shiftSemitones) * analysisSmoothing;
+            semitones += shiftSemitones;
+        }
         if (p.jitter > 0.001f) {
             if (++jitterCounter >= jitterPeriod) {
                 jitterCounter = 0;
@@ -240,6 +318,7 @@ public final class VoiceChain {
     public float processSample(float dry) {
         float x = dry;
         if (pitchActive) {
+            if (p.referencePitchHz > 0f) feedPitchAnalysis(dry);
             if (controlCounter == 0) updatePitchControl();
             controlCounter = (controlCounter + 1) % CONTROL_INTERVAL;
             x = pitch(x);

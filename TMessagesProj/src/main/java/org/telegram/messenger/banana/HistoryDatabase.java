@@ -291,6 +291,64 @@ public final class HistoryDatabase extends SQLiteOpenHelper {
         return names;
     }
 
+    /**
+     * Unlinks the oldest stored attachment copies until at least `bytesToFree` are freed and
+     * returns their file names for the caller to delete from disk. Whole files are freed: a name
+     * is removed from every table referencing it, so no dangling links remain. Files that only
+     * exist as speculative retained copies go first; record-linked copies follow, oldest-first.
+     * A record always keeps its text and media descriptor — only the private file copy is
+     * dropped. Without this eviction the 512 MB budget filled exactly once and no media was ever
+     * archived again (BUG-017). Candidates are read fully before any row changes: a cursor is
+     * not stable while its own table is deleted from.
+     */
+    List<String> evictOldestStoredMedia(long bytesToFree) {
+        requireWorker();
+        ArrayList<String> freed = new ArrayList<>();
+        if (bytesToFree <= 0) return freed;
+        ArrayList<String> candidateNames = new ArrayList<>();
+        ArrayList<Long> candidateBytes = new ArrayList<>();
+        SQLiteDatabase db = getWritableDatabase();
+        // Speculative copies no record points at, oldest first.
+        try (Cursor cursor = db.rawQuery("SELECT attachment_name,attachment_size FROM retained_media WHERE attachment_name " +
+                "NOT IN (SELECT attachment_name FROM records WHERE attachment_name IS NOT NULL) ORDER BY saved_at", null)) {
+            while (cursor.moveToNext()) {
+                candidateNames.add(cursor.getString(0));
+                candidateBytes.add(cursor.getLong(1));
+            }
+        }
+        // Record-linked copies (one file may back several records), oldest first.
+        try (Cursor cursor = db.rawQuery("SELECT attachment_name,MAX(attachment_size) FROM records WHERE attachment_name " +
+                "IS NOT NULL GROUP BY attachment_name ORDER BY MIN(saved_at)", null)) {
+            while (cursor.moveToNext()) {
+                candidateNames.add(cursor.getString(0));
+                candidateBytes.add(cursor.getLong(1));
+            }
+        }
+        HashSet<String> seen = new HashSet<>();
+        long freedBytes = 0;
+        int index = 0;
+        db.beginTransaction();
+        try {
+            while (freedBytes < bytesToFree && index < candidateNames.size()) {
+                String name = candidateNames.get(index);
+                index++;
+                if (!seen.add(name)) continue;
+                freed.add(name);
+                freedBytes += candidateBytes.get(index - 1);
+                String[] key = {name};
+                db.delete("retained_media", "attachment_name=?", key);
+                ContentValues cleared = new ContentValues();
+                cleared.putNull("attachment_name");
+                cleared.put("attachment_size", 0);
+                db.update("records", cleared, "attachment_name=?", key);
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        return freed;
+    }
+
     private static void requireWorker() {
         if (Looper.myLooper() == Looper.getMainLooper()) throw new IllegalStateException("History IO must not run on the UI thread");
     }

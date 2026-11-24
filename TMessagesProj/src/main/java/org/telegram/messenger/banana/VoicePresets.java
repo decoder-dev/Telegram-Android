@@ -2,7 +2,7 @@ package org.telegram.messenger.banana;
 
 /** Voice changer presets, the values of BananaGram iOS ForkVoiceChanger.swift. */
 public final class VoicePresets {
-    public static final int ANONYMOUS = 0, FEMALE = 1, MALE = 2, CHILD = 3, ROBOT = 4, CUSTOM = 5;
+    public static final int ANONYMOUS = 0, FEMALE = 1, MALE = 2, CHILD = 3, ROBOT = 4, CUSTOM = 5, LIVESEY = 6;
     public static final int[] PITCH_CHOICES = {-12, -9, -7, -5, -3, -2, -1, 0, 1, 2, 3, 5, 7, 9, 12};
     public static final int[] AMOUNT_CHOICES = {0, 10, 25, 40, 60, 80};
 
@@ -38,6 +38,13 @@ public final class VoicePresets {
                 p.echoMix = Math.max(0, Math.min(100, echo)) / 100f;
                 p.echoDelayMs = 180f;
                 p.echoFeedback = 0.3f;
+                break;
+            case LIVESEY:
+                // iOS ForkVoiceChanger.doctorLivesey, tuned against a formant-synth reference:
+                // Paperny's dialogue centers near 190 Hz and the adaptive loop undershoots on
+                // real speech, so the reference sits at 198 Hz to land the output near 190.
+                p.referencePitchHz = 198f; p.timbre = 0.1f; p.midDb = -1f; p.trebleDb = 0.75f;
+                p.distortion = 0.1f; p.compression = 0.2f; p.reverbMix = 0.07f; p.reverbSize = 0.2f;
                 break;
             default:
                 return null;

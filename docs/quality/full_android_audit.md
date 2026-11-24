@@ -31,7 +31,7 @@ Started 2026-11-18 on `main` at `bff623df3`. The journal is kept up to date as f
 | Upstream Telegram core (MessagesController, MessagesStorage, FileLoader, ConnectionsManager beyond fork hooks) | Not inspected beyond the fork's integration points |
 | Upstream native libraries (FFmpeg, libvpx, dav1d, WebRTC, tlottie, td) | Not inspected: pinned upstream submodules |
 | Runtime on API 33–36 | CI smoke suite only (unsigned emulator) |
-| Release build, R8 output, signing continuity | Blocked: no signing keys; CI never runs a minified build (BUG-019) |
+| Release build, R8 output, signing continuity | R8 covered: CI runs `minifyAfatStandaloneWithR8` on every push/PR (BUG-019 fixed 2026-11-24); signing continuity still needs the owner's keys |
 
 CI run 43539172965 (failed on all four APIs) was a real regression in
 `WidgetFrameNode`, fixed by `f57d75a10` and `bff623df3`. Run 43543353276 passed. It was not flaky.
@@ -196,9 +196,14 @@ Verification: Earlier commits verified in CI (JVM tests, compile, API 33–36 sc
 | BUG-014 | P2 | `BananaConfig.migrateAyuDuplicates` | Migration resets AyuGram's `useScheduledMessages`, but Banana scheduling needs the full ghost preset, which includes stories that AyuGram never had. Auto-scheduling stops after the upgrade. | Keeping the Ayu flag would leave it with no visible switch, and forcing story reads on adds privacy behaviour. Needs a product decision; the migration has already run on existing installs. |
 | BUG-015 | P2 | `ChatActivity` OPTION_TTL → `markMessageAsRead2` / `SecretChatHelper` | With "Don't read messages" on, the explicit "TTL" action arms local self-destruct, but the read never reaches the server. | Needs a `force` path through core read methods; needs authenticated testing. |
 | BUG-016 | P2 | `MessageHistory`, `UserConfig.clearConfig` | The deleted/edited-message archive and up to 512 MB of media per owner are never wiped on logout. | Product decision (keep or wipe on logout). |
-| BUG-017 | P2 | `SavedAttachments` / `HistoryDatabase.rememberMedia` | Once speculative proactive downloads fill the 512 MB budget, no media is saved again. | Needs an eviction policy plus SQLite tests on device. |
-| BUG-019 | P3 | `.github/workflows/android.yml` | CI never runs a minified (R8) build; `a123c54f7` was such a regression. | CI design change. |
-| BUG-020 | P3 | `BananaArchiveLock` biometrics | Unlock ignores the authenticated `CryptoObject` (bypassable with root or Frida). | Low impact; needs device testing. |
 | BUG-030 | P3 | `LaunchActivity` `tg://xiaomi` | Any link opens the system uninstall dialog on MIUI (AyuGram easter egg). | Removing a fork feature needs the owner's approval. |
 | BUG-031 | P3 | `AndroidManifest.xml` | `enableOnBackInvokedCallback` was removed, so predictive back is inert on API 33–35. | Behaviour change; needs UI checks. |
 | BUG-034 | P3 | `DialogCell` / `MessageFilters.notifyChanged` | Banana filters do not apply to chat-list previews, yet every batch reloads the dialogs. | Product decision. |
+
+## Resolved 2026-11-24
+
+| ID | Resolution |
+|---|---|
+| BUG-017 | LRU eviction: `HistoryDatabase.evictOldestStoredMedia` frees whole files (speculative retained copies first, then record-linked oldest-first, text and media descriptors kept), `SavedAttachments.availableBytes` sizes it, `MessageHistory.saveWithEviction` applies it before both copy paths. Covered by `HistoryEvictionTest` (instrumented) and `SavedAttachmentsTest.availableBytesTracksTheRemainingBudget` (JVM). |
+| BUG-019 | CI now runs `:TMessagesProj_AppStandalone:minifyAfatStandaloneWithR8` on every push and pull request; minification needs no signing keys, only packaging does. |
+| BUG-020 | Already fixed in `1e1c5f3`: unlock requires the authenticated `CryptoObject` cipher to actually work. The table row was stale. |

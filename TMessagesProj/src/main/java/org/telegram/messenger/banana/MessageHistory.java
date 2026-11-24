@@ -280,7 +280,7 @@ public final class MessageHistory {
                             !database(owner, test).canLinkAttachment(rowId.get())) return;
                     SavedAttachments attachments = new SavedAttachments(attachmentDirectory(owner, test));
                     String extension = media.displayName.contains(".") ? media.displayName.substring(media.displayName.lastIndexOf('.') + 1) : "bin";
-                    File saved = attachments.save(input, extension, expectedSize);
+                    File saved = saveWithEviction(attachments, database(owner, test), input, extension, expectedSize);
                     if (!database(owner, test).linkAttachment(rowId.get(), saved.getName(), saved.length())) attachments.delete(saved.getName());
                 } catch (Exception error) { FileLog.e(error); }
                 finally { pendingCopies.release(); }
@@ -365,7 +365,7 @@ public final class MessageHistory {
                         }
                         String display = pending.media.displayName;
                         String extension = display.contains(".") ? display.substring(display.lastIndexOf('.') + 1) : "bin";
-                        File saved = store.save(opened, extension, bytes);
+                        File saved = saveWithEviction(store, database(pending.owner, pending.test), opened, extension, bytes);
                         boolean linked = pending.row == 0 ? database(pending.owner, pending.test).rememberMedia(pending.media, saved.getName(), saved.length())
                                 : database(pending.owner, pending.test).linkAttachment(pending.row, saved.getName(), saved.length());
                         if (!linked) store.delete(saved.getName());
@@ -378,6 +378,21 @@ public final class MessageHistory {
 
     public static void onFileFailed(int account, String name) {
         synchronized (pendingDownloads) { pendingDownloads.remove(account + ":" + name); }
+    }
+
+    /**
+     * Saves a copy, first evicting the oldest stored media when the remaining budget cannot fit
+     * it (BUG-017: without eviction the archive froze for good once the 512 MB filled). The
+     * eviction is sized by what is actually missing, so a budget with room is never touched.
+     */
+    private static File saveWithEviction(SavedAttachments store, HistoryDatabase db, InputStream input, String extension, long expectedSize) throws IOException {
+        long free = store.availableBytes();
+        if (free < expectedSize) {
+            for (String name : db.evictOldestStoredMedia(expectedSize - free)) {
+                store.delete(name);
+            }
+        }
+        return store.save(input, extension, expectedSize);
     }
 
     private static String mediaKey(TLRPC.Message message) {

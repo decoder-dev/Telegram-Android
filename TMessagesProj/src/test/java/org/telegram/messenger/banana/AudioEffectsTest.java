@@ -84,6 +84,37 @@ public class AudioEffectsTest {
         assertEquals(0.25f, custom.echoMix, 1e-6f);
     }
 
+    @Test public void liveseyPresetMatchesTheTunedIosValues() {
+        VoiceChain.Params livesey = VoicePresets.paramsFor(true, VoicePresets.LIVESEY, 0, 0, 0);
+        assertNotNull(livesey);
+        assertEquals(198f, livesey.referencePitchHz, 0f);
+        assertEquals(0f, livesey.pitchSemitones, 0f);
+        assertEquals(0.1f, livesey.timbre, 1e-6f);
+        assertEquals(0f, livesey.bassDb, 1e-6f);
+        assertEquals(-1f, livesey.midDb, 1e-6f);
+        assertEquals(0.75f, livesey.trebleDb, 1e-6f);
+        assertEquals(0.1f, livesey.distortion, 1e-6f);
+        assertEquals(0.2f, livesey.compression, 1e-6f);
+        assertEquals(0.07f, livesey.reverbMix, 1e-6f);
+        assertEquals(0.2f, livesey.reverbSize, 1e-6f);
+    }
+
+    @Test public void referencePitchPullsAVoiceTowardsTheReference() {
+        // A 120 Hz voice needs 12*log2(198/120) = 8.68 semitones, inside the +/-9 cap, so the
+        // settled output must sit at the reference itself rather than at a fixed offset.
+        short[] pcm = sine(120, RATE * 3);
+        new VoiceChain(VoicePresets.paramsFor(true, VoicePresets.LIVESEY, 0, 0, 0), RATE, 7).process(pcm, pcm.length);
+        assertEquals(198, zeroCrossingHz(pcm, 2 * RATE), 198 * 0.08);
+    }
+
+    @Test public void referencePitchCapStopsAtNineSemitones() {
+        // A 100 Hz voice would need 11.8 semitones to reach 198 Hz; the cap leaves it at +9.
+        short[] pcm = sine(100, RATE * 3);
+        new VoiceChain(VoicePresets.paramsFor(true, VoicePresets.LIVESEY, 0, 0, 0), RATE, 7).process(pcm, pcm.length);
+        double shifted = 100 * Math.pow(2.0, 9.0 / 12.0);
+        assertEquals(shifted, zeroCrossingHz(pcm, 2 * RATE), shifted * 0.08);
+    }
+
     private static double zeroCrossingHz(short[] pcm, int from) {
         int crossings = 0;
         for (int i = from + 1; i < pcm.length; i++) if ((pcm[i - 1] < 0) != (pcm[i] < 0)) crossings++;

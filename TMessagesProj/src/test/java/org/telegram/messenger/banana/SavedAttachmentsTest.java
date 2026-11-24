@@ -89,4 +89,15 @@ public class SavedAttachmentsTest {
         assertArrayEquals(new byte[]{7}, Files.readAllBytes(previous.toPath()));
         assertEquals(2, root.list().length); // Lock and previous completed file.
     }
+
+    @Test
+    public void availableBytesTracksTheRemainingBudget() throws Exception {
+        File root = folder.newFolder("archive");
+        SavedAttachments archive = new SavedAttachments(root, 64, 128);
+        assertEquals(128, archive.availableBytes());
+        File saved = archive.save(new ByteArrayInputStream(new byte[40]), "bin", 40);
+        assertEquals(88, archive.availableBytes());
+        assertTrue(archive.delete(saved.getName()));
+        assertEquals(128, archive.availableBytes());
+    }
 }
