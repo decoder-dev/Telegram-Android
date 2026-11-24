@@ -197,7 +197,6 @@ Verification: Earlier commits verified in CI (JVM tests, compile, API 33–36 sc
 | BUG-015 | P2 | `ChatActivity` OPTION_TTL → `markMessageAsRead2` / `SecretChatHelper` | With "Don't read messages" on, the explicit "TTL" action arms local self-destruct, but the read never reaches the server. | Needs a `force` path through core read methods; needs authenticated testing. |
 | BUG-016 | P2 | `MessageHistory`, `UserConfig.clearConfig` | The deleted/edited-message archive and up to 512 MB of media per owner are never wiped on logout. | Product decision (keep or wipe on logout). |
 | BUG-030 | P3 | `LaunchActivity` `tg://xiaomi` | Any link opens the system uninstall dialog on MIUI (AyuGram easter egg). | Removing a fork feature needs the owner's approval. |
-| BUG-031 | P3 | `AndroidManifest.xml` | `enableOnBackInvokedCallback` was removed, so predictive back is inert on API 33–35. | Behaviour change; needs UI checks. |
 | BUG-034 | P3 | `DialogCell` / `MessageFilters.notifyChanged` | Banana filters do not apply to chat-list previews, yet every batch reloads the dialogs. | Product decision. |
 
 ## Resolved 2026-11-24
@@ -209,3 +208,4 @@ Verification: Earlier commits verified in CI (JVM tests, compile, API 33–36 sc
 | BUG-020 | Already fixed in `1e1c5f3`: unlock requires the authenticated `CryptoObject` cipher to actually work. The table row was stale. |
 | BUG-037 | `BananaConfig.clampInt` capped `VOICE_CHANGER_PRESET` at 5 (CUSTOM), so the newly added Livesey preset (6) could not be saved; the bound now follows `VoicePresets.LIVESEY`. |
 | BUG-038 | `run-android-smoke.py` capped the whole instrumentation at 600 s; the glass scenarios pushed the suite past eleven minutes on API 36 and the cap fired mid-scenario. The cap is 1200 s now, and `HistoryEvictionTest` joined the smoke class list (it was compiled but never run). |
+| BUG-031 | Restored `android:enableOnBackInvokedCallback="true"` in the application manifest. `LaunchActivity` already carried upstream's full OnBackInvoked/OnBackAnimation registration — only the opt-in flag was missing, so predictive back stayed inert on API 33–35. Upstream master ships the same flag; other activities' `onBackPressed` overrides keep working through the framework default callback. forkgram #380 confirms this was user-visible pain. |
