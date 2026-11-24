@@ -324,6 +324,7 @@ public class ApplicationLoader extends Application {
         }
 
         org.telegram.messenger.banana.BananaCrashReporter.install(this);
+        org.telegram.messenger.banana.BananaPerfGuard.install();
         org.telegram.messenger.banana.BananaSessionBackup.applyPending();
 
         // AndroidUtilities must be initialized before FileLog

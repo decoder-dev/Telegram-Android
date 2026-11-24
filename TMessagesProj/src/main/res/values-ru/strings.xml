@@ -591,6 +591,7 @@
     <string name="BananaVoicePresetRobot">Робот</string>
     <string name="BananaVoicePresetCustom">Свой</string>
     <string name="BananaVoicePresetLivesey">Доктор Ливси</string>
+    <string name="BananaPerfGuardDegraded">Тяжёлые эффекты (стекло и размытие чатов) отключены, чтобы приложение не зависало. Включить обратно: Настройки → Энергосбережение.</string>
     <string name="BananaOpt_TRANSLATION_FALLBACK">Резервный переводчик</string>
     <string name="BananaOpt_TRANSLATE_BEFORE_SENDING">Перевод перед отправкой</string>
     <string name="BananaOpt_SAVE_MY_DELETED">Сохранять мои удалённые</string>

@@ -11992,6 +11992,7 @@
     <string name="BananaVoicePresetRobot">Robot</string>
     <string name="BananaVoicePresetCustom">Custom</string>
     <string name="BananaVoicePresetLivesey">Doctor Livesey</string>
+    <string name="BananaPerfGuardDegraded">Heavy visual effects (glass and chat blur) were disabled to stop the freezes. You can turn them back on in Settings → Power Saving.</string>
     <string name="BananaOpt_TRANSLATION_FALLBACK">Automatic translator fallback</string>
     <string name="BananaOpt_TRANSLATE_BEFORE_SENDING">Translate before sending</string>
     <string name="BananaOpt_SAVE_MY_DELETED">Save my deleted messages</string>
