@@ -27,7 +27,15 @@ public class RecordStatusDrawable extends StatusDrawable {
 
     Paint currentPaint;
 
+    private final boolean centerChatTitle = org.telegram.messenger.banana.BananaConfig.glassCenteredHeader();
+    private org.telegram.ui.ChatActivity chatActivity;
+
     public RecordStatusDrawable(boolean createPaint) {
+        this(createPaint, null);
+    }
+
+    public RecordStatusDrawable(boolean createPaint, org.telegram.ui.ChatActivity chatActivity) {
+        this.chatActivity = chatActivity;
         if (createPaint) {
             currentPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             currentPaint.setStyle(Paint.Style.STROKE);
@@ -79,7 +87,13 @@ public class RecordStatusDrawable extends StatusDrawable {
             paint.setStrokeWidth(AndroidUtilities.dp(2));
         }
         canvas.save();
-        canvas.translate(0, getIntrinsicHeight() / 2 + AndroidUtilities.dp(isChat ? 1 : 2));
+        if (centerChatTitle && chatActivity != null) {
+            float centerX = getBounds().centerX() - AndroidUtilities.dp(8);
+            float centerY = getIntrinsicHeight() / 2f + AndroidUtilities.dp(isChat ? 1 : 2);
+            canvas.translate(centerX, centerY);
+        } else {
+            canvas.translate(0, getIntrinsicHeight() / 2 + AndroidUtilities.dp(isChat ? 1 : 2));
+        }
         for (int a = 0; a < 4; a++) {
             if (a == 0) {
                 paint.setAlpha((int) (alpha * progress));
@@ -115,7 +129,7 @@ public class RecordStatusDrawable extends StatusDrawable {
 
     @Override
     public int getIntrinsicWidth() {
-        return AndroidUtilities.dp(18);
+        return centerChatTitle && chatActivity != null ? AndroidUtilities.dp(14) : AndroidUtilities.dp(18);
     }
 
     @Override

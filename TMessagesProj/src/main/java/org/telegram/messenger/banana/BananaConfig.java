@@ -259,6 +259,114 @@ public final class BananaConfig {
         MessagesController.getGlobalMainSettings().edit().putBoolean(GLASS_COMPOSER_KEY, enabled).apply();
     }
 
+    public static final String GLASS_CENTERED_HEADER_KEY = "bananaGlassCenteredHeader";
+
+    /**
+     * Cherrygram's centered adaptive glass chat header: title and status in a compact glass pill,
+     * chat avatar inside the right circular glass menu pill, and chevron back icon. App-wide.
+     */
+    public static boolean glassCenteredHeader() {
+        try {
+            return MessagesController.getGlobalMainSettings().getBoolean(GLASS_CENTERED_HEADER_KEY, false);
+        } catch (ClassCastException ignored) {
+            return false;
+        }
+    }
+
+    public static void setGlassCenteredHeader(boolean enabled) {
+        MessagesController.getGlobalMainSettings().edit().putBoolean(GLASS_CENTERED_HEADER_KEY, enabled).apply();
+    }
+
+    public static final String GLASS_TAB_SEARCH_KEY = "bananaGlassTabSearch";
+
+    /** Cherrygram's floating circular liquid-glass search button beside the bottom tab bar. */
+    public static boolean glassTabSearch() {
+        try {
+            return MessagesController.getGlobalMainSettings().getBoolean(GLASS_TAB_SEARCH_KEY, false);
+        } catch (ClassCastException ignored) {
+            return false;
+        }
+    }
+
+    public static void setGlassTabSearch(boolean enabled) {
+        MessagesController.getGlobalMainSettings().edit().putBoolean(GLASS_TAB_SEARCH_KEY, enabled).apply();
+    }
+
+    public static final String GLASS_TAB_STROKE_KEY = "bananaGlassTabStroke";
+
+    /** Cherrygram's 1 dp stroke outline on active folder and shared media tabs. */
+    public static boolean glassTabStroke() {
+        try {
+            return MessagesController.getGlobalMainSettings().getBoolean(GLASS_TAB_STROKE_KEY, false);
+        } catch (ClassCastException ignored) {
+            return false;
+        }
+    }
+
+    public static void setGlassTabStroke(boolean enabled) {
+        MessagesController.getGlobalMainSettings().edit().putBoolean(GLASS_TAB_STROKE_KEY, enabled).apply();
+    }
+
+    public static final String GLASS_PROFILE_PILLS_KEY = "bananaGlassProfilePills";
+
+    /** Cherrygram's full-capsule glass action buttons (50 dp radius) on profile headers. */
+    public static boolean glassProfilePills() {
+        try {
+            return MessagesController.getGlobalMainSettings().getBoolean(GLASS_PROFILE_PILLS_KEY, false);
+        } catch (ClassCastException ignored) {
+            return false;
+        }
+    }
+
+    public static void setGlassProfilePills(boolean enabled) {
+        MessagesController.getGlobalMainSettings().edit().putBoolean(GLASS_PROFILE_PILLS_KEY, enabled).apply();
+    }
+
+    public static final String GLASS_BACK_UNREAD_PILL_KEY = "bananaGlassBackUnreadPill";
+
+    /** Cherrygram's iOS-style unread counter inside the left liquid-glass back pill. */
+    public static boolean glassBackUnreadPill() {
+        try {
+            return MessagesController.getGlobalMainSettings().getBoolean(GLASS_BACK_UNREAD_PILL_KEY, false);
+        } catch (ClassCastException ignored) {
+            return false;
+        }
+    }
+
+    public static void setGlassBackUnreadPill(boolean enabled) {
+        MessagesController.getGlobalMainSettings().edit().putBoolean(GLASS_BACK_UNREAD_PILL_KEY, enabled).apply();
+    }
+
+    public static final String GLASS_PROFILE_TINT_KEY = "bananaGlassProfileTint";
+
+    /** Cherrygram's peer-color tinted profile background and liquid-glass tabs/chrome. */
+    public static boolean glassProfileTint() {
+        try {
+            return MessagesController.getGlobalMainSettings().getBoolean(GLASS_PROFILE_TINT_KEY, false);
+        } catch (ClassCastException ignored) {
+            return false;
+        }
+    }
+
+    public static void setGlassProfileTint(boolean enabled) {
+        MessagesController.getGlobalMainSettings().edit().putBoolean(GLASS_PROFILE_TINT_KEY, enabled).apply();
+    }
+
+    public static final String GLASS_ACTIONBAR_CROSSFADE_KEY = "bananaGlassActionBarCrossfade";
+
+    /** Cherrygram's liquid-glass ActionBar crossfade during swipe-back navigation. */
+    public static boolean glassActionBarCrossfade() {
+        try {
+            return MessagesController.getGlobalMainSettings().getBoolean(GLASS_ACTIONBAR_CROSSFADE_KEY, false);
+        } catch (ClassCastException ignored) {
+            return false;
+        }
+    }
+
+    public static void setGlassActionBarCrossfade(boolean enabled) {
+        MessagesController.getGlobalMainSettings().edit().putBoolean(GLASS_ACTIONBAR_CROSSFADE_KEY, enabled).apply();
+    }
+
     private static final Option[] GHOST_OPTIONS = {
             Option.DONT_READ_MESSAGES, Option.DONT_READ_STORIES, Option.HIDE_ONLINE,
             Option.HIDE_TYPING, Option.HIDE_RECORDING, Option.HIDE_UPLOAD

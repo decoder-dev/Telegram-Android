@@ -162,6 +162,12 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     private UniversalRecyclerView listView;
 
     private ActionBarMenuItem searchItem, otherItem;
+
+    public void openSearchFromTabBar() {
+        if (searchItem != null) {
+            searchItem.openSearch(true);
+        }
+    }
     private String query;
     private ProfileActivity.SearchAdapter search;
 

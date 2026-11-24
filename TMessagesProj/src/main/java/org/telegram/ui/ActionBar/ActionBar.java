@@ -21,6 +21,7 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -32,6 +33,8 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.VectorDrawable;
 import android.text.SpannableString;
 import android.text.TextPaint;
@@ -67,6 +70,7 @@ import org.telegram.ui.Adapters.FiltersView;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.ChatAvatarContainer;
+import org.telegram.ui.Components.CounterView;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.EllipsizeSpanAnimator;
 import org.telegram.ui.Components.FireworksEffect;
@@ -103,7 +107,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
     private BlurredBackgroundDrawable glassDrawableBack;
     private BlurredBackgroundDrawable glassDrawableMenu;
     private INavigationLayout.BackButtonState backButtonState = INavigationLayout.BackButtonState.BACK;
-    public ImageView backButtonImageView;
+    public UnreadImageView backButtonImageView;
     private BackupImageView avatarSearchImageView;
     private Drawable backButtonDrawable;
     private final SimpleTextView[] titleTextView = new SimpleTextView[2];
@@ -228,14 +232,14 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         setBackground(null);
         setClipChildren(false);
         glassMode = true;
-        glassModeIsForum = isForum;
+        glassModeIsForum = isForum && !isTitleCentered();
         glassFactory = factory;
         glassColorProvider = colorProvider;
 
         glassDrawable = factory.create(this)
                 .setColorProvider(colorProvider)
                 .setPadding(dp(6));
-        if (isForum) {
+        if (isForum && !isTitleCentered()) {
             glassDrawable.setRadius(dp(18.33f), dp(23), dp(23), dp(18.33f));
         } else {
             glassDrawable.setRadius(dp(23));
@@ -263,6 +267,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         if (backButtonImageView != null) {
             backButtonImageView.setTranslationX(dp(2));
         }
+        refreshBackButtonSelector();
     }
 
     /* Menus in the overlay of the screen (see ActionBarMenuItem#setSubMenuOverlayProvider) */
@@ -350,6 +355,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
 
     @Override
     public View getMenuView() {
+        if (cgMenuPillAvatar != null) return cgMenuPillAvatar;
         return menu;
     }
 
@@ -357,6 +363,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
     public void setMenuOverlay(SimpleActionBarMenuOverlay overlay, ActionBarMenuItem item) {
         openMenuOverlay = overlay;
         openMenuItem = item;
+        cgUpdateMenuPillAvatar();
         invalidate();
     }
 
@@ -396,7 +403,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         if (backButtonImageView != null) {
             return;
         }
-        backButtonImageView = new ImageView(getContext());
+        backButtonImageView = new UnreadImageView(getContext());
         backButtonImageView.setScaleType(ImageView.ScaleType.CENTER);
         backButtonImageView.setBackgroundDrawable(Theme.createSelectorDrawable(itemsBackgroundColor));
         backButtonImageView.setPadding(dp(1), 0, 0, 0);
@@ -980,9 +987,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
     }
 
     public void onDrawCrossfadeContent(Canvas canvas, boolean front, boolean hideBackDrawable, float progress) {
+        if (crossfadeGlassMenu && !crossfadeMenuWithAvatar && glassDrawableMenu != null) {
+            glassDrawableMenu.draw(canvas);
+        }
         for (int i = 0; i < getChildCount(); i++) {
             View ch = getChildAt(i);
-            if ((!hideBackDrawable || ch != backButtonImageView) && ch.getVisibility() == View.VISIBLE && ch instanceof ActionBarMenu) {
+            if (!crossfadeMenuWithAvatar && (!hideBackDrawable || ch != backButtonImageView) && ch.getVisibility() == View.VISIBLE && ch instanceof ActionBarMenu) {
                 canvas.save();
                 canvas.translate(ch.getX(), ch.getY());
                 ch.draw(canvas);
@@ -992,9 +1002,18 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
 
         canvas.save();
         canvas.translate(front ? getWidth() * progress * 0.5f : -getWidth() * 0.4f * (1f - progress), 0);
+        if (crossfadeGlassTitle && glassDrawable != null) {
+            glassDrawable.draw(canvas);
+        }
+        if (crossfadeGlassBack && !hideBackDrawable && glassDrawableBack != null) {
+            glassDrawableBack.draw(canvas);
+        }
+        if (crossfadeGlassMenu && crossfadeMenuWithAvatar && glassDrawableMenu != null) {
+            glassDrawableMenu.draw(canvas);
+        }
         for (int i = 0; i < getChildCount(); i++) {
             View ch = getChildAt(i);
-            if ((!hideBackDrawable || ch != backButtonImageView) && ch.getVisibility() == View.VISIBLE && !(ch instanceof ActionBarMenu)) {
+            if ((!hideBackDrawable || ch != backButtonImageView) && ch.getVisibility() == View.VISIBLE && ch.getAlpha() != 0 && (crossfadeMenuWithAvatar || !(ch instanceof ActionBarMenu))) {
                 canvas.save();
                 canvas.translate(ch.getX(), ch.getY());
                 ch.draw(canvas);
@@ -1018,6 +1037,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         }
         actionModeVisible = true;
         checkMenuItemsWidth();
+        if (iOSUnreadBadgeAvailable()) {
+            updateBackPillWidth(true);
+        }
         if (animated) {
             ArrayList<Animator> animators = new ArrayList<>();
             animators.add(ObjectAnimator.ofFloat(actionMode, View.ALPHA, 0.0f, 1.0f));
@@ -1189,6 +1211,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         actionMode.hideAllPopupMenus();
         actionModeVisible = false;
         checkMenuItemsWidth();
+        if (iOSUnreadBadgeAvailable()) {
+            updateBackPillWidth(true);
+        }
         ArrayList<Animator> animators = new ArrayList<>();
         animators.add(ObjectAnimator.ofFloat(actionMode, View.ALPHA, 0.0f));
         if (actionModeHidingViews != null) {
@@ -1597,8 +1622,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
 
         int textLeft;
         if (backButtonImageView != null && backButtonImageView.getVisibility() != GONE) {
-            backButtonImageView.measure(MeasureSpec.makeMeasureSpec(dp(54), MeasureSpec.EXACTLY), actionBarHeightSpec);
+            measureBackButton(actionBarHeightSpec);
             textLeft = dp(AndroidUtilities.isTablet() ? 80 : 72);
+            if (countLayout != null) {
+                countLayout.measure(MeasureSpec.makeMeasureSpec(dp(100), MeasureSpec.EXACTLY), actionBarHeightSpec);
+                updateBackPillWidth(true);
+            }
         } else {
             textLeft = dp(AndroidUtilities.isTablet() ? 26 : 18);
         }
@@ -1699,7 +1728,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {
             View child = getChildAt(i);
-            if (child.getVisibility() == GONE || child == titleTextView[0] || child == titleTextView[1] || child == additionalSubTitleOverlayContainer || child == subtitleTextView || child == menu || child == backButtonImageView || child == additionalSubtitleTextView || child == avatarSearchImageView) {
+            if (child.getVisibility() == GONE || child == titleTextView[0] || child == titleTextView[1] || child == additionalSubTitleOverlayContainer || child == subtitleTextView || child == menu || child == backButtonImageView || (countLayout != null && child == countLayout) || child == additionalSubtitleTextView || child == avatarSearchImageView) {
                 continue;
             }
             measureChildWithMargins(child, widthMeasureSpec, 0, MeasureSpec.makeMeasureSpec(getMeasuredHeight(), MeasureSpec.EXACTLY), 0);
@@ -1724,6 +1753,17 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         if (backButtonImageView != null && backButtonImageView.getVisibility() != GONE) {
             backButtonImageView.layout(0, additionalTop, backButtonImageView.getMeasuredWidth(), additionalTop + backButtonImageView.getMeasuredHeight());
             textLeft = glassMode ? dp(76) : dp(AndroidUtilities.isTablet() ? 80 : 72);
+            if (countLayout != null) {
+                if (iOSUnreadBadgeAvailable()) {
+                    int cw = countLayout.getMeasuredWidth();
+                    int ch = countLayout.getMeasuredHeight();
+                    int cl = dp(BACK_COUNTER_LEFT_OFFSET_DP);
+                    int ct = additionalTop + (backButtonImageView.getMeasuredHeight() - ch) / 2;
+                    countLayout.layout(cl, ct, cl + cw, ct + ch);
+                } else {
+                    countLayout.layout(dp(30), additionalTop - dp(15), countLayout.getMeasuredWidth(), additionalTop + countLayout.getMeasuredHeight());
+                }
+            }
         } else {
             textLeft = glassMode ? dp(24) : dp(AndroidUtilities.isTablet() ? 26 : 18);
         }
@@ -1777,7 +1817,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {
             View child = getChildAt(i);
-            if (child.getVisibility() == GONE || child == titleTextView[0] || child == titleTextView[1] || child == additionalSubTitleOverlayContainer || child == subtitleTextView || child == menu || child == backButtonImageView || child == additionalSubtitleTextView || child == avatarSearchImageView) {
+            if (child.getVisibility() == GONE || child == titleTextView[0] || child == titleTextView[1] || child == additionalSubTitleOverlayContainer || child == subtitleTextView || child == menu || child == backButtonImageView || (countLayout != null && child == countLayout) || child == additionalSubtitleTextView || child == avatarSearchImageView) {
                 continue;
             }
 
@@ -2355,25 +2395,38 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
     }
 
     public void checkAvatarContainerWidth(boolean animated) {
-        if (chatAvatarContainer == null) {
+        if (getWidth() == 0) {
             return;
         }
+        if (chatAvatarContainer != null) {
+            final boolean hasAvatar = chatAvatarContainer.hasVisibleAvatar();
+            final int visualWidth = chatAvatarContainer.getVisualWidth();
 
-        final boolean hasAvatar = chatAvatarContainer.hasVisibleAvatar();
-        int visualWidth = chatAvatarContainer.getVisualWidth();
-        if (hasAvatar) {
-            //visualWidth = Math.max(visualWidth, dp(168));
-        }
-
-        final int width = Math.min(getMeasuredWidth() - dp(6 + 46 + 6 + 6 + 46 + 6), visualWidth);
-        if (animated) {
-            if (animatorAvatarContainerWidth.getToFactor() != width) {
-                animatorAvatarContainerWidth.animateTo(width);
+            final int width = Math.min(getMeasuredWidth() - dp(6 + 46 + 6 + 6 + 46 + 6), visualWidth);
+            if (animated) {
+                if (animatorAvatarContainerWidth.getToFactor() != width) {
+                    animatorAvatarContainerWidth.animateTo(width);
+                }
+            } else {
+                animatorAvatarContainerWidth.forceFactor(width);
             }
-        } else {
-            animatorAvatarContainerWidth.forceFactor(width);
+            animatorAvatarContainerHasAvatar.setValue(hasAvatar, animated);
         }
-        animatorAvatarContainerHasAvatar.setValue(hasAvatar, animated);
+        if (isAdaptiveWidthSupported() && chatAvatarContainer2 != null) {
+            final int titleWidth = (int) chatAvatarContainer2.getTitleTextView().getExactWidthIncludeDrawables();
+            int subtitleWidth = 0;
+            if (chatAvatarContainer2.getSubtitleTextView() instanceof SimpleTextView) {
+                subtitleWidth = (int) ((SimpleTextView) chatAvatarContainer2.getSubtitleTextView()).getExactWidthIncludeDrawables();
+            }
+            final int targetWidth = Math.max(dp(100), Math.max(titleWidth, subtitleWidth) + dp(40)) + dp(15);
+            if (animated) {
+                if (animatorAdaptiveWidth.getToFactor() != targetWidth) {
+                    animatorAdaptiveWidth.animateTo(targetWidth);
+                }
+            } else {
+                animatorAdaptiveWidth.forceFactor(targetWidth);
+            }
+        }
     }
 
     private final FactorAnimator animatorAvatarContainerWidth = new FactorAnimator(0, this, CubicBezierInterpolator.EASE_OUT_QUINT, 380);
@@ -2384,6 +2437,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
 
     @Override
     public void onFactorChanged(int id, float factor, float fraction, FactorAnimator callee) {
+        if (callee == animatorBackPillWidth) {
+            relayoutBackButtonForPill();
+        }
         invalidate();
     }
 
@@ -2428,6 +2484,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
 
     public boolean doNotDrawGlassMenu;
     private boolean drawGlassTitle = true;
+    private boolean crossfadeGlassTitle, crossfadeGlassBack, crossfadeGlassMenu;
+    private boolean crossfadeMenuWithAvatar;
 
     public void setDrawGlassTitle(boolean draw) {
         if (drawGlassTitle != draw) {
@@ -2480,10 +2538,23 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
 
         final int p = dp(6);
         final int s = dp(46);
-        final int glassGap = glassMode && BananaThemes.glassChrome() ? dp(4) : 0;
+        final int glassGap = glassMode && BananaThemes.glassChrome() && !isTitleCentered() ? dp(4) : 0;
+        final boolean inCrossfade = parentFragment != null && parentFragment.getParentLayout() != null && parentFragment.getParentLayout().isActionBarInCrossfade();
+        crossfadeGlassTitle = crossfadeGlassBack = crossfadeGlassMenu = crossfadeMenuWithAvatar = false;
 
         final float actionModeFactor = getActionModeFactor();
-        final int menuWidthA = hasForcedMenuWidth ? forcedMenuWidth : (int) animatorMenuItemsWidth.getFactor();
+        int menuWidthA;
+        if (hasForcedMenuWidth) {
+            menuWidthA = forcedMenuWidth;
+        } else if (chatAvatarContainer == null && menu != null && menu.isCenteredTitle()
+                && (chatAvatarContainer2 == null || chatAvatarContainer2.isAvatarInMenuPill())) {
+            int defaultMenuWidth = Math.max(0, menu.getItemsWidth() - dp(1) - dp(1));
+            defaultMenuWidth = lerp(Math.max(defaultMenuWidth, s), defaultMenuWidth, searchFactor);
+            final int actionMenuWidth = Math.max(0, actionMode != null ? actionMode.getItemsWidth() - dp(1) - dp(1) : 0);
+            menuWidthA = lerp(defaultMenuWidth, actionMenuWidth, actionModeFactor);
+        } else {
+            menuWidthA = (int) animatorMenuItemsWidth.getFactor();
+        }
         final int menuWidth = hasForcedMenuMinWidth ? Math.max((int) (forcedMenuMinWidth * (1f - searchFactor)), menuWidthA) : menuWidthA;
 
         final boolean hasBackButton = backButtonImageView != null && backButtonImageView.getVisibility() == View.VISIBLE;
@@ -2500,10 +2571,13 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                     glassDrawable.draw(canvas);
                 }
             } else {
-                final int menuWidthWithPadding = menuWidth + ((hasForcedMenuWidth || hasForcedMenuMinWidth) ? (menuWidth > 0 ? p : 0) : (int) (p * animatorHasMenuItems.getFloatValue()));
+                int menuWidthWithPadding = menuWidth + ((hasForcedMenuWidth || hasForcedMenuMinWidth) ? (menuWidth > 0 ? p : 0) : (int) (p * animatorHasMenuItems.getFloatValue()));
+                if (isTitleCentered()) {
+                    menuWidthWithPadding = menuWidth > 0 ? (menuWidth + p) : 0;
+                }
                 final int rightOffset = lerp(menuWidthWithPadding, Math.max(menuWidthWithPadding, p + s), chatAvatarContainer == null ? 0f : 1f - animatorAvatarContainerHasAvatar.getFloatValue()) + glassGap;
 
-                final int leftDefault = lerp(hasBackButton ? s + p : 0, s + p, chatAvatarContainer == null? 0f : 1f - animatorAvatarContainerHasAvatar.getFloatValue()) + glassGap;
+                final int leftDefault = lerp(hasBackButton ? getBackPillWidth() - p : 0, s + p, chatAvatarContainer == null ? 0f : 1f - animatorAvatarContainerHasAvatar.getFloatValue()) + glassGap;
                 final int rightDefault = getWidth() - rightOffset;
                 final int widthDefault = rightDefault - leftDefault;
                 final int left, right;
@@ -2519,24 +2593,82 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                     chatAvatarContainer.setTranslationX(translationX);
                     chatAvatarContainer.setPivotX((chatAvatarContainer.getMeasuredWidth()) / 2f - translationX );
                 } else {
-                    left = leftDefault;
-                    right = rightDefault;
+                    final int baseLeftDefault = (hasBackButton ? s + p : 0) + glassGap;
+                    int textShift = 0;
+                    if (isAdaptiveWidthSupported() && chatAvatarContainer2 != null) {
+                        int width = (int) animatorAdaptiveWidth.getFactor();
+                        if (width <= 0) {
+                            checkAvatarContainerWidth(false);
+                            width = (int) animatorAdaptiveWidth.getFactor();
+                        }
+                        width = Math.min(width, widthDefault);
+
+                        final SimpleTextView title = chatAvatarContainer2.getTitleTextView();
+                        final float center = chatAvatarContainer2.getWidth() > 0 && title.getWidth() > 0
+                                ? chatAvatarContainer2.getX() + title.getLeft() + title.getWidth() / 2f
+                                : (baseLeftDefault + rightDefault) / 2f;
+                        final int naturalLeft = Math.round(center - width / 2f);
+
+                        left = Math.max(leftDefault, Math.min(naturalLeft, rightDefault - width));
+                        right = left + width;
+                        textShift = left - naturalLeft;
+                    } else {
+                        left = leftDefault;
+                        right = rightDefault;
+                        if (iOSUnreadBadgeAvailable() && !isActionModeShowed() && hasBackButton && backButtonImageView.getUnreadCount() > 0) {
+                            textShift = Math.max(0, (leftDefault - baseLeftDefault) / 2);
+                        }
+                    }
+                    if (chatAvatarContainer2 != null) {
+                        chatAvatarContainer2.setMoveText(iOSUnreadBadgeAvailable() && !isActionModeShowed());
+                        chatAvatarContainer2.getTitleTextView().setTranslationX(textShift);
+                        final View subtitle = chatAvatarContainer2.getSubtitleTextView();
+                        if (subtitle != null) {
+                            subtitle.setTranslationX(textShift);
+                        }
+                    }
                 }
 
                 glassDrawable.setBounds(left, t, right, b);
-                if (!doNotDrawCenterGlass) {
+                if (inCrossfade) {
+                    crossfadeGlassTitle = !doNotDrawCenterGlass;
+                } else if (!doNotDrawCenterGlass) {
                     glassDrawable.draw(canvas);
                 }
             }
         }
+        final int backPillWidth = getBackPillWidth();
         if (glassDrawableBack != null && hasBackButton) {
-            glassDrawableBack.setBounds(0, t, s + p * 2, b);
-            glassDrawableBack.draw(canvas);
+            if (iOSUnreadBadgeAvailable() && countLayout != null) {
+                int extra = getBackPillCounterExtraWidth();
+                int fullWidth = Math.max(1, getBackPillCounterTargetWidth());
+                countLayout.setAlpha(Math.min(1f, extra / (float) fullWidth));
+            }
+            glassDrawableBack.setBounds(0, t, backPillWidth, b);
+            if (inCrossfade) {
+                crossfadeGlassBack = true;
+            } else {
+                glassDrawableBack.draw(canvas);
+            }
         }
         if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu && !isMenuPillInOverlay()) {
             glassDrawableMenu.setBounds(getWidth() - Math.max(s, menuWidth) - p * 2, t, getWidth(), b);
-            glassDrawableMenu.setAlpha(hasForcedMenuWidth ? 255 : (int) (255 * animatorHasMenuItems.getFloatValue()));
-            glassDrawableMenu.draw(canvas);
+            glassDrawableMenu.setAlpha(hasForcedMenuWidth || isTitleCentered() ? 255 : (int) (255 * animatorHasMenuItems.getFloatValue()));
+            if (inCrossfade) {
+                crossfadeGlassMenu = true;
+            } else {
+                glassDrawableMenu.draw(canvas);
+            }
+        }
+        if (chatAvatarContainer2 != null && chatAvatarContainer2.isCentered() && isAvatarAlignAllowed()) {
+            if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu) {
+                crossfadeMenuWithAvatar = true;
+                chatAvatarContainer2.alignAvatarCenter(this,
+                        glassDrawableMenu.getBounds().exactCenterX(),
+                        glassDrawableMenu.getBounds().exactCenterY());
+            } else {
+                chatAvatarContainer2.resetAvatarAlignment();
+            }
         }
 
         if (blurredBackground && actionBarColor != Color.TRANSPARENT) {
@@ -2769,6 +2901,391 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         setShadowAlpha((int) ((1.0f - factor) * 0xFF));
         if (blurredBackground) {
             invalidate();
+        }
+    }
+
+    private boolean forceAdaptiveWidth;
+    private ChatAvatarContainer chatAvatarContainer2;
+    private final FactorAnimator animatorAdaptiveWidth = new FactorAnimator(0, this, CubicBezierInterpolator.EASE_OUT_QUINT, 380);
+    private View cgMenuPillAvatar;
+    private ChatAvatarContainer cgMenuPillAvatarContainer;
+
+    public void setChatAvatarContainer2(ChatAvatarContainer chatAvatarContainer) {
+        this.chatAvatarContainer2 = chatAvatarContainer;
+    }
+
+    public void setForceAdaptiveWidth(boolean forceAdaptiveWidth) {
+        this.forceAdaptiveWidth = forceAdaptiveWidth;
+    }
+
+    private boolean isTitleCentered() {
+        return chatAvatarContainer2 != null && chatAvatarContainer2.isCentered();
+    }
+
+    private boolean isAdaptiveWidthSupported() {
+        if (forceAdaptiveWidth) {
+            return true;
+        }
+        if (!org.telegram.messenger.banana.BananaConfig.glassCenteredHeader()
+                || chatAvatarContainer2 == null || !chatAvatarContainer2.isCentered()) {
+            return false;
+        }
+        final org.telegram.ui.ChatActivity chatActivity = chatAvatarContainer2.getChatActivity();
+        if (chatActivity == null) {
+            return !isActionModeShowed() && !isSearchFieldVisible;
+        }
+        return !chatActivity.hasSelectedMessages()
+                && !chatActivity.isInSearchMode()
+                && !chatActivity.isInBubbleMode();
+    }
+
+    private boolean isAvatarAlignAllowed() {
+        return !isActionModeShowed() && getActionModeFactor() == 0f
+                && !isSearchFieldVisible && searchFactor == 0f;
+    }
+
+    private void cgUpdateMenuPillAvatar() {
+        View avatar = null;
+        if (openMenuOverlay != null && chatAvatarContainer2 != null && chatAvatarContainer2.isAvatarInMenuPill()
+                && isAvatarAlignAllowed() && isMenuPillInOverlay()) {
+            avatar = chatAvatarContainer2.getAvatarImageView();
+        }
+        if (cgMenuPillAvatar == avatar) {
+            return;
+        }
+        if (cgMenuPillAvatar != null) {
+            cgMenuPillAvatar.setAlpha(1f);
+            cgMenuPillAvatarContainer.setAvatarBadgesHidden(false);
+        }
+        cgMenuPillAvatar = avatar;
+        cgMenuPillAvatarContainer = avatar != null ? chatAvatarContainer2 : null;
+        if (avatar != null) {
+            avatar.setAlpha(0f);
+            cgMenuPillAvatarContainer.setAvatarBadgesHidden(true);
+        }
+    }
+
+    void cgDrawOverMenuPillAvatar(Canvas canvas, RectF avatarRect, float alpha, float shrink, float wobble) {
+        if (cgMenuPillAvatarContainer == null) {
+            return;
+        }
+        final float s = 1f - 0.15f * shrink;
+        final int count = canvas.save();
+        canvas.scale(s * (1f + wobble * 0.5f), s * (1f - wobble), avatarRect.centerX(), avatarRect.centerY());
+        canvas.translate(avatarRect.left, avatarRect.top);
+        cgMenuPillAvatarContainer.drawAvatarBadges(canvas, alpha);
+        canvas.restoreToCount(count);
+    }
+
+    private boolean countLayoutIsVisible;
+    private boolean isIOSUnreadBadgeAvailable;
+    public CounterView countLayout;
+    private AnimatorSet countLayoutAnimator;
+    private final FactorAnimator animatorBackPillWidth = new FactorAnimator(0, this, CubicBezierInterpolator.EASE_OUT_QUINT, 380);
+    private static final int BACK_COUNTER_LEFT_OFFSET_DP = 30;
+    private static final int BACK_COUNTER_MAX_EXTRA_DP = 35;
+
+    private int getBackPillCounterTargetWidth() {
+        if (countLayout == null) {
+            return 0;
+        }
+        return Math.min(dp(BACK_COUNTER_MAX_EXTRA_DP), Math.max(0, countLayout.getMeasuredWidth()));
+    }
+
+    public void updateBackPillWidth(boolean animated) {
+        boolean show = iOSUnreadBadgeAvailable()
+                && countLayout != null
+                && backButtonImageView != null
+                && backButtonImageView.getUnreadCount() > 0
+                && !isActionModeShowed()
+                && !isSearchFieldVisible;
+
+        int target = show ? getBackPillCounterTargetWidth() : 0;
+
+        if (countLayout != null && countLayoutIsVisible != show) {
+            countLayoutIsVisible = show;
+            if (countLayoutAnimator != null) {
+                countLayoutAnimator.cancel();
+            }
+            if (animated) {
+                countLayoutAnimator = new AnimatorSet();
+                ValueAnimator progressAnimator = ValueAnimator.ofFloat(show ? 0.0f : 1.0f, show ? 1.0f : 0.0f);
+                final boolean[] iconTriggered = {false};
+                progressAnimator.addUpdateListener(animation -> {
+                    float progress = (float) animation.getAnimatedValue();
+                    countLayout.setScaleX(progress);
+                    countLayout.setScaleY(progress);
+                    countLayout.setAlpha(progress);
+                    if (show && animation.getAnimatedFraction() >= 0.5f && !iconTriggered[0]) {
+                        iconTriggered[0] = true;
+                        updateMoveBackIconState(true);
+                    }
+                });
+                countLayoutAnimator.playTogether(progressAnimator);
+                countLayoutAnimator.setInterpolator(CubicBezierInterpolator.DEFAULT);
+                countLayoutAnimator.setDuration(380);
+                countLayoutAnimator.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        if (!show) {
+                            updateMoveBackIconState(false);
+                        }
+                    }
+                });
+                countLayoutAnimator.start();
+            } else {
+                countLayout.setScaleX(show ? 1.0f : 0.0f);
+                countLayout.setScaleY(show ? 1.0f : 0.0f);
+                countLayout.setAlpha(show ? 1.0f : 0.0f);
+                updateMoveBackIconState(show);
+            }
+        }
+
+        if (animated) {
+            if (animatorBackPillWidth.getToFactor() != target) {
+                animatorBackPillWidth.animateTo(target);
+            }
+        } else {
+            animatorBackPillWidth.forceFactor(target);
+        }
+    }
+
+    private void updateMoveBackIconState(boolean show) {
+        if (backButtonImageView != null) {
+            Drawable drawable = backButtonImageView.getDrawable();
+            if (drawable instanceof BackDrawable) {
+                ((BackDrawable) drawable).setMoveBackIcon(show && !isSearchFieldVisible);
+            }
+        }
+    }
+
+    private int getBackPillCounterExtraWidth() {
+        if (!iOSUnreadBadgeAvailable() || countLayout == null) {
+            return 0;
+        }
+        return Math.max(0, (int) animatorBackPillWidth.getFactor());
+    }
+
+    private int getBackPillWidth() {
+        final int p = dp(6);
+        final int s = dp(46);
+        int width = s + p * 2;
+        int extra = getBackPillCounterExtraWidth();
+        if (extra > 0) {
+            width = Math.max(width, dp(BACK_COUNTER_LEFT_OFFSET_DP) + extra + getBackPillCounterRightPadding());
+        }
+        return width;
+    }
+
+    public int getBackPillCounterRightPadding() {
+        int count = (countLayout != null && backButtonImageView != null) ? backButtonImageView.getUnreadCount() : 0;
+        if (count <= 0) {
+            return 0;
+        }
+        int length = String.valueOf(Math.min(999, count)).length();
+        if (length == 1) {
+            return dp(3.5f);
+        } else if (length == 2) {
+            return dp(7.5f);
+        } else {
+            return dp(13.5f);
+        }
+    }
+
+    public int getBackPillGrowth() {
+        return Math.max(0, getBackPillWidth() - (dp(46) + dp(6) * 2));
+    }
+
+    private boolean isBackPillMode() {
+        return glassDrawableBack != null && iOSUnreadBadgeAvailable();
+    }
+
+    private int getBackButtonWidth() {
+        if (!isBackPillMode() || backButtonImageView == null) {
+            return dp(54);
+        }
+        return Math.max(dp(54), (int) (getBackPillWidth() - dp(6) - backButtonImageView.getTranslationX()));
+    }
+
+    private void measureBackButton(int heightSpec) {
+        final int width = getBackButtonWidth();
+        final int paddingRight = width - dp(54);
+        if (backButtonImageView.getPaddingRight() != paddingRight) {
+            final boolean wasIgnoring = ignoreLayoutRequest;
+            ignoreLayoutRequest = true;
+            backButtonImageView.setPadding(backButtonImageView.getPaddingLeft(), 0, paddingRight, 0);
+            ignoreLayoutRequest = wasIgnoring;
+        }
+        backButtonImageView.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), heightSpec);
+    }
+
+    private void relayoutBackButtonForPill() {
+        if (backButtonImageView == null || backButtonImageView.getVisibility() == GONE || backButtonImageView.getMeasuredHeight() == 0) {
+            return;
+        }
+        if (backButtonImageView.getMeasuredWidth() == getBackButtonWidth()) {
+            return;
+        }
+        measureBackButton(MeasureSpec.makeMeasureSpec(backButtonImageView.getMeasuredHeight(), MeasureSpec.EXACTLY));
+        final int left = backButtonImageView.getLeft();
+        final int top = backButtonImageView.getTop();
+        backButtonImageView.layout(left, top, left + backButtonImageView.getMeasuredWidth(), top + backButtonImageView.getMeasuredHeight());
+    }
+
+    private void refreshBackButtonSelector() {
+        if (backButtonImageView != null) {
+            backButtonImageView.setBackgroundDrawable(Theme.createSelectorDrawable(actionModeVisible ? itemsActionModeBackgroundColor : itemsBackgroundColor));
+        }
+    }
+
+    public void setIOSUnreadBadgeAvailable(boolean available) {
+        this.isIOSUnreadBadgeAvailable = available;
+        refreshBackButtonSelector();
+        if (countLayout != null) {
+            countLayout.setIOSUnreadBadgeAvailable(available);
+        }
+    }
+
+    public boolean iOSUnreadBadgeAvailable() {
+        return org.telegram.messenger.banana.BananaConfig.glassCenteredHeader()
+                && org.telegram.messenger.banana.BananaConfig.glassBackUnreadPill()
+                && isIOSUnreadBadgeAvailable;
+    }
+
+    public class UnreadImageView extends ImageView {
+        private int unreadCount = -1;
+        private RippleDrawable pillRipple;
+
+        public UnreadImageView(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setBackgroundDrawable(Drawable background) {
+            if (isBackPillMode()) {
+                final int color = actionModeVisible ? itemsActionModeBackgroundColor : itemsBackgroundColor;
+                if (pillRipple == null) {
+                    GradientDrawable mask = new GradientDrawable();
+                    mask.setColor(Color.WHITE);
+                    mask.setCornerRadius(dp(23));
+                    pillRipple = new RippleDrawable(ColorStateList.valueOf(color), null, mask);
+                    pillRipple.setCallback(this);
+                    pillRipple.setState(getDrawableState());
+                } else {
+                    pillRipple.setColor(ColorStateList.valueOf(color));
+                }
+                super.setBackgroundDrawable(null);
+            } else {
+                if (pillRipple != null) {
+                    pillRipple.setCallback(null);
+                    pillRipple = null;
+                }
+                super.setBackgroundDrawable(background);
+            }
+        }
+
+        @Override
+        protected boolean verifyDrawable(@NonNull Drawable who) {
+            return who == pillRipple || super.verifyDrawable(who);
+        }
+
+        @Override
+        protected void drawableStateChanged() {
+            super.drawableStateChanged();
+            if (pillRipple != null) {
+                pillRipple.setState(getDrawableState());
+            }
+        }
+
+        @Override
+        public void drawableHotspotChanged(float x, float y) {
+            super.drawableHotspotChanged(x, y);
+            if (pillRipple != null) {
+                pillRipple.setHotspot(x, y);
+            }
+        }
+
+        @Override
+        public void jumpDrawablesToCurrentState() {
+            super.jumpDrawablesToCurrentState();
+            if (pillRipple != null) {
+                pillRipple.jumpToCurrentState();
+            }
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            if (pillRipple != null) {
+                final int p = dp(6);
+                final int offsetX = getLeft() + (int) getTranslationX();
+                final int pillTop = ActionBar.this.getHeight() - (getCurrentActionBarHeight() + dp(46)) / 2 - getTop();
+                pillRipple.setBounds(p - offsetX, pillTop, getBackPillWidth() - p - offsetX, pillTop + dp(46));
+                pillRipple.draw(canvas);
+            }
+            super.onDraw(canvas);
+        }
+
+        public void createUnreadView(int count) {
+            if (countLayout != null) {
+                return;
+            }
+            countLayout = new CounterView(getContext(), resourcesProvider) {
+                @Override
+                public void invalidate() {
+                    super.invalidate();
+                    if (iOSUnreadBadgeAvailable()) {
+                        updateBackPillWidth(true);
+                    }
+                }
+            };
+            countLayout.setReverse(!iOSUnreadBadgeAvailable());
+            countLayout.setGravity(Gravity.LEFT);
+            if (iOSUnreadBadgeAvailable()) {
+                countLayout.setColors(Theme.key_actionBarActionModeDefault, Theme.key_actionBarActionModeDefaultIcon);
+                countLayout.setTextSize(12f);
+            }
+            addView(countLayout, LayoutHelper.createFrame(
+                    iOSUnreadBadgeAvailable() ? LayoutHelper.WRAP_CONTENT : 54,
+                    iOSUnreadBadgeAvailable() ? 24 : 54,
+                    Gravity.LEFT | Gravity.TOP
+            ));
+            setUnread(count);
+        }
+
+        public void checkUnreadView(int count) {
+            if (!org.telegram.messenger.banana.BananaConfig.glassBackUnreadPill() || (parentFragment != null && parentFragment.isInPreviewMode())) {
+                return;
+            }
+            if (countLayout == null) {
+                createUnreadView(count);
+            } else {
+                setUnread(count);
+            }
+        }
+
+        public int getUnreadCount() {
+            return unreadCount;
+        }
+
+        public void setUnread(int count) {
+            count = Math.max(0, Math.min(999, count));
+            if (countLayout == null) {
+                return;
+            }
+            if (count != unreadCount) {
+                unreadCount = count;
+                if (iOSUnreadBadgeAvailable()) {
+                    countLayout.setColors(Theme.key_actionBarActionModeDefault, Theme.key_actionBarActionModeDefaultIcon);
+                    countLayout.setTextSize(12f);
+                    int len = String.valueOf(count).length();
+                    float badgeWidthDp = len == 1 ? 18f : (len == 2 ? 24f : 30f);
+                    countLayout.setBackgroundSize(badgeWidthDp, 16f);
+                }
+                countLayout.setCount(count, true);
+            }
+            if (iOSUnreadBadgeAvailable()) {
+                updateBackPillWidth(true);
+            }
         }
     }
 }

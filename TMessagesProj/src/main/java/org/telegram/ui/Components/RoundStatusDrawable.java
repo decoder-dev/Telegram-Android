@@ -25,7 +25,15 @@ public class RoundStatusDrawable extends StatusDrawable {
 
     private Paint currentPaint;
 
+    private final boolean centerChatTitle = org.telegram.messenger.banana.BananaConfig.glassCenteredHeader();
+    private org.telegram.ui.ChatActivity chatActivity;
+
     public RoundStatusDrawable(boolean createPaint) {
+        this(createPaint, null);
+    }
+
+    public RoundStatusDrawable(boolean createPaint, org.telegram.ui.ChatActivity chatActivity) {
+        this.chatActivity = chatActivity;
         if (createPaint) {
             currentPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         }
@@ -75,7 +83,13 @@ public class RoundStatusDrawable extends StatusDrawable {
     public void draw(Canvas canvas) {
         Paint paint = currentPaint == null ? Theme.chat_statusPaint : currentPaint;
         paint.setAlpha(55 + (int) (200 * progress));
-        canvas.drawCircle(AndroidUtilities.dp(6), AndroidUtilities.dp(isChat ? 8 : 9), AndroidUtilities.dp(4), paint);
+        if (centerChatTitle && chatActivity != null) {
+            float centerX = getBounds().centerX() - AndroidUtilities.dp(1);
+            float centerY = AndroidUtilities.dp(isChat ? 8 : 9);
+            canvas.drawCircle(centerX, centerY, AndroidUtilities.dp(4), paint);
+        } else {
+            canvas.drawCircle(AndroidUtilities.dp(6), AndroidUtilities.dp(isChat ? 8 : 9), AndroidUtilities.dp(4), paint);
+        }
         if (started) {
             update();
         }
@@ -98,7 +112,7 @@ public class RoundStatusDrawable extends StatusDrawable {
 
     @Override
     public int getIntrinsicWidth() {
-        return AndroidUtilities.dp(12);
+        return centerChatTitle && chatActivity != null ? AndroidUtilities.dp(8) : AndroidUtilities.dp(12);
     }
 
     @Override

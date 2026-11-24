@@ -12036,7 +12036,7 @@
     <string name="BananaOpt_SAVE_FROM_NOTIFICATIONS">Save messages from notifications</string>
     <string name="BananaOpt_PIN_BEYOND_LIMIT">Pin beyond the limit</string>
     <string name="BananaOpt_TAB_BAR_ICONS_ONLY">Icons only in tab bar</string>
-    <string name="BananaValuesGlassInfo">Highlights apply to every glass control. Tint and rims shape glass message bubbles. Split message field puts the attach and send buttons in glass bubbles of their own, beside the text. Glass is turned on in Appearance → Liquid glass; Tab bar has Icons only in tab bar.</string>
+    <string name="BananaValuesGlassInfo">Highlights apply to every glass control. Tint and rims shape glass message bubbles. Split message field, centered chat header, floating search button, tab outline and capsule profile buttons adapt Cherrygram’s liquid glass chrome. Glass is turned on in Appearance → Liquid glass; Tab bar has Icons only in tab bar.</string>
     <string name="BananaOpt_ANTI_CAPS">Anti-Caps</string>
     <string name="BananaOpt_HIDE_EMPTY_REPLY_DRAFTS">Hide empty reply drafts</string>
     <string name="BananaOpt_SHOW_HIDDEN_ADMIN_BADGES">Show hidden admin badges</string>
@@ -12256,6 +12256,13 @@
     <string name="BananaGlassHighlights">Glass highlights</string>
     <string name="BananaGlassHighlightsInfo">Uses the same highlight style for glass controls in every account.</string>
     <string name="BananaGlassComposer">Split message field</string>
+    <string name="BananaGlassCenteredHeader">Centered chat header</string>
+    <string name="BananaGlassTabSearch">Search button in tab bar</string>
+    <string name="BananaGlassTabStroke">Outline on active tabs</string>
+    <string name="BananaGlassProfilePills">Capsule profile buttons</string>
+    <string name="BananaGlassBackUnreadPill">Unread badge on back button</string>
+    <string name="BananaGlassProfileTint">Tinted glass in profiles</string>
+    <string name="BananaGlassActionBarCrossfade">Action bar glass crossfade</string>
     <string name="BananaGlassHighlightsOff">Off</string>
     <string name="BananaGlassHighlightsDefault">Default</string>
     <string name="BananaGlassHighlightsOutline">Outline</string>

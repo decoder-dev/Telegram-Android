@@ -69,7 +69,7 @@ public class ChatActivityTopPanelLayout extends AnimatedLinearLayout {
 
         clipRectF.set(getPaddingLeft(), getPaddingTop(), getMeasuredWidth() - getPaddingRight(), getPaddingTop() + bgHeight);
 
-        final int radiusDp = BananaThemes.glassChrome() ? BananaThemes.GLASS_PANEL_RADIUS_DP : 18;
+        final int radiusDp = BananaThemes.glassChrome() ? BananaThemes.GLASS_PANEL_RADIUS_DP : (org.telegram.messenger.banana.BananaConfig.glassCenteredHeader() ? 24 : 18);
         final float r = Math.min(dp(radiusDp), Math.min(clipRectF.width(), clipRectF.height()) / 2f);
         clipPath.rewind();
         clipPath.addRoundRect(clipRectF, r, r, Path.Direction.CW);

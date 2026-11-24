@@ -495,6 +495,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private FragmentSearchField fragmentSearchField;
+
+    public FragmentSearchField getFragmentSearchField() {
+        return fragmentSearchField;
+    }
     private SearchTextWatcher fragmentSearchFieldWatcher;
 
     private SearchTabsAndFiltersLayout searchTabsAndFiltersLayout;
@@ -1036,7 +1040,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         drawBlurRect(canvas, 0, blurBounds, actionBarSearchPaint, true);
                     }
                     if (fragmentSearchField != null) {
-                        fragmentSearchField.setTranslationY(top + actionBarHeight - (actionBar.getHeight() + (filterTabsView != null ? filterTabsView.getMeasuredHeight() : 0)) + getSearchFieldAdditionOffset());
+                        fragmentSearchField.setTranslationY(top + actionBarHeight - (actionBar.getHeight() + (filterTabsView != null && !bananaFoldersAtBottom() ? filterTabsView.getMeasuredHeight() : 0)) + getSearchFieldAdditionOffset());
                     }
                 }
             } else if (!inPreviewMode) {
@@ -13988,10 +13992,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     private final ArrayList<RectF> iBlur3Positions = new ArrayList<>();
     private final RectF iBlur3PositionActionBar = new RectF();
-    private final RectF iBlur3PositionMainTabs = new RectF(); {
-        iBlur3Positions.add(iBlur3PositionActionBar);
-        iBlur3Positions.add(iBlur3PositionMainTabs);
-    }
+    private final RectF iBlur3PositionMainTabs = new RectF();
+    private final RectF iBlur3PositionFolders = new RectF();
 
     private void invalidateBlurCaptures(int flags) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || scrollableViewNoiseSuppressor == null) {
@@ -14002,11 +14004,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             final int additionalList = dp(48);
             final int mainTabBottom = fragmentView.getMeasuredHeight() - navigationBarHeight - dp(DialogsActivity.MAIN_TABS_MARGIN);
             final int mainTabTop = mainTabBottom - dp(DialogsActivity.MAIN_TABS_HEIGHT);
+            final boolean bottomFolders = bananaFoldersAtBottom();
 
             final int actionBarHeight = actionBar.getMeasuredHeight()
                 + dp(DialogsActivity.SEARCH_FIELD_HEIGHT)
                 + dp(hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0)
-                + (filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE ? filterTabsView.getMeasuredHeight() : 0)
+                + (!bottomFolders && filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE ? filterTabsView.getMeasuredHeight() : 0)
                 + (topPanelLayout != null && topPanelLayout.getVisibility() == View.VISIBLE ? topPanelLayout.getSumHeightOfAllVisibleChild() : 0)
                 + ((int) scrollYOffset);
 
@@ -14016,22 +14019,28 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             iBlur3PositionActionBar.set(0, -additionalList, fragmentView.getMeasuredWidth(), lerp(actionBarHeight, actionBarHeightSearch, animatorSearchVisible.getFloatValue()) + additionalList );
 
-            boolean hasBottomBlur = false;
+            iBlur3Positions.clear();
+            iBlur3Positions.add(iBlur3PositionActionBar);
             if (hasMainTabs) {
                 iBlur3PositionMainTabs.set(0, mainTabTop, fragmentView.getMeasuredWidth(), mainTabBottom);
                 iBlur3PositionMainTabs.inset(0, LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0 : -dp(48));
-
-                hasBottomBlur = true;
+                iBlur3Positions.add(iBlur3PositionMainTabs);
             } else if (commentView != null && chatInputViewsContainer != null) {
                 iBlur3PositionMainTabs.set(0,
                     fragmentView.getMeasuredHeight() - calculateListViewPaddingBottom(),
                     fragmentView.getMeasuredWidth(), fragmentView.getMeasuredHeight());
                 iBlur3PositionMainTabs.inset(0, LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0 : -dp(48));
-
-                hasBottomBlur = true;
+                iBlur3Positions.add(iBlur3PositionMainTabs);
+            }
+            if (bottomFolders && filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE && filterTabsView.getMeasuredHeight() > 0) {
+                final int foldersBottom = fragmentView.getMeasuredHeight() - navigationBarHeight - additionNavigationBarHeight;
+                final int foldersTop = foldersBottom - filterTabsView.getMeasuredHeight();
+                iBlur3PositionFolders.set(0, foldersTop, fragmentView.getMeasuredWidth(), foldersBottom);
+                iBlur3PositionFolders.inset(0, LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0 : -dp(48));
+                iBlur3Positions.add(iBlur3PositionFolders);
             }
 
-            scrollableViewNoiseSuppressor.setupRenderNodes(iBlur3Positions, hasBottomBlur ? 2 : 1);
+            scrollableViewNoiseSuppressor.setupRenderNodes(iBlur3Positions, iBlur3Positions.size());
         }
         scrollableViewNoiseSuppressor.invalidateResultRenderNodes(iBlur3Capture, fragmentView.getMeasuredWidth(), fragmentView.getMeasuredHeight());
     }

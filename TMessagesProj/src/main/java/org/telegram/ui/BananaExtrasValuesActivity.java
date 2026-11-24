@@ -47,6 +47,13 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
     private static final int ID_GLASS_GLARE = 19;
     private static final int ID_GLASS_PREVIEW = 23;
     private static final int ID_GLASS_COMPOSER = 24;
+    private static final int ID_GLASS_CENTERED_HEADER = 25;
+    private static final int ID_GLASS_TAB_SEARCH = 26;
+    private static final int ID_GLASS_TAB_STROKE = 27;
+    private static final int ID_GLASS_PROFILE_PILLS = 28;
+    private static final int ID_GLASS_BACK_UNREAD_PILL = 29;
+    private static final int ID_GLASS_PROFILE_TINT = 30;
+    private static final int ID_GLASS_ACTIONBAR_CROSSFADE = 31;
     private org.telegram.ui.Components.BananaGlassPreviewView glassPreview;
     private static final int ID_TEXT_RULES = 20;
     private static final int ID_DEEPL_KEY = 21, ID_YANDEX_KEY = 22;
@@ -113,6 +120,15 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
         }
         items.add(cell(ID_GLASS_GLARE, R.string.BananaGlassHighlights, glassGlareLabel(BananaConfig.glassGlare())));
         items.add(BananaSwitchCell.Factory.of(ID_GLASS_COMPOSER, LocaleController.getString(R.string.BananaGlassComposer), BananaConfig.glassComposer()));
+        items.add(BananaSwitchCell.Factory.of(ID_GLASS_CENTERED_HEADER, LocaleController.getString(R.string.BananaGlassCenteredHeader), BananaConfig.glassCenteredHeader()));
+        if (BananaConfig.glassCenteredHeader()) {
+            items.add(BananaSwitchCell.Factory.of(ID_GLASS_BACK_UNREAD_PILL, LocaleController.getString(R.string.BananaGlassBackUnreadPill), BananaConfig.glassBackUnreadPill()));
+        }
+        items.add(BananaSwitchCell.Factory.of(ID_GLASS_TAB_SEARCH, LocaleController.getString(R.string.BananaGlassTabSearch), BananaConfig.glassTabSearch()));
+        items.add(BananaSwitchCell.Factory.of(ID_GLASS_TAB_STROKE, LocaleController.getString(R.string.BananaGlassTabStroke), BananaConfig.glassTabStroke()));
+        items.add(BananaSwitchCell.Factory.of(ID_GLASS_PROFILE_PILLS, LocaleController.getString(R.string.BananaGlassProfilePills), BananaConfig.glassProfilePills()));
+        items.add(BananaSwitchCell.Factory.of(ID_GLASS_PROFILE_TINT, LocaleController.getString(R.string.BananaGlassProfileTint), BananaConfig.glassProfileTint()));
+        items.add(BananaSwitchCell.Factory.of(ID_GLASS_ACTIONBAR_CROSSFADE, LocaleController.getString(R.string.BananaGlassActionBarCrossfade), BananaConfig.glassActionBarCrossfade()));
         items.add(cell(ID_GLASS_TINT, R.string.BananaVal_GlassTint, percent(BananaConfig.glassBubbleTint(currentAccount))));
         items.add(cell(ID_GLASS_TOP, R.string.BananaVal_GlassRimTop, percent(BananaConfig.glassBubbleRimTop(currentAccount))));
         items.add(cell(ID_GLASS_SIDES, R.string.BananaVal_GlassRimSides, percent(BananaConfig.glassBubbleRimSides(currentAccount))));
@@ -183,6 +199,27 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
                 break;
             case ID_GLASS_COMPOSER:
                 toggleGlassComposer();
+                break;
+            case ID_GLASS_CENTERED_HEADER:
+                toggleGlassCenteredHeader();
+                break;
+            case ID_GLASS_TAB_SEARCH:
+                toggleGlassChromeOption(() -> BananaConfig.setGlassTabSearch(!BananaConfig.glassTabSearch()), false);
+                break;
+            case ID_GLASS_TAB_STROKE:
+                toggleGlassChromeOption(() -> BananaConfig.setGlassTabStroke(!BananaConfig.glassTabStroke()), false);
+                break;
+            case ID_GLASS_PROFILE_PILLS:
+                toggleGlassChromeOption(() -> BananaConfig.setGlassProfilePills(!BananaConfig.glassProfilePills()), false);
+                break;
+            case ID_GLASS_BACK_UNREAD_PILL:
+                toggleGlassChromeOption(() -> BananaConfig.setGlassBackUnreadPill(!BananaConfig.glassBackUnreadPill()), true);
+                break;
+            case ID_GLASS_PROFILE_TINT:
+                toggleGlassChromeOption(() -> BananaConfig.setGlassProfileTint(!BananaConfig.glassProfileTint()), false);
+                break;
+            case ID_GLASS_ACTIONBAR_CROSSFADE:
+                toggleGlassChromeOption(() -> BananaConfig.setGlassActionBarCrossfade(!BananaConfig.glassActionBarCrossfade()), false);
                 break;
             case ID_ACCENT:
                 pickPercent(R.string.BananaVal_AccentSaturation, IntValue.ACCENT_COLOR_SATURATION, 0, 100, 5);
@@ -371,8 +408,16 @@ public final class BananaExtrasValuesActivity extends BananaSettingsFragment {
      * rebuilt to pick the new layout up at once.
      */
     private void toggleGlassComposer() {
-        BananaConfig.setGlassComposer(!BananaConfig.glassComposer());
-        glassPreview = null;
+        toggleGlassChromeOption(() -> BananaConfig.setGlassComposer(!BananaConfig.glassComposer()), true);
+    }
+
+    private void toggleGlassCenteredHeader() {
+        toggleGlassChromeOption(() -> BananaConfig.setGlassCenteredHeader(!BananaConfig.glassCenteredHeader()), true);
+    }
+
+    private void toggleGlassChromeOption(Runnable toggle, boolean rebuildPreview) {
+        toggle.run();
+        if (rebuildPreview) glassPreview = null;
         if (listView != null) listView.adapter.update(true);
         if (getParentActivity() instanceof LaunchActivity) {
             ((LaunchActivity) getParentActivity()).rebuildAllFragments(true);

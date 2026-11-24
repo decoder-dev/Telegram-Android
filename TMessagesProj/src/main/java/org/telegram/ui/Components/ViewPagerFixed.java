@@ -2087,6 +2087,16 @@ public class ViewPagerFixed extends FrameLayout {
                             indicatorWidth = (int) AndroidUtilities.lerp(lastDrawnIndicatorW, indicatorWidth, indicatorProgress2);
                         }
                         if (selectorType == SELECTOR_TYPE_BUBBLE_STYLE) {
+                            final boolean tabStroke = org.telegram.messenger.banana.BananaConfig.glassTabStroke();
+                            if (tabStroke) {
+                                selectorDrawable.setStroke(dp(1), Theme.getColor(activeTextColorKey, resourcesProvider));
+                                selectorDrawable.setColor(ColorUtils.setAlphaComponent(Theme.getColor(tabLineColorKey, resourcesProvider), 50));
+                                selectorDrawable.setAlpha(255);
+                            } else {
+                                selectorDrawable.setStroke(0, 0);
+                                selectorDrawable.setColor(Theme.getColor(tabLineColorKey, resourcesProvider));
+                                selectorDrawable.setAlpha(31);
+                            }
                             final float TAB_INTERNAL_PADDING = 12.5f;
                             final float add = additionalTabWidth / 2f;
                             final int y = height / 2 - dp(14);
@@ -2094,9 +2104,9 @@ public class ViewPagerFixed extends FrameLayout {
                                 (int) (indicatorX - dp(TAB_INTERNAL_PADDING) - add), y,
                                 (int) (indicatorX + indicatorWidth + dp(TAB_INTERNAL_PADDING) + add),
                                 y + dp(28));
-                            selectorDrawable.setAlpha(31);
                             selectorDrawable.draw(canvas);
                         } else {
+                            selectorDrawable.setStroke(0, 0);
                             selectorDrawable.setBounds(indicatorX, (int) (height - AndroidUtilities.dpr(4) + hideProgress * AndroidUtilities.dpr(4)), indicatorX + indicatorWidth, (int) (height + hideProgress * AndroidUtilities.dpr(4)));
                             selectorDrawable.draw(canvas);
                         }

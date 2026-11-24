@@ -2899,4 +2899,20 @@ public class ActionBarMenuItem extends FrameLayout {
         cell.setLayoutParams(layoutParams);
         return cell;
     }
+
+    private boolean forceHidden;
+
+    public void setForceHidden(boolean value) {
+        if (forceHidden != value) {
+            forceHidden = value;
+            if (forceHidden) {
+                super.setVisibility(GONE);
+            }
+        }
+    }
+
+    @Override
+    public void setVisibility(int visibility) {
+        super.setVisibility(forceHidden ? GONE : visibility);
+    }
 }

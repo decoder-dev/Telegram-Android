@@ -716,4 +716,14 @@ public class ActionBarMenu extends LinearLayout {
     public boolean onTouchEvent(MotionEvent event) {
         return super.onTouchEvent(event);
     }
+
+    private boolean isCenteredTitle = false;
+
+    public void setCenteredTitle(boolean centeredTitle) {
+        isCenteredTitle = centeredTitle;
+    }
+
+    public boolean isCenteredTitle() {
+        return isCenteredTitle;
+    }
 }

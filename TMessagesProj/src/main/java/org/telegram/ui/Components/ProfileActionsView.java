@@ -469,7 +469,7 @@ public class ProfileActionsView extends View {
     }
 
     public float getRoundRadius() {
-        return dp(16);
+        return dp(org.telegram.messenger.banana.BananaConfig.glassProfilePills() ? 50 : 16);
     }
 
     private Action hit = null;

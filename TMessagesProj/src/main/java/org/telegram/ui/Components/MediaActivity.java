@@ -166,7 +166,9 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
     @Override
     public View createView(Context context) {
         setHasOwnBackground(true);
-        simpleActionBar.setBackButtonDrawable(new BackDrawable(false));
+        BackDrawable backDrawable = new BackDrawable(false);
+        backDrawable.setShowStick(!org.telegram.messenger.banana.BananaConfig.glassCenteredHeader());
+        simpleActionBar.setBackButtonDrawable(backDrawable);
         simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {

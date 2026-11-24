@@ -635,7 +635,7 @@
     <string name="BananaOpt_SAVE_FROM_NOTIFICATIONS">Сохранять из уведомлений</string>
     <string name="BananaOpt_PIN_BEYOND_LIMIT">Закреплять сверх лимита</string>
     <string name="BananaOpt_TAB_BAR_ICONS_ONLY">Только значки на панели вкладок</string>
-    <string name="BananaValuesGlassInfo">Блики меняются у всех стеклянных элементов. Оттенок и кромки задают вид стеклянных пузырей. Раздельное поле ввода выносит кнопки вложений и отправки в отдельные стеклянные пузыри рядом с текстом. Стекло включается в «Оформлении» → «Включить жидкое стекло», значки без подписей — в разделе «Панель вкладок».</string>
+    <string name="BananaValuesGlassInfo">Блики меняются у всех стеклянных элементов. Оттенок и кромки задают вид стеклянных пузырей. Раздельное поле ввода, шапка чата по центру, кнопка поиска рядом с вкладками, обводка вкладок и капсульные кнопки профиля переносят элементы Liquid Glass из Cherrygram. Стекло включается в «Оформлении» → «Включить жидкое стекло», значки без подписей — в разделе «Панель вкладок».</string>
     <string name="BananaOpt_ANTI_CAPS">Антикапс</string>
     <string name="BananaOpt_HIDE_EMPTY_REPLY_DRAFTS">Скрывать черновик пустого ответа</string>
     <string name="BananaOpt_SHOW_HIDDEN_ADMIN_BADGES">Показывать скрытых админов</string>
@@ -837,6 +837,13 @@
     <string name="BananaGlassHighlights">Блики на стекле</string>
     <string name="BananaGlassHighlightsInfo">Один стиль бликов для стеклянных элементов во всех аккаунтах.</string>
     <string name="BananaGlassComposer">Раздельное поле ввода</string>
+    <string name="BananaGlassCenteredHeader">Шапка чата по центру</string>
+    <string name="BananaGlassTabSearch">Кнопка поиска в панели вкладок</string>
+    <string name="BananaGlassTabStroke">Обводка активных вкладок</string>
+    <string name="BananaGlassProfilePills">Капсульные кнопки в профиле</string>
+    <string name="BananaGlassBackUnreadPill">Счётчик на кнопке «Назад»</string>
+    <string name="BananaGlassProfileTint">Цветное стекло в профилях</string>
+    <string name="BananaGlassActionBarCrossfade">Кроссфейд шапки при свайпе</string>
     <string name="BananaGlassHighlightsOff">Выключены</string>
     <string name="BananaGlassHighlightsDefault">По умолчанию</string>
     <string name="BananaGlassHighlightsOutline">Обводка</string>

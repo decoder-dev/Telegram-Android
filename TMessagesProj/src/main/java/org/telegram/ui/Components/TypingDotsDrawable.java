@@ -33,7 +33,15 @@ public class TypingDotsDrawable extends StatusDrawable {
 
     private Paint currentPaint;
 
+    private final boolean centerChatTitle = org.telegram.messenger.banana.BananaConfig.glassCenteredHeader();
+    private org.telegram.ui.ChatActivity chatActivity;
+
     public TypingDotsDrawable(boolean createPaint) {
+        this(createPaint, null);
+    }
+
+    public TypingDotsDrawable(boolean createPaint, org.telegram.ui.ChatActivity chatActivity) {
+        this.chatActivity = chatActivity;
         if (createPaint) {
             currentPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         }
@@ -121,9 +129,16 @@ public class TypingDotsDrawable extends StatusDrawable {
             paint = currentPaint;
         }
 
-        canvas.drawCircle(x + AndroidUtilities.dp(3), y, scales[0] * AndroidUtilities.density, paint);
-        canvas.drawCircle(x + AndroidUtilities.dp(9), y, scales[1] * AndroidUtilities.density, paint);
-        canvas.drawCircle(x + AndroidUtilities.dp(15), y, scales[2] * AndroidUtilities.density, paint);
+        if (centerChatTitle && chatActivity != null) {
+            float centerX = getBounds().centerX();
+            canvas.drawCircle(centerX - AndroidUtilities.dp(6), y, scales[0] * AndroidUtilities.density, paint);
+            canvas.drawCircle(centerX, y, scales[1] * AndroidUtilities.density, paint);
+            canvas.drawCircle(centerX + AndroidUtilities.dp(6), y, scales[2] * AndroidUtilities.density, paint);
+        } else {
+            canvas.drawCircle(x + AndroidUtilities.dp(3), y, scales[0] * AndroidUtilities.density, paint);
+            canvas.drawCircle(x + AndroidUtilities.dp(9), y, scales[1] * AndroidUtilities.density, paint);
+            canvas.drawCircle(x + AndroidUtilities.dp(15), y, scales[2] * AndroidUtilities.density, paint);
+        }
         checkUpdate();
     }
 

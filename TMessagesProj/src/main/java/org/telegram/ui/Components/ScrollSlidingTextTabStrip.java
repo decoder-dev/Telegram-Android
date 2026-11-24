@@ -770,6 +770,11 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
                 getPaddingLeft() + (int) r - dp(4),
                 height - getPaddingBottom() - dp(4)
             );
+            if (org.telegram.messenger.banana.BananaConfig.glassTabStroke()) {
+                selectorDrawable.setStroke(dp(1), processColor(Theme.getColor(activeTextColorKey, resourcesProvider)));
+            } else {
+                selectorDrawable.setStroke(0, 0);
+            }
             selectorDrawable.draw(canvas);
             selectorDrawable.setAlpha(wasAlpha);
 

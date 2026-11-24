@@ -924,7 +924,10 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
         actionBar.setCastShadows(false);
         actionBar.setBackground(null);
         actionBar.setOccupyStatusBar(!AndroidUtilities.isTablet());
-        actionBar.setBackButtonDrawable(new BackDrawable(false));
+        final boolean centeredHeader = org.telegram.messenger.banana.BananaConfig.glassCenteredHeader();
+        BackDrawable backDrawable = new BackDrawable(false);
+        backDrawable.setShowStick(!centeredHeader);
+        actionBar.setBackButtonDrawable(backDrawable);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(final int id) {
@@ -934,12 +937,27 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
             }
         });
 
-        avatarContainer = new ChatAvatarContainer(context, null, false);
+        avatarContainer = new ChatAvatarContainer(context, null, false) {
+            @Override
+            public boolean isCentered() {
+                return centeredHeader;
+            }
+
+            @Override
+            protected boolean showAvatarWhenCentered() {
+                return false;
+            }
+        };
         avatarContainer.setGlassMode();
         avatarContainer.setOccupyStatusBar(!AndroidUtilities.isTablet());
-        actionBar.addView(avatarContainer, 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, 54, 0, 52, 0));
+        actionBar.addView(avatarContainer, 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, centeredHeader ? 52 : 54, 0, centeredHeader ? 0 : 52, 0));
+        if (centeredHeader) {
+            avatarContainer.setActionBar(actionBar);
+            actionBar.setChatAvatarContainer2(avatarContainer);
+        }
 
         ActionBarMenu menu = actionBar.createMenu();
+        menu.setCenteredTitle(centeredHeader);
         searchItem = menu.addItem(0, R.drawable.outline_header_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
 
             @Override

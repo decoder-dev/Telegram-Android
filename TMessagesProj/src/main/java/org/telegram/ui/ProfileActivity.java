@@ -2530,7 +2530,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         actionBar.setOccupyStatusBar(hasMainTabs || parentLayout != null && parentLayout.isSheet() || !AndroidUtilities.isTablet() && !inBubbleMode || isInTabletRightLayout());
 
         if (hasMainTabs) {
-            actionBar.setBackButtonDrawable(new BackDrawable(false));
+            BackDrawable backDrawable = new BackDrawable(false);
+            backDrawable.setShowStick(!org.telegram.messenger.banana.BananaConfig.glassCenteredHeader());
+            actionBar.setBackButtonDrawable(backDrawable);
             actionBar.getBackButton().setTranslationX(dp(2));
             actionBar.backButtonImageView.setContentDescription(getString(R.string.QrCode));
             actionBar.backButtonImageView.setImageResource(R.drawable.outline_header_qr_24);
@@ -2542,7 +2544,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 presentFragment(new QrShareActivity(args));
             });
         } else {
-            actionBar.setBackButtonDrawable(new BackDrawable(false));
+            BackDrawable backDrawable = new BackDrawable(false);
+            backDrawable.setShowStick(!org.telegram.messenger.banana.BananaConfig.glassCenteredHeader());
+            actionBar.setBackButtonDrawable(backDrawable);
             actionBar.getBackButton().setTranslationX(dp(2));
             ImageView backButton = actionBar.getBackButton();
             backButton.setOnLongClickListener(e -> {
@@ -4095,7 +4099,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         ttlIconView.setImageResource(R.drawable.msg_mini_autodelete_timer);
         otherItem.addView(ttlIconView, LayoutHelper.createFrame(12, 12, Gravity.CENTER_VERTICAL | Gravity.LEFT, 8, 2, 0, 0));
         otherItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
-        otherItem.setBlurredBackgroundFactory(scrimBlur3Factory, BlurredBackgroundProviderImpl.messageMenuBackground(resourceProvider));
+        otherItem.setBlurredBackgroundFactory(scrimBlur3Factory, BlurredBackgroundProviderImpl.messageMenuBackground(resourcesProvider));
 
         int scrollTo;
         int scrollToPosition = 0;

@@ -718,13 +718,22 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
         if (type != TYPE_STORY) {
             shadow.setAlpha((int) (Utilities.clamp(1f - (customEmojiReactionsEnterProgress / 0.05f), 1f, 0f) * 255));
             shadow.setBounds((int) (getPaddingLeft() + (getWidth() - getPaddingRight() + shadowPad.right) * lt - shadowPad.left), getPaddingTop() - shadowPad.top - (int) expandSize, (int) ((getWidth() - getPaddingRight() + shadowPad.right) * rt), getHeight() - getPaddingBottom() + shadowPad.bottom + (int) expandSize);
-            if (blurredBackgroundDrawable == null) {
+            if (blurredBackgroundDrawable == null && (delegate == null || !delegate.drawBackground())) {
                 shadow.draw(canvas);
             }
         }
 
         canvas.restoreToCount(s);
 
+        if (skipDraw && glassHandoff >= 0 && delegate != null && delegate.drawBackground()) {
+            s = canvas.save();
+            if (transitionProgress != 1f) {
+                float sc = transitionProgress;
+                canvas.scale(sc, sc, pivotX, getHeight() / 2f);
+            }
+            delegate.drawRoundRect(canvas, rect, radius, getX(), getY(), Math.round(255 * glassHandoff), false);
+            canvas.restoreToCount(s);
+        }
         if (!skipDraw) {
             s = canvas.save();
             if (transitionProgress != 1f) {
@@ -923,7 +932,9 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
         shadow.setAlpha(alpha);
         bgPaint.setAlpha(alpha);
         shadow.setBounds((int) (cx - br - sPad * cPr), (int) (cy - br - sPad * cPr), (int) (cx + br + sPad * cPr), (int) (cy + br + sPad * cPr));
-        shadow.draw(canvas);
+        if (!delegate.drawBackground()) {
+            shadow.draw(canvas);
+        }
         if (delegate.drawBackground()) {
             rectF.set(cx - br, cy - br, cx + br, cy + br);
             delegate.drawRoundRect(canvas, rectF, br, getX(), getY(), alpha, false);
@@ -947,7 +958,9 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
         cy = AndroidUtilities.lerp(cy, smallCircleRadius + sPad - expandSize(), CubicBezierInterpolator.DEFAULT.getInterpolation(flipVerticalProgress));
         sPad = -dp(1);
         shadow.setBounds((int) (cx - br - sPad * cPr), (int) (cy - br - sPad * cPr), (int) (cx + br + sPad * cPr), (int) (cy + br + sPad * cPr));
-        shadow.draw(canvas);
+        if (!delegate.drawBackground()) {
+            shadow.draw(canvas);
+        }
         if (delegate.drawBackground()) {
             rectF.set(cx - sr, cy - sr, cx + sr, cy + sr);
             delegate.drawRoundRect(canvas, rectF, sr, getX(), getY(), alpha, false);
@@ -2715,6 +2728,19 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
         starSelectedGradient.setLocalMatrix(starSelectedGradientMatrix);
         starSelectedGradientPaint.setAlpha((int) (0xFF * alpha));
         return starSelectedGradientPaint;
+    }
+
+    private float glassHandoff = -1f;
+
+    public void setGlassHandoff(float handoff) {
+        if (glassHandoff != handoff) {
+            glassHandoff = handoff;
+            invalidate();
+        }
+    }
+
+    public float getGlassHandoff() {
+        return glassHandoff;
     }
 
 }

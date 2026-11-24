@@ -59,28 +59,44 @@ public final class BananaGlassPreviewView extends FrameLayout {
 
         final BlurredBackgroundDrawableViewFactory factory = createFactory(resourcesProvider);
         final BlurredBackgroundColorProvider colors = BlurredBackgroundProviderImpl.topPanelChatActivity(resourcesProvider);
+        final boolean centeredHeader = BananaConfig.glassCenteredHeader();
 
         ActionBar actionBar = new ActionBar(context, resourcesProvider);
         actionBar.setOccupyStatusBar(false);
         actionBar.setCastShadows(false);
         actionBar.setItemsColor(Theme.getColor(Theme.key_actionBarDefaultIcon, resourcesProvider), false);
         actionBar.setItemsBackgroundColor(Theme.getColor(Theme.key_actionBarDefaultSelector, resourcesProvider), false);
-        actionBar.setBackButtonDrawable(new BackDrawable(false));
+        BackDrawable backDrawable = new BackDrawable(false);
+        backDrawable.setShowStick(!centeredHeader);
+        actionBar.setBackButtonDrawable(backDrawable);
         ActionBarMenu menu = actionBar.createMenu();
-        menu.addItem(0, R.drawable.ic_ab_other).setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
+        menu.setCenteredTitle(centeredHeader);
+        menu.addItem(0, centeredHeader ? android.R.color.transparent : R.drawable.ic_ab_other).setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
         actionBar.setupGlass(factory, colors);
         addView(actionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 70, Gravity.TOP, 0, 4, 0, 0));
 
-        ChatAvatarContainer avatar = new ChatAvatarContainer(context, fragment, false, resourcesProvider);
+        ChatAvatarContainer avatar = new ChatAvatarContainer(context, fragment, false, resourcesProvider) {
+            @Override
+            public boolean isCentered() {
+                return centeredHeader;
+            }
+        };
+        avatar.setActionBar(actionBar);
         avatar.setOccupyStatusBar(false);
         avatar.setGlassMode();
         avatar.allowShorterStatus = true;
+        avatar.setClipChildren(false);
         TLRPC.User user = previewUser(account);
         avatar.setUserAvatar(user);
         avatar.setTitle(previewTitle(user));
         avatar.setSubtitle(LocaleController.getString(R.string.Online));
-        actionBar.addView(avatar, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.START | Gravity.TOP, 54, 0, 54, 0));
-        actionBar.setChatAvatarContainer(avatar);
+        actionBar.addView(avatar, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.START | Gravity.TOP, 54, 0, centeredHeader ? 0 : 54, 0));
+        if (centeredHeader) {
+            actionBar.setChatAvatarContainer2(avatar);
+            actionBar.setForceAdaptiveWidth(true);
+        } else {
+            actionBar.setChatAvatarContainer(avatar);
+        }
 
         // The real message field, as in Cherrygram's preview, so both field layouts look exactly as in a chat.
         SizeNotifierFrameLayout composerRoot = new SizeNotifierFrameLayout(context);

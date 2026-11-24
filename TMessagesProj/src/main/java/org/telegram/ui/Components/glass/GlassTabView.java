@@ -468,7 +468,37 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
     public void updateUserAvatar(int currentAccount) {
         TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(UserConfig.getInstance(currentAccount).getClientUserId());
         AvatarDrawable avatarDrawable = new AvatarDrawable(user);
-        backupImageView.setForUserOrChat(user, avatarDrawable);
+        if (backupImageView != null) {
+            backupImageView.setForUserOrChat(user, avatarDrawable);
+        }
+    }
+
+    /** Cherrygram static glass pill tab (used for the floating search circle beside the tab bar). */
+    public static GlassTabView createStaticTab(
+            Context context,
+            Theme.ResourcesProvider resourcesProvider,
+            @DrawableRes int iconRes,
+            @StringRes int stringRes,
+            boolean showTitle
+    ) {
+        GlassTabView tab = new GlassTabView(context);
+        tab.resourcesProvider = resourcesProvider;
+        tab.setContentDescription(LocaleController.getString(stringRes));
+        tab.imageView.setImageResource(iconRes);
+        if (showTitle) {
+            tab.textView.setText(LocaleController.getString(stringRes));
+            tab.textView.setVisibility(VISIBLE);
+            tab.imageView.setLayoutParams(LayoutHelper.createFrame(24, 24, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 4, 0, 0));
+        } else {
+            tab.textView.setVisibility(GONE);
+            tab.imageView.setLayoutParams(LayoutHelper.createFrame(24, 24, Gravity.CENTER, 0, 0, 0, 0));
+        }
+        tab.colorDefault = Theme.getColor(Theme.key_glass_tabUnselected, resourcesProvider);
+        tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
+        tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
+        tab.imageView.setColorFilter(new PorterDuffColorFilter(tab.colorDefault, PorterDuff.Mode.SRC_IN));
+        tab.updateColors();
+        return tab;
     }
 
     public static GlassTabView createAttachTab(Context context, Theme.ResourcesProvider resourcesProvider) {

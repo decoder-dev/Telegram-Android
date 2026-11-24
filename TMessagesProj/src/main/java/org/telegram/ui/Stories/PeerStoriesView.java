@@ -3641,7 +3641,9 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
         sideControlsButtonsLayout.setOnClickListener(this::onSideControlButtonOnClick);
         addView(sideControlsButtonsLayout, LayoutHelper.createFrame(57, 300, Gravity.RIGHT | Gravity.BOTTOM));
         sideControlsButtonsLayout.setVisibility(View.GONE);
-        chatActivityEnterView.setSideButtonsForAttach(sideControlsButtonsLayout);
+        if (!chatActivityEnterView.iOSMessageInputFieldAvailable()) {
+            chatActivityEnterView.setSideButtonsForAttach(sideControlsButtonsLayout);
+        }
 
         reactionsContainerIndex = getChildCount();
     }
@@ -5471,7 +5473,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
             }
         }
         if (sideControlsButtonsLayout != null) {
-            sideControlsButtonsLayout.setVisibility(chatActivityEnterView != null && chatActivityEnterView.getVisibility() == View.VISIBLE && !currentStory.isLive ? View.VISIBLE : View.GONE);
+            sideControlsButtonsLayout.setVisibility(chatActivityEnterView != null && chatActivityEnterView.getVisibility() == View.VISIBLE && !currentStory.isLive && !chatActivityEnterView.iOSMessageInputFieldAvailable() ? View.VISIBLE : View.GONE);
         }
         if (commentButton != null) {
             commentButton.setVisibility(!unsupported && currentStory.isLive ? View.VISIBLE : View.GONE);
@@ -7870,6 +7872,9 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
         }, resourcesProvider, false);
         int i = Math.min(indexOfChild(chatActivityEnterView.getRecordCircle()), indexOfChild(chatActivityEnterView.controlsView));
         addView(instantCameraView, i, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.LEFT | Gravity.TOP));
+        if (instantCameraView != null) {
+            instantCameraView.setButtonsBackground(blurredBackgroundDrawableFactory, blurredBackgroundColorProvider);
+        }
     }
 
     private void afterMessageSend(boolean withBulletin) {

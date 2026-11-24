@@ -699,6 +699,9 @@ public class SimpleActionBarMenuOverlay extends FrameLayout {
             canvas.restore();
         }
         canvas.restore();
+        if (startFromPill && ia > 0.004f && icon != null && bar instanceof ActionBar) {
+            ((ActionBar) bar).cgDrawOverMenuPillAvatar(canvas, tmpRect, ia, Utilities.clamp01(m / 0.3f), wobble);
+        }
 
         if (animating) {
             invalidate();

@@ -121,6 +121,9 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
 
     private UpdateLayoutWrapper updateLayoutWrapper;
     private FrameLayout tabsViewWrapper;
+    private GlassTabView searchButton;
+    private BlurredBackgroundDrawable searchButtonBackground;
+    private final ArrayList<BaseFragment> glassFragments = new ArrayList<>();
     private MainTabsLayout tabsView;
     private BlurredBackgroundDrawable tabsViewBackground;
     private View fadeView;
@@ -190,28 +193,35 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
 
                 canvas.drawColor(getThemedColor(Theme.key_windowBackgroundWhite));
 
+                // Cherrygram: draw overlapping pages in visual z-order and skip hidden/zero-alpha views.
+                glassFragments.clear();
                 for (int a = 0, N = fragmentsArr.size(); a < N; a++) {
-                    final FragmentState state = fragmentsArr.valueAt(a);
-                    final BaseFragment fragment = state.fragment;
-                    if (fragment.fragmentView == null) {
-                        continue;
+                    final BaseFragment fragment = fragmentsArr.valueAt(a).fragment;
+                    if (fragment.fragmentView != null && fragment instanceof TabFragmentDelegate && ((TabFragmentDelegate) fragment).getGlassSource() != null) {
+                        glassFragments.add(fragment);
                     }
+                }
+                Collections.sort(glassFragments, (f1, f2) -> Integer.compare(getPagerChildIndex(f1.fragmentView), getPagerChildIndex(f2.fragmentView)));
+
+                for (int a = 0, N = glassFragments.size(); a < N; a++) {
+                    final BaseFragment fragment = glassFragments.get(a);
                     if (!ViewPositionWatcher.computeRectInParent(fragment.fragmentView, contentView, fragmentPosition)) {
                         continue;
                     }
                     if (fragmentPosition.right <= 0 || fragmentPosition.left >= fragmentView.getMeasuredWidth()) {
                         continue;
                     }
+                    if (getAlphaInContentView(fragment.fragmentView) <= 0f) {
+                        continue;
+                    }
 
-                    if (fragment instanceof TabFragmentDelegate) {
-                        TabFragmentDelegate delegate = (TabFragmentDelegate) fragment;
-                        final GlassSourceRenderNode pageSource = frosted ? delegate.getFrostedGlassSource() : delegate.getGlassSource();
-                        if (pageSource != null) {
-                            canvas.save();
-                            canvas.translate(fragmentPosition.left, fragmentPosition.top);
-                            pageSource.draw(canvas, 0, 0, width, height);
-                            canvas.restore();
-                        }
+                    final TabFragmentDelegate delegate = (TabFragmentDelegate) fragment;
+                    final GlassSourceRenderNode pageSource = frosted ? delegate.getFrostedGlassSource() : delegate.getGlassSource();
+                    if (pageSource != null) {
+                        canvas.save();
+                        canvas.translate(fragmentPosition.left, fragmentPosition.top);
+                        pageSource.draw(canvas, 0, 0, width, height);
+                        canvas.restore();
                     }
                 }
             }
@@ -410,10 +420,40 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
 
         contentView.addView(fadeView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 0, Gravity.BOTTOM));
 
+        searchButton = null;
+        searchButtonBackground = null;
+
         tabsViewWrapper = new FrameLayout(context);
         tabsViewWrapper.setOnClickListener(v -> {});
-        tabsViewWrapper.addView(tabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
+        tabsViewWrapper.setClipChildren(false);
         tabsViewWrapper.setClipToPadding(false);
+        if (org.telegram.messenger.banana.BananaConfig.glassTabSearch() && !org.telegram.messenger.banana.BananaHooks.hideTabBar(currentAccount)) {
+            final LinearLayout tabsRow = new LinearLayout(context);
+            tabsRow.setOrientation(LinearLayout.HORIZONTAL);
+            tabsRow.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+            tabsRow.setClipChildren(false);
+            tabsRow.setClipToPadding(false);
+            tabsRow.addView(tabsView, LayoutHelper.createLinear(0, DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS, 1.0f));
+
+            searchButton = GlassTabView.createStaticTab(
+                context,
+                resourceProvider,
+                R.drawable.outline_header_search,
+                R.string.Search,
+                false
+            );
+            searchButton.setOnClickListener(v -> onGlassSearchButtonClick());
+            searchButtonBackground = iBlur3FactoryGlass.create(searchButton, BlurredBackgroundProviderImpl.mainTabs(resourceProvider));
+            searchButtonBackground.setRadius(dp(DialogsActivity.MAIN_TABS_HEIGHT / 2f));
+            searchButtonBackground.setPadding(dp(DialogsActivity.MAIN_TABS_MARGIN - 0.334f));
+            searchButton.setBackground(searchButtonBackground);
+
+            final int searchSize = DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS;
+            tabsRow.addView(searchButton, LayoutHelper.createLinear(searchSize, searchSize, -10, 0, 0, 0));
+            tabsViewWrapper.addView(tabsRow, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
+        } else {
+            tabsViewWrapper.addView(tabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
+        }
         contentView.addView(tabsViewWrapper, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM));
 
         updateLayoutWrapper = new UpdateLayoutWrapper(context);
@@ -1300,10 +1340,63 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         }
     }
 
+    private float getAlphaInContentView(View view) {
+        float alpha = 1f;
+        while (view != null && view != contentView) {
+            alpha *= view.getAlpha();
+            view = view.getParent() instanceof View ? (View) view.getParent() : null;
+        }
+        return alpha;
+    }
+
+    private int getPagerChildIndex(View view) {
+        while (view != null && view.getParent() != viewPager) {
+            view = view.getParent() instanceof View ? (View) view.getParent() : null;
+        }
+        return view != null && viewPager != null ? viewPager.indexOfChild(view) : -1;
+    }
+
+    private void onGlassSearchButtonClick() {
+        final BaseFragment fragment = getCurrentVisibleFragment();
+        if (fragment instanceof SettingsActivity) {
+            ((SettingsActivity) fragment).openSearchFromTabBar();
+        } else if (fragment instanceof ContactsActivity) {
+            final org.telegram.ui.ActionBar.SimpleActionBar simpleActionBar = fragment.getSimpleActionBar();
+            if (simpleActionBar != null && !simpleActionBar.openSearchField(true, true) && simpleActionBar.isSearchFieldVisible() && simpleActionBar.getSearchField() != null) {
+                simpleActionBar.getSearchField().requestFocus();
+                AndroidUtilities.showKeyboard(simpleActionBar.getSearchField());
+            }
+        } else {
+            final int chatsPos = indexToPosition(INDEX_CHATS);
+            if (chatsPos >= 0) {
+                selectTab(chatsPos, true);
+                if (viewPager != null) {
+                    viewPager.scrollToPosition(chatsPos);
+                }
+            }
+            AndroidUtilities.runOnUIThread(() -> {
+                final DialogsActivity dialogs = getDialogsActivity();
+                if (dialogs != null) {
+                    dialogs.search("", true);
+                    if (dialogs.getFragmentSearchField() != null && dialogs.getFragmentSearchField().editText != null) {
+                        dialogs.getFragmentSearchField().editText.requestFocus();
+                        AndroidUtilities.showKeyboard(dialogs.getFragmentSearchField().editText);
+                    }
+                }
+            }, 100);
+        }
+    }
+
     private void blur3_updateColors() {
+        if (iBlur3SourceColor == null || tabsViewBackground == null || fadeView == null || tabsView == null || tabs == null) {
+            return;
+        }
         blur3_updateFadeColors();
         if (tabsViewBackground != null) {
             tabsViewBackground.updateColors();
+        }
+        if (searchButtonBackground != null) {
+            searchButtonBackground.updateColors();
         }
         blur3_invalidateBlur();
         if (fadeView != null) {
@@ -1316,6 +1409,10 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             for (GlassTabView tabView : tabs) {
                 tabView.updateColorsLottie();
             }
+        }
+        if (searchButton != null) {
+            searchButton.invalidate();
+            searchButton.updateColorsLottie();
         }
     }
 

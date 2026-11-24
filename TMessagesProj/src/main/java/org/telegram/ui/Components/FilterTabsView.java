@@ -1502,6 +1502,15 @@ public class FilterTabsView extends FrameLayout {
                 counterVisible = tabView.tabCounterVisible;
             }
         }
+        final boolean tabStroke = org.telegram.messenger.banana.BananaConfig.glassTabStroke();
+        if (tabStroke) {
+            selectorDrawable.setStroke(dp(1), Theme.getColor(activeTextColorKey, resourcesProvider));
+            selectorDrawable.setColor(ColorUtils.setAlphaComponent(Theme.getColor(tabLineColorKey, resourcesProvider), 50));
+            selectorDrawable.setAlpha(255);
+        } else {
+            selectorDrawable.setStroke(0, 0);
+            selectorDrawable.setColor(Theme.getColor(tabLineColorKey, resourcesProvider));
+        }
         if (indicatorWidth != 0) {
             canvas.save();
             canvas.translate(listView.getTranslationX(), 0);
@@ -1511,7 +1520,7 @@ public class FilterTabsView extends FrameLayout {
 
             final int y = height / 2 - dp(14);
             selectorDrawable.setBounds((int) (indicatorX - dp(TAB_INTERNAL_PADDING) - add), y, (int) (indicatorX + indicatorWidth + dp(TAB_INTERNAL_PADDING) + add), y + dp(28));
-            selectorDrawable.setAlpha(31);
+            if (!tabStroke) selectorDrawable.setAlpha(31);
             selectorDrawable.draw(canvas);
             canvas.restore();
         }

@@ -1557,7 +1557,7 @@ public class ChatActivity extends BaseFragment implements
                     headerItem.setVisibility(View.GONE);
                 }
                 if (otherIcon != null) {
-                    otherIcon.setIconVisible(true);
+                    otherIcon.setIconVisible(!isAvatarMenuCentered());
                 }
             } else {
                 if (attachItem != null) {
@@ -2438,7 +2438,7 @@ public class ChatActivity extends BaseFragment implements
                     attachItem.setVisibility(View.VISIBLE);
                 }
                 if (otherIcon != null) {
-                    otherIcon.setIconVisible(true);
+                    otherIcon.setIconVisible(!isAvatarMenuCentered());
                 }
             }
         }
@@ -3099,6 +3099,7 @@ public class ChatActivity extends BaseFragment implements
             .add(NotificationCenter.loadingMessagesFailed)
             .add(NotificationCenter.didUpdateConnectionState)
             .add(NotificationCenter.updateInterfaces)
+            .add(NotificationCenter.notificationsCountUpdated)
             .add(NotificationCenter.updateDefaultSendAsPeer)
             .add(NotificationCenter.userIsPremiumBlockedUpadted)
             .add(NotificationCenter.didLoadSendAsPeers)
@@ -3930,9 +3931,16 @@ public class ChatActivity extends BaseFragment implements
         actionBar.setBackground(null);
         // actionBar.setOccupyStatusBar(false);
         if (inPreviewMode) {
-            actionBar.setBackButtonDrawable(null);
+            if (isTitleCentered()) {
+                actionBar.setBackButtonImage(R.drawable.ic_ab_close);
+            } else {
+                actionBar.setBackButtonDrawable(null);
+            }
         } else {
-            actionBar.setBackButtonDrawable(new BackDrawable(isReport()));
+            BackDrawable backDrawable = new BackDrawable(isReport());
+            backDrawable.setShowStick(!isTitleCentered());
+            actionBar.setBackButtonDrawable(backDrawable);
+            updateIOSUnreadBadge();
         }
 
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
@@ -4368,6 +4376,16 @@ public class ChatActivity extends BaseFragment implements
         avatarContainer = new ChatAvatarContainer(context, this, currentEncryptedChat != null, themeDelegate) {
             @Override
             protected boolean onAvatarClick() {
+                if (isTitleCentered()) {
+                    if (attachItem != null && attachItem.getView() != null && attachItem.getView().getVisibility() == VISIBLE) {
+                        attachItem.getView().performClick();
+                        return true;
+                    }
+                    if (headerItem != null) {
+                        headerItem.performClick();
+                        return true;
+                    }
+                }
                 if (currentUser != null && currentUser.linked_community_id != 0) {
                     showDialog(new CommunitySheet(ChatActivity.this, currentUser.linked_community_id));
                     return true;
@@ -4391,6 +4409,21 @@ public class ChatActivity extends BaseFragment implements
             @Override
             protected void openSearch() {
                 openSearchWithText(isSupportedTags() ? "" : null);
+            }
+
+            @Override
+            public boolean isCentered() {
+                return isTitleCentered();
+            }
+
+            @Override
+            protected boolean showAvatarWhenCentered() {
+                return hasCenteredAvatarMenu();
+            }
+
+            @Override
+            protected boolean isPreviewMode() {
+                return isInPreviewMode();
             }
         };
         avatarContainer.setGlassMode();
@@ -4455,7 +4488,7 @@ public class ChatActivity extends BaseFragment implements
             });
             getConnectionsManager().bindRequestToGuid(req, classGuid);
         } else {
-            actionBar.addView(avatarContainer, 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, !inPreviewMode ? 52 : 0, 0, 52, 0));
+            actionBar.addView(avatarContainer, 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, !inPreviewMode ? 52 : 0, 0, isTitleCentered() ? 0 : 52, 0));
             actionBar.createMenu().bringToFront();
             // The chat shows the activity-level island from onResume; a second ActionBar chip would stack under it.
         }
@@ -4464,6 +4497,7 @@ public class ChatActivity extends BaseFragment implements
         });
 
         ActionBarMenu menu = actionBar.createMenu();
+        menu.setCenteredTitle(isTitleCentered());
 
         if (chatMode == MODE_QUICK_REPLIES && !QuickRepliesController.isSpecial(quickReplyShortcut)) {
             menu.addItem(edit_quick_reply, R.drawable.group_edit).setContentDescription(LocaleController.getString(R.string.Edit));
@@ -4474,9 +4508,10 @@ public class ChatActivity extends BaseFragment implements
         }
 
         if (currentEncryptedChat == null && (chatMode == 0 || chatMode == MODE_SAVED || chatMode == MODE_SUGGESTIONS) && !isReport()) {
-            searchIconItem = menu.addItem(search, isSupportedTags() ? R.drawable.navbar_search_tag : R.drawable.outline_header_search);
+            final int searchDrawable = isAvatarMenuCentered() ? android.R.color.transparent : R.drawable.outline_header_search;
+            searchIconItem = menu.addItem(search, isSupportedTags() ? R.drawable.navbar_search_tag : searchDrawable);
             searchIconItem.setContentDescription(LocaleController.getString(R.string.Search));
-            searchItem = menu.addItem(chat_menu_search, R.drawable.outline_header_search, themeDelegate);
+            searchItem = menu.addItem(chat_menu_search, searchDrawable, themeDelegate);
             searchItem.setSearchPaddingStart(7);
             searchItem.setIsSearchField(true);
             searchItem.setActionBarMenuItemSearchListener(getSearchItemListener());
@@ -4489,7 +4524,7 @@ public class ChatActivity extends BaseFragment implements
             searchItemVisible = false;
         }
 
-        if (chatMode == 0 && (threadMessageId == 0 || isTopic) && !UserObject.isReplyUser(currentUser) && !isReport()) {
+        if (chatMode == 0 && (threadMessageId == 0 || isTopic) && !UserObject.isReplyUser(currentUser) && !isReport() && !isTitleCentered()) {
             TLRPC.UserFull userFull = null;
             if (currentUser != null) {
                 audioCallIconItem = menu.lazilyAddItem(call, R.drawable.call, themeDelegate);
@@ -4514,9 +4549,11 @@ public class ChatActivity extends BaseFragment implements
         */
 
 
+        final int dotsDrawable = isAvatarMenuCentered() ? android.R.color.transparent : R.drawable.ic_ab_other;
+        final int attachDrawable = isAvatarMenuCentered() ? android.R.color.transparent : R.drawable.mini_attach;
         otherIcon = new ComposeDrawable(
-            context.getResources().getDrawable(R.drawable.ic_ab_other).mutate(),
-            context.getResources().getDrawable(R.drawable.mini_attach).mutate()
+            context.getResources().getDrawable(dotsDrawable).mutate(),
+            context.getResources().getDrawable(attachDrawable).mutate()
         );
         otherIcon.setIconTranslate(-dp(6), dp(6.66f));
 
@@ -4544,6 +4581,10 @@ public class ChatActivity extends BaseFragment implements
             });
             otherIcon.addView(headerItem.getIconView());
             headerItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
+            if (avatarContainer != null) {
+                avatarContainer.setAvatarOptionsMenuItem(headerItem);
+            }
+            headerItem.setForceHidden(isAvatarMenuCentered());
 
             if (currentUser != null && currentUser.self && chatMode != MODE_SAVED) {
                 savedChatsItem = headerItem.lazilyAddSubItem(view_as_topics, R.drawable.msg_topics, LocaleController.getString(R.string.SavedViewAsChats));
@@ -4822,7 +4863,10 @@ public class ChatActivity extends BaseFragment implements
             ChatObject.isForum(currentChat));
         setupHeaderMenuOverlay(parentView);
 
-        if (chatMode == MODE_PINNED) {
+        if (isTitleCentered()) {
+            avatarContainer.setActionBar(actionBar);
+            actionBar.setChatAvatarContainer2(avatarContainer);
+        } else if (chatMode == MODE_PINNED) {
             actionBar.setChatAvatarContainer(avatarContainer);
             avatarContainer.setActionBar(actionBar);
         } else if (chatMode == MODE_WELCOME_MESSAGES) {
@@ -8807,8 +8851,12 @@ public class ChatActivity extends BaseFragment implements
         bottomOverlayStartButton.setOnClickListener(v -> bottomOverlayChatText.callOnClick());
         bottomOverlayStartButton.setPadding(dp(31), 0, dp(31), 0);
         ScaleStateListAnimator.apply(bottomOverlayStartButton, 0.02f, 1.2f);
-        bottomChannelButtonsLayout.getContainer().addView(bottomOverlayStartButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 38, Gravity.CENTER, 3, 3, 3, 3));
-        bottomChannelButtonsLayout.makeViewWrapContent(bottomOverlayStartButton);
+        if (org.telegram.messenger.banana.BananaConfig.glassComposer()) {
+            bottomChannelButtonsLayout.getContainer().addView(bottomOverlayStartButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 38, Gravity.CENTER, 3, 3, 3, 3));
+        } else {
+            bottomChannelButtonsLayout.getContainer().addView(bottomOverlayStartButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 38, Gravity.CENTER, 3, 3, 3, 3));
+            bottomChannelButtonsLayout.makeViewWrapContent(bottomOverlayStartButton);
+        }
 
         if (currentUser != null && currentUser.bot && currentUser.id != UserObject.VERIFY && !UserObject.isDeleted(currentUser) && !UserObject.isReplyUser(currentUser) && !isInScheduleMode() && chatMode != MODE_PINNED && chatMode != MODE_SAVED && !isReport()) {
             bottomOverlayStartButton.setVisibility(View.VISIBLE);
@@ -11098,9 +11146,10 @@ public class ChatActivity extends BaseFragment implements
         ThemeBind.textColor(selectedMessagesCountTextView, Theme.key_actionBarActionModeDefaultIcon, getResourceProvider());
         selectedMessagesCountTextView.setOnTouchListener((v, event) -> true);
         selectedMessagesCountTextView.setEllipsizeByGradient(true);
-        selectedMessagesCountTextView.setRightPadding(dp(8));
+        selectedMessagesCountTextView.setGravity(isTitleCentered() ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL);
+        selectedMessagesCountTextView.setRightPadding(isTitleCentered() ? 0 : dp(8));
         selectedMessagesCountTextView.getDrawable().setOverrideFullWidth(dp(300));
-        actionMode.addView(selectedMessagesCountTextView, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1.0f, 85, 0, 5, 0));
+        actionMode.addView(selectedMessagesCountTextView, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1.0f, isTitleCentered() ? 65 : 85, 0, 5, 0));
         actionMode.setOnLayoutListener(actionBar::invalidate);
 
         if (currentEncryptedChat == null) {
@@ -19378,15 +19427,18 @@ public class ChatActivity extends BaseFragment implements
                 }*/ else {
                     showSearchAsIcon = false;
                 }
+                if (isTitleCentered()) {
+                    showSearchAsIcon = isCenteredSearchPill() && !inPreviewMode && currentUser != null && currentUser.self;
+                }
                 if (showSearchAsIcon || showAudioCallAsIcon || UserObject.isBotForumWithEditableTopics(currentUser)) {
                     if (avatarContainer != null && avatarContainer.getLayoutParams() != null) {
                         // a saved chat has no menu button, but may have the sidebar's button next to the search
                         final boolean oneIcon = chatMode == MODE_SAVED && (topicsPanelItem == null || topicsPanelItem.getVisibility() != View.VISIBLE);
-                        ((ViewGroup.MarginLayoutParams) avatarContainer.getLayoutParams()).rightMargin = AndroidUtilities.dp(oneIcon ? 52 : 92);
+                        ((ViewGroup.MarginLayoutParams) avatarContainer.getLayoutParams()).rightMargin = isTitleCentered() ? 0 : AndroidUtilities.dp(oneIcon ? 52 : 92);
                     }
                 } else {
                     if (avatarContainer != null && avatarContainer.getLayoutParams() != null) {
-                        ((ViewGroup.MarginLayoutParams) avatarContainer.getLayoutParams()).rightMargin = AndroidUtilities.dp(52);
+                        ((ViewGroup.MarginLayoutParams) avatarContainer.getLayoutParams()).rightMargin = isTitleCentered() ? 0 : AndroidUtilities.dp(52);
                     }
                 }
                 if (showSearchAsIcon) {
@@ -23222,7 +23274,10 @@ public class ChatActivity extends BaseFragment implements
             if (chatActivityEnterView != null) {
                 chatActivityEnterView.updateSendButtonPaid();
             }
+        } else if (id == NotificationCenter.notificationsCountUpdated) {
+            updateIOSUnreadBadge();
         } else if (id == NotificationCenter.updateInterfaces) {
+            updateIOSUnreadBadge();
             int updateMask = (Integer) args[0];
             if ((updateMask & MessagesController.UPDATE_MASK_NAME) != 0 || (updateMask & MessagesController.UPDATE_MASK_CHAT_NAME) != 0 || (updateMask & MessagesController.UPDATE_MASK_EMOJI_STATUS) != 0) {
                 if (currentChat != null) {
@@ -31030,7 +31085,7 @@ public class ChatActivity extends BaseFragment implements
         }
         if (avatarContainer != null) {
             avatarContainer.setOccupyStatusBar(!value);
-            avatarContainer.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, !inPreviewMode ? 52 : 0, 0, 52, 0));
+            avatarContainer.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, !inPreviewMode ? 52 : 0, 0, isTitleCentered() ? 0 : 52, 0));
         }
         if (chatActivityEnterView != null) {
             chatActivityEnterView.setVisibility(!value ? View.VISIBLE : View.INVISIBLE);
@@ -31828,7 +31883,9 @@ public class ChatActivity extends BaseFragment implements
 
         if (AndroidUtilities.isTablet()) {
             if (AndroidUtilities.isSmallTablet() && ApplicationLoader.applicationContext.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-                actionBar.setBackButtonDrawable(new BackDrawable(false));
+                BackDrawable backDrawable = new BackDrawable(false);
+                backDrawable.setShowStick(!isTitleCentered());
+                actionBar.setBackButtonDrawable(backDrawable);
             } else {
                 actionBar.setBackButtonDrawable(new BackDrawable(parentLayout == null || parentLayout.getFragmentStack().isEmpty() || parentLayout.getFragmentStack().get(0) == ChatActivity.this || parentLayout.getFragmentStack().size() == 1));
             }
@@ -40443,7 +40500,7 @@ public class ChatActivity extends BaseFragment implements
                     attachItem.setVisibility(View.VISIBLE);
                 }
                 if (otherIcon != null) {
-                    otherIcon.setIconVisible(true);
+                    otherIcon.setIconVisible(!isAvatarMenuCentered());
                 }
                 if (searchIconItem != null && showSearchAsIcon) {
                     searchIconItem.setVisibility(View.GONE);
@@ -48370,6 +48427,7 @@ public class ChatActivity extends BaseFragment implements
             avatarContainer.setScaleY(scale);
             avatarContainer.setAlpha(factor);
             avatarContainer.setVisibility(factor > 0 ? View.VISIBLE : View.GONE);
+            updateIOSUnreadBadge();
         }
     }
 
@@ -49373,5 +49431,49 @@ public class ChatActivity extends BaseFragment implements
         keys.add(Theme.key_actionBarDefaultSubtitle);
         keys.add(Theme.key_actionBarDefaultTitle);
         keys.add(Theme.key_actionBarDefaultIcon);
+    }
+
+    private boolean centeredHeader, centeredHeaderDecided;
+
+    private boolean isTitleCentered() {
+        if (!centeredHeaderDecided) {
+            centeredHeader = org.telegram.messenger.banana.BananaConfig.glassCenteredHeader()
+                    && !isReport()
+                    && getChatMode() != MODE_SEARCH
+                    && getChatMode() != MODE_WELCOME_MESSAGES
+                    && getChatMode() != MODE_QUICK_REPLIES
+                    && getChatMode() != MODE_EDIT_BUSINESS_LINK
+                    && getDialogId() != 0;
+            centeredHeaderDecided = true;
+        }
+        return centeredHeader;
+    }
+
+    private boolean hasCenteredAvatarMenu() {
+        return ((chatMode == 0 && (threadMessageId == 0 || isTopic)) || chatMode == MODE_SUGGESTIONS)
+                && !UserObject.isReplyUser(currentUser) && !isReport()
+                && !UserObject.isUserSelf(currentUser)
+                || chatMode == MODE_PINNED;
+    }
+
+    private boolean isAvatarMenuCentered() {
+        return isTitleCentered() && hasCenteredAvatarMenu();
+    }
+
+    private boolean isCenteredSearchPill() {
+        return isTitleCentered() && !hasCenteredAvatarMenu();
+    }
+
+    public boolean isInSearchMode() {
+        return searching;
+    }
+
+    private void updateIOSUnreadBadge() {
+        if (actionBar != null && actionBar.backButtonImageView != null && org.telegram.messenger.banana.BananaConfig.glassBackUnreadPill()) {
+            final int unreadCount = getMessagesStorage().getMainUnreadCount();
+            actionBar.setIOSUnreadBadgeAvailable(unreadCount > 0 && isTitleCentered());
+            actionBar.backButtonImageView.checkUnreadView(unreadCount);
+            actionBar.updateBackPillWidth(true);
+        }
     }
 }
