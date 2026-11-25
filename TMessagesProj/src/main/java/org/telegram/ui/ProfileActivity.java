@@ -13199,6 +13199,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     req.flags |= 16;
                 }
                 avatarUploadingRequest = getConnectionsManager().sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+                    if (error != null) {
+                        // The avatar silently "does not update" otherwise; the reason belongs in the log.
+                        FileLog.e("Profile photo upload failed: code=" + error.code + " text=" + error.text);
+                    }
                     if (error == null) {
                         TLRPC.User user = getMessagesController().getUser(getUserConfig().getClientUserId());
                         if (user == null) {

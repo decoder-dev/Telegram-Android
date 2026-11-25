@@ -303,7 +303,7 @@ public class FileUploadOperation {
 //                }
                 stream = new RandomAccessFile(cacheFile, "r");
                 if (AndroidUtilities.isInternalFileDescriptor(stream.getFD())) {
-                    throw new Exception("trying to upload internal file");
+                    throw new Exception("trying to upload internal file: " + uploadingFilePath);
                 }
                 if (estimatedSize != 0) {
                     totalFileSize = estimatedSize;
