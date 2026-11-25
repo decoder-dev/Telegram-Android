@@ -2,6 +2,17 @@
 
 Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [13.2.2-rc.21]
+
+### Added
+
+- Round video recorder: 1×/2× zoom buttons (the camera's maximum ratio when it is below 2×) in a pill at the bottom right of the preview, visible while recording on cameras that support zoom. A tap animates the zoom and holds it as the new base; pinch-to-zoom continues from that base and springs back to it. Camera flips and new recordings reset to 1×, matching `RoundVideoSession.disableCameraEffects`.
+
+### Diagnostics
+
+- `FileUploadOperation` names the refused path in "trying to upload internal file" so debug logs identify the failing pipeline.
+- `ProfileActivity` logs `photos.uploadProfilePhoto` errors; the request failure was silent and the avatar simply never updated.
+
 ## [13.2.2-rc.20]
 
 ### Performance
