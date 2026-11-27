@@ -44569,7 +44569,8 @@ public class ChatActivity extends BaseFragment implements
         //themeDescriptions.add(new ThemeDescription(chatActivityEnterView, ThemeDescription.FLAG_IMAGECOLOR, new Class[]{ChatActivityEnterView.class}, new String[]{"doneButtonImage"}, null, null, null, Theme.key_chat_messagePanelBackground));
         themeDescriptions.add(new ThemeDescription(chatActivityEnterView, 0, null, null, null, null, Theme.key_chat_messagePanelVoiceLock));
         themeDescriptions.add(new ThemeDescription(chatActivityEnterView, 0, new Class[]{ChatActivityEnterView.class}, null, null, null, Theme.key_chat_messagePanelVoiceLockBackground));
-        themeDescriptions.add(new ThemeDescription(chatActivityEnterView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{ChatActivityEnterView.class}, new String[]{"recordedAudioBackground"}, null, null, null, Theme.key_chat_recordedVoiceBackground));
+        // recordedAudioBackground was removed from ChatActivityEnterView upstream in 13.2; the old
+        // reflection entry only threw NoSuchFieldException on every theme pass.
         themeDescriptions.add(new ThemeDescription(chatActivityEnterView, 0, null, null, null, null, Theme.key_chat_recordTime));
         themeDescriptions.add(new ThemeDescription(chatActivityEnterView, 0, null, null, null, null, Theme.key_chat_recordVoiceCancel));
         themeDescriptions.add(new ThemeDescription(chatActivityEnterView, 0, null, null, null, null, Theme.key_chat_recordVoiceCancel));

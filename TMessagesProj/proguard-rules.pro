@@ -69,9 +69,10 @@
 # ThemeDescription recolors these ChatActivityEnterView fields by their Java names
 # (ChatActivity.getThemeDescriptions). Obfuscation broke every theme pass with
 # NoSuchFieldException on a real device (logs 2026-11-27).
+# recordedAudioBackground was removed upstream in 13.2; its stale theme entry is
+# deleted in ChatActivity, so there is deliberately no rule for it.
 -keepclassmembers class org.telegram.ui.Components.ChatActivityEnterView {
     *** messageEditText;
-    *** recordedAudioBackground;
     *** cancelBotButton;
     *** paint;
 }

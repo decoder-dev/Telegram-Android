@@ -77,7 +77,7 @@ def main():
     args = parser.parse_args()
     expected = {'org.telegram.ui.Cells.' + name: fields for name, fields in REQUIRED.items()}
     expected['org.telegram.ui.Components.ChatActivityEnterView'] = {
-        'messageEditText', 'recordedAudioBackground', 'cancelBotButton', 'paint',
+        'messageEditText', 'cancelBotButton', 'paint',
     }
     config = (Path(__file__).resolve().parents[1] /
               'TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaConfig.java').read_text()
