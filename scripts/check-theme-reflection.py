@@ -76,6 +76,9 @@ def main():
     source.add_argument('--dex-dir', type=Path)
     args = parser.parse_args()
     expected = {'org.telegram.ui.Cells.' + name: fields for name, fields in REQUIRED.items()}
+    expected['org.telegram.ui.Components.ChatActivityEnterView'] = {
+        'messageEditText', 'recordedAudioBackground', 'cancelBotButton', 'paint',
+    }
     config = (Path(__file__).resolve().parents[1] /
               'TMessagesProj/src/main/java/org/telegram/messenger/banana/BananaConfig.java').read_text()
     options = config.split('public enum Option {', 1)[1].split('public enum SilentSending', 1)[0]
@@ -107,7 +110,8 @@ def main():
               if field not in found.get(descriptors[name], set())]
     if broken:
         raise SystemExit('Live theme reflection fields were renamed or removed:\n' + '\n'.join(broken))
-    print(f'All nine live theme fields and {len(labels)} Extras label fields verified in the actual DEX')
+    total = sum(len(fields) for fields in expected.values()) - len(labels)
+    print(f'All {total} live theme fields and {len(labels)} Extras label fields verified in the actual DEX')
 
 
 if __name__ == '__main__':

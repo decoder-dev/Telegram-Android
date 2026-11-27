@@ -2,6 +2,16 @@
 
 Notable BananaGram Android changes. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [13.2.2-rc.22]
+
+### Fixed
+
+- Minified builds: `ChatActivityEnterView` fields used by `ThemeDescription` reflection (`messageEditText`, `recordedAudioBackground`, `cancelBotButton`, `paint`) are now kept by name. Obfuscation renamed them, so every theme pass threw `NoSuchFieldException` on a real device and the recording/composer theming silently did nothing (owner's log, 2026-11-27).
+
+### CI
+
+- `scripts/check-theme-reflection.py` now also verifies those four fields in the actual DEX.
+
 ## [13.2.2-rc.21]
 
 ### Added

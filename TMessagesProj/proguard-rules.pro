@@ -66,6 +66,15 @@
 -keepclassmembers class org.telegram.ui.Cells.TextInfoPrivacyCell {
     *** textView;
 }
+# ThemeDescription recolors these ChatActivityEnterView fields by their Java names
+# (ChatActivity.getThemeDescriptions). Obfuscation broke every theme pass with
+# NoSuchFieldException on a real device (logs 2026-11-27).
+-keepclassmembers class org.telegram.ui.Components.ChatActivityEnterView {
+    *** messageEditText;
+    *** recordedAudioBackground;
+    *** cancelBotButton;
+    *** paint;
+}
 -keep class androidx.mediarouter.app.MediaRouteButton { *; }
 -keepclassmembers class ** {
     @android.webkit.JavascriptInterface <methods>;
